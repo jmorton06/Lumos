@@ -1,7 +1,9 @@
 #pragma once
 #include "MeshFactory.h"
-#include "Core/Asset.h"
+#include "Core/Asset/Asset.h"
 #include "Utilities/TimeStep.h"
+#include "Maths/Matrix4.h"
+#include "Core/DataStructures/TDArray.h"
 
 namespace Lumos
 {
@@ -30,12 +32,12 @@ namespace Lumos
 
             ~Model();
 
-            std::vector<SharedPtr<Mesh>>& GetMeshesRef();
-            const std::vector<SharedPtr<Mesh>>& GetMeshes() const;
+            TDArray<SharedPtr<Mesh>>& GetMeshesRef();
+            const TDArray<SharedPtr<Mesh>>& GetMeshes() const;
             void AddMesh(SharedPtr<Mesh> mesh);
 
             SharedPtr<Skeleton> GetSkeleton() const;
-            const std::vector<SharedPtr<Animation>>& GetAnimations() const;
+            const TDArray<SharedPtr<Animation>>& GetAnimations() const;
             SharedPtr<SamplingContext> GetSamplingContext() const;
             SharedPtr<AnimationController> GetAnimationController() const;
 
@@ -50,7 +52,7 @@ namespace Lumos
             void UpdateAnimation(const TimeStep& dt);
             void UpdateAnimation(const TimeStep& dt, float overrideTime);
 
-            std::vector<glm::mat4> GetJointMatrices();
+            TDArray<Mat4> GetJointMatrices();
 
             Model(const Model&);
             Model& operator=(const Model&);
@@ -58,19 +60,20 @@ namespace Lumos
             Model& operator=(Model&&);
 
         private:
+        //Move to Animation Component
             PrimitiveType m_PrimitiveType = PrimitiveType::None;
-            std::vector<SharedPtr<Mesh>> m_Meshes;
+            TDArray<SharedPtr<Mesh>> m_Meshes;
             std::string m_FilePath;
-            std::vector<String8> m_AnimFilePaths;
+            TDArray<String8> m_AnimFilePaths;
 
             SharedPtr<Skeleton> m_Skeleton;
-            std::vector<SharedPtr<Animation>> m_Animation;
+            TDArray<SharedPtr<Animation>> m_Animation;
             SharedPtr<SamplingContext> m_SamplingContext;
             SharedPtr<AnimationController> m_AnimationController;
 
             uint32_t m_CurrentAnimation = 0;
 
-            std::vector<glm::mat4> m_BindPoses;
+            TDArray<Mat4> m_BindPoses;
 
             void LoadOBJ(const std::string& path);
             void LoadGLTF(const std::string& path);

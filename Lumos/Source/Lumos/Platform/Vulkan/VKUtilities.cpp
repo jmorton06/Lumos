@@ -44,7 +44,7 @@ namespace Lumos
                 }
             }
 
-            LUMOS_LOG_ERROR("Failed to find suitable memory type!");
+            LERROR("Failed to find suitable memory type!");
             return 0;
         }
 
@@ -82,7 +82,7 @@ namespace Lumos
             VkResult result = vkAllocateMemory(VKDevice::Get().GetDevice(), &allocInfo, nullptr, &bufferMemory);
             if(result != VK_SUCCESS)
             {
-                LUMOS_LOG_ERROR("Failed to allocate buffer memory!");
+                LERROR("Failed to allocate buffer memory!");
             }
 
             vkBindBufferMemory(VKDevice::Get().GetDevice(), buffer, bufferMemory, 0);
@@ -205,7 +205,7 @@ namespace Lumos
             while(accessFlags != 0)
             {
                 VkAccessFlagBits AccessFlag = static_cast<VkAccessFlagBits>(accessFlags & (~(accessFlags - 1)));
-                LUMOS_ASSERT(AccessFlag != 0 && (AccessFlag & (AccessFlag - 1)) == 0, "Error");
+                ASSERT(AccessFlag != 0 && (AccessFlag & (AccessFlag - 1)) == 0, "Error");
                 accessFlags &= ~AccessFlag;
 
                 switch(AccessFlag)
@@ -277,7 +277,7 @@ namespace Lumos
                     break;
 
                 default:
-                    LUMOS_LOG_ERROR("Unknown access flag");
+                    LERROR("Unknown access flag");
                     break;
                 }
             }
@@ -293,7 +293,7 @@ namespace Lumos
             case VK_IMAGE_LAYOUT_UNDEFINED:
                 if(isDestination)
                 {
-                    LUMOS_LOG_ERROR("The new layout used in a transition must not be VK_IMAGE_LAYOUT_UNDEFINED.");
+                    LERROR("The new layout used in a transition must not be VK_IMAGE_LAYOUT_UNDEFINED.");
                 }
                 break;
 
@@ -332,7 +332,7 @@ namespace Lumos
                 }
                 else
                 {
-                    LUMOS_LOG_ERROR("The new layout used in a transition must not be VK_IMAGE_LAYOUT_PREINITIALIZED.");
+                    LERROR("The new layout used in a transition must not be VK_IMAGE_LAYOUT_PREINITIALIZED.");
                 }
                 break;
 
@@ -349,7 +349,7 @@ namespace Lumos
                 break;
 
             default:
-                LUMOS_LOG_ERROR("Unexpected image layout");
+                LERROR("Unexpected image layout");
                 break;
             }
 
@@ -462,7 +462,7 @@ namespace Lumos
                 EndSingleTimeCommands(commandBuffer);
         }
 
-        VkFormat VKUtilities::FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
+        VkFormat VKUtilities::FindSupportedFormat(const TDArray<VkFormat>& candidates, VkImageTiling tiling,
                                                   VkFormatFeatureFlags features)
         {
             for(VkFormat format : candidates)
@@ -485,7 +485,7 @@ namespace Lumos
                 }
             }
 
-            LUMOS_LOG_ERROR("Failed to find supported format!");
+            LERROR("Failed to find supported format!");
             return VK_FORMAT_UNDEFINED;
         }
 
@@ -589,7 +589,7 @@ namespace Lumos
                 return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
             }
 
-            LUMOS_LOG_INFO("Unsupported Descriptor Type");
+            LINFO("Unsupported Descriptor Type");
             return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         }
 
@@ -617,7 +617,7 @@ namespace Lumos
             case TextureWrap::MIRRORED_REPEAT:
                 return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
             default:
-                LUMOS_LOG_CRITICAL("[Texture] Unsupported wrap type!");
+                LFATAL("[Texture] Unsupported wrap type!");
                 return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
             }
         }
@@ -633,7 +633,7 @@ namespace Lumos
             case TextureFilter::NONE:
                 return VK_FILTER_LINEAR;
             default:
-                LUMOS_LOG_CRITICAL("[Texture] Unsupported TextureFilter type!");
+                LFATAL("[Texture] Unsupported TextureFilter type!");
                 return VK_FILTER_LINEAR;
             }
         }
@@ -661,7 +661,7 @@ namespace Lumos
                 case RHIFormat::R32G32B32A32_Float:
                     return VK_FORMAT_R32G32B32A32_SFLOAT;
                 default:
-                    LUMOS_LOG_CRITICAL("[Texture] Unsupported image bit-depth!");
+                    LFATAL("[Texture] Unsupported image bit-depth!");
                     return VK_FORMAT_R8G8B8A8_SRGB;
                 }
             }
@@ -706,7 +706,7 @@ namespace Lumos
                 case RHIFormat::D32_Float_S8_UInt:
                     return VK_FORMAT_D32_SFLOAT_S8_UINT;
                 default:
-                    LUMOS_LOG_CRITICAL("[Texture] Unsupported image bit-depth!");
+                    LFATAL("[Texture] Unsupported image bit-depth!");
                     return VK_FORMAT_R8G8B8A8_UNORM;
                 }
             }
@@ -751,7 +751,7 @@ namespace Lumos
             case VK_FORMAT_D32_SFLOAT_S8_UINT:
                 return RHIFormat::D32_Float_S8_UInt;
             default:
-                LUMOS_LOG_CRITICAL("[Texture] Unsupported texture type!");
+                LFATAL("[Texture] Unsupported texture type!");
                 return RHIFormat::R8G8B8A8_Unorm;
             }
         }
@@ -800,7 +800,7 @@ namespace Lumos
             case VK_FORMAT_BC7_UNORM_BLOCK:
                 return 16;
             default:
-                LUMOS_LOG_ERROR("Unsupported Vulkan format");
+                LERROR("Unsupported Vulkan format");
                 return 4;
             }
 
@@ -824,7 +824,7 @@ namespace Lumos
             case ShaderType::COMPUTE:
                 return VK_SHADER_STAGE_COMPUTE_BIT;
             default:
-                LUMOS_LOG_CRITICAL("Unknown Shader Type");
+                LFATAL("Unknown Shader Type");
                 return VK_SHADER_STAGE_VERTEX_BIT;
             }
         }
@@ -843,7 +843,7 @@ namespace Lumos
                 return VK_POLYGON_MODE_POINT;
                 break;
             default:
-                LUMOS_LOG_CRITICAL("Unknown Polygon Mode");
+                LFATAL("Unknown Polygon Mode");
                 return VK_POLYGON_MODE_FILL;
                 break;
             }
@@ -863,13 +863,13 @@ namespace Lumos
                 return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
                 break;
             default:
-                LUMOS_LOG_CRITICAL("Unknown Draw Type");
+                LFATAL("Unknown Draw Type");
                 return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
                 break;
             }
         }
 
-        bool VKUtilities::IsPresentModeSupported(const std::vector<VkPresentModeKHR>& supportedModes, VkPresentModeKHR presentMode)
+        bool VKUtilities::IsPresentModeSupported(const TDArray<VkPresentModeKHR>& supportedModes, VkPresentModeKHR presentMode)
         {
             for(const auto& mode : supportedModes)
             {
@@ -881,7 +881,7 @@ namespace Lumos
             return false;
         }
 
-        VkPresentModeKHR VKUtilities::ChoosePresentMode(const std::vector<VkPresentModeKHR>& supportedModes, bool vsync)
+        VkPresentModeKHR VKUtilities::ChoosePresentMode(const TDArray<VkPresentModeKHR>& supportedModes, bool vsync)
         {
             VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
             if(!vsync)
@@ -892,7 +892,7 @@ namespace Lumos
                 }
                 else
                 {
-                    LUMOS_LOG_ERROR("Failed to find supported presentation mode.");
+                    LERROR("Failed to find supported presentation mode.");
                 }
             }
 

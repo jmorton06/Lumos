@@ -20,7 +20,7 @@
             "//Assets/Scenes/MeshCollisionTest",
             "//Assets/Scenes/CollisionPyramidTest"
         ],
-        "SceneIndex": 1,
+        "SceneIndex": 0,
         "Borderless": false,
         "EngineAssetPath": "/Users/jmorton/Dev/Lumos/Lumos/Assets/",
         "GPUIndex": -1

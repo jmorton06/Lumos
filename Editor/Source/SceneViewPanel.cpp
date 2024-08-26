@@ -8,8 +8,7 @@
 #include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Graphics/RHI/Texture.h>
 #include <Lumos/Graphics/RHI/SwapChain.h>
-#include <Lumos/Graphics/Renderers/RenderPasses.h>
-#include <Lumos/Graphics/GBuffer.h>
+#include <Lumos/Graphics/Renderers/SceneRenderer.h>
 #include <Lumos/Graphics/Light.h>
 #include <Lumos/Scene/Component/SoundComponent.h>
 #include <Lumos/Graphics/Renderers/GridRenderer.h>
@@ -41,7 +40,7 @@ namespace Lumos
         m_Width  = 800;
         m_Height = 600;
 
-        Application::Get().GetRenderPasses()->SetDisablePostProcess(false);
+        Application::Get().GetSceneRenderer()->SetDisablePostProcess(false);
     }
 
     void SceneViewPanel::OnImGui()
@@ -55,7 +54,7 @@ namespace Lumos
 
         if(!ImGui::Begin(m_Name.c_str(), &m_Active, flags) || !m_CurrentScene)
         {
-            app.SetDisableMainRenderPasses(true);
+            app.SetDisableMainSceneRenderer(true);
             ImGui::End();
             return;
         }
@@ -63,7 +62,7 @@ namespace Lumos
         Camera* camera              = nullptr;
         Maths::Transform* transform = nullptr;
 
-        app.SetDisableMainRenderPasses(false);
+        app.SetDisableMainSceneRenderer(false);
 
         // if(app.GetEditorState() == EditorState::Preview)
         {
@@ -71,7 +70,8 @@ namespace Lumos
             camera    = m_Editor->GetCamera();
             transform = &m_Editor->GetEditorCameraTransform();
 
-            app.GetRenderPasses()->SetOverrideCamera(camera, transform);
+            app.GetSceneRenderer()->SetOverrideCamera(camera, transform);
+            app.GetSceneRenderer()->m_EnableUIPass = false;
         }
 
         ImVec2 offset = { 0.0f, 0.0f };
@@ -100,14 +100,14 @@ namespace Lumos
         {
             camera->SetAspectRatio(aspect);
         }
-        m_Editor->m_SceneViewPanelPosition = glm::vec2(sceneViewPosition.x, sceneViewPosition.y);
+        // m_Editor->m_SceneViewPosition = Vec2(sceneViewPosition.x, sceneViewPosition.y);
 
         sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
         sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
 
         Resize(static_cast<uint32_t>(sceneViewSize.x), static_cast<uint32_t>(sceneViewSize.y));
 
-        ImGuiUtilities::Image(m_GameViewTexture.get(), glm::vec2(sceneViewSize.x, sceneViewSize.y), Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture());
+        ImGuiUtilities::Image(m_GameViewTexture.get(), Vec2(sceneViewSize.x, sceneViewSize.y), Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture());
 
         auto windowSize = ImGui::GetWindowSize();
         ImVec2 minBound = sceneViewPosition;
@@ -141,7 +141,7 @@ namespace Lumos
             LUMOS_PROFILE_SCOPE("Select Object");
 
             float dpi     = Application::Get().GetWindowDPI();
-            auto clickPos = Input::Get().GetMousePosition() - glm::vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
+            auto clickPos = Input::Get().GetMousePosition() - Vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
 
             Maths::Ray ray = m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
             m_Editor->SelectObject(ray);
@@ -152,7 +152,7 @@ namespace Lumos
             LUMOS_PROFILE_SCOPE("Hover Object");
 
             float dpi     = Application::Get().GetWindowDPI();
-            auto clickPos = Input::Get().GetMousePosition() - glm::vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
+            auto clickPos = Input::Get().GetMousePosition() - Vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
 
             Maths::Ray ray = m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
             m_Editor->SelectObject(ray, true);
@@ -194,9 +194,9 @@ namespace Lumos
         Camera* camera                    = m_Editor->GetCamera();
         Maths::Transform& cameraTransform = m_Editor->GetEditorCameraTransform();
         auto& registry                    = scene->GetRegistry();
-        glm::mat4 view                    = glm::inverse(cameraTransform.GetWorldMatrix());
-        glm::mat4 proj                    = camera->GetProjectionMatrix();
-        glm::mat4 viewProj                = proj * view;
+        Mat4 view                         = cameraTransform.GetWorldMatrix().Inverse();
+        Mat4 proj                         = camera->GetProjectionMatrix();
+        Mat4 viewProj                     = proj * view;
         const Maths::Frustum& f           = camera->GetFrustum(view);
 
         ShowComponentGizmo<Graphics::Light>(width, height, xpos, ypos, viewProj, f, registry);
@@ -388,52 +388,43 @@ namespace Lumos
 
                 if(physics2D)
                 {
-                    uint32_t flags = physics2D->GetDebugDrawFlags();
+                   uint32_t flags = physics2D->GetDebugDrawFlags();
 
-                    bool show2DShapes = flags & b2Draw::e_shapeBit;
-                    if(ImGui::Checkbox("Shapes (2D)", &show2DShapes))
-                    {
-                        if(show2DShapes)
-                            flags += b2Draw::e_shapeBit;
-                        else
-                            flags -= b2Draw::e_shapeBit;
-                    }
+                   bool show2DShapes = flags & PhysicsDebugFlags2D::LINEARFORCE2D;
+                   if(ImGui::Checkbox("Shapes (2D)", &show2DShapes))
+                   {
+                       if(show2DShapes)
+                           flags += PhysicsDebugFlags2D::LINEARFORCE2D;
+                       else
+                           flags -= PhysicsDebugFlags2D::LINEARFORCE2D;
+                   }
 
-                    bool showCOG = flags & b2Draw::e_centerOfMassBit;
-                    if(ImGui::Checkbox("Centre of Mass (2D)", &showCOG))
-                    {
-                        if(showCOG)
-                            flags += b2Draw::e_centerOfMassBit;
-                        else
-                            flags -= b2Draw::e_centerOfMassBit;
-                    }
+                   bool showCOG = flags & PhysicsDebugFlags2D::COLLISIONVOLUMES2D;
+                   if(ImGui::Checkbox("Centre of Mass (2D)", &showCOG))
+                   {
+                       if(showCOG)
+                           flags += PhysicsDebugFlags2D::COLLISIONVOLUMES2D;
+                       else
+                           flags -= PhysicsDebugFlags2D::COLLISIONVOLUMES2D;
+                   }
 
-                    bool showJoint = flags & b2Draw::e_jointBit;
-                    if(ImGui::Checkbox("Joint Connection (2D)", &showJoint))
-                    {
-                        if(showJoint)
-                            flags += b2Draw::e_jointBit;
-                        else
-                            flags -= b2Draw::e_jointBit;
-                    }
+                   bool showJoint = flags & PhysicsDebugFlags2D::CONSTRAINT2D;
+                   if(ImGui::Checkbox("Joint Connection (2D)", &showJoint))
+                   {
+                       if(showJoint)
+                           flags += PhysicsDebugFlags2D::CONSTRAINT2D;
+                       else
+                           flags -= PhysicsDebugFlags2D::CONSTRAINT2D;
+                   }
 
-                    bool showAABB = flags & b2Draw::e_aabbBit;
-                    if(ImGui::Checkbox("AABB (2D)", &showAABB))
-                    {
-                        if(showAABB)
-                            flags += b2Draw::e_aabbBit;
-                        else
-                            flags -= b2Draw::e_aabbBit;
-                    }
-
-                    bool showPairs = static_cast<bool>(flags & b2Draw::e_pairBit);
-                    if(ImGui::Checkbox("Broadphase Pairs  (2D)", &showPairs))
-                    {
-                        if(showPairs)
-                            flags += b2Draw::e_pairBit;
-                        else
-                            flags -= b2Draw::e_pairBit;
-                    }
+                   bool showAABB = flags & PhysicsDebugFlags2D::AABB2D;
+                   if(ImGui::Checkbox("AABB (2D)", &showAABB))
+                   {
+                       if(showAABB)
+                           flags += PhysicsDebugFlags2D::AABB2D;
+                       else
+                           flags -= PhysicsDebugFlags2D::AABB2D;
+                   }
 
                     physics2D->SetDebugDrawFlags(flags);
                 }
@@ -568,8 +559,8 @@ namespace Lumos
                 camPos.z    = 0.0f;
                 camera.SetNear(-10.0f);
                 m_Editor->GetEditorCameraTransform().SetLocalPosition(camPos);
-                m_Editor->GetEditorCameraTransform().SetLocalOrientation(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)));
-                m_Editor->GetEditorCameraTransform().SetLocalScale(glm::vec3(1.0f, 1.0f, 1.0f));
+                m_Editor->GetEditorCameraTransform().SetLocalOrientation(Quat(Vec3(0.0f, 0.0f, 0.0f)));
+                m_Editor->GetEditorCameraTransform().SetLocalScale(Vec3(1.0f, 1.0f, 1.0f));
 
                 m_Editor->GetEditorCameraController().SetCurrentMode(EditorCameraMode::TWODIM);
             }
@@ -587,11 +578,11 @@ namespace Lumos
         m_Editor->GetSettings().m_AspectRatio = 1.0f;
         m_CurrentScene                        = scene;
 
-        auto RenderPasses = Application::Get().GetRenderPasses();
-        RenderPasses->SetRenderTarget(m_GameViewTexture.get(), true);
-        RenderPasses->SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
+        auto SceneRenderer = Application::Get().GetSceneRenderer();
+        SceneRenderer->SetRenderTarget(m_GameViewTexture.get(), true);
+        SceneRenderer->SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
         m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), true);
-        m_Editor->GetGridRenderer()->SetDepthTarget(RenderPasses->GetForwardData().m_DepthTexture);
+        m_Editor->GetGridRenderer()->SetDepthTarget(SceneRenderer->GetForwardData().m_DepthTexture);
     }
 
     void SceneViewPanel::Resize(uint32_t width, uint32_t height)
@@ -599,9 +590,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         bool resize = false;
 
-        LUMOS_ASSERT(width > 0 && height > 0, "Scene View Dimensions 0");
-
-        Application::Get().SetSceneViewDimensions(width, height);
+        ASSERT(width > 0 && height > 0, "Scene View Dimensions 0");
 
         if(m_Width != width || m_Height != height)
         {
@@ -623,19 +612,19 @@ namespace Lumos
         {
             m_GameViewTexture->Resize(m_Width, m_Height);
 
-            auto RenderPasses = Application::Get().GetRenderPasses();
-            RenderPasses->SetRenderTarget(m_GameViewTexture.get(), true, false);
+            auto SceneRenderer = Application::Get().GetSceneRenderer();
+            SceneRenderer->SetRenderTarget(m_GameViewTexture.get(), true, false);
 
             if(!m_Editor->GetGridRenderer())
                 m_Editor->CreateGridRenderer();
             m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), false);
-            m_Editor->GetGridRenderer()->SetDepthTarget(RenderPasses->GetForwardData().m_DepthTexture);
+            m_Editor->GetGridRenderer()->SetDepthTarget(SceneRenderer->GetForwardData().m_DepthTexture);
 
             WindowResizeEvent e(width, height);
             auto& app = Application::Get();
-            app.GetRenderPasses()->OnResize(width, height);
+            app.GetSceneRenderer()->OnResize(width, height);
 
-            RenderPasses->OnEvent(e);
+            SceneRenderer->OnEvent(e);
 
             m_Editor->GetGridRenderer()->OnResize(m_Width, m_Height);
 

@@ -86,7 +86,7 @@ namespace Lumos
 
         if(!pixels)
         {
-            LUMOS_LOG_ERROR("Could not load image '{0}'!", filename);
+            LERROR("Could not load image '%s'!", filename);
             // Return magenta checkerboad image
 
             texChannels = 4;
@@ -203,7 +203,7 @@ namespace Lumos
 
         if(!pixels)
         {
-            LUMOS_LOG_ERROR("Could not load image '{0}'!", desc.filePath);
+            LERROR("Could not load image '%s'!", desc.filePath);
             // Return magenta checkerboard image
 
             texChannels = 4;

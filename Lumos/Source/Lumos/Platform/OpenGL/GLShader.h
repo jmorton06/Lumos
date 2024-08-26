@@ -4,8 +4,8 @@
 #include "GLDebug.h"
 #include "GLUniformBuffer.h"
 #include "Graphics/RHI/BufferLayout.h"
-#include <glm/ext/matrix_float3x3.hpp>
-#include <glm/ext/matrix_float4x4.hpp>
+#include "Maths/Matrix3.h"
+#include "Maths/Matrix4.h"
 
 namespace spirv_cross
 {
@@ -52,7 +52,7 @@ namespace Lumos
                 return m_Path;
             }
 
-            inline const std::vector<ShaderType> GetShaderTypes() const override
+            inline const TDArray<ShaderType> GetShaderTypes() const override
             {
                 return m_ShaderTypes;
             }
@@ -60,7 +60,7 @@ namespace Lumos
             static uint32_t CompileShader(ShaderType type, std::string source, uint32_t program, GLShaderErrorInfo& info);
             static uint32_t Compile(std::map<ShaderType, std::string>* sources, GLShaderErrorInfo& info);
             static void PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources);
-            static void ReadShaderFile(std::vector<std::string> lines, std::map<ShaderType, std::string>* shaders);
+            static void ReadShaderFile(TDArray<std::string> lines, std::map<ShaderType, std::string>* shaders);
 
             void Parse(std::map<ShaderType, std::string>* sources);
             void ParseUniform(const std::string& statement, ShaderType type);
@@ -81,19 +81,19 @@ namespace Lumos
             void SetUniform1i(const std::string& name, int32_t value);
             void SetUniform1ui(const std::string& name, uint32_t value);
             void SetUniform1iv(const std::string& name, int32_t* value, int32_t count);
-            void SetUniform2f(const std::string& name, const glm::vec2& vector);
-            void SetUniform3f(const std::string& name, const glm::vec3& vector);
-            void SetUniform4f(const std::string& name, const glm::vec4& vector);
-            void SetUniformMat4(const std::string& name, const glm::mat4& matrix);
+            void SetUniform2f(const std::string& name, const Vec2& vector);
+            void SetUniform3f(const std::string& name, const Vec3& vector);
+            void SetUniform4f(const std::string& name, const Vec4& vector);
+            void SetUniformMat4(const std::string& name, const Mat4& matrix);
 
             void BindUniformBuffer(GLUniformBuffer* buffer, uint32_t slot, const std::string& name);
 
             PushConstant* GetPushConstant(uint32_t index) override
             {
-                LUMOS_ASSERT(index < m_PushConstants.size(), "Push constants out of bounds");
+                ASSERT(index < m_PushConstants.Size(), "Push constants out of bounds");
                 return &m_PushConstants[index];
             }
-            std::vector<PushConstant>& GetPushConstants() override { return m_PushConstants; }
+            TDArray<PushConstant>& GetPushConstants() override { return m_PushConstants; }
             void BindPushConstants(Graphics::CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline) override;
 
             DescriptorSetInfo GetDescriptorInfo(uint32_t index) override
@@ -103,7 +103,7 @@ namespace Lumos
                     return m_DescriptorInfos[index];
                 }
 
-                LUMOS_LOG_WARN("DescriptorDesc not found. Index = {0}", index);
+                LWARN("DescriptorDesc not found. Index = %s", index);
                 return DescriptorSetInfo();
             }
 
@@ -112,12 +112,12 @@ namespace Lumos
             static void SetUniform1i(uint32_t location, int32_t value);
             static void SetUniform1ui(uint32_t location, uint32_t value);
             static void SetUniform1iv(uint32_t location, int32_t* value, int32_t count);
-            static void SetUniform2f(uint32_t location, const glm::vec2& vector);
-            static void SetUniform3f(uint32_t location, const glm::vec3& vector);
-            static void SetUniform4f(uint32_t location, const glm::vec4& vector);
-            static void SetUniformMat3(uint32_t location, const glm::mat3& matrix);
-            static void SetUniformMat4(uint32_t location, const glm::mat4& matrix);
-            static void SetUniformMat4Array(uint32_t location, uint32_t count, const glm::mat4& matrix);
+            static void SetUniform2f(uint32_t location, const Vec2& vector);
+            static void SetUniform3f(uint32_t location, const Vec3& vector);
+            static void SetUniform4f(uint32_t location, const Vec4& vector);
+            static void SetUniformMat3(uint32_t location, const Mat3& matrix);
+            static void SetUniformMat4(uint32_t location, const Mat4& matrix);
+            static void SetUniformMat4Array(uint32_t location, uint32_t count, const Mat4& matrix);
 
             static void MakeDefault();
 
@@ -135,7 +135,7 @@ namespace Lumos
             std::string m_Name, m_Path;
             std::string m_Source;
 
-            std::vector<ShaderType> m_ShaderTypes;
+            TDArray<ShaderType> m_ShaderTypes;
             std::map<uint32_t, DescriptorSetInfo> m_DescriptorInfos;
 
             bool CreateLocations();
@@ -146,7 +146,7 @@ namespace Lumos
             std::map<uint32_t, uint32_t> m_UniformLocations;
 
             std::vector<spirv_cross::CompilerGLSL*> m_ShaderCompilers;
-            std::vector<PushConstant> m_PushConstants;
+            TDArray<PushConstant> m_PushConstants;
             std::vector<std::pair<GLUniformBuffer*, uint32_t>> m_PushConstantsBuffers;
 
             uint64_t m_Hash = 0;

@@ -4,8 +4,10 @@
 #include "Events/MouseEvent.h"
 #include "Utilities/TSingleton.h"
 #include "Core/OS/KeyCodes.h"
-#include <glm/ext/vector_float2.hpp>
-#include <map>
+#include "Core/DataStructures/TArray.h"
+#include "Core/DataStructures/Map.h"
+#include "Core/DataStructures/TDArray.h"
+#include "Maths/Vector2.h"
 
 #define MAX_KEYS 1024
 #define MAX_BUTTONS 32
@@ -36,20 +38,23 @@ namespace Lumos
         KeyState OldState = KeyState::None;
     };
 
+    #define MAX_CONTROLLER_COUNT 16
     struct Controller
     {
         int ID;
         std::string Name;
-        std::map<int, bool> ButtonDown;
-        std::map<int, ControllerButtonData> ButtonStates;
-        std::map<int, float> AxisStates;
-        std::map<int, float> DeadZones;
-        std::map<int, uint8_t> HatStates;
+        bool Present = false;
+        TArray<bool, 64> ButtonDown;
+        TArray<ControllerButtonData, 64> ButtonStates;
+        TArray<float, 16> AxisStates;
+        TArray<float, 16> DeadZones;
+        TArray<uint8_t, 16> HatStates;
     };
 
     class LUMOS_EXPORT Input : public ThreadSafeSingleton<Input>
     {
         friend class TSingleton<Input>;
+        friend class GLFWWindow;
 
     public:
         Input();
@@ -68,8 +73,8 @@ namespace Lumos
         void SetMouseOnScreen(bool onScreen) { m_MouseOnScreen = onScreen; }
         bool GetMouseOnScreen() const { return m_MouseOnScreen; }
 
-        void StoreMousePosition(float xpos, float ypos) { m_MousePosition = glm::vec2(float(xpos), float(ypos)); }
-        const glm::vec2& GetMousePosition() const { return m_MousePosition; }
+        void StoreMousePosition(float xpos, float ypos) { m_MousePosition = Vec2(float(xpos), float(ypos)); }
+        const Vec2& GetMousePosition() const { return m_MousePosition; }
 
         void SetScrollOffset(float offset) { m_ScrollOffset = offset; }
         float GetScrollOffset() const { return m_ScrollOffset; }
@@ -86,7 +91,7 @@ namespace Lumos
 
         // Controllers
         bool IsControllerPresent(int id);
-        std::vector<int> GetConnectedControllerIDs();
+        TDArray<int> GetConnectedControllerIDs();
         Controller* GetController(int id);
         Controller* GetOrAddController(int id);
 
@@ -95,8 +100,6 @@ namespace Lumos
         float GetControllerAxis(int controllerID, int axis);
         uint8_t GetControllerHat(int controllerID, int hat);
         void RemoveController(int id);
-
-        std::map<int, Controller>& GetControllers() { return m_Controllers; }
 
     private:
     protected:
@@ -120,8 +123,8 @@ namespace Lumos
         bool m_MouseOnScreen;
         MouseMode m_MouseMode;
 
-        glm::vec2 m_MousePosition;
+        Vec2 m_MousePosition;
 
-        std::map<int, Controller> m_Controllers;
+        Controller m_Controllers[MAX_CONTROLLER_COUNT];
     };
 }

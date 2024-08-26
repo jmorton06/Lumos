@@ -7,6 +7,12 @@
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/Graphics/RHI/Renderer.h>
 
+#if __has_include(<filesystem>)
+#include <filesystem>
+#elif __has_include(<experimental/filesystem>)
+#include <experimental/filesystem>
+#endif
+
 namespace Lumos
 {
     SceneSettingsPanel::SceneSettingsPanel()

@@ -17,6 +17,7 @@
 #include <Lumos/Scripting/Lua/LuaScriptComponent.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/Utilities/StringUtilities.h>
+#include <Lumos/Maths/MathsUtilities.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
 #include <Lumos/Scene/EntityFactory.h>
 #include <Lumos/Core/String.h>
@@ -24,19 +25,27 @@
 #include <Lumos/Scene/Component/RigidBody2DComponent.h>
 #include <Lumos/Scene/Component/RigidBody3DComponent.h>
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h>
+#include <Lumos/Scene/Entity.h>
 #include <typeinfo>
 #include <imgui/imgui_internal.h>
 #include <sol/sol.hpp>
+#include <entt/entt.hpp>
 
 namespace Lumos
 {
+    ImGuiTextFilter m_HierarchyFilter;
+    Entity m_DoubleClicked;
+    Entity m_HadRecentDroppedEntity;
+    Entity m_CurrentPrevious;
+
     HierarchyPanel::HierarchyPanel()
-        : m_HadRecentDroppedEntity(entt::null)
-        , m_DoubleClicked(entt::null)
     {
         m_Name        = ICON_MDI_FILE_TREE " Hierarchy###hierarchy";
         m_SimpleName  = "Hierarchy";
-        m_StringArena = ArenaAlloc(Kilobytes(32));
+        m_StringArena = ArenaAlloc(Kilobytes(256));
+
+        m_HadRecentDroppedEntity = {};
+        m_DoubleClicked          = {};
     }
 
     HierarchyPanel::~HierarchyPanel()
@@ -44,19 +53,17 @@ namespace Lumos
         ArenaRelease(m_StringArena);
     }
 
-    void HierarchyPanel::DrawNode(entt::entity node, entt::registry& registry)
+    void HierarchyPanel::DrawNode(Entity node)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
         bool show = true;
 
-        if(!registry.valid(node))
+        if(!node.Valid())
             return;
 
         Entity nodeEntity = { node, Application::Get().GetSceneManager()->GetCurrentScene() };
 
-        static const char* defaultName     = "Entity";
-        const NameComponent* nameComponent = registry.try_get<NameComponent>(node);
-        String8 name                       = PushStr8Copy(m_StringArena, nameComponent ? nameComponent->name.c_str() : defaultName); // StringUtilities::ToString(entt::to_integral(node));
+        String8 name = PushStr8Copy(m_StringArena, node.GetName().c_str()); // StringUtilities::ToString(entt::to_integral(node));
 
         if(m_HierarchyFilter.IsActive())
         {
@@ -70,7 +77,7 @@ namespace Lumos
         {
             // ImGui::PushID((int)node);
             ImGuiUtilities::PushID();
-            auto hierarchyComponent = registry.try_get<Hierarchy>(node);
+            auto hierarchyComponent = node.TryGetComponent<Hierarchy>();
             bool noChildren         = true;
 
             if(hierarchyComponent != nullptr && hierarchyComponent->First() != entt::null)
@@ -104,48 +111,48 @@ namespace Lumos
             if(m_HadRecentDroppedEntity == node)
             {
                 ImGui::SetNextItemOpen(true);
-                m_HadRecentDroppedEntity = entt::null;
+                m_HadRecentDroppedEntity = {};
             }
 
             String8 icon  = Str8C((char*)ICON_MDI_CUBE_OUTLINE);
             auto& iconMap = m_Editor->GetComponentIconMap();
 
-            if(registry.all_of<Camera>(node))
+            if(node.HasComponent<Camera>())
             {
                 if(iconMap.find(typeid(Camera).hash_code()) != iconMap.end())
                     icon = Str8C((char*)iconMap[typeid(Camera).hash_code()]);
             }
-            if(registry.all_of<LuaScriptComponent>(node))
+            if(node.HasComponent<LuaScriptComponent>())
             {
                 if(iconMap.find(typeid(LuaScriptComponent).hash_code()) != iconMap.end())
                     icon = Str8C((char*)iconMap[typeid(LuaScriptComponent).hash_code()]);
             }
-            else if(registry.all_of<SoundComponent>(node))
+            else if(node.HasComponent<SoundComponent>())
             {
                 if(iconMap.find(typeid(SoundComponent).hash_code()) != iconMap.end())
                     icon = Str8C((char*)iconMap[typeid(SoundComponent).hash_code()]);
             }
-            else if(registry.all_of<RigidBody2DComponent>(node))
+            else if(node.HasComponent<RigidBody2DComponent>())
             {
                 if(iconMap.find(typeid(RigidBody2DComponent).hash_code()) != iconMap.end())
                     icon = Str8C((char*)iconMap[typeid(RigidBody2DComponent).hash_code()]);
             }
-            else if(registry.all_of<Graphics::Light>(node))
+            else if(node.HasComponent<Graphics::Light>())
             {
                 if(iconMap.find(typeid(Graphics::Light).hash_code()) != iconMap.end())
                     icon = Str8C((char*)iconMap[typeid(Graphics::Light).hash_code()]);
             }
-            else if(registry.all_of<Graphics::Environment>(node))
+            else if(node.HasComponent<Graphics::Environment>())
             {
                 if(iconMap.find(typeid(Graphics::Environment).hash_code()) != iconMap.end())
                     icon = Str8C((char*)iconMap[typeid(Graphics::Environment).hash_code()]);
             }
-            else if(registry.all_of<Graphics::Sprite>(node))
+            else if(node.HasComponent<Graphics::Sprite>())
             {
                 if(iconMap.find(typeid(Graphics::Sprite).hash_code()) != iconMap.end())
                     icon = Str8C((char*)iconMap[typeid(Graphics::Sprite).hash_code()]);
             }
-            else if(registry.all_of<TextComponent>(node))
+            else if(node.HasComponent<TextComponent>())
             {
                 if(iconMap.find(typeid(TextComponent).hash_code()) != iconMap.end())
                     icon = Str8C((char*)iconMap[typeid(TextComponent).hash_code()]);
@@ -153,7 +160,7 @@ namespace Lumos
 
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetIconColour());
             // ImGui::BeginGroup();
-            bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, "%s", (const char*)icon.str);
+            bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)node.GetID(), nodeFlags, "%s", (const char*)icon.str);
             {
                 if(ImGui::BeginDragDropSource())
                 {
@@ -163,7 +170,7 @@ namespace Lumos
                         /*      m_Editor->ClearSelected();
                               m_Editor->SetSelected(node);*/
 
-                        auto selected = node;
+                        auto selected = node.GetHandle();
                         ImGui::TextUnformatted(Entity(node, Application::Get().GetSceneManager()->GetCurrentScene()).GetName().c_str());
                         ImGui::SetDragDropPayload("Drag_Entity", &selected, sizeof(entt::entity));
                     }
@@ -194,7 +201,7 @@ namespace Lumos
                         m_Editor->UnSelect(node);
                 }
                 else if(m_DoubleClicked == node && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsItemHovered(ImGuiHoveredFlags_None))
-                    m_DoubleClicked = entt::null;
+                    m_DoubleClicked = {};
             }
 
             if(ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered(ImGuiHoveredFlags_None))
@@ -202,7 +209,7 @@ namespace Lumos
                 m_DoubleClicked = node;
                 if(Application::Get().GetEditorState() == EditorState::Preview)
                 {
-                    auto transform = registry.try_get<Maths::Transform>(node);
+                    auto transform = node.TryGetComponent<Maths::Transform>();
                     if(transform)
                         m_Editor->FocusCamera(transform->GetWorldPosition(), 2.0f, 2.0f);
                 }
@@ -215,7 +222,7 @@ namespace Lumos
             if(!doubleClicked)
             {
                 bool isPrefab = false;
-                if(registry.any_of<PrefabComponent>(node))
+                if(node.HasComponent<PrefabComponent>())
                     isPrefab = true;
                 else
                 {
@@ -252,7 +259,7 @@ namespace Lumos
 
                 ImGui::PushItemWidth(-1);
                 if(ImGui::InputText("##Name", (char*)nameBuffer.str, INPUT_BUF_SIZE, 0))
-                    registry.get_or_emplace<NameComponent>(node).name = (const char*)nameBuffer.str;
+                    node.GetOrAddComponent<NameComponent>((const char*)nameBuffer.str);
                 ImGui::PopStyleVar();
             }
 
@@ -279,7 +286,7 @@ namespace Lumos
                         m_Editor->SetCopiedEntity(entity, true);
                 }
 
-                if(m_Editor->GetCopiedEntity().size() > 0 && registry.valid(m_Editor->GetCopiedEntity().front()))
+                if(m_Editor->GetCopiedEntity().size() > 0 && ((Entity)m_Editor->GetCopiedEntity().front()).Valid())
                 {
                     if(ImGui::Selectable("Paste"))
                     {
@@ -289,7 +296,7 @@ namespace Lumos
                             Entity copiedEntity = { entity, scene };
                             if(!copiedEntity.Valid())
                             {
-                                m_Editor->SetCopiedEntity(entt::null);
+                                m_Editor->SetCopiedEntity(Entity());
                             }
                             else
                             {
@@ -333,13 +340,16 @@ namespace Lumos
                 {
                     // if(Application::Get().GetEditorState() == EditorState::Preview)
                     {
-                        auto transform = registry.try_get<Maths::Transform>(node);
+                        auto transform = node.TryGetComponent<Maths::Transform>();
                         if(transform)
                             m_Editor->FocusCamera(transform->GetWorldPosition(), 2.0f, 2.0f);
                     }
                 }
                 ImGui::EndPopup();
             }
+
+            auto scene     = Application::Get().GetSceneManager()->GetCurrentScene();
+            auto& registry = scene->GetRegistry();
 
             if(ImGui::BeginDragDropTarget())
             {
@@ -352,7 +362,7 @@ namespace Lumos
                     for(size_t i = 0; i < count; i++)
                     {
                         entt::entity droppedEntityID = *(((entt::entity*)payload->Data) + i);
-                        if(droppedEntityID != node)
+                        if(droppedEntityID != node.GetHandle())
                         {
                             auto hierarchyComponent = registry.try_get<Hierarchy>(droppedEntityID);
                             if(hierarchyComponent)
@@ -372,14 +382,14 @@ namespace Lumos
             if(ImGui::IsItemClicked() && !deleteEntity)
                 m_Editor->SetSelected(node);
             else if(m_DoubleClicked == node && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsItemHovered(ImGuiHoveredFlags_None))
-                m_DoubleClicked = entt::null;
+                m_DoubleClicked = {};
 
             if(ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered(ImGuiHoveredFlags_None))
             {
                 m_DoubleClicked = node;
                 if(Application::Get().GetEditorState() == EditorState::Preview)
                 {
-                    auto transform = registry.try_get<Maths::Transform>(node);
+                    auto transform = node.TryGetComponent<Maths::Transform>();
                     if(transform)
                         m_Editor->FocusCamera(transform->GetWorldPosition(), 2.0f, 2.0f);
                 }
@@ -398,7 +408,7 @@ namespace Lumos
 
             if(m_SelectUp)
             {
-                if(!m_Editor->GetSelected().empty() && m_Editor->GetSelected().front() == node && registry.valid(m_CurrentPrevious))
+                if(!m_Editor->GetSelected().empty() && m_Editor->GetSelected().front() == node && m_CurrentPrevious.Valid())
                 {
                     m_SelectUp = false;
                     m_Editor->SetSelected(m_CurrentPrevious);
@@ -407,7 +417,7 @@ namespace Lumos
 
             if(m_SelectDown)
             {
-                if(!m_Editor->GetSelected().empty() && registry.valid(m_CurrentPrevious) && m_CurrentPrevious == m_Editor->GetSelected().front())
+                if(!m_Editor->GetSelected().empty() && m_CurrentPrevious.Valid() && m_CurrentPrevious == m_Editor->GetSelected().front())
                 {
                     m_SelectDown = false;
                     m_Editor->SetSelected(node);
@@ -425,7 +435,7 @@ namespace Lumos
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
                 if(ImGui::Button(active ? ICON_MDI_EYE : ICON_MDI_EYE_OFF))
                 {
-                    auto& activeComponent = registry.get_or_emplace<ActiveComponent>(node);
+                    auto& activeComponent = node.GetOrAddComponent<ActiveComponent>();
 
                     activeComponent.active = !active;
                 }
@@ -466,7 +476,8 @@ namespace Lumos
                             HorizontalTreeLineSize *= 0.4f;
                         }
                     }
-                    DrawNode(child, registry);
+                    auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
+                    DrawNode(Entity(child, scene));
                     ImGui::Unindent(10.0f);
 
                     const ImRect childRect = ImRect(currentPos, currentPos + ImVec2(0.0f, ImGui::GetFontSize() + (ImGui::GetStyle().FramePadding.y * 2)));
@@ -490,35 +501,36 @@ namespace Lumos
         }
     }
 
-    bool HierarchyPanel::IsParentOfEntity(entt::entity entity, entt::entity child, entt::registry& registry)
+    bool HierarchyPanel::IsParentOfEntity(Entity entity, Entity child)
     {
         LUMOS_PROFILE_FUNCTION();
-        auto nodeHierarchyComponent = registry.try_get<Hierarchy>(child);
-        if(nodeHierarchyComponent)
-        {
-            auto parent = nodeHierarchyComponent->Parent();
-            while(parent != entt::null)
-            {
-                if(parent == entity)
-                {
-                    return true;
-                }
-                else
-                {
-                    nodeHierarchyComponent = registry.try_get<Hierarchy>(parent);
-                    parent                 = nodeHierarchyComponent ? nodeHierarchyComponent->Parent() : entt::null;
-                }
-            }
-        }
-
-        return false;
+        return entity.IsParent(child);
+        //        auto nodeHierarchyComponent = child.TryGetComponent<Hierarchy>();
+        //        if(nodeHierarchyComponent)
+        //        {
+        //            auto parent = nodeHierarchyComponent->Parent();
+        //            while(parent != entt::null)
+        //            {
+        //                if(parent == entity)
+        //                {
+        //                    return true;
+        //                }
+        //                else
+        //                {
+        //                    nodeHierarchyComponent = registry.try_get<Hierarchy>(parent);
+        //                    parent                 = nodeHierarchyComponent ? nodeHierarchyComponent->Parent() : entt::null;
+        //                }
+        //            }
+        //        }
+        //
+        //        return false;
     }
 
     void HierarchyPanel::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
         auto flags        = ImGuiWindowFlags_NoCollapse;
-        m_CurrentPrevious = entt::null;
+        m_CurrentPrevious = {};
         m_SelectUp        = false;
         m_SelectDown      = false;
 
@@ -657,7 +669,7 @@ namespace Lumos
 
                         if(ImGui::MenuItem("Light Cube"))
                         {
-                            EntityFactory::AddLightCube(Application::Get().GetSceneManager()->GetCurrentScene(), glm::vec3(0.0f), glm::vec3(0.0f));
+                            EntityFactory::AddLightCube(Application::Get().GetSceneManager()->GetCurrentScene(), Vec3(0.0f), Vec3(0.0f));
                         }
 
                         ImGui::EndMenu();
@@ -726,7 +738,7 @@ ImGui::GetStyle().ChildBorderSize = backup_border_size;
                             Entity copiedEntity = { entity, scene };
                             if(!copiedEntity.Valid())
                             {
-                                m_Editor->SetCopiedEntity(entt::null);
+                                m_Editor->SetCopiedEntity({});
                             }
                             else
                             {
@@ -756,7 +768,7 @@ ImGui::GetStyle().ChildBorderSize = backup_border_size;
                         {
                             if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
                             {
-                                LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
+                                ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
                                 auto entity             = *reinterpret_cast<entt::entity*>(payload->Data);
                                 auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
                                 if(hierarchyComponent)
@@ -769,6 +781,8 @@ ImGui::GetStyle().ChildBorderSize = backup_border_size;
 
                 ImGui::Indent();
 
+                auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
+
                 for(auto [entity] : registry.storage<entt::entity>().each())
                 {
                     if(registry.valid(entity))
@@ -776,7 +790,7 @@ ImGui::GetStyle().ChildBorderSize = backup_border_size;
                         auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
 
                         if(!hierarchyComponent || hierarchyComponent->Parent() == entt::null)
-                            DrawNode(entity, registry);
+                            DrawNode({ entity, scene });
                     }
                 }
 

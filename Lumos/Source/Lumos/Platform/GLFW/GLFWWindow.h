@@ -23,7 +23,7 @@ namespace Lumos
         void SetBorderlessWindow(bool borderless) override;
         void OnUpdate() override;
         void HideMouse(bool hide) override;
-        void SetMousePosition(const glm::vec2& pos) override;
+        void SetMousePosition(const Vec2& pos) override;
         void UpdateCursorImGui() override;
         void ProcessInput() override;
         void Maximise() override;

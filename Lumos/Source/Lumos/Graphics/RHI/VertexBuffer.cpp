@@ -9,7 +9,7 @@ namespace Lumos
 
         VertexBuffer* VertexBuffer::Create(const BufferUsage& usage)
         {
-            LUMOS_ASSERT(CreateFunc, "No VertexBuffer Create Function");
+            ASSERT(CreateFunc, "No VertexBuffer Create Function");
             return CreateFunc(usage);
         }
 
@@ -17,7 +17,7 @@ namespace Lumos
 
         VertexBuffer* VertexBuffer::Create(uint32_t size, const void* data, const BufferUsage& usage)
         {
-            LUMOS_ASSERT(CreateWithDataFunc, "No VertexBuffer Create Function");
+            ASSERT(CreateWithDataFunc, "No VertexBuffer Create Function");
             return CreateWithDataFunc(size, data, usage);
         }
     }

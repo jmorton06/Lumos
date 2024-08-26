@@ -15,7 +15,6 @@
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoMedium.inl>
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoRegular.inl>
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoBold.inl>
-#include <imgui/misc/freetype/imgui_freetype.h>
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
 #define USING_GLFW
@@ -57,9 +56,9 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        LUMOS_LOG_INFO("ImGui Version : {0}", IMGUI_VERSION);
+        LINFO("ImGui Version : %s", IMGUI_VERSION);
 #ifdef IMGUI_USER_CONFIG
-        LUMOS_LOG_INFO("ImConfig File : {0}", std::string(IMGUI_USER_CONFIG));
+        LINFO("ImConfig File : %s", IMGUI_USER_CONFIG);
 #endif
         Application& app = Application::Get();
         ImGuiIO& io      = ImGui::GetIO();

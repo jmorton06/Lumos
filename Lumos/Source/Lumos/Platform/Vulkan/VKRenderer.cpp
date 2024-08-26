@@ -13,7 +13,8 @@
 #include "Core/Engine.h"
 #include "Core/Application.h"
 #include "Core/OS/Window.h"
-
+#include "Core/Algorithms/Find.h"
+#include "Core/DataStructures/TArray.h"
 #include "stb_image_write.h"
 #include <filesystem>
 
@@ -24,8 +25,8 @@ namespace Lumos
     {
         static VkFence s_ComputeFence = nullptr;
 
-        int VKRenderer::s_DeletionQueueIndex              = 0;
-        Vector<DeletionQueue> VKRenderer::s_DeletionQueue = {};
+        int VKRenderer::s_DeletionQueueIndex               = 0;
+        TDArray<DeletionQueue> VKRenderer::s_DeletionQueue = {};
 
         void VKRenderer::InitInternal()
         {
@@ -50,7 +51,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
         }
 
-        void VKRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, glm::vec4 clearColour)
+        void VKRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Vec4 clearColour)
         {
             VkImageSubresourceRange subresourceRange = {}; // TODO: Get from texture
             subresourceRange.baseMipLevel            = 0;
@@ -121,7 +122,7 @@ namespace Lumos
             if(width == 0 || height == 0)
                 return;
 
-            LUMOS_LOG_INFO("VKRenderer::OnResize {0}, {1}", width, height);
+            LINFO("VKRenderer::OnResize %i, %i", width, height);
 
             VKUtilities::ValidateResolution(width, height);
             Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>()->OnResize(width, height, true);
@@ -150,7 +151,7 @@ namespace Lumos
             auto semaphore  = frameData.MainCommandBuffer->GetSemaphore();
 
             ArenaTemp scratch = ScratchBegin(nullptr, 0);
-            Vector<VkSemaphore> semaphores(scratch.arena);
+            TDArray<VkSemaphore> semaphores(scratch.arena);
             semaphores.EmplaceBack(semaphore);
             semaphores.EmplaceBack(frameData.ImageAcquireSemaphore->GetHandle());
             swapChain->Present(semaphores);
@@ -173,7 +174,7 @@ namespace Lumos
             vkGetPhysicalDeviceFormatProperties(VKDevice::Get().GetGPU(), ((VKTexture2D*)texture)->GetVKFormat(), &formatProps);
             if(!(formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT))
             {
-                std::cerr << "Device does not support blitting from optimal tiled images, using copy instead of blit!" << std::endl;
+                LERROR("Device does not support blitting from optimal tiled images, using copy instead of blit!");
                 supportsBlit = false;
             }
 
@@ -346,8 +347,8 @@ file << "P6\n"
             // Note: Not complete, only contains most common and basic BGR surface formats for demonstration purposes
             if(!supportsBlit)
             {
-                std::vector<VkFormat> formatsBGR = { VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_SNORM };
-                colorSwizzle                     = (std::find(formatsBGR.begin(), formatsBGR.end(), ((VKTexture2D*)texture)->GetVKFormat()) != formatsBGR.end());
+                TDArray<VkFormat> formatsBGR = { VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_SNORM };
+                colorSwizzle                 = (Algorithms::FindIf(formatsBGR.begin(), formatsBGR.end(), ((VKTexture2D*)texture)->GetVKFormat()) != formatsBGR.end());
             }
 
             stbi_flip_vertically_on_write(1);
@@ -389,7 +390,7 @@ for(uint32_t y = 0; y < texture->GetHeight(); y++)
 file.close();
 */
 
-            LUMOS_LOG_INFO("Screenshot saved to disk");
+            LINFO("Screenshot saved to disk");
 
             // Clean up resources
             vkUnmapMemory(VKDevice::Get().GetDevice(), dstImageMemory);
@@ -414,11 +415,11 @@ file.close();
 
                     lCurrentDescriptorSets[numDescriptorSets] = vkDesSet->GetDescriptorSet();
 
-                    LUMOS_ASSERT(vkDesSet->GetHasUpdated(Renderer::GetMainSwapChain()->GetCurrentBufferIndex()), "Descriptor Set has not been updated before");
+                    ASSERT(vkDesSet->GetHasUpdated(Renderer::GetMainSwapChain()->GetCurrentBufferIndex()), "Descriptor Set has not been updated before");
                     numDescriptorSets++;
                 }
                 else
-                    LUMOS_LOG_ERROR("Descriptor null");
+                    LERROR("Descriptor null %i", (int)i);
             }
 
             vkCmdBindDescriptorSets(static_cast<Graphics::VKCommandBuffer*>(commandBuffer)->GetHandle(), static_cast<Graphics::VKPipeline*>(pipeline)->IsCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, numDescriptorSets, lCurrentDescriptorSets, numDynamicDescriptorSets, &dynamicOffset);
@@ -428,6 +429,8 @@ file.close();
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             Engine::Get().Statistics().NumDrawCalls++;
+            Engine::Get().Statistics().TriangleCount += count / 3;
+
             vkCmdDrawIndexed(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), count, 1, 0, 0, 0);
         }
 
@@ -435,6 +438,8 @@ file.close();
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             Engine::Get().Statistics().NumDrawCalls++;
+            Engine::Get().Statistics().TriangleCount += count / 3;
+            
             vkCmdDraw(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), count, 1, 0, 0);
         }
 
@@ -476,19 +481,19 @@ file.close();
         void VKRenderer::DrawSplashScreen(Texture* texture)
         {
             LUMOS_PROFILE_FUNCTION();
-            std::vector<TextureType> attachmentTypes;
-            std::vector<Texture*> attachments;
+            TDArray<TextureType> attachmentTypes;
+            TDArray<Texture*> attachments;
 
             Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
             auto image                             = Renderer::GetMainSwapChain()->GetCurrentImage();
 
-            attachmentTypes.push_back(TextureType::COLOUR);
-            attachments.push_back(image);
+            attachmentTypes.PushBack(TextureType::COLOUR);
+            attachments.PushBack(image);
 
             Graphics::RenderPassDesc renderPassDesc;
-            renderPassDesc.attachmentCount = uint32_t(attachmentTypes.size());
-            renderPassDesc.attachmentTypes = attachmentTypes.data();
-            renderPassDesc.attachments     = attachments.data();
+            renderPassDesc.attachmentCount = uint32_t(attachmentTypes.Size());
+            renderPassDesc.attachmentTypes = attachmentTypes.Data();
+            renderPassDesc.attachments     = attachments.Data();
             renderPassDesc.clear           = true;
             renderPassDesc.DebugName       = "Splash Screen Pass";
 
@@ -502,10 +507,10 @@ file.close();
             FramebufferDesc frameBufferDesc {};
             frameBufferDesc.width           = width;
             frameBufferDesc.height          = height;
-            frameBufferDesc.attachmentCount = uint32_t(attachments.size());
+            frameBufferDesc.attachmentCount = uint32_t(attachments.Size());
             frameBufferDesc.renderPass      = renderPass.get();
-            frameBufferDesc.attachmentTypes = attachmentTypes.data();
-            frameBufferDesc.attachments     = attachments.data();
+            frameBufferDesc.attachmentTypes = attachmentTypes.Data();
+            frameBufferDesc.attachments     = attachments.Data();
             auto frameBuffer                = Framebuffer::Get(frameBufferDesc);
 
             // To clear screen
@@ -567,7 +572,8 @@ file.close();
 
         VkDescriptorPool VKRenderer::CreatePool(VkDevice device, uint32_t count, VkDescriptorPoolCreateFlags flags)
         {
-            std::array<VkDescriptorPoolSize, 11> poolSizes = {
+            ArenaTemp scratch = ScratchBegin(0,0);
+            TArray<VkDescriptorPoolSize, 11> poolSizes =  TArray<VkDescriptorPoolSize, 11>({
                 VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLER, count / 2 },
                 VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, count * 4 },
                 VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, count },
@@ -578,20 +584,21 @@ file.close();
                 VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, count * 2 },
                 VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, count },
                 VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, count },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, count / 2 }
-            };
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, count / 2 } },
+                scratch.arena);
+           
 
             // Create info
             VkDescriptorPoolCreateInfo poolCreateInfo = {};
             poolCreateInfo.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
             poolCreateInfo.flags                      = flags;
-            poolCreateInfo.poolSizeCount              = static_cast<uint32_t>(poolSizes.size());
-            poolCreateInfo.pPoolSizes                 = poolSizes.data();
+            poolCreateInfo.poolSizeCount              = static_cast<uint32_t>(poolSizes.Size());
+            poolCreateInfo.pPoolSizes                 = poolSizes.Data();
             poolCreateInfo.maxSets                    = count;
 
             VkDescriptorPool descriptorPool;
             vkCreateDescriptorPool(device, &poolCreateInfo, nullptr, &descriptorPool);
-
+            ScratchEnd(scratch);
             return descriptorPool;
         }
 
@@ -609,7 +616,7 @@ file.close();
             }
         }
 
-        bool VKRenderer::AllocateDescriptorSet(VkDescriptorSet* set, VkDescriptorSetLayout layout, uint32_t descriptorCount)
+        bool VKRenderer::AllocateDescriptorSet(VkDescriptorSet* set, VkDescriptorPool& pool, VkDescriptorSetLayout layout, uint32_t descriptorCount)
         {
             if(m_CurrentPool == VK_NULL_HANDLE)
             {
@@ -626,6 +633,7 @@ file.close();
 
             VkResult allocResult = vkAllocateDescriptorSets(VKDevice::Get().GetDevice(), &allocInfo, set);
             bool needReallocate  = false;
+            pool                 = m_CurrentPool;
 
             switch(allocResult)
             {
@@ -652,6 +660,7 @@ file.close();
                 allocInfo.descriptorPool = m_CurrentPool;
 
                 allocResult = vkAllocateDescriptorSets(VKDevice::Get().GetDevice(), &allocInfo, set);
+                pool        = m_CurrentPool;
 
                 // if it still fails then we have big issues
                 if(allocResult == VK_SUCCESS)

@@ -33,7 +33,7 @@
         "value2": 1.0,
         "value3": false
     },
-    "value1": 65,
+    "value1": 64,
     "value2": 64,
     "value3": 0,
     "value4": 1,
@@ -98,11 +98,10 @@
     "value63": 60,
     "value64": 61,
     "value65": 1048638,
-    "value66": 1048639,
-    "value67": 1048640,
-    "value68": 64,
-    "value69": 2,
-    "value70": {
+    "value66": 63,
+    "value67": 64,
+    "value68": 2,
+    "value69": {
         "Position": {
             "value0": 0.0,
             "value1": -3.3106017112731935,
@@ -120,8 +119,8 @@
             "value2": 400.0
         }
     },
-    "value71": 15,
-    "value72": {
+    "value70": 15,
+    "value71": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 0.0,
@@ -139,8 +138,8 @@
             "value2": 1.0
         }
     },
-    "value73": 1048579,
-    "value74": {
+    "value72": 1048579,
+    "value73": {
         "Position": {
             "value0": 0.0,
             "value1": -0.003154277801513672,
@@ -158,8 +157,8 @@
             "value2": 1.0
         }
     },
-    "value75": 5,
-    "value76": {
+    "value74": 5,
+    "value75": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
@@ -177,8 +176,8 @@
             "value2": 1.0
         }
     },
-    "value77": 6,
-    "value78": {
+    "value76": 6,
+    "value77": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
@@ -196,8 +195,8 @@
             "value2": 1.0
         }
     },
-    "value79": 7,
-    "value80": {
+    "value78": 7,
+    "value79": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
@@ -215,8 +214,8 @@
             "value2": 1.0
         }
     },
-    "value81": 8,
-    "value82": {
+    "value80": 8,
+    "value81": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
@@ -234,8 +233,8 @@
             "value2": 1.0
         }
     },
-    "value83": 9,
-    "value84": {
+    "value82": 9,
+    "value83": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
@@ -253,8 +252,8 @@
             "value2": 1.0
         }
     },
-    "value85": 10,
-    "value86": {
+    "value84": 10,
+    "value85": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 0.0,
@@ -272,8 +271,8 @@
             "value2": 1.0
         }
     },
-    "value87": 11,
-    "value88": {
+    "value86": 11,
+    "value87": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 0.0,
@@ -291,8 +290,8 @@
             "value2": 1.0
         }
     },
-    "value89": 12,
-    "value90": {
+    "value88": 12,
+    "value89": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 0.0,
@@ -310,8 +309,8 @@
             "value2": 1.0
         }
     },
-    "value91": 13,
-    "value92": {
+    "value90": 13,
+    "value91": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 0.0,
@@ -329,8 +328,8 @@
             "value2": 1.0
         }
     },
-    "value93": 14,
-    "value94": {
+    "value92": 14,
+    "value93": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 0.0,
@@ -348,8 +347,8 @@
             "value2": 1.0
         }
     },
-    "value95": 2097156,
-    "value96": {
+    "value94": 2097156,
+    "value95": {
         "Position": {
             "value0": 0.6000000238418579,
             "value1": 1.2000000476837159,
@@ -367,8 +366,8 @@
             "value2": 1.0
         }
     },
-    "value97": 16,
-    "value98": {
+    "value96": 16,
+    "value97": {
         "Position": {
             "value0": 0.6000000238418579,
             "value1": 1.2000000476837159,
@@ -386,8 +385,8 @@
             "value2": 1.0
         }
     },
-    "value99": 17,
-    "value100": {
+    "value98": 17,
+    "value99": {
         "Position": {
             "value0": 0.6000000238418579,
             "value1": 1.2000000476837159,
@@ -405,8 +404,8 @@
             "value2": 1.0
         }
     },
-    "value101": 18,
-    "value102": {
+    "value100": 18,
+    "value101": {
         "Position": {
             "value0": 0.6000000238418579,
             "value1": 1.2000000476837159,
@@ -424,8 +423,8 @@
             "value2": 1.0
         }
     },
-    "value103": 19,
-    "value104": {
+    "value102": 19,
+    "value103": {
         "Position": {
             "value0": 0.6000000238418579,
             "value1": 1.2000000476837159,
@@ -443,8 +442,8 @@
             "value2": 1.0
         }
     },
-    "value105": 20,
-    "value106": {
+    "value104": 20,
+    "value105": {
         "Position": {
             "value0": 0.6000000238418579,
             "value1": 1.2000000476837159,
@@ -462,8 +461,8 @@
             "value2": 1.0
         }
     },
-    "value107": 21,
-    "value108": {
+    "value106": 21,
+    "value107": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 0.0,
@@ -481,8 +480,8 @@
             "value2": 1.0
         }
     },
-    "value109": 22,
-    "value110": {
+    "value108": 22,
+    "value109": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 0.0,
@@ -500,8 +499,8 @@
             "value2": 1.0
         }
     },
-    "value111": 23,
-    "value112": {
+    "value110": 23,
+    "value111": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 0.0,
@@ -519,8 +518,8 @@
             "value2": 1.0
         }
     },
-    "value113": 24,
-    "value114": {
+    "value112": 24,
+    "value113": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 0.0,
@@ -538,8 +537,8 @@
             "value2": 1.0
         }
     },
-    "value115": 25,
-    "value116": {
+    "value114": 25,
+    "value115": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 0.0,
@@ -557,8 +556,8 @@
             "value2": 1.0
         }
     },
-    "value117": 26,
-    "value118": {
+    "value116": 26,
+    "value117": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 0.0,
@@ -576,8 +575,8 @@
             "value2": 1.0
         }
     },
-    "value119": 27,
-    "value120": {
+    "value118": 27,
+    "value119": {
         "Position": {
             "value0": 3.5999999046325685,
             "value1": 0.0,
@@ -595,8 +594,8 @@
             "value2": 1.0
         }
     },
-    "value121": 28,
-    "value122": {
+    "value120": 28,
+    "value121": {
         "Position": {
             "value0": 3.5999999046325685,
             "value1": 0.0,
@@ -614,8 +613,8 @@
             "value2": 1.0
         }
     },
-    "value123": 29,
-    "value124": {
+    "value122": 29,
+    "value123": {
         "Position": {
             "value0": 3.5999999046325685,
             "value1": 0.0,
@@ -633,8 +632,8 @@
             "value2": 1.0
         }
     },
-    "value125": 30,
-    "value126": {
+    "value124": 30,
+    "value125": {
         "Position": {
             "value0": 3.5999999046325685,
             "value1": 0.0,
@@ -652,8 +651,8 @@
             "value2": 1.0
         }
     },
-    "value127": 31,
-    "value128": {
+    "value126": 31,
+    "value127": {
         "Position": {
             "value0": 3.5999999046325685,
             "value1": 0.0,
@@ -671,8 +670,8 @@
             "value2": 1.0
         }
     },
-    "value129": 32,
-    "value130": {
+    "value128": 32,
+    "value129": {
         "Position": {
             "value0": 3.5999999046325685,
             "value1": 0.0,
@@ -690,8 +689,8 @@
             "value2": 1.0
         }
     },
-    "value131": 33,
-    "value132": {
+    "value130": 33,
+    "value131": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 1.2000000476837159,
@@ -709,8 +708,8 @@
             "value2": 1.0
         }
     },
-    "value133": 34,
-    "value134": {
+    "value132": 34,
+    "value133": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 1.2000000476837159,
@@ -728,8 +727,8 @@
             "value2": 1.0
         }
     },
-    "value135": 35,
-    "value136": {
+    "value134": 35,
+    "value135": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 1.2000000476837159,
@@ -747,8 +746,8 @@
             "value2": 1.0
         }
     },
-    "value137": 36,
-    "value138": {
+    "value136": 36,
+    "value137": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 1.2000000476837159,
@@ -766,8 +765,8 @@
             "value2": 1.0
         }
     },
-    "value139": 37,
-    "value140": {
+    "value138": 37,
+    "value139": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 1.2000000476837159,
@@ -785,8 +784,8 @@
             "value2": 1.0
         }
     },
-    "value141": 38,
-    "value142": {
+    "value140": 38,
+    "value141": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 1.2000000476837159,
@@ -804,8 +803,8 @@
             "value2": 1.0
         }
     },
-    "value143": 39,
-    "value144": {
+    "value142": 39,
+    "value143": {
         "Position": {
             "value0": 3.0,
             "value1": 1.2000000476837159,
@@ -823,8 +822,8 @@
             "value2": 1.0
         }
     },
-    "value145": 40,
-    "value146": {
+    "value144": 40,
+    "value145": {
         "Position": {
             "value0": 3.0,
             "value1": 1.2000000476837159,
@@ -842,8 +841,8 @@
             "value2": 1.0
         }
     },
-    "value147": 41,
-    "value148": {
+    "value146": 41,
+    "value147": {
         "Position": {
             "value0": 3.0,
             "value1": 1.2000000476837159,
@@ -861,8 +860,8 @@
             "value2": 0.9999969601631165
         }
     },
-    "value149": 42,
-    "value150": {
+    "value148": 42,
+    "value149": {
         "Position": {
             "value0": 3.0,
             "value1": 1.2000000476837159,
@@ -880,8 +879,8 @@
             "value2": 1.0
         }
     },
-    "value151": 43,
-    "value152": {
+    "value150": 43,
+    "value151": {
         "Position": {
             "value0": 3.0,
             "value1": 1.2000000476837159,
@@ -899,8 +898,8 @@
             "value2": 1.0
         }
     },
-    "value153": 44,
-    "value154": {
+    "value152": 44,
+    "value153": {
         "Position": {
             "value0": 3.0,
             "value1": 1.2000000476837159,
@@ -918,8 +917,8 @@
             "value2": 1.0
         }
     },
-    "value155": 45,
-    "value156": {
+    "value154": 45,
+    "value155": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 2.4000000953674318,
@@ -937,8 +936,8 @@
             "value2": 1.0
         }
     },
-    "value157": 46,
-    "value158": {
+    "value156": 46,
+    "value157": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 2.4000000953674318,
@@ -956,8 +955,8 @@
             "value2": 1.0
         }
     },
-    "value159": 47,
-    "value160": {
+    "value158": 47,
+    "value159": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 2.4000000953674318,
@@ -975,8 +974,8 @@
             "value2": 1.0
         }
     },
-    "value161": 48,
-    "value162": {
+    "value160": 48,
+    "value161": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 2.4000000953674318,
@@ -994,8 +993,8 @@
             "value2": 1.0
         }
     },
-    "value163": 49,
-    "value164": {
+    "value162": 49,
+    "value163": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 2.4000000953674318,
@@ -1013,8 +1012,8 @@
             "value2": 1.0
         }
     },
-    "value165": 50,
-    "value166": {
+    "value164": 50,
+    "value165": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 2.4000000953674318,
@@ -1032,8 +1031,8 @@
             "value2": 1.0
         }
     },
-    "value167": 51,
-    "value168": {
+    "value166": 51,
+    "value167": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 2.4000000953674318,
@@ -1051,8 +1050,8 @@
             "value2": 1.0
         }
     },
-    "value169": 52,
-    "value170": {
+    "value168": 52,
+    "value169": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 2.4000000953674318,
@@ -1070,8 +1069,8 @@
             "value2": 1.0
         }
     },
-    "value171": 53,
-    "value172": {
+    "value170": 53,
+    "value171": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 2.4000000953674318,
@@ -1089,8 +1088,8 @@
             "value2": 1.0
         }
     },
-    "value173": 54,
-    "value174": {
+    "value172": 54,
+    "value173": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 2.4000000953674318,
@@ -1108,8 +1107,8 @@
             "value2": 1.0
         }
     },
-    "value175": 55,
-    "value176": {
+    "value174": 55,
+    "value175": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 2.4000000953674318,
@@ -1127,8 +1126,8 @@
             "value2": 1.0
         }
     },
-    "value177": 56,
-    "value178": {
+    "value176": 56,
+    "value177": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 2.4000000953674318,
@@ -1146,8 +1145,8 @@
             "value2": 1.0
         }
     },
-    "value179": 57,
-    "value180": {
+    "value178": 57,
+    "value179": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 3.5999999046325685,
@@ -1165,8 +1164,8 @@
             "value2": 1.0
         }
     },
-    "value181": 58,
-    "value182": {
+    "value180": 58,
+    "value181": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 3.5999999046325685,
@@ -1184,8 +1183,8 @@
             "value2": 1.0
         }
     },
-    "value183": 59,
-    "value184": {
+    "value182": 59,
+    "value183": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 3.5999999046325685,
@@ -1203,8 +1202,8 @@
             "value2": 1.0
         }
     },
-    "value185": 60,
-    "value186": {
+    "value184": 60,
+    "value185": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 3.5999999046325685,
@@ -1222,8 +1221,8 @@
             "value2": 1.0
         }
     },
-    "value187": 61,
-    "value188": {
+    "value186": 61,
+    "value187": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 3.5999999046325685,
@@ -1241,8 +1240,8 @@
             "value2": 1.0
         }
     },
-    "value189": 1048638,
-    "value190": {
+    "value188": 1048638,
+    "value189": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 3.5999999046325685,
@@ -1260,10 +1259,10 @@
             "value2": 1.0
         }
     },
-    "value191": 1048639,
-    "value192": {
+    "value190": 63,
+    "value191": {
         "Position": {
-            "value0": 0.0,
+            "value0": -10.712139129638672,
             "value1": 0.0,
             "value2": 0.0
         },
@@ -1279,8 +1278,8 @@
             "value2": 1.0
         }
     },
-    "value193": 0,
-    "value194": {
+    "value192": 0,
+    "value193": {
         "Position": {
             "value0": -62.4451789855957,
             "value1": 37.44212341308594,
@@ -1298,8 +1297,8 @@
             "value2": 1.00001060962677
         }
     },
-    "value195": 1,
-    "value196": {
+    "value194": 1,
+    "value195": {
         "Position": {
             "value0": -5.864191055297852,
             "value1": 4.970639705657959,
@@ -1317,270 +1316,270 @@
             "value2": 1.000001311302185
         }
     },
-    "value197": 64,
-    "value198": 0,
-    "value199": {
+    "value196": 64,
+    "value197": 0,
+    "value198": {
         "Name": "Light"
     },
-    "value200": 1,
-    "value201": {
+    "value199": 1,
+    "value200": {
         "Name": "Camera"
     },
-    "value202": 2,
-    "value203": {
+    "value201": 2,
+    "value202": {
         "Name": "Floor"
     },
-    "value204": 15,
-    "value205": {
+    "value203": 15,
+    "value204": {
         "Name": "RigidBody"
     },
-    "value206": 1048579,
-    "value207": {
+    "value205": 1048579,
+    "value206": {
         "Name": "RigidBody"
     },
-    "value208": 5,
-    "value209": {
+    "value207": 5,
+    "value208": {
         "Name": "RigidBody"
     },
-    "value210": 6,
-    "value211": {
+    "value209": 6,
+    "value210": {
         "Name": "RigidBody"
     },
-    "value212": 7,
-    "value213": {
+    "value211": 7,
+    "value212": {
         "Name": "RigidBody"
     },
-    "value214": 8,
-    "value215": {
+    "value213": 8,
+    "value214": {
         "Name": "RigidBody"
     },
-    "value216": 9,
-    "value217": {
+    "value215": 9,
+    "value216": {
         "Name": "RigidBody"
     },
-    "value218": 10,
-    "value219": {
+    "value217": 10,
+    "value218": {
         "Name": "RigidBody"
     },
-    "value220": 11,
-    "value221": {
+    "value219": 11,
+    "value220": {
         "Name": "RigidBody"
     },
-    "value222": 12,
-    "value223": {
+    "value221": 12,
+    "value222": {
         "Name": "RigidBody"
     },
-    "value224": 13,
-    "value225": {
+    "value223": 13,
+    "value224": {
         "Name": "RigidBody"
     },
-    "value226": 14,
-    "value227": {
+    "value225": 14,
+    "value226": {
         "Name": "RigidBody"
     },
-    "value228": 2097156,
-    "value229": {
+    "value227": 2097156,
+    "value228": {
         "Name": "RigidBody"
     },
-    "value230": 16,
-    "value231": {
+    "value229": 16,
+    "value230": {
         "Name": "RigidBody"
     },
-    "value232": 17,
-    "value233": {
+    "value231": 17,
+    "value232": {
         "Name": "RigidBody"
     },
-    "value234": 18,
-    "value235": {
+    "value233": 18,
+    "value234": {
         "Name": "RigidBody"
     },
-    "value236": 19,
-    "value237": {
+    "value235": 19,
+    "value236": {
         "Name": "RigidBody"
     },
-    "value238": 20,
-    "value239": {
+    "value237": 20,
+    "value238": {
         "Name": "RigidBody"
     },
-    "value240": 21,
-    "value241": {
+    "value239": 21,
+    "value240": {
         "Name": "RigidBody"
     },
-    "value242": 22,
-    "value243": {
+    "value241": 22,
+    "value242": {
         "Name": "RigidBody"
     },
-    "value244": 23,
-    "value245": {
+    "value243": 23,
+    "value244": {
         "Name": "RigidBody"
     },
-    "value246": 24,
-    "value247": {
+    "value245": 24,
+    "value246": {
         "Name": "RigidBody"
     },
-    "value248": 25,
-    "value249": {
+    "value247": 25,
+    "value248": {
         "Name": "RigidBody"
     },
-    "value250": 26,
-    "value251": {
+    "value249": 26,
+    "value250": {
         "Name": "RigidBody"
     },
-    "value252": 27,
-    "value253": {
+    "value251": 27,
+    "value252": {
         "Name": "RigidBody"
     },
-    "value254": 28,
-    "value255": {
+    "value253": 28,
+    "value254": {
         "Name": "RigidBody"
     },
-    "value256": 29,
-    "value257": {
+    "value255": 29,
+    "value256": {
         "Name": "RigidBody"
     },
-    "value258": 30,
-    "value259": {
+    "value257": 30,
+    "value258": {
         "Name": "RigidBody"
     },
-    "value260": 31,
-    "value261": {
+    "value259": 31,
+    "value260": {
         "Name": "RigidBody"
     },
-    "value262": 32,
-    "value263": {
+    "value261": 32,
+    "value262": {
         "Name": "RigidBody"
     },
-    "value264": 33,
-    "value265": {
+    "value263": 33,
+    "value264": {
         "Name": "RigidBody"
     },
-    "value266": 34,
-    "value267": {
+    "value265": 34,
+    "value266": {
         "Name": "RigidBody"
     },
-    "value268": 35,
-    "value269": {
+    "value267": 35,
+    "value268": {
         "Name": "RigidBody"
     },
-    "value270": 36,
-    "value271": {
+    "value269": 36,
+    "value270": {
         "Name": "RigidBody"
     },
-    "value272": 37,
-    "value273": {
+    "value271": 37,
+    "value272": {
         "Name": "RigidBody"
     },
-    "value274": 38,
-    "value275": {
+    "value273": 38,
+    "value274": {
         "Name": "RigidBody"
     },
-    "value276": 39,
-    "value277": {
+    "value275": 39,
+    "value276": {
         "Name": "RigidBody"
     },
-    "value278": 40,
-    "value279": {
+    "value277": 40,
+    "value278": {
         "Name": "RigidBody"
     },
-    "value280": 41,
-    "value281": {
+    "value279": 41,
+    "value280": {
         "Name": "RigidBody"
     },
-    "value282": 42,
-    "value283": {
+    "value281": 42,
+    "value282": {
         "Name": "RigidBody"
     },
-    "value284": 43,
-    "value285": {
+    "value283": 43,
+    "value284": {
         "Name": "RigidBody"
     },
-    "value286": 44,
-    "value287": {
+    "value285": 44,
+    "value286": {
         "Name": "RigidBody"
     },
-    "value288": 45,
-    "value289": {
+    "value287": 45,
+    "value288": {
         "Name": "RigidBody"
     },
-    "value290": 46,
-    "value291": {
+    "value289": 46,
+    "value290": {
         "Name": "RigidBody"
     },
-    "value292": 47,
-    "value293": {
+    "value291": 47,
+    "value292": {
         "Name": "RigidBody"
     },
-    "value294": 48,
-    "value295": {
+    "value293": 48,
+    "value294": {
         "Name": "RigidBody"
     },
-    "value296": 49,
-    "value297": {
+    "value295": 49,
+    "value296": {
         "Name": "RigidBody"
     },
-    "value298": 50,
-    "value299": {
+    "value297": 50,
+    "value298": {
         "Name": "RigidBody"
     },
-    "value300": 51,
-    "value301": {
+    "value299": 51,
+    "value300": {
         "Name": "RigidBody"
     },
-    "value302": 52,
-    "value303": {
+    "value301": 52,
+    "value302": {
         "Name": "RigidBody"
     },
-    "value304": 53,
-    "value305": {
+    "value303": 53,
+    "value304": {
         "Name": "RigidBody"
     },
-    "value306": 54,
-    "value307": {
+    "value305": 54,
+    "value306": {
         "Name": "RigidBody"
     },
-    "value308": 55,
-    "value309": {
+    "value307": 55,
+    "value308": {
         "Name": "RigidBody"
     },
-    "value310": 56,
-    "value311": {
+    "value309": 56,
+    "value310": {
         "Name": "RigidBody"
     },
-    "value312": 57,
-    "value313": {
+    "value311": 57,
+    "value312": {
         "Name": "RigidBody"
     },
-    "value314": 58,
-    "value315": {
+    "value313": 58,
+    "value314": {
         "Name": "RigidBody"
     },
-    "value316": 59,
-    "value317": {
+    "value315": 59,
+    "value316": {
         "Name": "RigidBody"
     },
-    "value318": 60,
-    "value319": {
+    "value317": 60,
+    "value318": {
         "Name": "RigidBody"
     },
-    "value320": 61,
-    "value321": {
+    "value319": 61,
+    "value320": {
         "Name": "RigidBody"
     },
-    "value322": 1048638,
-    "value323": {
+    "value321": 1048638,
+    "value322": {
         "Name": "RigidBody"
     },
-    "value324": 1048639,
-    "value325": {
-        "Name": "Fox.glb"
+    "value323": 63,
+    "value324": {
+        "Name": "stormtrooper.gltf"
     },
+    "value325": 0,
     "value326": 0,
-    "value327": 0,
+    "value327": 1,
     "value328": 1,
-    "value329": 1,
-    "value330": {
+    "value329": {
         "Scale": 1.0,
-        "Aspect": 0.7130281925201416,
+        "Aspect": 0.8345070481300354,
         "FOV": 60.0,
         "Near": 0.10000000149011612,
         "Far": 100.0,
@@ -1588,15 +1587,15 @@
         "ShutterSpeed": 0.01666666753590107,
         "Sensitivity": 250.0
     },
+    "value330": 1,
     "value331": 1,
-    "value332": 1,
-    "value333": {
+    "value332": {
         "FilePath": "//Assets/Scripts/Projectile.lua"
     },
-    "value334": 0,
-    "value335": 1,
-    "value336": 0,
-    "value337": {
+    "value333": 0,
+    "value334": 1,
+    "value335": 0,
+    "value336": {
         "value0": {
             "value0": -62.4451789855957,
             "value1": 37.44212341308594,
@@ -1612,17 +1611,17 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": -0.8250277638435364,
-            "value1": 0.46215829253196719,
-            "value2": 0.3251749873161316,
+            "value0": -0.8250278830528259,
+            "value1": 0.46215835213661196,
+            "value2": 0.32517489790916445,
             "value3": 1.0
         },
         "value5": 120000.0,
         "value6": 1.0
     },
-    "value338": 61,
-    "value339": 2,
-    "value340": {
+    "value337": 61,
+    "value338": 2,
+    "value339": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -1676,11 +1675,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 18244296624544067207
+            "UUID": 12765891224963149148
         }
     },
-    "value341": 15,
-    "value342": {
+    "value340": 15,
+    "value341": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -1733,11 +1732,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 5264578520513951555
+            "UUID": 14124620850671517816
         }
     },
-    "value343": 1048579,
-    "value344": {
+    "value342": 1048579,
+    "value343": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -1790,11 +1789,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 6933207245876821251
+            "UUID": 1380821290874780425
         }
     },
-    "value345": 5,
-    "value346": {
+    "value344": 5,
+    "value345": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -1847,11 +1846,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 7396468693272627395
+            "UUID": 3248324608811708532
         }
     },
-    "value347": 6,
-    "value348": {
+    "value346": 6,
+    "value347": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -1904,11 +1903,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 4377005413002453858
+            "UUID": 6684469800302012934
         }
     },
-    "value349": 7,
-    "value350": {
+    "value348": 7,
+    "value349": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -1961,11 +1960,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 10348454703535336366
+            "UUID": 15073449979222112400
         }
     },
-    "value351": 8,
-    "value352": {
+    "value350": 8,
+    "value351": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2018,11 +2017,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 3960439910726594642
+            "UUID": 9281915264351173579
         }
     },
-    "value353": 9,
-    "value354": {
+    "value352": 9,
+    "value353": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2075,11 +2074,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 4194195915772355246
+            "UUID": 2069776245703872564
         }
     },
-    "value355": 10,
-    "value356": {
+    "value354": 10,
+    "value355": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2132,11 +2131,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 1085874228274680474
+            "UUID": 3916300973233201414
         }
     },
-    "value357": 11,
-    "value358": {
+    "value356": 11,
+    "value357": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2189,11 +2188,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 18116935934544593888
+            "UUID": 9209434808726851781
         }
     },
-    "value359": 12,
-    "value360": {
+    "value358": 12,
+    "value359": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2246,11 +2245,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 1130231201184121799
+            "UUID": 15927763354293157651
         }
     },
-    "value361": 13,
-    "value362": {
+    "value360": 13,
+    "value361": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2303,11 +2302,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 6185647987596770495
+            "UUID": 3549040201012728216
         }
     },
-    "value363": 14,
-    "value364": {
+    "value362": 14,
+    "value363": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2360,11 +2359,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 13323165108156557836
+            "UUID": 6073528338790435857
         }
     },
-    "value365": 2097156,
-    "value366": {
+    "value364": 2097156,
+    "value365": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2417,11 +2416,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 665773378216266965
+            "UUID": 12724538206079671668
         }
     },
-    "value367": 16,
-    "value368": {
+    "value366": 16,
+    "value367": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2474,11 +2473,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 10654364817843881201
+            "UUID": 5702730866380331189
         }
     },
-    "value369": 17,
-    "value370": {
+    "value368": 17,
+    "value369": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2531,11 +2530,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 17143812082414439308
+            "UUID": 6879513321339947330
         }
     },
-    "value371": 18,
-    "value372": {
+    "value370": 18,
+    "value371": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2588,11 +2587,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 13730197266480755673
+            "UUID": 10633312526547410
         }
     },
-    "value373": 19,
-    "value374": {
+    "value372": 19,
+    "value373": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2645,11 +2644,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 1531821917529408558
+            "UUID": 424568702641793878
         }
     },
-    "value375": 20,
-    "value376": {
+    "value374": 20,
+    "value375": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2702,11 +2701,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 10802341756514380191
+            "UUID": 11699665882880201439
         }
     },
-    "value377": 21,
-    "value378": {
+    "value376": 21,
+    "value377": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2759,11 +2758,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 3579427638143080856
+            "UUID": 12641160362773292545
         }
     },
-    "value379": 22,
-    "value380": {
+    "value378": 22,
+    "value379": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2816,11 +2815,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 10879398746680865625
+            "UUID": 2428159787742849398
         }
     },
-    "value381": 23,
-    "value382": {
+    "value380": 23,
+    "value381": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2873,11 +2872,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 5563403434597807203
+            "UUID": 17778560311173156369
         }
     },
-    "value383": 24,
-    "value384": {
+    "value382": 24,
+    "value383": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2930,11 +2929,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 7499439980036425185
+            "UUID": 9476386836145103300
         }
     },
-    "value385": 25,
-    "value386": {
+    "value384": 25,
+    "value385": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2987,11 +2986,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 10343154558714229762
+            "UUID": 15989596112139022853
         }
     },
-    "value387": 26,
-    "value388": {
+    "value386": 26,
+    "value387": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3044,11 +3043,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 840183513322974557
+            "UUID": 994319030523486187
         }
     },
-    "value389": 27,
-    "value390": {
+    "value388": 27,
+    "value389": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3101,11 +3100,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 10997193082882398034
+            "UUID": 12115965623484273656
         }
     },
-    "value391": 28,
-    "value392": {
+    "value390": 28,
+    "value391": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3158,11 +3157,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 16925614258910881102
+            "UUID": 4441128601702071229
         }
     },
-    "value393": 29,
-    "value394": {
+    "value392": 29,
+    "value393": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3215,11 +3214,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 508045386900904027
+            "UUID": 3011590062345662049
         }
     },
-    "value395": 30,
-    "value396": {
+    "value394": 30,
+    "value395": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3272,11 +3271,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 557524578611046664
+            "UUID": 7958226201624162227
         }
     },
-    "value397": 31,
-    "value398": {
+    "value396": 31,
+    "value397": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3329,11 +3328,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 12667653957823480353
+            "UUID": 14364822935462599121
         }
     },
-    "value399": 32,
-    "value400": {
+    "value398": 32,
+    "value399": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3386,11 +3385,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 12927692698925868939
+            "UUID": 10116647278128067124
         }
     },
-    "value401": 33,
-    "value402": {
+    "value400": 33,
+    "value401": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3443,11 +3442,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 9620821005231644493
+            "UUID": 4350360944147137390
         }
     },
-    "value403": 34,
-    "value404": {
+    "value402": 34,
+    "value403": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3500,11 +3499,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 16375152874770729646
+            "UUID": 17967561138144687667
         }
     },
-    "value405": 35,
-    "value406": {
+    "value404": 35,
+    "value405": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3557,11 +3556,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 18145175543412355236
+            "UUID": 6648076573853182731
         }
     },
-    "value407": 36,
-    "value408": {
+    "value406": 36,
+    "value407": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3614,11 +3613,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 13617707352686503859
+            "UUID": 11346640541330593480
         }
     },
-    "value409": 37,
-    "value410": {
+    "value408": 37,
+    "value409": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3671,11 +3670,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 9399461829266273811
+            "UUID": 2135497860795676741
         }
     },
-    "value411": 38,
-    "value412": {
+    "value410": 38,
+    "value411": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3728,11 +3727,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 16617579479345438125
+            "UUID": 11586390797303232911
         }
     },
-    "value413": 39,
-    "value414": {
+    "value412": 39,
+    "value413": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3785,11 +3784,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 11477626728202295593
+            "UUID": 14212772810234838412
         }
     },
-    "value415": 40,
-    "value416": {
+    "value414": 40,
+    "value415": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3842,11 +3841,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 252568238661514755
+            "UUID": 11594871595722117326
         }
     },
-    "value417": 41,
-    "value418": {
+    "value416": 41,
+    "value417": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3899,11 +3898,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 7592016959615858123
+            "UUID": 12224865755712903676
         }
     },
-    "value419": 42,
-    "value420": {
+    "value418": 42,
+    "value419": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3956,11 +3955,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 16200366531696724060
+            "UUID": 4151978595224798290
         }
     },
-    "value421": 43,
-    "value422": {
+    "value420": 43,
+    "value421": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4013,11 +4012,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 17964135267751172475
+            "UUID": 4297293758746473244
         }
     },
-    "value423": 44,
-    "value424": {
+    "value422": 44,
+    "value423": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4070,11 +4069,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 11589760034350687779
+            "UUID": 5149694027543575115
         }
     },
-    "value425": 45,
-    "value426": {
+    "value424": 45,
+    "value425": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4127,11 +4126,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 15913589664364077959
+            "UUID": 13288373671117375945
         }
     },
-    "value427": 46,
-    "value428": {
+    "value426": 46,
+    "value427": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4184,11 +4183,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 14269605486649570443
+            "UUID": 18036779982147106073
         }
     },
-    "value429": 47,
-    "value430": {
+    "value428": 47,
+    "value429": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4241,11 +4240,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 6694029536250578262
+            "UUID": 9293254586593893222
         }
     },
-    "value431": 48,
-    "value432": {
+    "value430": 48,
+    "value431": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4298,11 +4297,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 14940612494241396129
+            "UUID": 5175011279538699142
         }
     },
-    "value433": 49,
-    "value434": {
+    "value432": 49,
+    "value433": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4355,11 +4354,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 10887689759856551802
+            "UUID": 5073070895345712869
         }
     },
-    "value435": 50,
-    "value436": {
+    "value434": 50,
+    "value435": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4412,11 +4411,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 11905271907563640568
+            "UUID": 4842248677782477089
         }
     },
-    "value437": 51,
-    "value438": {
+    "value436": 51,
+    "value437": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4469,11 +4468,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 12486914329437047427
+            "UUID": 5503708230626557142
         }
     },
-    "value439": 52,
-    "value440": {
+    "value438": 52,
+    "value439": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4526,11 +4525,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 7793383927925553410
+            "UUID": 7730052640854699457
         }
     },
-    "value441": 53,
-    "value442": {
+    "value440": 53,
+    "value441": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4583,11 +4582,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 2080664255553496093
+            "UUID": 6607013305280990753
         }
     },
-    "value443": 54,
-    "value444": {
+    "value442": 54,
+    "value443": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4640,11 +4639,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 17616881478454565213
+            "UUID": 1281327391123014549
         }
     },
-    "value445": 55,
-    "value446": {
+    "value444": 55,
+    "value445": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4697,11 +4696,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 2901604417712254076
+            "UUID": 9027422283863313191
         }
     },
-    "value447": 56,
-    "value448": {
+    "value446": 56,
+    "value447": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4754,11 +4753,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 8885516179998504667
+            "UUID": 16320441224867957411
         }
     },
-    "value449": 57,
-    "value450": {
+    "value448": 57,
+    "value449": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4811,11 +4810,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 7438191846819467108
+            "UUID": 8039210053221457630
         }
     },
-    "value451": 58,
-    "value452": {
+    "value450": 58,
+    "value451": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4868,11 +4867,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 30097346010941037
+            "UUID": 2181841838239292726
         }
     },
-    "value453": 59,
-    "value454": {
+    "value452": 59,
+    "value453": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4925,11 +4924,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 5377816354733690687
+            "UUID": 14598477269013623668
         }
     },
-    "value455": 60,
-    "value456": {
+    "value454": 60,
+    "value455": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4982,11 +4981,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 5716077624935843952
+            "UUID": 6402239013415017164
         }
     },
-    "value457": 61,
-    "value458": {
+    "value456": 61,
+    "value457": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -5039,11 +5038,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 10447189323473597341
+            "UUID": 3209867867122034582
         }
     },
-    "value459": 1048638,
-    "value460": {
+    "value458": 1048638,
+    "value459": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -5096,280 +5095,280 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 9841531456335147741
+            "UUID": 17572775997179209122
         }
     },
+    "value460": 0,
     "value461": 0,
     "value462": 0,
-    "value463": 0,
+    "value463": 1,
     "value464": 1,
-    "value465": 1,
-    "value466": {
+    "value465": {
         "ControllerType": 4
     },
+    "value466": 0,
     "value467": 0,
     "value468": 0,
-    "value469": 0,
-    "value470": 64,
-    "value471": 0,
-    "value472": {
+    "value469": 64,
+    "value470": 0,
+    "value471": {
         "value0": 11984101520111109072
     },
-    "value473": 1,
-    "value474": {
+    "value472": 1,
+    "value473": {
         "value0": 12693731299015073711
     },
-    "value475": 2,
-    "value476": {
+    "value474": 2,
+    "value475": {
         "value0": 16116779229844795067
     },
-    "value477": 15,
-    "value478": {
+    "value476": 15,
+    "value477": {
         "value0": 3255267364678447053
     },
-    "value479": 1048579,
-    "value480": {
+    "value478": 1048579,
+    "value479": {
         "value0": 7283881333509846891
     },
-    "value481": 5,
-    "value482": {
+    "value480": 5,
+    "value481": {
         "value0": 3490754314890301258
     },
-    "value483": 6,
-    "value484": {
+    "value482": 6,
+    "value483": {
         "value0": 15428624151734407110
     },
-    "value485": 7,
-    "value486": {
+    "value484": 7,
+    "value485": {
         "value0": 8045770046215843943
     },
-    "value487": 8,
-    "value488": {
+    "value486": 8,
+    "value487": {
         "value0": 16596640641922387454
     },
-    "value489": 9,
-    "value490": {
+    "value488": 9,
+    "value489": {
         "value0": 17774836157624644543
     },
-    "value491": 10,
-    "value492": {
+    "value490": 10,
+    "value491": {
         "value0": 11446525187536210015
     },
-    "value493": 11,
-    "value494": {
+    "value492": 11,
+    "value493": {
         "value0": 5875019472662734565
     },
-    "value495": 12,
-    "value496": {
+    "value494": 12,
+    "value495": {
         "value0": 11283063144623761082
     },
-    "value497": 13,
-    "value498": {
+    "value496": 13,
+    "value497": {
         "value0": 8563980749067876996
     },
-    "value499": 14,
-    "value500": {
+    "value498": 14,
+    "value499": {
         "value0": 17714666868824745160
     },
-    "value501": 2097156,
-    "value502": {
+    "value500": 2097156,
+    "value501": {
         "value0": 7440264963907605638
     },
-    "value503": 16,
-    "value504": {
+    "value502": 16,
+    "value503": {
         "value0": 1911272223493987730
     },
-    "value505": 17,
-    "value506": {
+    "value504": 17,
+    "value505": {
         "value0": 15790117930668832684
     },
-    "value507": 18,
-    "value508": {
+    "value506": 18,
+    "value507": {
         "value0": 258380877838881684
     },
-    "value509": 19,
-    "value510": {
+    "value508": 19,
+    "value509": {
         "value0": 6869805117332142123
     },
-    "value511": 20,
-    "value512": {
+    "value510": 20,
+    "value511": {
         "value0": 18366028368834594762
     },
-    "value513": 21,
-    "value514": {
+    "value512": 21,
+    "value513": {
         "value0": 5834867167121354997
     },
-    "value515": 22,
-    "value516": {
+    "value514": 22,
+    "value515": {
         "value0": 1631643731448963652
     },
-    "value517": 23,
-    "value518": {
+    "value516": 23,
+    "value517": {
         "value0": 1265698233658565003
     },
-    "value519": 24,
-    "value520": {
+    "value518": 24,
+    "value519": {
         "value0": 14887613255030924228
     },
-    "value521": 25,
-    "value522": {
+    "value520": 25,
+    "value521": {
         "value0": 14114246735815273529
     },
-    "value523": 26,
-    "value524": {
+    "value522": 26,
+    "value523": {
         "value0": 4214087301905175060
     },
-    "value525": 27,
-    "value526": {
+    "value524": 27,
+    "value525": {
         "value0": 578298889866774279
     },
-    "value527": 28,
-    "value528": {
+    "value526": 28,
+    "value527": {
         "value0": 417060909672614916
     },
-    "value529": 29,
-    "value530": {
+    "value528": 29,
+    "value529": {
         "value0": 6818742149940086570
     },
-    "value531": 30,
-    "value532": {
+    "value530": 30,
+    "value531": {
         "value0": 5494154048368015443
     },
-    "value533": 31,
-    "value534": {
+    "value532": 31,
+    "value533": {
         "value0": 1588332495741656546
     },
-    "value535": 32,
-    "value536": {
+    "value534": 32,
+    "value535": {
         "value0": 17582293428410081294
     },
-    "value537": 33,
-    "value538": {
+    "value536": 33,
+    "value537": {
         "value0": 10511789478920665327
     },
-    "value539": 34,
-    "value540": {
+    "value538": 34,
+    "value539": {
         "value0": 12681394848159178581
     },
-    "value541": 35,
-    "value542": {
+    "value540": 35,
+    "value541": {
         "value0": 3933695719277056767
     },
-    "value543": 36,
-    "value544": {
+    "value542": 36,
+    "value543": {
         "value0": 12554640265836549678
     },
-    "value545": 37,
-    "value546": {
+    "value544": 37,
+    "value545": {
         "value0": 3709794379950202995
     },
-    "value547": 38,
-    "value548": {
+    "value546": 38,
+    "value547": {
         "value0": 17885907984819750326
     },
-    "value549": 39,
-    "value550": {
+    "value548": 39,
+    "value549": {
         "value0": 115267889887193194
     },
-    "value551": 40,
-    "value552": {
+    "value550": 40,
+    "value551": {
         "value0": 16263995907643123354
     },
-    "value553": 41,
-    "value554": {
+    "value552": 41,
+    "value553": {
         "value0": 9762110844927783019
     },
-    "value555": 42,
-    "value556": {
+    "value554": 42,
+    "value555": {
         "value0": 16514251787101421589
     },
-    "value557": 43,
-    "value558": {
+    "value556": 43,
+    "value557": {
         "value0": 7245039831353502907
     },
-    "value559": 44,
-    "value560": {
+    "value558": 44,
+    "value559": {
         "value0": 17394828465445830412
     },
-    "value561": 45,
-    "value562": {
+    "value560": 45,
+    "value561": {
         "value0": 5903723800449167371
     },
-    "value563": 46,
-    "value564": {
+    "value562": 46,
+    "value563": {
         "value0": 17616727919010377311
     },
-    "value565": 47,
-    "value566": {
+    "value564": 47,
+    "value565": {
         "value0": 17248300732214159447
     },
-    "value567": 48,
-    "value568": {
+    "value566": 48,
+    "value567": {
         "value0": 9377556801495612784
     },
-    "value569": 49,
-    "value570": {
+    "value568": 49,
+    "value569": {
         "value0": 13156306274235857940
     },
-    "value571": 50,
-    "value572": {
+    "value570": 50,
+    "value571": {
         "value0": 8103951779510916582
     },
-    "value573": 51,
-    "value574": {
+    "value572": 51,
+    "value573": {
         "value0": 6207790523093596569
     },
-    "value575": 52,
-    "value576": {
+    "value574": 52,
+    "value575": {
         "value0": 10527794872029319234
     },
-    "value577": 53,
-    "value578": {
+    "value576": 53,
+    "value577": {
         "value0": 10328704622164086829
     },
-    "value579": 54,
-    "value580": {
+    "value578": 54,
+    "value579": {
         "value0": 11540924929348772855
     },
-    "value581": 55,
-    "value582": {
+    "value580": 55,
+    "value581": {
         "value0": 16565245989805709233
     },
-    "value583": 56,
-    "value584": {
+    "value582": 56,
+    "value583": {
         "value0": 11231529153473274855
     },
-    "value585": 57,
-    "value586": {
+    "value584": 57,
+    "value585": {
         "value0": 6958637726463052492
     },
-    "value587": 58,
-    "value588": {
+    "value586": 58,
+    "value587": {
         "value0": 15595018513263686533
     },
-    "value589": 59,
-    "value590": {
+    "value588": 59,
+    "value589": {
         "value0": 9767588151257782228
     },
-    "value591": 60,
-    "value592": {
+    "value590": 60,
+    "value591": {
         "value0": 16095449831148497375
     },
-    "value593": 61,
-    "value594": {
+    "value592": 61,
+    "value593": {
         "value0": 9374894390556389389
     },
-    "value595": 1048638,
-    "value596": {
+    "value594": 1048638,
+    "value595": {
         "value0": 17609859596845711685
     },
-    "value597": 1048639,
-    "value598": {
-        "value0": 769180725554046469
+    "value596": 63,
+    "value597": {
+        "value0": 6600353653663332107
     },
-    "value599": 62,
-    "value600": 2,
-    "value601": {
+    "value598": 62,
+    "value599": 2,
+    "value600": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5405,8 +5404,8 @@
             }
         }
     },
-    "value602": 15,
-    "value603": {
+    "value601": 15,
+    "value602": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5415,8 +5414,8 @@
             }
         }
     },
-    "value604": 1048579,
-    "value605": {
+    "value603": 1048579,
+    "value604": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5425,8 +5424,8 @@
             }
         }
     },
-    "value606": 5,
-    "value607": {
+    "value605": 5,
+    "value606": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5435,8 +5434,8 @@
             }
         }
     },
-    "value608": 6,
-    "value609": {
+    "value607": 6,
+    "value608": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5445,8 +5444,8 @@
             }
         }
     },
-    "value610": 7,
-    "value611": {
+    "value609": 7,
+    "value610": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5455,8 +5454,8 @@
             }
         }
     },
-    "value612": 8,
-    "value613": {
+    "value611": 8,
+    "value612": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5465,8 +5464,8 @@
             }
         }
     },
-    "value614": 9,
-    "value615": {
+    "value613": 9,
+    "value614": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5475,8 +5474,8 @@
             }
         }
     },
-    "value616": 10,
-    "value617": {
+    "value615": 10,
+    "value616": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5485,8 +5484,8 @@
             }
         }
     },
-    "value618": 11,
-    "value619": {
+    "value617": 11,
+    "value618": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5495,8 +5494,8 @@
             }
         }
     },
-    "value620": 12,
-    "value621": {
+    "value619": 12,
+    "value620": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5505,8 +5504,8 @@
             }
         }
     },
-    "value622": 13,
-    "value623": {
+    "value621": 13,
+    "value622": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5515,8 +5514,8 @@
             }
         }
     },
-    "value624": 14,
-    "value625": {
+    "value623": 14,
+    "value624": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5525,8 +5524,8 @@
             }
         }
     },
-    "value626": 2097156,
-    "value627": {
+    "value625": 2097156,
+    "value626": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5535,8 +5534,8 @@
             }
         }
     },
-    "value628": 16,
-    "value629": {
+    "value627": 16,
+    "value628": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5545,8 +5544,8 @@
             }
         }
     },
-    "value630": 17,
-    "value631": {
+    "value629": 17,
+    "value630": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5555,8 +5554,8 @@
             }
         }
     },
-    "value632": 18,
-    "value633": {
+    "value631": 18,
+    "value632": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5565,8 +5564,8 @@
             }
         }
     },
-    "value634": 19,
-    "value635": {
+    "value633": 19,
+    "value634": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5575,8 +5574,8 @@
             }
         }
     },
-    "value636": 20,
-    "value637": {
+    "value635": 20,
+    "value636": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5585,8 +5584,8 @@
             }
         }
     },
-    "value638": 21,
-    "value639": {
+    "value637": 21,
+    "value638": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5595,8 +5594,8 @@
             }
         }
     },
-    "value640": 22,
-    "value641": {
+    "value639": 22,
+    "value640": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5605,8 +5604,8 @@
             }
         }
     },
-    "value642": 23,
-    "value643": {
+    "value641": 23,
+    "value642": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5615,8 +5614,8 @@
             }
         }
     },
-    "value644": 24,
-    "value645": {
+    "value643": 24,
+    "value644": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5625,8 +5624,8 @@
             }
         }
     },
-    "value646": 25,
-    "value647": {
+    "value645": 25,
+    "value646": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5635,8 +5634,8 @@
             }
         }
     },
-    "value648": 26,
-    "value649": {
+    "value647": 26,
+    "value648": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5645,8 +5644,8 @@
             }
         }
     },
-    "value650": 27,
-    "value651": {
+    "value649": 27,
+    "value650": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5655,8 +5654,8 @@
             }
         }
     },
-    "value652": 28,
-    "value653": {
+    "value651": 28,
+    "value652": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5665,8 +5664,8 @@
             }
         }
     },
-    "value654": 29,
-    "value655": {
+    "value653": 29,
+    "value654": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5675,8 +5674,8 @@
             }
         }
     },
-    "value656": 30,
-    "value657": {
+    "value655": 30,
+    "value656": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5685,8 +5684,8 @@
             }
         }
     },
-    "value658": 31,
-    "value659": {
+    "value657": 31,
+    "value658": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5695,8 +5694,8 @@
             }
         }
     },
-    "value660": 32,
-    "value661": {
+    "value659": 32,
+    "value660": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5705,8 +5704,8 @@
             }
         }
     },
-    "value662": 33,
-    "value663": {
+    "value661": 33,
+    "value662": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5715,8 +5714,8 @@
             }
         }
     },
-    "value664": 34,
-    "value665": {
+    "value663": 34,
+    "value664": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5725,8 +5724,8 @@
             }
         }
     },
-    "value666": 35,
-    "value667": {
+    "value665": 35,
+    "value666": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5735,8 +5734,8 @@
             }
         }
     },
-    "value668": 36,
-    "value669": {
+    "value667": 36,
+    "value668": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5745,8 +5744,8 @@
             }
         }
     },
-    "value670": 37,
-    "value671": {
+    "value669": 37,
+    "value670": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5755,8 +5754,8 @@
             }
         }
     },
-    "value672": 38,
-    "value673": {
+    "value671": 38,
+    "value672": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5765,8 +5764,8 @@
             }
         }
     },
-    "value674": 39,
-    "value675": {
+    "value673": 39,
+    "value674": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5775,8 +5774,8 @@
             }
         }
     },
-    "value676": 40,
-    "value677": {
+    "value675": 40,
+    "value676": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5785,8 +5784,8 @@
             }
         }
     },
-    "value678": 41,
-    "value679": {
+    "value677": 41,
+    "value678": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5795,8 +5794,8 @@
             }
         }
     },
-    "value680": 42,
-    "value681": {
+    "value679": 42,
+    "value680": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5805,8 +5804,8 @@
             }
         }
     },
-    "value682": 43,
-    "value683": {
+    "value681": 43,
+    "value682": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5815,8 +5814,8 @@
             }
         }
     },
-    "value684": 44,
-    "value685": {
+    "value683": 44,
+    "value684": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5825,8 +5824,8 @@
             }
         }
     },
-    "value686": 45,
-    "value687": {
+    "value685": 45,
+    "value686": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5835,8 +5834,8 @@
             }
         }
     },
-    "value688": 46,
-    "value689": {
+    "value687": 46,
+    "value688": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5845,8 +5844,8 @@
             }
         }
     },
-    "value690": 47,
-    "value691": {
+    "value689": 47,
+    "value690": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5855,8 +5854,8 @@
             }
         }
     },
-    "value692": 48,
-    "value693": {
+    "value691": 48,
+    "value692": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5865,8 +5864,8 @@
             }
         }
     },
-    "value694": 49,
-    "value695": {
+    "value693": 49,
+    "value694": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5875,8 +5874,8 @@
             }
         }
     },
-    "value696": 50,
-    "value697": {
+    "value695": 50,
+    "value696": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5885,8 +5884,8 @@
             }
         }
     },
-    "value698": 51,
-    "value699": {
+    "value697": 51,
+    "value698": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5895,8 +5894,8 @@
             }
         }
     },
-    "value700": 52,
-    "value701": {
+    "value699": 52,
+    "value700": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5905,8 +5904,8 @@
             }
         }
     },
-    "value702": 53,
-    "value703": {
+    "value701": 53,
+    "value702": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5915,8 +5914,8 @@
             }
         }
     },
-    "value704": 54,
-    "value705": {
+    "value703": 54,
+    "value704": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5925,8 +5924,8 @@
             }
         }
     },
-    "value706": 55,
-    "value707": {
+    "value705": 55,
+    "value706": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5935,8 +5934,8 @@
             }
         }
     },
-    "value708": 56,
-    "value709": {
+    "value707": 56,
+    "value708": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5945,8 +5944,8 @@
             }
         }
     },
-    "value710": 57,
-    "value711": {
+    "value709": 57,
+    "value710": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5955,8 +5954,8 @@
             }
         }
     },
-    "value712": 58,
-    "value713": {
+    "value711": 58,
+    "value712": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5965,8 +5964,8 @@
             }
         }
     },
-    "value714": 59,
-    "value715": {
+    "value713": 59,
+    "value714": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5975,8 +5974,8 @@
             }
         }
     },
-    "value716": 60,
-    "value717": {
+    "value715": 60,
+    "value716": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5985,8 +5984,8 @@
             }
         }
     },
-    "value718": 61,
-    "value719": {
+    "value717": 61,
+    "value718": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5995,8 +5994,8 @@
             }
         }
     },
-    "value720": 1048638,
-    "value721": {
+    "value719": 1048638,
+    "value720": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -6005,10 +6004,10 @@
             }
         }
     },
-    "value722": 1048639,
-    "value723": {
+    "value721": 63,
+    "value722": {
         "PrimitiveType": 8,
-        "FilePath": "//Assets/Meshes/Fox.glb",
+        "FilePath": "//Assets/Meshes/stormtrooper/stormtrooper.gltf",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -6025,8 +6024,8 @@
                         "value2": 1.0,
                         "value3": 1.0
                     },
-                    "roughnessValue": 0.5799999833106995,
-                    "metallicValue": 0.0,
+                    "roughnessValue": 0.2150000035762787,
+                    "metallicValue": 0.953000009059906,
                     "emissiveValue": 0.0,
                     "albedoMapFactor": 1.0,
                     "metallicMapFactor": 0.0,
@@ -6036,14 +6035,14 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "/Users/jmorton/Dev/Lumos/Lumos/Assets/Shaders/ForwardPBRAnim.shader",
-                    "Reflectance": 0.30000001192092898
+                    "shader": "/Users/jmorton/Dev/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader",
+                    "Reflectance": 0.5289999842643738
                 }
             }
         }
     },
+    "value723": 0,
     "value724": 0,
     "value725": 0,
-    "value726": 0,
-    "value727": 0
+    "value726": 0
 }

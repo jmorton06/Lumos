@@ -17,6 +17,7 @@ namespace Lumos
         : m_SceneIdx(0)
         , m_CurrentScene(nullptr)
     {
+        m_Arena = ArenaAlloc(Kilobytes(64));
     }
 
     SceneManager::~SceneManager()
@@ -25,11 +26,13 @@ namespace Lumos
 
         if(m_CurrentScene)
         {
-            LUMOS_LOG_INFO("[SceneManager] - Exiting scene : {0}", m_CurrentScene->GetSceneName());
+            LINFO("[SceneManager] - Exiting scene : %s", m_CurrentScene->GetSceneName().c_str());
             m_CurrentScene->OnCleanupScene();
         }
 
         m_vpAllScenes.Clear();
+
+        ArenaRelease(m_Arena);
     }
 
     void SceneManager::SwitchScene()
@@ -43,14 +46,14 @@ namespace Lumos
         m_SwitchingScenes  = true;
     }
 
-    void SceneManager::SwitchScene(const std::string& name)
+    void SceneManager::SwitchScene(const char* name)
     {
         bool found        = false;
         m_SwitchingScenes = true;
         uint32_t idx      = 0;
         for(uint32_t i = 0; !found && i < m_vpAllScenes.Size(); ++i)
         {
-            if(m_vpAllScenes[i]->GetSceneName() == name)
+            if(Str8StdS(m_vpAllScenes[i]->GetSceneName()) == Str8C((char*)name))
             {
                 found = true;
                 idx   = i;
@@ -64,7 +67,7 @@ namespace Lumos
         }
         else
         {
-            LUMOS_LOG_ERROR("[SceneManager] - Unknown Scene Alias : {0}", name.c_str());
+            LERROR("[SceneManager] - Unknown Scene Alias : %s", name);
         }
     }
 
@@ -83,7 +86,7 @@ namespace Lumos
 
         if(m_QueuedSceneIndex < 0 || m_QueuedSceneIndex >= static_cast<int>(m_vpAllScenes.Size()))
         {
-            LUMOS_LOG_ERROR("[SceneManager] - Invalid Scene Index : {0}", m_QueuedSceneIndex);
+            LERROR("[SceneManager] - Invalid Scene Index : %i", m_QueuedSceneIndex);
             m_QueuedSceneIndex = 0;
         }
 
@@ -92,7 +95,7 @@ namespace Lumos
         // Clear up old scene
         if(m_CurrentScene)
         {
-            LUMOS_LOG_INFO("[SceneManager] - Exiting scene : {0}", m_CurrentScene->GetSceneName());
+            LINFO("[SceneManager] - Exiting scene : %s", m_CurrentScene->GetSceneName().c_str());
             app.GetSystem<LumosPhysicsEngine>()->SetPaused(true);
 
             m_CurrentScene->OnCleanupScene();
@@ -122,24 +125,24 @@ namespace Lumos
 
         Application::Get().OnNewScene(m_CurrentScene);
 
-        LUMOS_LOG_INFO("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());
+        LINFO("[SceneManager] - Scene switched to : %s", m_CurrentScene->GetSceneName().c_str());
 
         m_SwitchingScenes = false;
     }
 
-    Vector<std::string> SceneManager::GetSceneNames()
+    TDArray<String8> SceneManager::GetSceneNames(Arena* arena)
     {
-        Vector<std::string> names;
+        TDArray<String8> names;
 
         for(auto& scene : m_vpAllScenes)
         {
-            names.PushBack(scene->GetSceneName());
+            names.PushBack(PushStr8Copy(arena, scene->GetSceneName().c_str()));
         }
 
         return names;
     }
 
-    int SceneManager::EnqueueSceneFromFile(const std::string& filePath)
+    int SceneManager::EnqueueSceneFromFile(const char* filePath)
     {
         /*    auto found = std::find(m_SceneFilePaths.begin(), m_SceneFilePaths.end(), filePath);
             if(found != m_SceneFilePaths.end())
@@ -147,13 +150,13 @@ namespace Lumos
 
         for(uint32_t i = 0; i < m_SceneFilePaths.Size(); ++i)
         {
-            if(m_SceneFilePaths[i] == filePath)
+            if(m_SceneFilePaths[i] == Str8C((char*)filePath))
             {
                 return i;
             }
         }
 
-        m_SceneFilePaths.PushBack(filePath);
+        m_SceneFilePaths.PushBack(PushStr8Copy(m_Arena, filePath));
 
         auto name  = StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(filePath));
         auto scene = new Scene(name);
@@ -164,14 +167,14 @@ namespace Lumos
     void SceneManager::EnqueueScene(Scene* scene)
     {
         m_vpAllScenes.PushBack(SharedPtr<Scene>(scene));
-        LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
+        LINFO("[SceneManager] - Enqueued scene : %s", scene->GetSceneName().c_str());
     }
 
-    bool SceneManager::ContainsScene(const std::string& filePath)
+    bool SceneManager::ContainsScene(const char* filePath)
     {
         for(uint32_t i = 0; i < m_SceneFilePaths.Size(); ++i)
         {
-            if(m_SceneFilePaths[i] == filePath)
+            if(m_SceneFilePaths[i] == Str8C((char*)filePath))
             {
                 return true;
             }
@@ -185,18 +188,24 @@ namespace Lumos
         for(auto& filePath : m_SceneFilePathsToLoad)
         {
             std::string newPath;
-            FileSystem::Get().AbsolutePathToFileSystem(filePath, newPath);
-            EnqueueSceneFromFile(filePath);
+            FileSystem::Get().AbsolutePathToFileSystem(ToStdString(filePath), newPath);
+            EnqueueSceneFromFile(newPath.c_str());
         }
 
         m_SceneFilePathsToLoad.Clear();
     }
 
-    const Vector<std::string>& SceneManager::GetSceneFilePaths()
+    const TDArray<String8>& SceneManager::GetSceneFilePaths()
     {
         m_SceneFilePaths.Clear();
         for(auto scene : m_vpAllScenes)
-            m_SceneFilePaths.PushBack("//Assets/Scenes/" + scene->GetSceneName());
+            m_SceneFilePaths.PushBack(PushStr8F(m_Arena, "//Assets/Scenes/%s", scene->GetSceneName().c_str()));
         return m_SceneFilePaths;
     }
+
+    void SceneManager::AddFileToLoadList(const char* filePath)
+    {
+        m_SceneFilePathsToLoad.PushBack(PushStr8Copy(m_Arena, filePath));
+    }
+
 }

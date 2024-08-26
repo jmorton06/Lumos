@@ -1,7 +1,7 @@
 #pragma once
-#include "MathsUtilities.h"
-#include <glm/ext/vector_float2.hpp>
-#include <glm/ext/vector_float4.hpp>
+#include "Maths/MathsFwd.h"
+#include "Maths/Vector2.h"
+#include "Maths/Vector4.h"
 
 namespace Lumos
 {
@@ -11,20 +11,20 @@ namespace Lumos
         {
         public:
             Rect();
-            Rect(const glm::vec2& position, const glm::vec2& size);
-            Rect(const glm::vec4& rect);
+            Rect(const Vec2& position, const Vec2& size);
+            Rect(const Vec4& rect);
             Rect(float x, float y, float width, float height);
 
-            void SetPosition(const glm::vec2& position);
-            void SetSize(const glm::vec2& size);
-            void Set(const glm::vec2& position, const glm::vec2& size);
+            void SetPosition(const Vec2& position);
+            void SetSize(const Vec2& size);
+            void Set(const Vec2& position, const Vec2& size);
             void Set(float x, float y, float width, float height);
 
-            const glm::vec2& GetPosition() const;
-            const glm::vec2& GetSize() const;
-            const glm::vec4& Get() const;
+            const Vec2& GetPosition() const;
+            const Vec2& GetSize() const;
+            const Vec4& Get() const;
 
-            bool IsInside(const glm::vec2& point) const;
+            bool IsInside(const Vec2& point) const;
             bool IsInside(float x, float y) const;
             bool IsInside(const Rect& rect) const;
 
@@ -32,18 +32,18 @@ namespace Lumos
 
             void Rotate(float angle);
 
-            void Transform(const glm::mat4& transform);
+            void Transform(const Mat4& transform);
 
-            void SetCenter(const glm::vec2& center);
+            void SetCenter(const Vec2& center);
             void SetCenter(float x, float y);
 
-            const glm::vec2& GetCenter() const;
+            const Vec2& GetCenter() const;
 
         private:
-            glm::vec2 m_Position;
-            glm::vec2 m_Size;
-            glm::vec4 m_Rect;
-            glm::vec2 m_Center;
+            Vec2 m_Position;
+            Vec2 m_Size;
+            Vec4 m_Rect;
+            Vec2 m_Center;
             float m_Radius;
             float m_Angle;
         };

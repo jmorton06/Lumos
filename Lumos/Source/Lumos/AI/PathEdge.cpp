@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "PathEdge.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
@@ -33,7 +34,7 @@ namespace Lumos
 
     float PathEdge::StaticCost() const
     {
-        return glm::length(m_NodeA->GetWorldSpaceTransform()[3] - m_NodeB->GetWorldSpaceTransform()[3]);
+        return Maths::Length(Vec3(m_NodeA->GetWorldSpaceTransform().Translation() - m_NodeB->GetWorldSpaceTransform().Translation()));
     }
 
     void PathEdge::SetTraversable(bool traversable)

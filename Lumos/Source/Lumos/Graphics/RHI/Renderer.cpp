@@ -4,8 +4,10 @@
 
 #include "Graphics/Mesh.h"
 #include "Core/Application.h"
-#include "Utilities/AssetManager.h"
+#include "Core/Asset/AssetManager.h"
 #include "Core/OS/Window.h"
+#include "IndexBuffer.h"
+#include "VertexBuffer.h"
 
 #include "CompiledSPV/Headers/Shadowvertspv.hpp"
 #include "CompiledSPV/Headers/Shadowfragspv.hpp"
@@ -74,7 +76,7 @@ namespace Lumos
 
         void Renderer::Init(bool loadEmbeddedShaders, const std::string& engineShaderPath)
         {
-            LUMOS_ASSERT(CreateFunc, "No Renderer Create Function");
+            ASSERT(CreateFunc, "No Renderer Create Function");
             LUMOS_PROFILE_FUNCTION();
             s_Instance = CreateFunc();
             s_Instance->InitInternal();
@@ -91,12 +93,12 @@ namespace Lumos
         void Renderer::LoadEngineShaders(bool loadEmbeddedShaders, const std::string& engineShaderPath)
         {
             auto shaderLibrary = Application::Get().GetAssetManager();
-            if(loadEmbeddedShaders)
+            if(true)
             {
-                LUMOS_LOG_INFO("Loading shaders - embedded");
+                LINFO("Loading shaders - embedded");
                 LoadShaderEmbedded("Skybox", Skybox, Skybox);
                 LoadShaderEmbedded("ForwardPBR", ForwardPBR, ForwardPBR);
-				LoadShaderEmbedded("ForwardPBRAnim", ForwardPBRAnim, ForwardPBR);
+                LoadShaderEmbedded("ForwardPBRAnim", ForwardPBRAnim, ForwardPBR);
                 LoadShaderEmbedded("Shadow", Shadow, Shadow);
                 LoadShaderEmbedded("ShadowAlpha", Shadow, ShadowAlpha);
                 LoadShaderEmbedded("ShadowAnim", ShadowAnim, Shadow);
@@ -135,7 +137,7 @@ namespace Lumos
             }
             else
             {
-                LUMOS_LOG_INFO("Loading shaders - files");
+                LINFO("Loading shaders - files");
                 LoadShaderFromFile("Skybox", "Shaders/Skybox.shader");
                 LoadShaderFromFile("Shadow", "Shaders/Shadow.shader");
                 LoadShaderFromFile("ShadowAnim", "Shaders/ShadowAnim.shader");
@@ -166,11 +168,10 @@ namespace Lumos
                 LoadShaderFromFile("ForwardPBR", "Shaders/ForwardPBR.shader");
                 LoadShaderFromFile("ForwardPBRAnim", "Shaders/ForwardPBRAnim.shader");
                 LoadShaderFromFile("Particle", "Shaders/Particle.shader");
-
                 LoadShaderFromFile("DepthPrePassAnim", "Shaders/DepthPrePassAnim.shader");
                 LoadShaderFromFile("DepthPrePassAlphaAnim", "Shaders/DepthPrePassAlphaAnim.shader")
 
-                    if(Renderer::GetCapabilities().SupportCompute)
+                if(Renderer::GetCapabilities().SupportCompute)
                 {
                     LoadShaderFromFile("FXAAComp", "Shaders/FXAACompute.shader");
                     LoadShaderFromFile("BloomComp", "Shaders/BloomComp.shader");

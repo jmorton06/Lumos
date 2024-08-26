@@ -1,5 +1,8 @@
 #pragma once
 #include "Core/String.h"
+#include "Core/DataStructures/TDArray.h"
+#include <string>
+
 #ifdef LUMOS_PLATFORM_ANDROID
 template <typename T>
 std::string to_string(const T& n)
@@ -41,10 +44,10 @@ namespace Lumos
 
         bool IsHiddenFile(const std::string& path);
 
-        std::vector<std::string> LUMOS_EXPORT SplitString(const std::string& string, const std::string& delimiters);
-        std::vector<std::string> LUMOS_EXPORT SplitString(const std::string& string, const char delimiter);
-        std::vector<std::string> LUMOS_EXPORT Tokenize(const std::string& string);
-        std::vector<std::string> GetLines(const std::string& string);
+        TDArray<std::string> SplitString(const std::string& string, const std::string& delimiters);
+        TDArray<std::string> SplitString(const std::string& string, const char delimiter);
+        TDArray<std::string> Tokenize(const std::string& string);
+        TDArray<std::string> GetLines(const std::string& string);
 
         const char* FindToken(const char* str, const std::string& token);
         const char* FindToken(const std::string& string, const std::string& token);
@@ -95,6 +98,7 @@ namespace Lumos
         String8 NormalizedPathFromStr8(Arena* arena, String8 source, String8 path);
         String8 GetFileName(String8 str, bool directory = false);
         String8 AbsolutePathToRelativeFileSystemPath(Arena* arena, String8 path, String8 fileSystemPath, String8 prefix);
+        String8 RelativeToAbsolutePath(Arena* arena, String8 path, String8 prefix, String8 fileSystemPath);
 
         uint64_t BasicHashFromString(String8 string);
         String8 BackSlashesToSlashes(Arena* arena, String8& string);

@@ -8,10 +8,10 @@
 #include "Scene/Scene.h"
 
 #include "Maths/Transform.h"
+#include "Maths/MathsUtilities.h"
 #include "B2DebugDraw.h"
 
 #include <box2d/box2d.h>
-#include <box2d/b2_math.h>
 
 #include <imgui/imgui.h>
 #include <entt/entity/registry.hpp>
@@ -19,29 +19,45 @@
 namespace Lumos
 {
     B2PhysicsEngine::B2PhysicsEngine()
-        : m_B2DWorld(CreateUniquePtr<b2World>(b2Vec2(0.0f, -9.81f)))
-        , m_DebugDraw(CreateUniquePtr<B2DebugDraw>())
-        , m_UpdateTimestep(1.0f / 60.f)
-        , m_Listener(nullptr)
+        : m_UpdateTimestep(1.0f / 60.f)
         , m_Paused(false)
     {
         m_DebugName = "Box2D Physics Engine";
-        m_B2DWorld->SetDebugDraw(m_DebugDraw.get());
 
-        uint32 flags = 0;
-        // flags += b2Draw::e_shapeBit;
-        // flags += b2Draw::e_jointBit;
-        // flags += b2Draw::e_aabbBit;
-        // flags += b2Draw::e_centerOfMassBit;
-        // flags += b2Draw::e_pairBit;
+		b2Vec2 gravity = { 0.0f, -9.81f };
+		b2WorldDef worldDef = b2DefaultWorldDef();
+		worldDef.gravity = gravity;
+		m_B2DWorld = b2CreateWorld(&worldDef);
 
-        m_DebugDraw->SetFlags(flags);
+		b2AABB bounds = { { -FLT_MAX, -FLT_MAX }, { FLT_MAX, FLT_MAX } };
+
+		m_DebugDraw = { B2DebugDraw::DrawPolygon,
+			B2DebugDraw::DrawSolidPolygon,
+			B2DebugDraw::DrawCircle,
+			B2DebugDraw::DrawSolidCircle,
+			0,//capsule
+			0,//solid capsule
+			B2DebugDraw::DrawSegment,
+			B2DebugDraw::DrawTransform,
+			B2DebugDraw::DrawPoint,
+			B2DebugDraw::DrawString, //Draw String
+			bounds,
+			true, // drawUsingBounds
+			true,  // shapes
+			false,  // joints
+			false, // joint extras
+			false, // aabbs
+			false, // mass
+			false, // contacts
+			false, // colors
+			false, // normals
+			false, // impulse
+			false, // friction
+			this };
     }
 
     B2PhysicsEngine::~B2PhysicsEngine()
     {
-        if(m_Listener)
-            delete m_Listener;
     }
 
     void B2PhysicsEngine::SetDefaults()
@@ -55,7 +71,26 @@ namespace Lumos
 
         if(!m_Paused)
         {
-            m_B2DWorld->Step((float)timeStep.GetSeconds(), m_VelocityIterations, m_PositionIterations);
+			b2World_Step(m_B2DWorld, (float)timeStep.GetSeconds(), 4);
+
+            b2ContactEvents contactEvents = b2World_GetContactEvents(m_B2DWorld);
+            for (int i = 0; i < contactEvents.beginCount; ++i)
+            {
+                b2ContactBeginTouchEvent event = contactEvents.beginEvents[i];
+                b2BodyId bodyIdA = b2Shape_GetBody(event.shapeIdA);
+                b2BodyId bodyIdB = b2Shape_GetBody(event.shapeIdB);
+
+                ContactCallback* callbackA = (ContactCallback*)b2Body_GetUserData(bodyIdA);
+                if (callbackA)
+                {
+                    callbackA->OnCollision(bodyIdA, bodyIdB, 1.0f);//event.approachSpeed);
+                }
+                ContactCallback* callbackB = (ContactCallback*)b2Body_GetUserData(bodyIdB);
+                if (callbackB)
+                {
+                    callbackB->OnCollision(bodyIdB, bodyIdA, 1.0f);//event.approachSpeed);
+                }
+            }
         }
     }
 
@@ -71,7 +106,7 @@ namespace Lumos
         ImGui::TextUnformatted("Number Of Collision Pairs");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        ImGui::Text("%5.2i", m_B2DWorld->GetContactCount());
+        ImGui::Text("%i", b2World_GetContactEvents(m_B2DWorld).hitCount);
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
@@ -79,7 +114,8 @@ namespace Lumos
         ImGui::TextUnformatted("Number Of Rigid Bodys");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        ImGui::Text("%5.2i", m_B2DWorld->GetBodyCount());
+		
+        //ImGui::Text("%5.2i", m_B2DWorld->GetBodyCount());
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
@@ -95,9 +131,9 @@ namespace Lumos
         ImGui::TextUnformatted("Gravity");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        float grav[2] = { m_B2DWorld->GetGravity().x, m_B2DWorld->GetGravity().y };
-        if(ImGui::InputFloat2("##Gravity", grav))
-            m_B2DWorld->SetGravity({ grav[0], grav[1] });
+       // float grav[2] = { m_B2DWorld->GetGravity().x, m_B2DWorld->GetGravity().y };
+        //if(ImGui::InputFloat2("##Gravity", grav))
+        //    m_B2DWorld->SetGravity({ grav[0], grav[1] });
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
@@ -106,43 +142,40 @@ namespace Lumos
         ImGui::PopStyleVar();
     }
 
-    b2Body* B2PhysicsEngine::CreateB2Body(b2BodyDef* bodyDef) const
+    b2BodyId B2PhysicsEngine::CreateB2Body(b2BodyDef bodyDef) const
     {
-        return m_B2DWorld->CreateBody(bodyDef);
-    }
-
-    void B2PhysicsEngine::CreateFixture(b2Body* body, const b2FixtureDef* fixtureDef)
-    {
-        body->CreateFixture(fixtureDef);
+		b2BodyId bodyId = b2CreateBody(m_B2DWorld, &bodyDef);
+		return bodyId;
     }
 
     void B2PhysicsEngine::OnDebugDraw()
     {
-        m_B2DWorld->DebugDraw();
+        if(m_DebugDrawFlags > 0)
+            b2World_Draw(m_B2DWorld, &m_DebugDraw);
     }
 
     void B2PhysicsEngine::SetDebugDrawFlags(uint32_t flags)
     {
-        m_DebugDraw->SetFlags(flags);
-    }
-
-    void B2PhysicsEngine::SetGravity(const glm::vec2& gravity)
-    {
-        m_B2DWorld->SetGravity({ gravity.x, gravity.y });
+        m_DebugDrawFlags = flags;
+        //m_DebugDraw.drawShapes = true;
+        m_DebugDraw.drawJoints = m_DebugDrawFlags & PhysicsDebugFlags2D::CONSTRAINT2D;
+        m_DebugDraw.drawJointExtras = m_DebugDrawFlags & PhysicsDebugFlags2D::CONSTRAINT2D;
+        m_DebugDraw.drawAABBs = m_DebugDrawFlags & PhysicsDebugFlags2D::AABB2D;
+        m_DebugDraw.drawMass = m_DebugDrawFlags & PhysicsDebugFlags2D::AABB2D;
+        m_DebugDraw.drawContacts = m_DebugDrawFlags & PhysicsDebugFlags2D::AABB2D;
+        m_DebugDraw.drawContactNormals = m_DebugDrawFlags & PhysicsDebugFlags2D::COLLISIONNORMALS2D;
+        m_DebugDraw.drawContactImpulses = m_DebugDrawFlags & PhysicsDebugFlags2D::MANIFOLD2D;
+        m_DebugDraw.drawFrictionImpulses = m_DebugDrawFlags & PhysicsDebugFlags2D::MANIFOLD2D;
     }
 
     uint32_t B2PhysicsEngine::GetDebugDrawFlags()
     {
-        return m_DebugDraw->GetFlags();
+		return m_DebugDrawFlags;
     }
 
-    void B2PhysicsEngine::SetContactListener(b2ContactListener* listener)
+    void B2PhysicsEngine::SetGravity(const Vec2& gravity)
     {
-        if(m_Listener)
-            delete m_Listener;
-
-        m_Listener = listener;
-        m_B2DWorld->SetContactListener(listener);
+        b2World_SetGravity(m_B2DWorld, { gravity.x, gravity.y });
     }
 
     void B2PhysicsEngine::SyncTransforms(Scene* scene)
@@ -164,9 +197,9 @@ namespace Lumos
             // if (!phys.GetRigidBody()->GetB2Body()->IsAwake())
             //     break;
 
-            trans.SetLocalPosition(glm::vec3(phys.GetRigidBody()->GetPosition(), trans.GetLocalPosition().z));
-            trans.SetLocalOrientation(glm::quat(glm::vec3(0.0f, 0.0f, phys.GetRigidBody()->GetAngle())));
-            trans.SetWorldMatrix(glm::mat4(1.0f)); // TODO: temp
+            trans.SetLocalPosition(Vec3(phys.GetRigidBody()->GetPosition(), trans.GetLocalPosition().z));
+            trans.SetLocalOrientation(Quat(Vec3(0.0f, 0.0f, Maths::ToDegrees(phys.GetRigidBody()->GetAngle()))));
+            trans.SetWorldMatrix(Mat4(1.0f)); // TODO: temp
         };
     }
 }

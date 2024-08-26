@@ -8,7 +8,7 @@ namespace Lumos::Graphics
         m_CurrentFrame = 0;
     }
 
-    AnimatedSprite::AnimatedSprite(const SharedPtr<Texture2D>& texture, const glm::vec2& position, const glm::vec2& scale, const std::vector<glm::vec2>& frames,
+    AnimatedSprite::AnimatedSprite(const SharedPtr<Texture2D>& texture, const Vec2& position, const Vec2& scale, const std::vector<Vec2>& frames,
                                    float frameDuration, const std::string& stateName)
     {
         m_Texture  = texture;
@@ -28,7 +28,7 @@ namespace Lumos::Graphics
         m_UVs = GetAnimatedUVs();
     }
 
-    const std::array<glm::vec2, 4>& AnimatedSprite::GetAnimatedUVs()
+    const std::array<Vec2, 4>& AnimatedSprite::GetAnimatedUVs()
     {
         LUMOS_PROFILE_FUNCTION();
         auto& currentState = m_AnimationStates[m_State];
@@ -103,7 +103,7 @@ namespace Lumos::Graphics
         }
     }
 
-    void AnimatedSprite::AddState(const std::vector<glm::vec2>& frames, float frameDuration, const std::string& stateName)
+    void AnimatedSprite::AddState(const std::vector<Vec2>& frames, float frameDuration, const std::string& stateName)
     {
         AnimationState state;
         state.Frames        = frames;
@@ -123,7 +123,7 @@ namespace Lumos::Graphics
 
         if(found == m_AnimationStates.end())
         {
-            LUMOS_LOG_ERROR("Animated Sprite does not contain state {0}", state);
+            LERROR("Animated Sprite does not contain state %s", state.c_str());
         }
 
         m_UVs = GetAnimatedUVs();

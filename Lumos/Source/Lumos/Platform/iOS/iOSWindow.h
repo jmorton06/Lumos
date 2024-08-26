@@ -3,6 +3,7 @@
 #include "Core/OS/Window.h"
 #include "Core/OS/KeyCodes.h"
 #include "Events/Event.h"
+#include "Core/DataStructures/TDArray.h"
 
 namespace Lumos
 {
@@ -90,6 +91,6 @@ namespace Lumos
         WindowData m_Data;
         void* m_Handle;
 
-        std::vector<Event*> m_QueuedEvents;
+        TDArray<Event*> m_QueuedEvents;
     };
 }

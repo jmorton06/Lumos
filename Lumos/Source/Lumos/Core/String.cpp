@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "String.h"
 #include <cstdarg>
+#include <stb/stb_sprintf.h>
 
 // Based on https://github.com/Dion-Systems/metadesk/blob/master/source/md.h
 
@@ -203,12 +204,11 @@ namespace Lumos
         va_list args2;
         va_copy(args2, args);
 
-        uint64_t needed_bytes = vsnprintf(0, 0, fmt, args) + 1; // fmt::formatted_size(fmt, args2);// ts_stbsp_vsnprintf(0, 0, fmt, args)+1;
+        uint64_t needed_bytes = stbsp_vsnprintf(0, 0, fmt, args) + 1;
         result.str            = PushArrayNoZero(arena, uint8_t, needed_bytes);
         result.size           = needed_bytes - 1;
-        // fmt::format_to(result.str, fmt, args2);
 
-        vsnprintf((char*)result.str, needed_bytes, fmt, args2);
+        stbsp_vsnprintf((char*)result.str, (int)needed_bytes, fmt, args2);
 
         return result;
     }
@@ -223,6 +223,30 @@ namespace Lumos
         va_end(args);
         return result;
     }
+
+	String8 Str8FV(String8 allocatedString, const char* fmt, va_list args)
+	{
+		String8 result = { 0 };
+		va_list args2;
+		va_copy(args2, args);
+
+		uint64_t needed_bytes = stbsp_vsnprintf(0, 0, fmt, args) + 1;
+		result.size           = needed_bytes - 1;
+		result.str 			  = allocatedString.str;
+
+		stbsp_vsnprintf((char*)result.str, (int)needed_bytes, fmt, args2);
+		return result;
+	}
+
+	String8 Str8F(String8 allocatedString, const char* fmt, ...)
+	{
+		String8 result = { 0 };
+		va_list args;
+		va_start(args, fmt);
+		result = Str8FV(allocatedString, fmt, args);
+		va_end(args);
+		return result;
+	}
 
     String8 PushStr8FillByte(Arena* arena, uint64_t size, uint8_t byte)
     {
@@ -449,7 +473,7 @@ namespace Lumos
 
     uint64_t U64FromStr8(String8 string, uint32_t radix)
     {
-        LUMOS_ASSERT(2 <= radix && radix <= 16);
+        ASSERT(2 <= radix && radix <= 16);
 
         uint64_t value = 0;
         for(uint64_t i = 0; i < string.size; i += 1)

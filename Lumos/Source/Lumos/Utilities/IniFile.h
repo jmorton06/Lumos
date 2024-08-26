@@ -1,6 +1,8 @@
 #pragma once
 #include "Core/Core.h"
 #include "Core/LMLog.h"
+#include <string>
+#include <unordered_map>
 
 namespace Lumos
 {
@@ -27,7 +29,6 @@ namespace Lumos
         bool Remove(const std::string& key);
         void RemoveAll();
         bool IsKeyExisting(const std::string& key) const;
-        std::vector<std::string> GetFormattedContent() const;
 
         void RegisterPair(const std::string& key, const std::string& value);
         void RegisterPair(const std::pair<std::string, std::string>& pair);
@@ -76,7 +77,7 @@ namespace Lumos
         }
         else
         {
-            LUMOS_ASSERT(false, "The given type must be : bool, integral, floating point or string");
+            ASSERT(false, "The given type must be : bool, integral, floating point or string");
             return T();
         }
     }
@@ -110,7 +111,7 @@ namespace Lumos
             }
             else
             {
-                LUMOS_ASSERT(false, "Type not supported");
+                ASSERT(false, "Type not supported");
             }
 
             return true;
@@ -151,7 +152,7 @@ namespace Lumos
             }
             else
             {
-                LUMOS_ASSERT(false, "Type not supported");
+                ASSERT(false, "Type not supported");
             }
 
             return true;

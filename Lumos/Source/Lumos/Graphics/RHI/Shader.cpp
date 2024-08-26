@@ -18,19 +18,19 @@ namespace Lumos
 
         Shader* Shader::CreateFromFile(const std::string& filepath)
         {
-            LUMOS_ASSERT(CreateFunc, "No Shader Create Function");
+            ASSERT(CreateFunc, "No Shader Create Function");
             return CreateFunc(filepath);
         }
 
         Shader* Shader::CreateFromEmbeddedArray(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize)
         {
-            LUMOS_ASSERT(CreateFuncFromEmbedded, "No Shader Create Function");
+            ASSERT(CreateFuncFromEmbedded, "No Shader Create Function");
             return CreateFuncFromEmbedded(vertData, vertDataSize, fragData, fragDataSize);
         }
 
         Shader* Shader::CreateCompFromEmbeddedArray(const uint32_t* compData, uint32_t compDataSize)
         {
-            LUMOS_ASSERT(CreateCompFuncFromEmbedded, "No Shader Create Function");
+            ASSERT(CreateCompFuncFromEmbedded, "No Shader Create Function");
             return CreateCompFuncFromEmbedded(compData, compDataSize);
         }
 
@@ -70,7 +70,7 @@ namespace Lumos
             case spirv_cross::SPIRType::Struct:
                 return ShaderDataType::STRUCT;
             }
-            LUMOS_LOG_WARN("Unknown spirv type!");
+            LWARN("Unknown spirv type!");
             return ShaderDataType::NONE;
         }
 

@@ -5,8 +5,7 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/OS/FileSystem.h"
 #include "Utilities/StringUtilities.h"
-
-#include <glm/gtc/type_ptr.hpp>
+#include "Maths/MathsUtilities.h"
 
 #include <spirv_glsl.hpp>
 
@@ -35,13 +34,13 @@ namespace Lumos
             //     //                case VK_FORMAT_R32_SFLOAT:
             //     //                return sizeof(float);
             //     //                case VK_FORMAT_R32G32_SFLOAT:
-            //     //                return sizeof(glm::vec2);
+            //     //                return sizeof(Vec2);
             //     //                case VK_FORMAT_R32G32B32_SFLOAT:
-            //     //                return sizeof(glm::vec3);
+            //     //                return sizeof(Vec3);
             //     //                case VK_FORMAT_R32G32B32A32_SFLOAT:
-            //     //                return sizeof(glm::vec4);
+            //     //                return sizeof(Vec4);
             // default:
-            //     //LUMOS_LOG_ERROR("Unsupported Format {0}", format);
+            //     //LERROR("Unsupported Format {0}", format);
             //     return 0;
             // }
 
@@ -59,13 +58,13 @@ namespace Lumos
                     layout.Push<float>("");
                     break;
                 case 2:
-                    layout.Push<glm::vec2>("");
+                    layout.Push<Vec2>("");
                     break;
                 case 3:
-                    layout.Push<glm::vec3>("");
+                    layout.Push<Vec3>("");
                     break;
                 case 4:
-                    layout.Push<glm::vec4>("");
+                    layout.Push<Vec4>("");
                     break;
                 }
             case spirv_cross::SPIRType::Double:
@@ -94,7 +93,7 @@ namespace Lumos
 
             for(auto& source : *sources)
             {
-                m_ShaderTypes.push_back(source.first);
+                m_ShaderTypes.PushBack(source.first);
             }
 
             GLShaderErrorInfo error;
@@ -102,11 +101,11 @@ namespace Lumos
 
             if(!m_Handle)
             {
-                LUMOS_LOG_ERROR("{0} - {1}", error.message[error.shader], m_Name);
+                LERROR("%s - %s", error.message[error.shader].c_str(), m_Name.c_str());
             }
             else
             {
-                LUMOS_LOG_INFO("Successfully compiled shader: {0}", m_Name);
+                LINFO("Successfully compiled shader: %s", m_Name.c_str());
             }
 
             CreateLocations();
@@ -122,7 +121,7 @@ namespace Lumos
 
             for(auto& source : *sources)
             {
-                m_ShaderTypes.push_back(source.first);
+                m_ShaderTypes.PushBack(source.first);
             }
 
             GLShaderErrorInfo error;
@@ -130,11 +129,11 @@ namespace Lumos
 
             if(!m_Handle)
             {
-                LUMOS_LOG_ERROR("{0} - {1}", error.message[error.shader], m_Name);
+                LERROR("%s - %s", error.message[error.shader].c_str(), m_Name.c_str());
             }
             else
             {
-                LUMOS_LOG_INFO("Successfully compiled shader: {0}", m_Name);
+                LINFO("Successfully compiled shader: %s", m_Name.c_str());
             }
 
             CreateLocations();
@@ -168,7 +167,7 @@ namespace Lumos
 
             for(auto& source : *sources)
             {
-                m_ShaderTypes.push_back(source.first);
+                m_ShaderTypes.PushBack(source.first);
             }
 
             GLShaderErrorInfo error;
@@ -176,11 +175,11 @@ namespace Lumos
 
             if(!m_Handle)
             {
-                LUMOS_LOG_ERROR("{0} - {1}", error.message[error.shader], m_Name);
+                LERROR("%s - %s", error.message[error.shader].c_str(), m_Name.c_str());
             }
             else
             {
-                LUMOS_LOG_INFO("Successfully compiled shader: {0}", m_Name);
+                LINFO("Successfully compiled shader: %s", m_Name.c_str());
             }
 
             CreateLocations();
@@ -225,14 +224,14 @@ namespace Lumos
                 }
                 else
                 {
-                    LUMOS_LOG_WARN("Invalid uniform location {0}", name);
+                    LWARN("Invalid uniform location %s", name.c_str());
                 }
             }
 
             auto location = m_UniformLocations[hashName];
             if(location == -1)
             {
-                LUMOS_LOG_ERROR("Couldnt Find Uniform In Shader: {0}", name);
+                LERROR("Couldnt Find Uniform In Shader: %s", name.c_str());
                 return;
             }
 
@@ -251,32 +250,32 @@ namespace Lumos
                 SetUniform1i(location, *reinterpret_cast<int*>(&data[offset]));
                 break;
             case ShaderDataType::VEC2:
-                SetUniform2f(location, *reinterpret_cast<glm::vec2*>(&data[offset]));
+                SetUniform2f(location, *reinterpret_cast<Vec2*>(&data[offset]));
                 break;
             case ShaderDataType::VEC3:
-                SetUniform3f(location, *reinterpret_cast<glm::vec3*>(&data[offset]));
+                SetUniform3f(location, *reinterpret_cast<Vec3*>(&data[offset]));
                 break;
             case ShaderDataType::VEC4:
-                SetUniform4f(location, *reinterpret_cast<glm::vec4*>(&data[offset]));
+                SetUniform4f(location, *reinterpret_cast<Vec4*>(&data[offset]));
                 break;
             case ShaderDataType::MAT3:
-                SetUniformMat3(location, *reinterpret_cast<glm::mat3*>(&data[offset]));
+                SetUniformMat3(location, *reinterpret_cast<Mat3*>(&data[offset]));
                 break;
             case ShaderDataType::MAT4:
-                SetUniformMat4(location, *reinterpret_cast<glm::mat4*>(&data[offset]));
+                SetUniformMat4(location, *reinterpret_cast<Mat4*>(&data[offset]));
                 break;
             case ShaderDataType::MAT4ARRAY:
-                SetUniformMat4Array(location, 1, *reinterpret_cast<glm::mat4*>(&data[offset]));
+                SetUniformMat4Array(location, 1, *reinterpret_cast<Mat4*>(&data[offset]));
                 break;
             default:
-                LUMOS_ASSERT(false, "Unknown type!");
+                ASSERT(false, "Unknown type!");
             }
         }
 
         void GLShader::BindPushConstants(Graphics::CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline)
         {
             LUMOS_PROFILE_FUNCTION();
-            for(int i = 0; i < m_PushConstants.size(); i++)
+            for(int i = 0; i < m_PushConstants.Size(); i++)
             {
                 // for(auto& member : pc.m_Members)
                 //{
@@ -289,7 +288,7 @@ namespace Lumos
 
                 const auto& itLocation = m_UniformBlockLocations.find(m_PushConstants[i].name);
                 if(itLocation == m_UniformBlockLocations.end())
-                    LUMOS_LOG_WARN("Push const {0} not found", m_PushConstants[i].name);
+                    LWARN("Push const %s not found", m_PushConstants[i].name.c_str());
                 auto bufferHandle = static_cast<GLUniformBuffer*>(m_PushConstantsBuffers[i].first)->GetHandle();
                 {
                     LUMOS_PROFILE_SCOPE("glBindBufferBase");
@@ -364,22 +363,22 @@ namespace Lumos
                 }
             }
 
-            LUMOS_LOG_WARN("Couldnt set uniform location");
+            LWARN("Couldnt set uniform location");
             return false;
         }
 
         void GLShader::PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources)
         {
             LUMOS_PROFILE_FUNCTION();
-            s_Type                         = ShaderType::UNKNOWN;
-            std::vector<std::string> lines = StringUtilities::GetLines(source);
+            s_Type                     = ShaderType::UNKNOWN;
+            TDArray<std::string> lines = StringUtilities::GetLines(source);
             ReadShaderFile(lines, sources);
         }
 
-        void GLShader::ReadShaderFile(std::vector<std::string> lines, std::map<ShaderType, std::string>* shaders)
+        void GLShader::ReadShaderFile(TDArray<std::string> lines, std::map<ShaderType, std::string>* shaders)
         {
             LUMOS_PROFILE_FUNCTION();
-            for(uint32_t i = 0; i < lines.size(); i++)
+            for(uint32_t i = 0; i < lines.Size(); i++)
             {
                 std::string str = std::string(lines[i]);
                 str             = StringUtilities::StringReplace(str, '\t');
@@ -444,7 +443,7 @@ namespace Lumos
                         if(j != std::string::npos)
                             file.erase(j, rem.length());
                         file = StringUtilities::StringReplace(file, '\"');
-                        LUMOS_LOG_WARN("Including file \'{0}\' into shader.", file);
+                        LWARN("Including file \'%s\' into shader.", file.c_str());
                         FileSystem::Get().ReadTextFile(file);
                         ReadShaderFile(StringUtilities::GetLines(FileSystem::Get().ReadTextFile(file)), shaders);
                     }
@@ -479,7 +478,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             GLCall(uint32_t program = glCreateProgram());
 
-            std::vector<GLuint> shaders;
+            TDArray<GLuint> shaders;
 
             std::string glVersion;
 
@@ -492,8 +491,8 @@ namespace Lumos
             for(auto source : *sources)
             {
                 // source.second.insert(0, glVersion);
-                // LUMOS_LOG_INFO(source.second);
-                shaders.push_back(CompileShader(source.first, source.second, program, info));
+                // LINFO(source.second);
+                shaders.PushBack(CompileShader(source.first, source.second, program, info));
             }
 
             for(unsigned int shader : shaders)
@@ -507,26 +506,26 @@ namespace Lumos
             {
                 GLint length;
                 GLCall(glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length));
-                std::vector<char> error(length);
-                GLCall(glGetProgramInfoLog(program, length, &length, error.data()));
-                std::string errorMessage(error.data(), length);
+                TDArray<char> error(length);
+                GLCall(glGetProgramInfoLog(program, length, &length, error.Data()));
+                std::string errorMessage(error.Data(), length);
                 int32_t lineNumber = -1;
-                sscanf(error.data(), "%*s %*d:%d", &lineNumber);
+                sscanf(error.Data(), "%*s %*d:%d", &lineNumber);
                 info.shader = 3;
                 info.message[info.shader] += "Failed to link shader!\n";
                 info.line[info.shader] = 0;
                 info.message[info.shader] += errorMessage;
 
-                LUMOS_LOG_ERROR(info.message[info.shader]);
+                LERROR(info.message[info.shader].c_str());
                 return 0;
             }
 
             GLCall(glValidateProgram(program));
 
-            for(int z = 0; z < shaders.size(); z++)
+            for(int z = 0; z < shaders.Size(); z++)
                 glDetachShader(program, shaders[z]);
 
-            for(int z = 0; z < shaders.size(); z++)
+            for(int z = 0; z < shaders.Size(); z++)
                 glDeleteShader(shaders[z]);
 
             return program;
@@ -551,7 +550,7 @@ namespace Lumos
                 return GL_COMPUTE_SHADER;
 #endif
             default:
-                LUMOS_LOG_ERROR("Unsupported Shader Type");
+                LERROR("Unsupported Shader Type");
                 return GL_VERTEX_SHADER;
             }
         }
@@ -593,11 +592,11 @@ namespace Lumos
             {
                 GLint length;
                 GLCall(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length));
-                std::vector<char> error(length);
-                GLCall(glGetShaderInfoLog(shader, length, &length, error.data()));
-                std::string errorMessage(error.data(), length);
+                TDArray<char> error(length);
+                GLCall(glGetShaderInfoLog(shader, length, &length, error.Data()));
+                std::string errorMessage(error.Data(), length);
                 int32_t lineNumber;
-                sscanf(error.data(), "%*s %*d:%d", &lineNumber);
+                sscanf(error.Data(), "%*s %*d:%d", &lineNumber);
                 info.shader = static_cast<uint32_t>(type);
                 info.message[info.shader] += "Failed to compile " + TypeToString(type) + " shader!\n";
 
@@ -605,7 +604,7 @@ namespace Lumos
                 info.message[info.shader] += errorMessage;
                 GLCall(glDeleteShader(shader));
 
-                LUMOS_LOG_ERROR(info.message[info.shader]);
+                LERROR(info.message[info.shader].c_str());
                 return 0;
             }
             return shader;
@@ -654,14 +653,14 @@ namespace Lumos
                 }
                 else
                 {
-                    LUMOS_LOG_WARN("Invalid uniform location {0}", name);
+                    LWARN("Invalid uniform location %s", name.c_str());
                 }
             }
 
             auto location = m_UniformLocations[hashName];
             if(location == -1)
             {
-                LUMOS_LOG_ERROR("Couldnt Find Uniform In Shader: {0}", name);
+                LERROR("Couldnt Find Uniform In Shader: %s", name.c_str());
                 return location;
             }
 
@@ -698,25 +697,25 @@ namespace Lumos
             SetUniform1iv(GetUniformLocation(name), value, count);
         }
 
-        void GLShader::SetUniform2f(const std::string& name, const glm::vec2& vector)
+        void GLShader::SetUniform2f(const std::string& name, const Vec2& vector)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniform2f(GetUniformLocation(name), vector);
         }
 
-        void GLShader::SetUniform3f(const std::string& name, const glm::vec3& vector)
+        void GLShader::SetUniform3f(const std::string& name, const Vec3& vector)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniform3f(GetUniformLocation(name), vector);
         }
 
-        void GLShader::SetUniform4f(const std::string& name, const glm::vec4& vector)
+        void GLShader::SetUniform4f(const std::string& name, const Vec4& vector)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniform4f(GetUniformLocation(name), vector);
         }
 
-        void GLShader::SetUniformMat4(const std::string& name, const glm::mat4& matrix)
+        void GLShader::SetUniformMat4(const std::string& name, const Mat4& matrix)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniformMat4(GetUniformLocation(name), matrix);
@@ -747,41 +746,39 @@ namespace Lumos
             GLCall(glUniform1iv(location, count, value));
         }
 
-        void GLShader::SetUniform2f(uint32_t location, const glm::vec2& vector)
+        void GLShader::SetUniform2f(uint32_t location, const Vec2& vector)
         {
             GLCall(glUniform2f(location, vector.x, vector.y));
         }
 
-        void GLShader::SetUniform3f(uint32_t location, const glm::vec3& vector)
+        void GLShader::SetUniform3f(uint32_t location, const Vec3& vector)
         {
             GLCall(glUniform3f(location, vector.x, vector.y, vector.z));
         }
 
-        void GLShader::SetUniform4f(uint32_t location, const glm::vec4& vector)
+        void GLShader::SetUniform4f(uint32_t location, const Vec4& vector)
         {
             GLCall(glUniform4f(location, vector.x, vector.y, vector.z, vector.w));
         }
 
-        void GLShader::SetUniformMat3(uint32_t location, const glm::mat3& matrix)
+        void GLShader::SetUniformMat3(uint32_t location, const Mat3& matrix)
         {
-            GLCall(glUniformMatrix3fv(location, 1, GL_FALSE /*GLTRUE*/, glm::value_ptr(matrix))); // &matrix.values[0]));
+            GLCall(glUniformMatrix3fv(location, 1, GL_FALSE /*GLTRUE*/, Maths::ValuePtr(matrix))); // &matrix.values[0]));
         }
 
-        void GLShader::SetUniformMat4(uint32_t location, const glm::mat4& matrix)
+        void GLShader::SetUniformMat4(uint32_t location, const Mat4& matrix)
         {
-            GLCall(glUniformMatrix4fv(location, 1, GL_FALSE /*GLTRUE*/, glm::value_ptr(matrix)));
+            GLCall(glUniformMatrix4fv(location, 1, GL_FALSE /*GLTRUE*/, Maths::ValuePtr(matrix)));
         }
 
-        void GLShader::SetUniformMat4Array(uint32_t location, uint32_t count, const glm::mat4& matrix)
+        void GLShader::SetUniformMat4Array(uint32_t location, uint32_t count, const Mat4& matrix)
         {
-            GLCall(glUniformMatrix4fv(location, count, GL_FALSE /*GLTRUE*/, glm::value_ptr(matrix)));
+            GLCall(glUniformMatrix4fv(location, count, GL_FALSE /*GLTRUE*/, Maths::ValuePtr(matrix)));
         }
 
         void GLShader::LoadFromData(const uint32_t* data, uint32_t size, ShaderType type, std::map<ShaderType, std::string>& sources)
         {
-            std::vector<unsigned int> spv(data, data + size / sizeof(unsigned int));
-
-            spirv_cross::CompilerGLSL* glsl = new spirv_cross::CompilerGLSL(std::move(spv));
+            spirv_cross::CompilerGLSL* glsl = new spirv_cross::CompilerGLSL(data, size_t(size / sizeof(unsigned int)));
 
             // The SPIR-V is now parsed, and we can perform reflection on it.
             spirv_cross::ShaderResources resources = glsl->get_shader_resources();
@@ -811,7 +808,7 @@ namespace Lumos
                 // glsl->set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
 
                 auto& descriptorInfo  = m_DescriptorInfos[set];
-                auto& descriptor      = descriptorInfo.descriptors.emplace_back();
+                auto& descriptor      = descriptorInfo.descriptors.EmplaceBack();
                 descriptor.binding    = binding;
                 descriptor.name       = resource.name;
                 descriptor.shaderType = type;
@@ -840,7 +837,7 @@ namespace Lumos
                 int memberCount = (int)bufferType.member_types.size();
 
                 auto& descriptorInfo  = m_DescriptorInfos[set];
-                auto& descriptor      = descriptorInfo.descriptors.emplace_back();
+                auto& descriptor      = descriptorInfo.descriptors.EmplaceBack();
                 descriptor.binding    = binding;
                 descriptor.size       = (uint32_t)bufferSize;
                 descriptor.name       = uniform_buffer.name;
@@ -903,9 +900,9 @@ namespace Lumos
                 auto bufferSize  = glsl->get_declared_struct_size(bufferType);
                 int memberCount  = (int)bufferType.member_types.size();
 
-                m_PushConstants.push_back({ /*rangeSizes*/ uint32_t(glsl->get_declared_struct_size(glsl->get_type(u.base_type_id))), type });
-                m_PushConstants.back().data = new uint8_t[size];
-                m_PushConstants.back().name = glsl->get_name(u.base_type_id);
+                m_PushConstants.PushBack({ /*rangeSizes*/ uint32_t(glsl->get_declared_struct_size(glsl->get_type(u.base_type_id))), type });
+                m_PushConstants.Back().data = new uint8_t[size];
+                m_PushConstants.Back().name = glsl->get_name(u.base_type_id);
                 m_PushConstantsBuffers.push_back({ (GLUniformBuffer*)UniformBuffer::Create(size, nullptr), binding });
                 m_PushConstantsBuffers.back().first->Init(size, nullptr);
 
@@ -918,7 +915,7 @@ namespace Lumos
 
                     std::string uniformName = u.name + "." + memberName;
 
-                    auto& member    = m_PushConstants.back().m_Members.EmplaceBack();
+                    auto& member    = m_PushConstants.Back().m_Members.EmplaceBack();
                     member.size     = (uint32_t)size;
                     member.offset   = offset;
                     member.type     = SPIRVTypeToLumosDataType(type);

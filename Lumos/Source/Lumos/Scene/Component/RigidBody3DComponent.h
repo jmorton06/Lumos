@@ -71,7 +71,7 @@ namespace Lumos
     {
     public:
         SpringConstraintComponent() = default;
-        SpringConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant = 0.9f);
+        SpringConstraintComponent(Entity entity, Entity otherEntity, const Vec3& pos1, const Vec3& pos2, float constant = 0.9f);
         SpringConstraintComponent(Entity entity, Entity otherEntity);
         ~SpringConstraintComponent() = default;
 
@@ -107,14 +107,14 @@ namespace Lumos
             m_Initialised   = false;
         }
 
-        const glm::vec3& getPosition1() const { return m_Position1; }
-        void SetPosition1(const glm::vec3& position)
+        const Vec3& getPosition1() const { return m_Position1; }
+        void SetPosition1(const Vec3& position)
         {
             m_Position1   = position;
             m_Initialised = false;
         }
-        const glm::vec3& GetPosition2() const { return m_Position2; }
-        void SetPosition2(const glm::vec3& position)
+        const Vec3& GetPosition2() const { return m_Position2; }
+        void SetPosition2(const Vec3& position)
         {
             m_Position2   = position;
             m_Initialised = false;
@@ -130,8 +130,8 @@ namespace Lumos
         SharedPtr<SpringConstraint> m_Constraint;
         uint64_t m_EntityID;
         uint64_t m_OtherEntityID;
-        glm::vec3 m_Position1;
-        glm::vec3 m_Position2;
+        Vec3 m_Position1;
+        Vec3 m_Position2;
         float m_Constant   = 1.0f;
         bool m_Initialised = false;
     };
@@ -139,7 +139,7 @@ namespace Lumos
     class WeldConstraintComponent
     {
     public:
-        WeldConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant = 1.0f);
+        WeldConstraintComponent(Entity entity, Entity otherEntity, const Vec3& pos1, const Vec3& pos2, float constant = 1.0f);
         WeldConstraintComponent(Entity entity, Entity otherEntity);
         ~WeldConstraintComponent() = default;
 
@@ -153,7 +153,7 @@ namespace Lumos
     class DistanceConstraintComponent
     {
     public:
-        DistanceConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant = 1.0f);
+        DistanceConstraintComponent(Entity entity, Entity otherEntity, const Vec3& pos1, const Vec3& pos2, float constant = 1.0f);
         DistanceConstraintComponent(Entity entity, Entity otherEntity);
         ~DistanceConstraintComponent() = default;
 

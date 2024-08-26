@@ -43,13 +43,13 @@ namespace Lumos
             TransitionAttachments();
 
             // Pipeline
-            std::vector<VkDynamicState> dynamicStateDescriptors;
+            TDArray<VkDynamicState> dynamicStateDescriptors;
             VkPipelineDynamicStateCreateInfo dynamicStateCI {};
             dynamicStateCI.sType          = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
             dynamicStateCI.pNext          = NULL;
-            dynamicStateCI.pDynamicStates = dynamicStateDescriptors.data();
+            dynamicStateCI.pDynamicStates = dynamicStateDescriptors.Data();
 
-            std::vector<VkVertexInputAttributeDescription> vertexInputDescription;
+            TDArray<VkVertexInputAttributeDescription> vertexInputDescription;
 
             m_Compute = m_Shader.As<VKShader>()->IsCompute();
 
@@ -77,15 +77,15 @@ namespace Lumos
                     vertexBindingDescription.stride    = m_Shader.As<VKShader>()->GetVertexInputStride();
                 }
 
-                const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescription = m_Shader.As<VKShader>()->GetVertexInputAttributeDescription();
+                const TDArray<VkVertexInputAttributeDescription>& vertexInputAttributeDescription = m_Shader.As<VKShader>()->GetVertexInputAttributeDescription();
 
                 VkPipelineVertexInputStateCreateInfo vi {};
                 vi.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
                 vi.pNext                           = NULL;
                 vi.vertexBindingDescriptionCount   = stride > 0 ? 1 : 0;
                 vi.pVertexBindingDescriptions      = stride > 0 ? &vertexBindingDescription : nullptr;
-                vi.vertexAttributeDescriptionCount = stride > 0 ? uint32_t(vertexInputAttributeDescription.size()) : 0;
-                vi.pVertexAttributeDescriptions    = stride > 0 ? vertexInputAttributeDescription.data() : nullptr;
+                vi.vertexAttributeDescriptionCount = stride > 0 ? uint32_t(vertexInputAttributeDescription.Size()) : 0;
+                vi.pVertexAttributeDescriptions    = stride > 0 ? vertexInputAttributeDescription.Data() : nullptr;
 
                 VkPipelineInputAssemblyStateCreateInfo inputAssemblyCI {};
                 inputAssemblyCI.sType                  = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -116,13 +116,13 @@ namespace Lumos
                 cb.pNext = NULL;
                 cb.flags = 0;
 
-                std::vector<VkPipelineColorBlendAttachmentState> blendAttachState;
-                blendAttachState.resize(m_RenderPass.As<VKRenderPass>()->GetColourAttachmentCount());
+                TDArray<VkPipelineColorBlendAttachmentState> blendAttachState;
+                blendAttachState.Resize(m_RenderPass.As<VKRenderPass>()->GetColourAttachmentCount());
 
-                for(unsigned int i = 0; i < blendAttachState.size(); i++)
+                for(unsigned int i = 0; i < blendAttachState.Size(); i++)
                 {
                     blendAttachState[i]                     = VkPipelineColorBlendAttachmentState();
-                    blendAttachState[i].colorWriteMask      = 0x0f;
+                    blendAttachState[i].colorWriteMask      = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
                     blendAttachState[i].alphaBlendOp        = VK_BLEND_OP_ADD;
                     blendAttachState[i].colorBlendOp        = VK_BLEND_OP_ADD;
                     blendAttachState[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
@@ -147,6 +147,13 @@ namespace Lumos
                             blendAttachState[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
                             blendAttachState[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
                             blendAttachState[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+                        }
+                        else if(pipelineDesc.blendMode == BlendMode::OneMinusSrcAlpha)
+                        {
+                            blendAttachState[i].srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+                            blendAttachState[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+                            blendAttachState[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+                            blendAttachState[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
                         }
                         else if(pipelineDesc.blendMode == BlendMode::ZeroSrcColor)
                         {
@@ -174,8 +181,8 @@ namespace Lumos
                     }
                 }
 
-                cb.attachmentCount   = static_cast<uint32_t>(blendAttachState.size());
-                cb.pAttachments      = blendAttachState.data();
+                cb.attachmentCount   = static_cast<uint32_t>(blendAttachState.Size());
+                cb.pAttachments      = blendAttachState.Data();
                 cb.logicOpEnable     = VK_FALSE;
                 cb.logicOp           = VK_LOGIC_OP_NO_OP;
                 cb.blendConstants[0] = 1.0f;
@@ -190,15 +197,15 @@ namespace Lumos
                 vp.scissorCount  = 1;
                 vp.pScissors     = NULL;
                 vp.pViewports    = NULL;
-                dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_VIEWPORT);
-                dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_SCISSOR);
+                dynamicStateDescriptors.PushBack(VK_DYNAMIC_STATE_VIEWPORT);
+                dynamicStateDescriptors.PushBack(VK_DYNAMIC_STATE_SCISSOR);
 
                 if(Renderer::GetCapabilities().WideLines && pipelineDesc.polygonMode == PolygonMode::LINE) // || pipelineDesc.polygonMode == PolygonMode::LINESTRIP)
-                    dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
+                    dynamicStateDescriptors.PushBack(VK_DYNAMIC_STATE_LINE_WIDTH);
 
                 if(pipelineDesc.depthBiasEnabled)
                 {
-                    dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
+                    dynamicStateDescriptors.PushBack(VK_DYNAMIC_STATE_DEPTH_BIAS);
                     m_DepthBiasConstant = pipelineDesc.depthBiasConstantFactor;
                     m_DepthBiasSlope    = pipelineDesc.depthBiasSlopeFactor;
                     m_DepthBiasEnabled  = true;
@@ -237,8 +244,8 @@ namespace Lumos
                 ms.alphaToOneEnable      = VK_FALSE;
                 ms.minSampleShading      = 0.0;
 
-                dynamicStateCI.dynamicStateCount = uint32_t(dynamicStateDescriptors.size());
-                dynamicStateCI.pDynamicStates    = dynamicStateDescriptors.data();
+                dynamicStateCI.dynamicStateCount = uint32_t(dynamicStateDescriptors.Size());
+                dynamicStateCI.pDynamicStates    = dynamicStateDescriptors.Data();
 
                 auto vkshader = pipelineDesc.shader.As<VKShader>();
                 VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo {};
@@ -299,7 +306,7 @@ namespace Lumos
             }
             else
             {
-                // LUMOS_LOG_WARN("TODO: not correct width and height");
+                // LWARN("TODO: not correct width and height");
                 // uint32_t width  = 1000;
                 // uint32_t height = 1000;
                 // commandBuffer->UpdateViewport(width, height, false);
@@ -318,13 +325,15 @@ namespace Lumos
         void VKPipeline::CreateFramebuffers()
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            std::vector<TextureType> attachmentTypes;
-            std::vector<Texture*> attachments;
+
+            ArenaTemp temp = ScratchBegin(0, 0);
+            TDArray<TextureType> attachmentTypes(temp.arena);
+            TDArray<Texture*> attachments(temp.arena);
 
             if(m_Description.swapchainTarget)
             {
-                attachmentTypes.push_back(TextureType::COLOUR);
-                attachments.push_back(Renderer::GetMainSwapChain()->GetImage(0));
+                attachmentTypes.PushBack(TextureType::COLOUR);
+                attachments.PushBack(Renderer::GetMainSwapChain()->GetImage(0));
             }
             else
             {
@@ -332,40 +341,40 @@ namespace Lumos
                 {
                     if(texture)
                     {
-                        attachmentTypes.push_back(texture->GetType());
-                        attachments.push_back(texture);
+                        attachmentTypes.PushBack(texture->GetType());
+                        attachments.PushBack(texture);
                     }
                 }
             }
 
             if(m_Description.depthTarget)
             {
-                attachmentTypes.push_back(m_Description.depthTarget->GetType());
-                attachments.push_back(m_Description.depthTarget);
+                attachmentTypes.PushBack(m_Description.depthTarget->GetType());
+                attachments.PushBack(m_Description.depthTarget);
             }
 
             if(m_Description.depthArrayTarget)
             {
-                attachmentTypes.push_back(m_Description.depthArrayTarget->GetType());
-                attachments.push_back(m_Description.depthArrayTarget);
+                attachmentTypes.PushBack(m_Description.depthArrayTarget->GetType());
+                attachments.PushBack(m_Description.depthArrayTarget);
             }
 
             if(m_Description.cubeMapTarget)
             {
-                attachmentTypes.push_back(m_Description.cubeMapTarget->GetType());
-                attachments.push_back(m_Description.cubeMapTarget);
+                attachmentTypes.PushBack(m_Description.cubeMapTarget->GetType());
+                attachments.PushBack(m_Description.cubeMapTarget);
             }
 
             if(m_Description.resolveTexture)
             {
-                attachmentTypes.push_back(TextureType::COLOUR);
-                attachments.push_back(m_Description.resolveTexture);
+                attachmentTypes.PushBack(TextureType::COLOUR);
+                attachments.PushBack(m_Description.resolveTexture);
             }
 
             Graphics::RenderPassDesc renderPassDesc = {};
-            renderPassDesc.attachmentCount          = uint32_t(attachmentTypes.size()) - (m_Description.resolveTexture ? 1 : 0);
-            renderPassDesc.attachmentTypes          = attachmentTypes.data();
-            renderPassDesc.attachments              = attachments.data();
+            renderPassDesc.attachmentCount          = uint32_t(attachmentTypes.Size()) - (m_Description.resolveTexture ? 1 : 0);
+            renderPassDesc.attachmentTypes          = attachmentTypes.Data();
+            renderPassDesc.attachments              = attachments.Data();
             renderPassDesc.swapchainTarget          = m_Description.swapchainTarget;
             renderPassDesc.clear                    = m_Description.clearTargets;
             renderPassDesc.cubeMapIndex             = m_Description.cubeMapIndex;
@@ -380,9 +389,9 @@ namespace Lumos
             FramebufferDesc frameBufferDesc = {};
             frameBufferDesc.width           = GetWidth();
             frameBufferDesc.height          = GetHeight();
-            frameBufferDesc.attachmentCount = uint32_t(attachments.size());
+            frameBufferDesc.attachmentCount = uint32_t(attachments.Size());
             frameBufferDesc.renderPass      = m_RenderPass.get();
-            frameBufferDesc.attachmentTypes = attachmentTypes.data();
+            frameBufferDesc.attachmentTypes = attachmentTypes.Data();
             frameBufferDesc.samples         = m_Description.samples;
 
             if(m_Description.swapchainTarget)
@@ -391,9 +400,9 @@ namespace Lumos
                 {
                     attachments[0]              = Renderer::GetMainSwapChain()->GetImage(i);
                     frameBufferDesc.screenFBO   = true;
-                    frameBufferDesc.attachments = attachments.data();
+                    frameBufferDesc.attachments = attachments.Data();
 
-                    m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
+                    m_Framebuffers.EmplaceBack(Framebuffer::Get(frameBufferDesc));
                 }
             }
             else if(m_Description.depthArrayTarget)
@@ -403,9 +412,9 @@ namespace Lumos
                     attachments[0]              = m_Description.depthArrayTarget;
                     frameBufferDesc.layer       = i;
                     frameBufferDesc.screenFBO   = false;
-                    frameBufferDesc.attachments = attachments.data();
+                    frameBufferDesc.attachments = attachments.Data();
 
-                    m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
+                    m_Framebuffers.EmplaceBack(Framebuffer::Get(frameBufferDesc));
                 }
             }
             else if(m_Description.cubeMapTarget)
@@ -417,18 +426,20 @@ namespace Lumos
                     frameBufferDesc.mipIndex  = m_Description.mipIndex;
 
                     attachments[0]              = m_Description.cubeMapTarget;
-                    frameBufferDesc.attachments = attachments.data();
+                    frameBufferDesc.attachments = attachments.Data();
 
-                    m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
+                    m_Framebuffers.EmplaceBack(Framebuffer::Get(frameBufferDesc));
                 }
             }
             else
             {
-                frameBufferDesc.attachments = attachments.data();
+                frameBufferDesc.attachments = attachments.Data();
                 frameBufferDesc.screenFBO   = false;
                 frameBufferDesc.mipIndex    = m_Description.mipIndex;
-                m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
+                m_Framebuffers.EmplaceBack(Framebuffer::Get(frameBufferDesc));
             }
+
+            ScratchEnd(temp);
         }
 
         void VKPipeline::End(CommandBuffer* commandBuffer)

@@ -1,6 +1,6 @@
 #pragma once
-#include <glm/ext/vector_float4.hpp>
-#include "Definitions.h"
+#include "Maths/Vector4.h"
+#include "RHIDefinitions.h"
 
 namespace Lumos
 {
@@ -18,9 +18,9 @@ namespace Lumos
 
             virtual void Validate() {};
 
-            virtual uint32_t GetWidth() const                    = 0;
-            virtual uint32_t GetHeight() const                   = 0;
-            virtual void SetClearColour(const glm::vec4& colour) = 0;
+            virtual uint32_t GetWidth() const               = 0;
+            virtual uint32_t GetHeight() const              = 0;
+            virtual void SetClearColour(const Vec4& colour) = 0;
 
         protected:
             static Framebuffer* (*CreateFunc)(const FramebufferDesc&);

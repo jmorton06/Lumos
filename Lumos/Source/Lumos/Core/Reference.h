@@ -4,6 +4,13 @@
 #include "OS/Memory.h"
 #include "Core/LMLog.h"
 
+//#define DEBUG_REFERENCE_CAST
+#ifdef DEBUG_REFERENCE_CAST
+#include "Core/DataStructures/TDArray.h"
+#include "Utilities/StringUtilities.h"
+#include <typeinfo>
+#endif
+
 namespace Lumos
 {
     class LUMOS_EXPORT RefCount
@@ -94,10 +101,14 @@ namespace Lumos
                     m_Counter->reference();
                 }
             }
+            #ifdef DEBUG_REFERENCE_CAST
             else
             {
-                LUMOS_LOG_ERROR("Failed to cast Reference");
+                auto type1 = StringUtilities::Demangle(typeid(T).name());
+                auto type2 = StringUtilities::Demangle(typeid(U).name());
+                LERROR("Failed to cast Reference %s to %s", type2.c_str(), type1.c_str());
             }
+            #endif
         }
 
         ~Reference() noexcept
@@ -125,7 +136,7 @@ namespace Lumos
                 m_Counter = nullptr;
             }
 
-            std::swap(tmp, m_Ptr);
+            Swap(tmp, m_Ptr);
             m_Ptr = nullptr;
 
             return tmp;
@@ -180,10 +191,14 @@ namespace Lumos
                     m_Counter->reference();
                 }
             }
+            #ifdef DEBUG_REFERENCE_CAST
             else
             {
-                LUMOS_LOG_ERROR("Failed to cast Reference");
+                auto type1 = StringUtilities::Demangle(typeid(T).name());
+                auto type2 = StringUtilities::Demangle(typeid(U).name());
+                LERROR("Failed to cast Reference %s to %s", type2.c_str(), type1.c_str());
             }
+            #endif
 
             return *this;
         }
@@ -211,7 +226,7 @@ namespace Lumos
 
         inline T& operator[](int index)
         {
-            LUMOS_ASSERT(m_Ptr);
+            ASSERT(m_Ptr);
             return m_Ptr[index];
         }
 
@@ -243,8 +258,8 @@ namespace Lumos
 
         inline void swap(Reference& other) noexcept
         {
-            std::swap(m_Ptr, other.m_Ptr);
-            std::swap(m_Counter, other.m_Counter);
+            Swap(m_Ptr, other.m_Ptr);
+            Swap(m_Counter, other.m_Counter);
         }
 
         template <typename U>
@@ -274,7 +289,7 @@ namespace Lumos
 
         inline void refPointer(T* ptr)
         {
-            LUMOS_ASSERT(ptr, "Creating shared ptr with nullptr");
+            ASSERT(ptr, "Creating shared ptr with nullptr");
 
             m_Ptr     = ptr;
             m_Counter = new RefCount();
@@ -330,7 +345,7 @@ namespace Lumos
         explicit WeakReference(T* ptr) noexcept
             : m_Ptr(ptr)
         {
-            LUMOS_ASSERT(ptr, "Creating weak ptr with nullptr");
+            ASSERT(ptr, "Creating weak ptr with nullptr");
 
             m_Counter = new RefCount();
             m_Counter->weakReference();
@@ -388,7 +403,7 @@ namespace Lumos
 
         inline T& operator[](int index)
         {
-            LUMOS_ASSERT(m_Ptr);
+            ASSERT(m_Ptr);
             return m_Ptr[index];
         }
 
@@ -493,7 +508,7 @@ namespace Lumos
 
         T& operator[](int index)
         {
-            LUMOS_ASSERT(m_Ptr);
+            ASSERT(m_Ptr);
             return m_Ptr[index];
         }
 
@@ -511,7 +526,7 @@ namespace Lumos
         inline T* release()
         {
             T* result = nullptr;
-            std::swap(result, m_Ptr);
+            Swap(result, m_Ptr);
             return result;
         }
 
@@ -523,7 +538,7 @@ namespace Lumos
 
         inline void swap(Owned& src) noexcept
         {
-            std::swap(m_Ptr, src.m_Ptr);
+            Swap(m_Ptr, src.m_Ptr);
         }
 
     private:
@@ -545,7 +560,7 @@ namespace Lumos
     template <typename T, typename... Args>
     SharedPtr<T> CreateSharedPtr(Args&&... args)
     {
-        auto ptr = new T(std::forward<Args>(args)...);
+        auto ptr = new T(Forward<Args>(args)...);
 
         return Reference<T>(ptr);
     }
@@ -556,7 +571,7 @@ namespace Lumos
     template <typename T, typename... Args>
     UniquePtr<T> CreateUniquePtr(Args&&... args)
     {
-        auto ptr = new T(std::forward<Args>(args)...);
+        auto ptr = new T(Forward<Args>(args)...);
         return Owned<T>(ptr);
     }
 
@@ -585,16 +600,3 @@ namespace Lumos
     }
 #endif
 }
-#ifdef CUSTOM_SMART_PTR
-namespace std
-{
-    template <typename T>
-    struct hash<Lumos::Reference<T>>
-    {
-        size_t operator()(const Lumos::Reference<T>& x) const
-        {
-            return hash<T*>()(x.get());
-        }
-    };
-}
-#endif

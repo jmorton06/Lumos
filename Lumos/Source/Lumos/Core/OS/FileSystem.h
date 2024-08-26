@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/DataStructures/Vector.h"
+#include "Core/DataStructures/TDArray.h"
 #include "Utilities/TSingleton.h"
 #include "Core/String.h"
 
@@ -37,6 +37,7 @@ namespace Lumos
         // Static Helpers. Implemented in OS specific Files
         static bool FileExists(const std::string& path);
         static bool FolderExists(const std::string& path);
+        static void CreateFolderIfDoesntExist(const std::string& path);
         static int64_t GetFileSize(const std::string& path);
 
         static uint8_t* ReadFile(const std::string& path);
@@ -51,6 +52,7 @@ namespace Lumos
         static bool IsRelativePath(const char* path);
         static bool IsAbsolutePath(const char* path);
         static const char* GetFileOpenModeString(FileOpenFlags flag);
-    };
 
+        static void IterateFolder(const char* path, void (*f)(const char*));
+    };
 }

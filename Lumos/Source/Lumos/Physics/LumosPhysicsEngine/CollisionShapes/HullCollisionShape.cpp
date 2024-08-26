@@ -1,8 +1,8 @@
 #include "Precompiled.h"
 #include "HullCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
-#include <glm/ext/matrix_float3x3.hpp>
-
+#include "Maths/Matrix3.h"
+#include "Maths/MathsUtilities.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
 
@@ -10,15 +10,15 @@ namespace Lumos
 {
     HullCollisionShape::HullCollisionShape()
     {
-        m_HalfDimensions = glm::vec3(1.0f);
+        m_HalfDimensions = Vec3(1.0f);
         m_Type           = CollisionShapeType::CollisionHull;
-        m_Axes.resize(3);
+        m_Axes.Resize(3);
 
         auto test = Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(Lumos::Graphics::PrimitiveType::Cube));
         BuildFromMesh(test.get());
 
-        m_LocalTransform = glm::scale(glm::mat4(1.0), m_HalfDimensions);
-        m_Edges.resize(m_Hull->GetNumEdges());
+        m_LocalTransform = Mat4::Scale(m_HalfDimensions);
+        m_Edges.Resize(m_Hull->GetNumEdges());
     }
 
     HullCollisionShape::~HullCollisionShape()
@@ -28,40 +28,44 @@ namespace Lumos
     void HullCollisionShape::BuildFromMesh(Graphics::Mesh* mesh)
     {
         m_Hull               = CreateSharedPtr<Hull>();
-        const auto& vertices = mesh->GetVertices();
-        const auto& indices  = mesh->GetIndices();
+        
+        //TODO: Needs to happen after a mesh import
+        // [] Toggle Collider generation
+        // Or option to load mesh to generate collider
+        // const auto& vertices = mesh->GetVertices();
+        // const auto& indices  = mesh->GetIndices();
 
-        /*     auto vertexBuffer          = mesh->GetVertexBuffer();
-             Graphics::Vertex* vertices = vertexBuffer->GetPointer<Graphics::Vertex>();
-             uint32_t size              = vertexBuffer->GetSize();
-             uint32_t count             = size / sizeof(Graphics::Vertex);
+        // /*     auto vertexBuffer          = mesh->GetVertexBuffer();
+        //      Graphics::Vertex* vertices = vertexBuffer->GetPointer<Graphics::Vertex>();
+        //      uint32_t size              = vertexBuffer->GetSize();
+        //      uint32_t count             = size / sizeof(Graphics::Vertex);
 
-             uint32_t* indices   = mesh->GetIndexBuffer()->GetPointer<uint32_t>();
-             uint32_t indexCount = mesh->GetIndexBuffer()->GetCount();*/
+        //      uint32_t* indices   = mesh->GetIndexBuffer()->GetPointer<uint32_t>();
+        //      uint32_t indexCount = mesh->GetIndexBuffer()->GetCount();*/
 
-        for(size_t i = 0; i < vertices.size(); i++)
-        {
-            m_Hull->AddVertex(vertices[i].Position);
-        }
+        // for(size_t i = 0; i < vertices.Size(); i++)
+        // {
+        //     m_Hull->AddVertex(vertices[i].Position);
+        // }
 
-        for(size_t i = 0; i < indices.size(); i += 3)
-        {
-            glm::vec3 n1     = vertices[indices[i]].Normal;
-            glm::vec3 n2     = vertices[indices[i + 1]].Normal;
-            glm::vec3 n3     = vertices[indices[i + 2]].Normal;
-            glm::vec3 normal = n1 + n2 + n3;
-            normal           = glm::normalize(normal);
+        // for(size_t i = 0; i < indices.Size(); i += 3)
+        // {
+        //     Vec3 n1     = vertices[indices[i]].Normal;
+        //     Vec3 n2     = vertices[indices[i + 1]].Normal;
+        //     Vec3 n3     = vertices[indices[i + 2]].Normal;
+        //     Vec3 normal = n1 + n2 + n3;
+        //     normal.Normalise();
 
-            int vertexIdx[] = { (int)indices[i], (int)indices[i + 1], (int)indices[i + 2] };
-            m_Hull->AddFace(normal, 3, vertexIdx);
-        }
+        //     int vertexIdx[] = { (int)indices[i], (int)indices[i + 1], (int)indices[i + 2] };
+        //     m_Hull->AddFace(normal, 3, vertexIdx);
+        // }
 
-        m_Edges.resize(m_Hull->GetNumEdges());
+        // m_Edges.Resize(m_Hull->GetNumEdges());
     }
 
-    // glm::mat3 HullCollisionShape::GetLocalInertiaTensor(float mass)
+    // Mat3 HullCollisionShape::GetLocalInertiaTensor(float mass)
     // {
-    //     glm::mat3 inertia;
+    //     Mat3 inertia;
     //     float volume = m_HalfDimensions.x * m_HalfDimensions.y * m_HalfDimensions.z;
     //     float mass_per_volume = mass / volume;
     //     float diag_x = mass_per_volume * (m_HalfDimensions.y * m_HalfDimensions.y + m_HalfDimensions.z * m_HalfDimensions.z);
@@ -73,44 +77,41 @@ namespace Lumos
     //     return inertia;
     // }
 
-    glm::mat3 HullCollisionShape::BuildInverseInertia(float invMass) const
+    Mat3 HullCollisionShape::BuildInverseInertia(float invMass) const
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        glm::mat3 inertia(1.0f);
+        Mat3 inertia(1.0f);
 
-        glm::vec3 dimsSq = (m_HalfDimensions + m_HalfDimensions);
-        dimsSq           = dimsSq * dimsSq;
-
-        inertia[0][0] = 12.f * invMass * 1.f / (dimsSq.y + dimsSq.z);
-        inertia[1][1] = 12.f * invMass * 1.f / (dimsSq.x + dimsSq.z);
-        inertia[2][2] = 12.f * invMass * 1.f / (dimsSq.x + dimsSq.y);
+        Vec3 dimsSq = (m_HalfDimensions + m_HalfDimensions);
+        dimsSq      = dimsSq * dimsSq;
+        inertia.SetDiagonal(Vec3(12.f * invMass * 1.f / (dimsSq.y + dimsSq.z), 12.f * invMass * 1.f / (dimsSq.x + dimsSq.z), 12.f * invMass * 1.f / (dimsSq.x + dimsSq.y)));
 
         return inertia;
     }
 
-    std::vector<glm::vec3>& HullCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
+    TDArray<Vec3>& HullCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
         {
-            glm::mat3 objOrientation = glm::toMat3(currentObject->GetOrientation());
-            m_Axes[0]                = (objOrientation * glm::vec3(1.0f, 0.0f, 0.0f)); // X - Axis
-            m_Axes[1]                = (objOrientation * glm::vec3(0.0f, 1.0f, 0.0f)); // Y - Axis
-            m_Axes[2]                = (objOrientation * glm::vec3(0.0f, 0.0f, 1.0f)); // Z - Axis
+            Mat3 objOrientation = Mat3(currentObject->GetOrientation());
+            m_Axes[0]           = (objOrientation * Vec3(1.0f, 0.0f, 0.0f)); // X - Axis
+            m_Axes[1]           = (objOrientation * Vec3(0.0f, 1.0f, 0.0f)); // Y - Axis
+            m_Axes[2]           = (objOrientation * Vec3(0.0f, 0.0f, 1.0f)); // Z - Axis
         }
 
         return m_Axes;
     }
 
-    std::vector<CollisionEdge>& HullCollisionShape::GetEdges(const RigidBody3D* currentObject)
+    TDArray<CollisionEdge>& HullCollisionShape::GetEdges(const RigidBody3D* currentObject)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
         {
-            glm::mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
+            Mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
             for(unsigned int i = 0; i < m_Hull->GetNumEdges(); ++i)
             {
                 const HullEdge& edge = m_Hull->GetEdge(i);
-                glm::vec3 A          = transform * glm::vec4(m_Hull->GetVertex(edge.vStart).pos, 1.0f);
-                glm::vec3 B          = transform * glm::vec4(m_Hull->GetVertex(edge.vEnd).pos, 1.0f);
+                Vec3 A               = transform * Vec4(m_Hull->GetVertex(edge.vStart).pos, 1.0f);
+                Vec3 B               = transform * Vec4(m_Hull->GetVertex(edge.vEnd).pos, 1.0f);
 
                 m_Edges[i] = { A, B };
             }
@@ -118,19 +119,19 @@ namespace Lumos
         return m_Edges;
     }
 
-    void HullCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const
+    void HullCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Vec3& axis, Vec3* out_min, Vec3* out_max) const
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        glm::mat4 wsTransform      = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
-        const glm::vec3 local_axis = glm::transpose(wsTransform) * glm::vec4(axis, 1.0f);
+        Mat4 wsTransform      = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
+        const Vec3 local_axis = Maths::Transpose(wsTransform) * Vec4(axis, 1.0f);
 
         int vMin, vMax;
         if(!m_Hull)
         {
             if(out_min)
-                *out_min = glm::vec3(0.0f);
+                *out_min = Vec3(0.0f);
             if(out_max)
-                *out_max = glm::vec3(0.0f);
+                *out_max = Vec3(0.0f);
 
             return;
         }
@@ -138,22 +139,22 @@ namespace Lumos
         m_Hull->GetMinMaxVerticesInAxis(local_axis, &vMin, &vMax);
 
         if(out_min)
-            *out_min = wsTransform * glm::vec4(m_Hull->GetVertex(vMin).pos, 1.0f);
+            *out_min = wsTransform * Vec4(m_Hull->GetVertex(vMin).pos, 1.0f);
         if(out_max)
-            *out_max = wsTransform * glm::vec4(m_Hull->GetVertex(vMax).pos, 1.0f);
+            *out_max = wsTransform * Vec4(m_Hull->GetVertex(vMax).pos, 1.0f);
     }
 
     void HullCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject,
-                                                         const glm::vec3& axis,
+                                                         const Vec3& axis,
                                                          ReferencePolygon& refPolygon) const
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        glm::mat4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
+        Mat4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
 
-        const glm::mat3 invNormalMatrix = glm::inverse(wsTransform);
-        const glm::mat3 normalMatrix    = glm::transpose(invNormalMatrix);
+        const Mat3 invNormalMatrix = Mat4::Inverse(wsTransform);
+        const Mat3 normalMatrix    = Maths::Transpose(invNormalMatrix);
 
-        const glm::vec3 local_axis = invNormalMatrix * axis;
+        const Vec3 local_axis = invNormalMatrix * axis;
 
         int minVertex, maxVertex;
         m_Hull->GetMinMaxVerticesInAxis(local_axis, &minVertex, &maxVertex);
@@ -165,7 +166,7 @@ namespace Lumos
         for(int faceIdx : vert.enclosing_faces)
         {
             const HullFace* face         = &m_Hull->GetFace(faceIdx);
-            const float temp_correlation = glm::dot(local_axis, face->normal);
+            const float temp_correlation = Maths::Dot(local_axis, face->normal);
             if(temp_correlation > best_correlation)
             {
                 best_correlation = temp_correlation;
@@ -176,7 +177,7 @@ namespace Lumos
         {
             if(best_face)
                 refPolygon.Normal = normalMatrix * best_face->normal;
-            refPolygon.Normal = glm::normalize(refPolygon.Normal);
+            refPolygon.Normal.Normalise();
         }
 
         if(best_face)
@@ -184,17 +185,17 @@ namespace Lumos
             for(int vertIdx : best_face->vert_ids)
             {
                 const HullVertex& vertex                 = m_Hull->GetVertex(vertIdx);
-                refPolygon.Faces[refPolygon.FaceCount++] = wsTransform * glm::vec4(vertex.pos, 1.0f);
+                refPolygon.Faces[refPolygon.FaceCount++] = wsTransform * Vec4(vertex.pos, 1.0f);
             }
         }
 
         if(best_face)
         {
             // Add the reference face itself to the list of adjacent planes
-            glm::vec3 wsPointOnPlane = wsTransform * glm::vec4(m_Hull->GetVertex(m_Hull->GetEdge(best_face->edge_ids[0]).vStart).pos, 1.0f);
-            glm::vec3 planeNrml      = -(normalMatrix * best_face->normal);
-            planeNrml                = glm::normalize(planeNrml);
-            float planeDist          = -glm::dot(planeNrml, wsPointOnPlane);
+            Vec3 wsPointOnPlane = wsTransform * Vec4(m_Hull->GetVertex(m_Hull->GetEdge(best_face->edge_ids[0]).vStart).pos, 1.0f);
+            Vec3 planeNrml      = -(normalMatrix * best_face->normal);
+            planeNrml.Normalise();
+            float planeDist = -Maths::Dot(planeNrml, wsPointOnPlane);
 
             refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = { planeNrml, planeDist };
 
@@ -202,7 +203,7 @@ namespace Lumos
             {
                 const HullEdge& edge = m_Hull->GetEdge(edgeIdx);
 
-                wsPointOnPlane = wsTransform * glm::vec4(m_Hull->GetVertex(edge.vStart).pos, 1.0f);
+                wsPointOnPlane = wsTransform * Vec4(m_Hull->GetVertex(edge.vStart).pos, 1.0f);
 
                 for(int adjFaceIdx : edge.enclosing_faces)
                 {
@@ -211,8 +212,8 @@ namespace Lumos
                         const HullFace& adjFace = m_Hull->GetFace(adjFaceIdx);
 
                         planeNrml = -(normalMatrix * adjFace.normal);
-                        planeNrml = glm::normalize(planeNrml);
-                        planeDist = -glm::dot(planeNrml, wsPointOnPlane);
+                        planeNrml.Normalise();
+                        planeDist = -Maths::Dot(planeNrml, wsPointOnPlane);
 
                         refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = { planeNrml, planeDist };
                     }
@@ -225,7 +226,7 @@ namespace Lumos
     {
         if(!m_Hull)
             return;
-        glm::mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
+        Mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
         m_Hull->DebugDraw(transform);
     }
 }

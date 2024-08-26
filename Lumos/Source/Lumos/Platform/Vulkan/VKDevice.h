@@ -2,9 +2,9 @@
 #include "Utilities/TSingleton.h"
 #include "VK.h"
 #include "VKCommandPool.h"
-#include "Graphics/RHI/Definitions.h"
+#include "Graphics/RHI/RHIDefinitions.h"
 #include "Core/DataStructures/Set.h"
-#include "Core/DataStructures/Vector.h"
+#include "Core/DataStructures/TDArray.h"
 
 static const uint32_t SMALL_ALLOCATION_MAX_SIZE = 4096;
 
@@ -80,8 +80,8 @@ namespace Lumos
         private:
             QueueFamilyIndices m_QueueFamilyIndices;
 
-            Vector<VkQueueFamilyProperties> m_QueueFamilyProperties;
-            Vector<VkDeviceQueueCreateInfo> m_QueueCreateInfos;
+            TDArray<VkQueueFamilyProperties> m_QueueFamilyProperties;
+            TDArray<VkDeviceQueueCreateInfo> m_QueueCreateInfos;
             HashSet(uint64_t) m_SupportedExtensions;
 
             VkPhysicalDevice m_Handle;
@@ -194,13 +194,13 @@ namespace Lumos
             static uint32_t s_GraphicsQueueFamilyIndex;
 
 #if LUMOS_PROFILE && defined(TRACY_ENABLE)
-            std::vector<tracy::VkCtx*> m_TracyContext;
+            TDArray<tracy::VkCtx*> m_TracyContext;
             tracy::VkCtx* m_PresentTracyContext;
 #endif
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocator m_Allocator {};
-            std::unordered_map<uint32_t, VmaPool> m_SmallAllocPools;
+            HashMap(uint32_t, VmaPool) m_SmallAllocPools;
 #endif
         };
 

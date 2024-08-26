@@ -51,7 +51,7 @@ namespace Lumos
         private:
             SharedPtr<Shader> m_Shader;
             SharedPtr<RenderPass> m_RenderPass;
-            std::vector<SharedPtr<VKFramebuffer>> m_Framebuffers;
+            TDArray<SharedPtr<VKFramebuffer>> m_Framebuffers;
 
             VkPipelineLayout m_PipelineLayout;
             VkPipeline m_Pipeline;

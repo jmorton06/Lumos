@@ -2,9 +2,9 @@
 #include "Graphics/RHI/DescriptorSet.h"
 #include "Graphics/RHI/Texture.h"
 
-#include <glm/ext/vector_float2.hpp>
-#include <glm/ext/vector_float3.hpp>
-#include <glm/ext/vector_float4.hpp>
+#include "Maths/Vector2.h"
+#include "Maths/Vector3.h"
+#include "Maths/Vector4.h"
 
 #define RENDERER2D_VERTEX_SIZE sizeof(VertexData)
 #define RENDERERTEXT_VERTEX_SIZE sizeof(TextVertexData)
@@ -15,10 +15,10 @@ namespace Lumos
     {
         struct LUMOS_EXPORT VertexData
         {
-            glm::vec3 vertex;
-            glm::vec4 uv;
-            glm::vec2 tid;
-            glm::vec4 colour;
+            Vec3 vertex;
+            Vec4 uv;
+            Vec2 tid;
+            Vec4 colour;
 
             bool operator==(const VertexData& other) const
             {
@@ -28,11 +28,11 @@ namespace Lumos
 
         struct LUMOS_EXPORT TextVertexData
         {
-            glm::vec3 vertex;
-            glm::vec2 uv;
-            glm::vec2 tid;
-            glm::vec4 colour;
-            glm::vec4 outlineColour;
+            Vec3 vertex;
+            Vec2 uv;
+            Vec2 tid;
+            Vec4 colour;
+            Vec4 outlineColour;
 
             bool operator==(const TextVertexData& other) const
             {
@@ -47,20 +47,20 @@ namespace Lumos
             virtual ~Renderable2D();
 
             SharedPtr<Texture2D> GetTexture() { return m_Texture; }
-            glm::vec2 GetPosition() const { return m_Position; }
-            glm::vec2 GetScale() const { return m_Scale; }
-            const glm::vec4& GetColour() const { return m_Colour; }
-            const std::array<glm::vec2, 4>& GetUVs() const { return m_UVs; }
+            Vec2 GetPosition() const { return m_Position; }
+            Vec2 GetScale() const { return m_Scale; }
+            const Vec4& GetColour() const { return m_Colour; }
+            const std::array<Vec2, 4>& GetUVs() const { return m_UVs; }
 
-            static const std::array<glm::vec2, 4>& GetDefaultUVs();
-            static const std::array<glm::vec2, 4>& GetUVs(const glm::vec2& min, const glm::vec2& max);
+            static const std::array<Vec2, 4>& GetDefaultUVs();
+            static const std::array<Vec2, 4>& GetUVs(const Vec2& min, const Vec2& max);
 
         protected:
             SharedPtr<Texture2D> m_Texture;
-            glm::vec2 m_Position;
-            glm::vec2 m_Scale;
-            glm::vec4 m_Colour;
-            std::array<glm::vec2, 4> m_UVs;
+            Vec2 m_Position;
+            Vec2 m_Scale;
+            Vec4 m_Colour;
+            std::array<Vec2, 4> m_UVs;
         };
     }
 }

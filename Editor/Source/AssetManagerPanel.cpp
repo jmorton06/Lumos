@@ -3,17 +3,19 @@
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Scene/Scene.h>
-#include <Lumos/Utilities/AssetManager.h>
+#include <Lumos/Core/Asset/AssetRegistry.h>
+#include <Lumos/Core/Asset/AssetManager.h>
 
 #include "Editor.h"
 
 #include <Lumos/Core/Engine.h>
 #include <Lumos/Core/OS/Window.h>
-#include <Lumos/Graphics/Renderers/RenderPasses.h>
+#include <Lumos/Graphics/Renderers/SceneRenderer.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Utilities/StringUtilities.h>
 #include <imgui/imgui.h>
 #include <imgui/Plugins/implot/implot.h>
+#include <inttypes.h>
 
 namespace Lumos
 {
@@ -35,27 +37,29 @@ namespace Lumos
                 MyItemColumnID_ID,
                 MyItemColumnID_Name,
                 MyItemColumnID_Type,
+                MyItemColumnID_Info,
                 MyItemColumnID_Accessed
             };
 
-            if(ImGui::BeginTable("Asset Registry", 4, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg))
+            if(ImGui::BeginTable("Asset Registry", 5, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg))
             {
                 ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, MyItemColumnID_ID);
                 ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, MyItemColumnID_Name);
                 ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_NoSort, 0.0f, MyItemColumnID_Type);
+                ImGui::TableSetupColumn("Info", ImGuiTableColumnFlags_NoSort, 0.0f, MyItemColumnID_Accessed);
                 ImGui::TableSetupColumn("Last Accessed", ImGuiTableColumnFlags_NoSort, 0.0f, MyItemColumnID_Accessed);
 
                 ImGui::TableSetupScrollFreeze(0, 1);
 
                 ImGui::TableHeadersRow();
                 ImGui::TableNextRow();
-                Lumos::AssetRegistry& registry = m_Editor->GetAssetManager()->GetAssetRegistry();
+                Lumos::AssetRegistry& registry = *m_Editor->GetAssetManager()->GetAssetRegistry();
 
                 auto DrawEntry = [&registry](AssetMetaData& metaData, uint64_t ID)
                 {
                     {
                         ImGui::TableNextColumn();
-                        ImGui::TextUnformatted(fmt::format("{0}", ID).c_str()); //"%lld", ID);
+                        ImGui::Text("%" PRIu64, ID);
 
                         ImGui::TableNextColumn();
                         std::string name = "Unnamed";
@@ -66,6 +70,12 @@ namespace Lumos
 
                         ImGui::TableNextColumn();
                         ImGui::TextUnformatted(AssetTypeToString(metaData.Type));
+                        ImGui::TableNextColumn();
+
+                        if(!metaData.data)
+                            ImGui::TextUnformatted("Data Null");
+                        else if(metaData.Type == AssetType::Shader && metaData.data.As<Graphics::Shader>())
+                            ImGui::TextUnformatted(metaData.data.As<Graphics::Shader>()->IsCompiled() ? "Compiled" : "Failed to compile");
 
                         ImGui::TableNextColumn();
                         ImGui::Text("%.2f", metaData.lastAccessed);

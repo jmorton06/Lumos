@@ -30,7 +30,7 @@ namespace Lumos
 
     void Sound::ConvertToMono(const uint8_t* inputData, int dataSize, uint8_t* monoData, int channels, int bitsPerSample)
     {
-        LUMOS_ASSERT(channels != 0, "0 Channels in audio file");
+        ASSERT(channels != 0, "0 Channels in audio file");
         if(channels == 1)
         {
             memcpy(monoData, inputData, dataSize);
@@ -78,7 +78,7 @@ namespace Lumos
             }
             break;
             default:
-                LUMOS_LOG_WARN("Unsupported bytesPerSample");
+                LWARN("Unsupported bytesPerSample");
                 break;
             }
         }

@@ -1,15 +1,17 @@
 #pragma once
-#include "Core/DataStructures/Vector.h"
+#include "Core/DataStructures/TDArray.h"
+#include "Core/Function.h"
+
 namespace Lumos
 {
     struct DeletionQueue
     {
-        Vector<std::function<void()>> Deletors;
+        TDArray<Function<void()>> Deletors;
 
         template <typename F>
         void PushFunction(F&& function)
         {
-            LUMOS_ASSERT(sizeof(F) < 200, "Lambda too large");
+            ASSERT(sizeof(F) < 200, "Lambda too large");
             Deletors.PushBack(function);
         }
 

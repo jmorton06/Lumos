@@ -13,7 +13,7 @@ namespace Lumos
 
     Window* Window::Create(const WindowDesc& windowDesc)
     {
-        LUMOS_ASSERT(CreateFunc, "No Windows Create Function");
+        ASSERT(CreateFunc, "No Windows Create Function");
         return CreateFunc(windowDesc);
     }
 

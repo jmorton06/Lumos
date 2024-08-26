@@ -17,15 +17,15 @@ namespace Lumos
             friend void load(Archive& archive, Sprite& sprite);
 
         public:
-            Sprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::vec2& scale = glm::vec2(1.0f, 1.0f), const glm::vec4& colour = glm::vec4(1.0f));
-            Sprite(const SharedPtr<Texture2D>& texture, const glm::vec2& position, const glm::vec2& scale, const glm::vec4& colour);
+            Sprite(const Vec2& position = Vec2(0.0f, 0.0f), const Vec2& scale = Vec2(1.0f, 1.0f), const Vec4& colour = Vec4(1.0f));
+            Sprite(const SharedPtr<Texture2D>& texture, const Vec2& position, const Vec2& scale, const Vec4& colour);
             virtual ~Sprite();
-            void SetPosition(const glm::vec2& vector2) { m_Position = vector2; };
-            void SetColour(const glm::vec4& colour) { m_Colour = colour; }
-            void SetScale(const glm::vec2& scale) { m_Scale = scale; }
+            void SetPosition(const Vec2& vector2) { m_Position = vector2; };
+            void SetColour(const Vec4& colour) { m_Colour = colour; }
+            void SetScale(const Vec2& scale) { m_Scale = scale; }
 
             void SetSpriteSheetIndex(int x, int y);
-            void SetSpriteSheet(const glm::vec2& index, const glm::vec2& cellSize, const glm::vec2& spriteSize, float boarder = 0.0f);
+            void SetSpriteSheet(const Vec2& index, const Vec2& cellSize, const Vec2& spriteSize, float boarder = 0.0f);
             void SetTexture(const SharedPtr<Texture2D>& texture) { m_Texture = texture; }
 
             void SetTextureFromFile(const std::string& filePath);

@@ -23,11 +23,11 @@ namespace Lumos
             , m_AnimationName(animationName)
         {
 
-            LUMOS_LOG_INFO("Loading animation: {0}", m_FilePath);
+            LINFO("Loading animation: %s", m_FilePath.c_str());
 
             if(!skeleton.get() || !skeleton->IsValid())
             {
-                LUMOS_LOG_ERROR("Invalid skeleton passed to animation asset for file '{0}'", m_FilePath);
+                LERROR("Invalid skeleton passed to animation asset for file '%s'", m_FilePath.c_str());
                 SetFlag(AssetFlag::Invalid);
                 return;
             }
@@ -38,7 +38,7 @@ namespace Lumos
             , m_AnimationName(animationName)
             , m_Animation(animation)
         {
-            LUMOS_LOG_INFO("Loading animation: {0}", animationName);
+            LINFO("Loading animation: %s", animationName.c_str());
         }
 
         Animation::~Animation()

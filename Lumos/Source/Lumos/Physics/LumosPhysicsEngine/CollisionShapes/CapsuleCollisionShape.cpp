@@ -2,16 +2,16 @@
 #include "CapsuleCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 #include "Graphics/Renderers/DebugRenderer.h"
-#include <glm/ext/matrix_float3x3.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/gtc/matrix_inverse.hpp>
+#include "Maths/Matrix3.h"
+#include "Maths/MathsUtilities.h"
+
 namespace Lumos
 {
     CapsuleCollisionShape::CapsuleCollisionShape(float radius, float height)
     {
         m_Radius         = radius;
         m_Height         = height;
-        m_LocalTransform = glm::mat4(1.0); // glm::scale(glm::mat4(1.0), glm::vec3(m_Radius));
+        m_LocalTransform = Mat4(1.0); // Mat4::Scale(Vec3(m_Radius));
         m_Type           = CollisionShapeType::CollisionCapsule;
     }
 
@@ -19,9 +19,9 @@ namespace Lumos
     {
     }
 
-    glm::mat3 CapsuleCollisionShape::BuildInverseInertia(float invMass) const
+    Mat3 CapsuleCollisionShape::BuildInverseInertia(float invMass) const
     {
-        glm::vec3 halfExtents(m_Radius, m_Radius, m_Radius);
+        Vec3 halfExtents(m_Radius, m_Radius, m_Radius);
         halfExtents.x += m_Height * 0.5f;
 
         float lx               = 2.0f * (halfExtents.x);
@@ -32,62 +32,62 @@ namespace Lumos
         const float z2         = lz * lz;
         const float scaledmass = (1.0f / invMass) * float(.08333333);
 
-        glm::mat3 inertia(1.0f);
-
-        inertia[0][0] = 1.0f / scaledmass * (y2 + z2);
-        inertia[1][1] = 1.0f / scaledmass * (x2 + z2);
-        inertia[2][2] = 1.0f / scaledmass * (x2 + y2);
+        Mat3 inertia(1.0f);
+        inertia.SetDiagonal(Vec3(1.0f / scaledmass * (y2 + z2), 1.0f / scaledmass * (x2 + z2), 1.0f / scaledmass * (x2 + y2)));
+        //        inertia[0][0] = 1.0f / scaledmass * (y2 + z2);
+        //        inertia[1][1] = 1.0f / scaledmass * (x2 + z2);
+        //        inertia[2][2] = 1.0f / scaledmass * (x2 + y2);
 
         return inertia;
     }
 
-    std::vector<glm::vec3>& CapsuleCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
+    TDArray<Vec3>& CapsuleCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
     {
         /* There is infinite edges so handle seperately */
         return m_Axes;
     }
 
-    std::vector<CollisionEdge>& CapsuleCollisionShape::GetEdges(const RigidBody3D* currentObject)
+    TDArray<CollisionEdge>& CapsuleCollisionShape::GetEdges(const RigidBody3D* currentObject)
     {
         /* There is infinite edges on a sphere so handle seperately */
         return m_Edges;
     }
 
-    void CapsuleCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const
+    void CapsuleCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Vec3& axis, Vec3* out_min, Vec3* out_max) const
     {
-        //        glm::mat4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
-        //        glm::vec3 pos       = transform[3];
+        //        Mat4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
+        //        Vec3 pos       = transform[3];
         //
-        //        glm::vec3 topPosition    = glm::vec3(transform * glm::vec4(0.0f, m_Height * 0.5f, 0.0f, 1.0f));
-        //        glm::vec3 bottomPosition = glm::vec3(transform * glm::vec4(0.0f, -m_Height * 0.5f, 0.0f, 1.0f));
+        //        Vec3 topPosition    = Vec3(transform * Vec4(0.0f, m_Height * 0.5f, 0.0f, 1.0f));
+        //        Vec3 bottomPosition = Vec3(transform * Vec4(0.0f, -m_Height * 0.5f, 0.0f, 1.0f));
         //
         //        // Transform the axis into the local coordinate space of the capsule
-        //        glm::mat4 inverseTransform = glm::affineInverse(transform);
-        //        glm::vec3 localAxis        = glm::vec3(inverseTransform * glm::vec4(axis, 1.0f));
+        //        Mat4 inverseTransform = glm::affineInverse(transform);
+        //        Vec3 localAxis        = Vec3(inverseTransform * Vec4(axis, 1.0f));
         //
-        //        float minProj = glm::dot(topPosition, localAxis) - m_Radius;
-        //        float maxProj = glm::dot(bottomPosition, localAxis) + m_Radius;
+        //        float minProj = Maths::Dot(topPosition, localAxis) - m_Radius;
+        //        float maxProj = Maths::Dot(bottomPosition, localAxis) + m_Radius;
         //
         //        *out_min = topPosition + minProj * localAxis;
         //        *out_max = bottomPosition + maxProj * localAxis;
 
         float minCorrelation = FLT_MAX, maxCorrelation = -FLT_MAX;
 
-        glm::mat4 transform       = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
-        const glm::vec3 localAxis = glm::transpose(transform) * glm::vec4(axis, 1.0f);
+        Mat4 transform       = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
+        const Vec3 localAxis = transform.Transpose() * Vec4(axis, 1.0f);
 
-        glm::vec3 pos       = transform[3];
-        glm::vec3 minVertex = glm::vec3(0.0f), maxVertex = glm::vec3(0);
+        Vec3 pos       = transform.GetPositionVector();
+        Vec3 minVertex = Vec3(0.0f), maxVertex = Vec3(0.0f);
 
-        glm::vec3 topPosition    = glm::vec3(transform * glm::vec4(0.0f, m_Height * 0.5f, 0.0f, 1.0f));
-        glm::vec3 bottomPosition = glm::vec3(transform * glm::vec4(0.0f, -m_Height * 0.5f, 0.0f, 1.0f));
+        Vec3 topPosition    = Vec3(transform * Vec4(0.0f, m_Height * 0.5f, 0.0f, 1.0f));
+        Vec3 bottomPosition = Vec3(transform * Vec4(0.0f, -m_Height * 0.5f, 0.0f, 1.0f));
 
         // Transform the axis into the local coordinate space of the capsule
-        // glm::mat4 inverseTransform = glm::affineInverse(transform);
-        // glm::vec3 localAxis        = glm::vec3(inverseTransform * glm::vec4(axis, 1.0f));
+        // Mat4 inverseTransform = glm::affineInverse(transform);
+        // Vec3 localAxis        = Vec3(inverseTransform * Vec4(axis, 1.0f));
 
-        float minProj = glm::dot(topPosition, localAxis) - m_Radius;
-        float maxProj = glm::dot(bottomPosition, localAxis) + m_Radius;
+        float minProj = Maths::Dot(topPosition, localAxis) - m_Radius;
+        float maxProj = Maths::Dot(bottomPosition, localAxis) + m_Radius;
 
         if(out_min)
             *out_min = topPosition + minProj; // * localAxis;
@@ -97,7 +97,7 @@ namespace Lumos
         // Capsule Collision shape
         //		for(size_t i = 0; i < m_Vertices.size(); ++i)
         //		{
-        //			const float cCorrelation = glm::dot(local_axis, m_Vertices[i].pos);
+        //			const float cCorrelation = Maths::Dot(local_axis, m_Vertices[i].pos);
         //
         //			if(cCorrelation > maxCorrelation)
         //			{
@@ -120,7 +120,7 @@ namespace Lumos
     }
 
     void CapsuleCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject,
-                                                            const glm::vec3& axis,
+                                                            const Vec3& axis,
                                                             ReferencePolygon& refPolygon) const
     {
         refPolygon.Faces[0]  = currentObject->GetPosition() + axis * m_Radius;
@@ -132,14 +132,12 @@ namespace Lumos
     void CapsuleCollisionShape::DebugDraw(const RigidBody3D* currentObject) const
     {
         LUMOS_PROFILE_FUNCTION();
-        glm::mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
+        Mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 
-        glm::vec3 scale;
-        glm::quat rotation;
-        glm::vec3 translation;
-        glm::vec3 skew;
-        glm::vec4 perspective;
-        glm::decompose(transform, scale, rotation, translation, skew, perspective);
-        DebugRenderer::DebugDrawCapsule(translation, rotation, m_Height, m_Radius, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        Vec3 scale;
+        Quat rotation;
+        Vec3 translation;
+        transform.Decompose(translation, rotation, scale);
+        DebugRenderer::DebugDrawCapsule(translation, rotation, m_Height, m_Radius, Vec4(1.0f, 0.0f, 0.0f, 1.0f));
     }
 }

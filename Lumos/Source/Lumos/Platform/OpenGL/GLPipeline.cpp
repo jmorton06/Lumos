@@ -247,6 +247,10 @@ namespace Lumos
                 {
                     GLCall(glBlendFunc(GL_ONE, GL_ZERO));
                 }
+                else if(m_BlendMode == BlendMode::OneMinusSrcAlpha)
+                {
+                    GLCall(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+                }
                 else
                 {
                     GLCall(glBlendFunc(GL_NONE, GL_NONE));

@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "ModelComponent.h"
 #include "Core/Application.h"
-#include "Utilities/AssetManager.h"
+#include "Core/Asset/AssetManager.h"
 
 namespace Lumos::Graphics
 {

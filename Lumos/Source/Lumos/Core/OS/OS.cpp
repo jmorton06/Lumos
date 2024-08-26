@@ -17,7 +17,7 @@ namespace Lumos
 
     void OS::Create()
     {
-        LUMOS_ASSERT(!s_Instance, "OS already exists!");
+        ASSERT(!s_Instance, "OS already exists!");
 
 #if defined(LUMOS_PLATFORM_WINDOWS)
         s_Instance = new WindowsOS();
@@ -69,4 +69,15 @@ namespace Lumos
     {
         return std::string("");
     };
+
+    void OS::ConsoleWrite(const char* msg, u8 level)
+    {
+        #ifdef LUMOS_PLATFORM_MACOS
+            const char* colour_strings[] = {"1;32", "1;30", "1;33", "1;31", "0;41"};
+            printf("\033[%sm%s\033[0m", colour_strings[level], msg);
+        #else
+            printf("%s", msg);
+        #endif
+    }
+
 }

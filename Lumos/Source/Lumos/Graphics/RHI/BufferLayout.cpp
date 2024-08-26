@@ -24,7 +24,7 @@ namespace Lumos
 
         void BufferLayout::Push(const std::string& name, RHIFormat format, uint32_t size, bool Normalised)
         {
-            m_Layout.push_back({ name, format, m_Size, Normalised });
+            m_Layout.PushBack({ name, format, m_Size, Normalised });
             m_Size += size;
         }
 
@@ -47,21 +47,21 @@ namespace Lumos
         }
 
         template <>
-        void BufferLayout::Push<glm::vec2>(const std::string& name, bool Normalised)
+        void BufferLayout::Push<Vec2>(const std::string& name, bool Normalised)
         {
-            Push(name, RHIFormat::R32G32_Float, sizeof(glm::vec2), Normalised);
+            Push(name, RHIFormat::R32G32_Float, sizeof(Vec2), Normalised);
         }
 
         template <>
-        void BufferLayout::Push<glm::vec3>(const std::string& name, bool Normalised)
+        void BufferLayout::Push<Vec3>(const std::string& name, bool Normalised)
         {
-            Push(name, RHIFormat::R32G32B32_Float, sizeof(glm::vec3), Normalised);
+            Push(name, RHIFormat::R32G32B32_Float, sizeof(Vec3), Normalised);
         }
 
         template <>
-        void BufferLayout::Push<glm::vec4>(const std::string& name, bool Normalised)
+        void BufferLayout::Push<Vec4>(const std::string& name, bool Normalised)
         {
-            Push(name, RHIFormat::R32G32B32A32_Float, sizeof(glm::vec4), Normalised);
+            Push(name, RHIFormat::R32G32B32A32_Float, sizeof(Vec4), Normalised);
         }
     }
 }

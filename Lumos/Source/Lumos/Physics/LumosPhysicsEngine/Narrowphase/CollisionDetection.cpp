@@ -6,7 +6,6 @@
 #include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
 #include "Maths/MathsUtilities.h"
-#include <glm/gtx/string_cast.hpp>
 
 namespace Lumos
 {
@@ -14,7 +13,8 @@ namespace Lumos
     {
         m_MaxSize                 = CollisionShapeTypeMax | (CollisionShapeTypeMax >> 1);
         m_CollisionCheckFunctions = new CollisionCheckFunc[m_MaxSize];
-        std::fill(m_CollisionCheckFunctions, m_CollisionCheckFunctions + m_MaxSize, &CollisionDetection::CheckPolyhedronCollision);
+        for(u32 i = 0; i < m_MaxSize; i++)
+            m_CollisionCheckFunctions[i] = &CollisionDetection::CheckPolyhedronCollision;
 
         m_CollisionCheckFunctions[CollisionSphere]  = &CollisionDetection::CheckSphereCollision;
         m_CollisionCheckFunctions[CollisionCuboid]  = &CollisionDetection::CheckPolyhedronCollision;
@@ -35,64 +35,54 @@ namespace Lumos
     bool CollisionDetection::CheckCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        LUMOS_ASSERT(((shape1->GetType() | shape2->GetType()) < m_MaxSize), "Invalid collision func {0}, {1}, {2}, {3}", (int)shape1->GetType(), (int)shape2->GetType(), (int)shape2->GetType() | (int)shape2->GetType(), m_MaxSize);
+        ASSERT(((shape1->GetType() | shape2->GetType()) < m_MaxSize), "Invalid collision func %i, %i, %i, %i", (int)shape1->GetType(), (int)shape2->GetType(), (int)shape2->GetType() | (int)shape2->GetType(), m_MaxSize);
         return CALL_MEMBER_FN(*this, m_CollisionCheckFunctions[shape1->GetType() | shape2->GetType()])(obj1, obj2, shape1, shape2, out_coldata);
     }
 
     bool CollisionDetection::InvalidCheckCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
-        LUMOS_LOG_CRITICAL("Invalid Collision type specified");
+        LFATAL("Invalid Collision type specified");
         return false;
     }
 
     bool CollisionDetection::CheckSphereCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        LUMOS_ASSERT(shape1->GetType() == CollisionShapeType::CollisionSphere && shape2->GetType() == CollisionShapeType::CollisionSphere, "Both shapes are not spheres");
+        ASSERT(shape1->GetType() == CollisionShapeType::CollisionSphere && shape2->GetType() == CollisionShapeType::CollisionSphere, "Both shapes are not spheres");
 
         CollisionData colData;
-        glm::vec3 axis = obj2->GetPosition() - obj1->GetPosition();
+        Vec3 axis = obj2->GetPosition() - obj1->GetPosition();
 
         float sumRadii        = ((SphereCollisionShape*)shape1)->GetRadius() + ((SphereCollisionShape*)shape2)->GetRadius();
         float sumRadiiSquared = sumRadii * sumRadii;
-        float distSquared     = glm::length2(axis);
+        float distSquared     = Maths::Length2(axis);
         if(distSquared > sumRadiiSquared)
             return false;
 
-        colData.normal       = glm::normalize(axis);
-        colData.penetration  = sumRadii - std::sqrt(distSquared);
+        colData.normal       = axis.Normalised();
+        colData.penetration  = sumRadii - Maths::Sqrt(distSquared);
         colData.pointOnPlane = obj1->GetPosition() + axis * 0.5f;
 
         if(out_coldata)
             *out_coldata = colData;
 
-        /*
-CollisionData colData;
-        glm::vec3 axis = obj2->GetPosition() - obj1->GetPosition();
-        axis           = glm::normalize(axis);
-        if(!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &colData))
-            return false;
-
-        if(out_coldata)
-            *out_coldata = colData;
-*/
         return true;
     }
 
-    void AddPossibleCollisionAxis(glm::vec3& axis, glm::vec3* possibleCollisionAxes, uint32_t& possibleCollisionAxesCount)
+    void AddPossibleCollisionAxis(Vec3& axis, Vec3* possibleCollisionAxes, uint32_t& possibleCollisionAxesCount)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        if(glm::length2(axis) < Maths::M_EPSILON)
+        if(Maths::Length2(axis) < Maths::M_EPSILON)
             return;
 
-        axis = glm::normalize(axis);
+        axis.Normalise();
 
         float value = (1.0f - Maths::M_EPSILON);
 
         for(uint32_t i = 0; i < possibleCollisionAxesCount; i++)
         {
-            const glm::vec3& p_axis = possibleCollisionAxes[i];
-            if(glm::abs(glm::dot(axis, p_axis)) >= value)
+            const Vec3& p_axis = possibleCollisionAxes[i];
+            if(Maths::Abs(Maths::Dot(axis, p_axis)) >= value)
                 return;
         }
 
@@ -102,7 +92,7 @@ CollisionData colData;
     bool CollisionDetection::CheckPolyhedronSphereCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        LUMOS_ASSERT(shape1->GetType() == CollisionShapeType::CollisionSphere || shape2->GetType() == CollisionShapeType::CollisionSphere, "No sphere collision shape");
+        ASSERT(shape1->GetType() == CollisionShapeType::CollisionSphere || shape2->GetType() == CollisionShapeType::CollisionSphere, "No sphere collision shape");
 
         CollisionShape* complexShape;
         RigidBody3D* complexObj;
@@ -125,18 +115,18 @@ CollisionData colData;
         CollisionData best_colData;
         best_colData.penetration = -FLT_MAX;
 
-        std::vector<glm::vec3>& shapeCollisionAxes      = complexShape->GetCollisionAxes(complexObj);
-        std::vector<CollisionEdge>& complex_shape_edges = complexShape->GetEdges(complexObj);
+        TDArray<Vec3>& shapeCollisionAxes           = complexShape->GetCollisionAxes(complexObj);
+        TDArray<CollisionEdge>& complex_shape_edges = complexShape->GetEdges(complexObj);
 
-        glm::vec3 p   = GetClosestPointOnEdges(sphereObj->GetPosition(), complex_shape_edges);
-        glm::vec3 p_t = sphereObj->GetPosition() - p;
-        p_t           = glm::normalize(p_t);
+        Vec3 p   = GetClosestPointOnEdges(sphereObj->GetPosition(), complex_shape_edges);
+        Vec3 p_t = sphereObj->GetPosition() - p;
+        p_t.Normalise();
 
         static const int MAX_COLLISION_AXES = 100;
-        static glm::vec3 possibleCollisionAxes[MAX_COLLISION_AXES];
+        static Vec3 possibleCollisionAxes[MAX_COLLISION_AXES];
 
         uint32_t possibleCollisionAxesCount = 0;
-        for(const glm::vec3& axis : shapeCollisionAxes)
+        for(const Vec3& axis : shapeCollisionAxes)
         {
             possibleCollisionAxes[possibleCollisionAxesCount++] = axis;
         }
@@ -145,7 +135,7 @@ CollisionData colData;
 
         for(uint32_t i = 0; i < possibleCollisionAxesCount; i++)
         {
-            const glm::vec3& axis = possibleCollisionAxes[i];
+            const Vec3& axis = possibleCollisionAxes[i];
             if(!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &cur_colData))
                 return false;
 
@@ -166,43 +156,29 @@ CollisionData colData;
         CollisionData best_colData;
         best_colData.penetration = -FLT_MAX;
 
-        std::vector<glm::vec3>& shape1CollisionAxes         = shape1->GetCollisionAxes(obj1);
-        std::vector<glm::vec3>& shape2PossibleCollisionAxes = shape2->GetCollisionAxes(obj2);
+        TDArray<Vec3>& shape1CollisionAxes         = shape1->GetCollisionAxes(obj1);
+        TDArray<Vec3>& shape2PossibleCollisionAxes = shape2->GetCollisionAxes(obj2);
 
         static const int MAX_COLLISION_AXES = 100;
-        static glm::vec3 possibleCollisionAxes[MAX_COLLISION_AXES];
+        static Vec3 possibleCollisionAxes[MAX_COLLISION_AXES];
 
         uint32_t possibleCollisionAxesCount = 0;
-        for(const glm::vec3& axis : shape1CollisionAxes)
+        for(const Vec3& axis : shape1CollisionAxes)
         {
             possibleCollisionAxes[possibleCollisionAxesCount++] = axis;
         }
 
-        for(const glm::vec3& axis : shape2PossibleCollisionAxes)
+        for(const Vec3& axis : shape2PossibleCollisionAxes)
         {
             possibleCollisionAxes[possibleCollisionAxesCount++] = axis;
         }
 
-        std::vector<CollisionEdge>& shape1_edges = shape1->GetEdges(obj1);
-        std::vector<CollisionEdge>& shape2_edges = shape2->GetEdges(obj2);
-
-        /*     for(const CollisionEdge& edge1 : shape1_edges)
-             {
-                 for(const CollisionEdge& edge2 : shape2_edges)
-                 {
-                     glm::vec3 e1 = edge1.posB - edge1.posA;
-                     glm::vec3 e2 = edge2.posB - edge2.posA;
-                     e1           = glm::normalize(e1);
-                     e2           = glm::normalize(e2);
-
-                     glm::vec3 temp = glm::cross(e1, e2);
-                     AddPossibleCollisionAxis(temp, possibleCollisionAxes, possibleCollisionAxesCount);
-                 }
-             }*/
+        TDArray<CollisionEdge>& shape1_edges = shape1->GetEdges(obj1);
+        TDArray<CollisionEdge>& shape2_edges = shape2->GetEdges(obj2);
 
         for(uint32_t i = 0; i < possibleCollisionAxesCount; i++)
         {
-            const glm::vec3& axis = possibleCollisionAxes[i];
+            const Vec3& axis = possibleCollisionAxes[i];
             if(!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &cur_colData))
                 return false;
 
@@ -216,33 +192,33 @@ CollisionData colData;
         return true;
     }
 
-    float PlaneSegmentIntersection(const glm::vec3& segA, const glm::vec3& segB, const float planeD, const glm::vec3& planeNormal)
+    float PlaneSegmentIntersection(const Vec3& segA, const Vec3& segB, const float planeD, const Vec3& planeNormal)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
         float t = -1.0f;
 
-        const float nDotAB = glm::dot(planeNormal, segB - segA);
+        const float nDotAB = Maths::Dot(planeNormal, segB - segA);
 
         // If the segment is not parallel to the plane
-        if(std::abs(nDotAB) > Maths::M_EPSILON)
+        if(Maths::Abs(nDotAB) > Maths::M_EPSILON)
         {
-            t = (planeD - glm::dot(planeNormal, segA)) / nDotAB;
+            t = (planeD - Maths::Dot(planeNormal, segA)) / nDotAB;
         }
 
         return t;
     }
 
-    float PointToLineDistance(const glm::vec3& linePointA, const glm::vec3& linePointB, const glm::vec3& point)
+    float PointToLineDistance(const Vec3& linePointA, const Vec3& linePointB, const Vec3& point)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        float distAB = glm::length(linePointB - linePointA);
+        float distAB = Maths::Length(linePointB - linePointA);
 
         if(distAB < Maths::M_EPSILON)
         {
-            return glm::length(point - linePointA);
+            return Maths::Length(point - linePointA);
         }
 
-        return (glm::length(glm::cross((point - linePointA), (point - linePointB)))) / distAB;
+        return (Maths::Length(Maths::Cross((point - linePointA), (point - linePointB)))) / distAB;
     }
 
     bool CollisionDetection::CheckCapsuleCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
@@ -257,11 +233,11 @@ CollisionData colData;
         float capsule1Radius = capsuleShape1->GetRadius();
         float capsule2Radius = capsuleShape2->GetRadius();
 
-        glm::vec3 p1 = obj1->GetPosition();
-        glm::vec3 p2 = obj2->GetPosition();
+        Vec3 p1 = obj1->GetPosition();
+        Vec3 p2 = obj2->GetPosition();
 
-        glm::vec3 d = p2 - p1;
-        float dist  = glm::length(d);
+        Vec3 d     = p2 - p1;
+        float dist = Maths::Length(d);
 
         float height1 = capsuleShape1->GetHeight();
         float height2 = capsuleShape2->GetHeight();
@@ -271,20 +247,20 @@ CollisionData colData;
 
         float radiusSum = capsule1Radius + capsule2Radius;
 
-        glm::mat4 capsule1ToCapsule2SpaceTransform = glm::inverse(obj2->GetWorldSpaceTransform()) * obj1->GetWorldSpaceTransform();
+        Mat4 capsule1ToCapsule2SpaceTransform = Mat4::Inverse(obj2->GetWorldSpaceTransform()) * obj1->GetWorldSpaceTransform();
 
-        glm::vec3 capsule1SegA(0, -capsule1HalfHeight, 0);
-        glm::vec3 capsule1SegB(0, capsule1HalfHeight, 0);
+        Vec3 capsule1SegA(0, -capsule1HalfHeight, 0);
+        Vec3 capsule1SegB(0, capsule1HalfHeight, 0);
         capsule1SegA = capsule1ToCapsule2SpaceTransform * capsule1SegA;
         capsule1SegB = capsule1ToCapsule2SpaceTransform * capsule1SegB;
 
-        glm::vec3 capsule2SegA(0, -capsule2HalfHeight, 0);
-        glm::vec3 capsule2SegB(0, capsule2HalfHeight, 0);
+        Vec3 capsule2SegA(0, -capsule2HalfHeight, 0);
+        Vec3 capsule2SegB(0, capsule2HalfHeight, 0);
 
         // The two inner capsule segments
-        const glm::vec3 seg1 = capsule1SegB - capsule1SegA;
-        const glm::vec3 seg2 = capsule2SegB - capsule2SegA;
-        bool areParallel     = Maths::AreVectorsParallel(seg1, seg2);
+        const Vec3 seg1  = capsule1SegB - capsule1SegA;
+        const Vec3 seg2  = capsule2SegB - capsule2SegA;
+        bool areParallel = Maths::AreVectorsParallel(seg1, seg2);
 
         if(areParallel)
         {
@@ -292,8 +268,8 @@ CollisionData colData;
             if(segmentsPerpendicularDistance > radiusSum)
                 return false;
 
-            float d1 = glm::dot(seg1, glm::vec3(capsule1SegA));
-            float d2 = -glm::dot(seg1, glm::vec3(capsule1SegB));
+            float d1 = Maths::Dot(seg1, Vec3(capsule1SegA));
+            float d2 = -Maths::Dot(seg1, Vec3(capsule1SegB));
 
             float t1 = PlaneSegmentIntersection(capsule2SegB, capsule2SegA, d1, seg1);
             float t2 = PlaneSegmentIntersection(capsule2SegA, capsule2SegB, d2, -seg1);
@@ -303,71 +279,71 @@ CollisionData colData;
                 // Clip the inner segment of capsule 2
                 if(t1 > 1.0f)
                     t1 = 1.0f;
-                const glm::vec3 clipPointA = capsule2SegB - t1 * seg2;
+                const Vec3 clipPointA = capsule2SegB - t1 * seg2;
                 if(t2 > 1.0f)
                     t2 = 1.0f;
-                const glm::vec3 clipPointB = capsule2SegA + t2 * seg2;
+                const Vec3 clipPointB = capsule2SegA + t2 * seg2;
 
                 // Project point capsule2SegA onto line of inner segment of capsule 1
-                const glm::vec3 seg1Normalized    = glm::normalize(seg1);
-                glm::vec3 pointOnInnerSegCapsule1 = glm::vec3(capsule1SegA) + glm::dot(seg1Normalized, glm::vec3(capsule2SegA - capsule1SegA)) * seg1Normalized;
+                const Vec3 seg1Normalized    = seg1.Normalised();
+                Vec3 pointOnInnerSegCapsule1 = Vec3(capsule1SegA) + Maths::Dot(seg1Normalized, Vec3(capsule2SegA - capsule1SegA)) * seg1Normalized;
 
-                glm::vec3 normalCapsule2SpaceNormalized;
-                glm::vec3 segment1ToSegment2;
+                Vec3 normalCapsule2SpaceNormalized;
+                Vec3 segment1ToSegment2;
 
                 // If the inner capsule segments perpendicular distance is not zero (the inner segments are not overlapping)
                 if(segmentsPerpendicularDistance > Maths::M_EPSILON)
                 {
                     // Compute a perpendicular vector from segment 1 to segment 2
                     segment1ToSegment2            = (capsule2SegA - pointOnInnerSegCapsule1);
-                    normalCapsule2SpaceNormalized = glm::normalize(segment1ToSegment2);
+                    normalCapsule2SpaceNormalized = segment1ToSegment2.Normalised();
                 }
                 else
                 {
-                    glm::vec3 vec1(1, 0, 0);
-                    glm::vec3 vec2(0, 1, 0);
+                    Vec3 vec1(1, 0, 0);
+                    Vec3 vec2(0, 1, 0);
 
-                    glm::vec3 seg2Normalized = glm::normalize(seg2);
+                    Vec3 seg2Normalized = seg2.Normalised();
 
-                    float cosA1        = std::abs(seg2Normalized.x);
-                    float cosA2        = std::abs(seg2Normalized.y);
-                    segment1ToSegment2 = glm::vec3(0.0f, 0.0f, 0.0f);
+                    float cosA1        = Maths::Abs(seg2Normalized.x);
+                    float cosA2        = Maths::Abs(seg2Normalized.y);
+                    segment1ToSegment2 = Vec3(0.0f, 0.0f, 0.0f);
 
-                    normalCapsule2SpaceNormalized = cosA1 < cosA2 ? glm::cross(seg2Normalized, vec1) : glm::cross(seg2Normalized, vec2);
+                    normalCapsule2SpaceNormalized = cosA1 < cosA2 ? Maths::Cross(seg2Normalized, vec1) : Maths::Cross(seg2Normalized, vec2);
                 }
 
-                glm::mat4 capsule2ToCapsule1SpaceTransform = glm::inverse(capsule1ToCapsule2SpaceTransform);
-                const glm::vec3 contactPointACapsule1Local = capsule2ToCapsule1SpaceTransform * glm::vec4(clipPointA - segment1ToSegment2 + normalCapsule2SpaceNormalized * capsule1Radius, 1.0f);
-                const glm::vec3 contactPointBCapsule1Local = capsule2ToCapsule1SpaceTransform * glm::vec4(clipPointB - segment1ToSegment2 + normalCapsule2SpaceNormalized * capsule1Radius, 1.0f);
-                const glm::vec3 contactPointACapsule2Local = clipPointA - normalCapsule2SpaceNormalized * capsule2Radius;
-                const glm::vec3 contactPointBCapsule2Local = clipPointB - normalCapsule2SpaceNormalized * capsule2Radius;
+                Mat4 capsule2ToCapsule1SpaceTransform = capsule1ToCapsule2SpaceTransform.Inverse();
+                const Vec3 contactPointACapsule1Local = capsule2ToCapsule1SpaceTransform * Vec4(clipPointA - segment1ToSegment2 + normalCapsule2SpaceNormalized * capsule1Radius, 1.0f);
+                const Vec3 contactPointBCapsule1Local = capsule2ToCapsule1SpaceTransform * Vec4(clipPointB - segment1ToSegment2 + normalCapsule2SpaceNormalized * capsule1Radius, 1.0f);
+                const Vec3 contactPointACapsule2Local = clipPointA - normalCapsule2SpaceNormalized * capsule2Radius;
+                const Vec3 contactPointBCapsule2Local = clipPointB - normalCapsule2SpaceNormalized * capsule2Radius;
 
                 float penetrationDepth = radiusSum - segmentsPerpendicularDistance;
 
-                glm::vec3 normalWorld = glm::mat4(obj2->GetOrientation()) * glm::vec4(normalCapsule2SpaceNormalized, 1.0f);
-                // glm::vec3 normalWorld = obj2->GetOrientation() * normalCapsule2SpaceNormalized;
+                Vec3 normalWorld = Mat4(obj2->GetOrientation()) * Vec4(normalCapsule2SpaceNormalized, 1.0f);
+                // Vec3 normalWorld = obj2->GetOrientation() * normalCapsule2SpaceNormalized;
 
-                float correlation1 = glm::dot(normalWorld, glm::vec3(contactPointACapsule1Local));
-                float correlation2 = glm::dot(normalWorld, glm::vec3(contactPointBCapsule1Local));
+                float correlation1 = Maths::Dot(normalWorld, Vec3(contactPointACapsule1Local));
+                float correlation2 = Maths::Dot(normalWorld, Vec3(contactPointBCapsule1Local));
 
                 static bool flipNormal = false;
                 // flipNormal = !flipNormal;
                 // if(correlation1 <= correlation2)
-                //  if(glm::dot(normalWorld, p2 - p1) < 0.0f)
+                //  if(Maths::Length(normalWorld, p2 - p1) < 0.0f)
                 //  {
                 //      normalWorld = -normalWorld;
                 //  }
 
                 // Flip Normal if needed
-                if(glm::dot(normalWorld, p2 - p1) < 0.0f)
+                if(Maths::Dot(normalWorld, p2 - p1) < 0.0f)
                 // if(flipNormal)
                 {
                     normalWorld = -normalWorld;
                 }
 
-                best_colData.normal       = glm::normalize(normalWorld);
+                best_colData.normal       = normalWorld.Normalised();
                 best_colData.penetration  = penetrationDepth;
-                best_colData.pointOnPlane = obj1->GetWorldSpaceTransform() * glm::vec4(contactPointACapsule1Local, 1.0f);
+                best_colData.pointOnPlane = obj1->GetWorldSpaceTransform() * Vec4(contactPointACapsule1Local, 1.0f);
 
                 if(out_coldata)
                     *out_coldata = best_colData;
@@ -376,43 +352,43 @@ CollisionData colData;
             }
         }
 
-        glm::vec3 closestPointCapsule1Seg;
-        glm::vec3 closestPointCapsule2Seg;
+        Vec3 closestPointCapsule1Seg;
+        Vec3 closestPointCapsule2Seg;
         Maths::ClosestPointBetweenTwoSegments(capsule1SegA, capsule1SegB, capsule2SegA, capsule2SegB,
                                               closestPointCapsule1Seg, closestPointCapsule2Seg);
 
-        glm::vec3 closestPointsSeg1ToSeg2       = (closestPointCapsule2Seg - closestPointCapsule1Seg);
-        const float closestPointsDistanceSquare = glm::length2(closestPointsSeg1ToSeg2);
+        Vec3 closestPointsSeg1ToSeg2            = (closestPointCapsule2Seg - closestPointCapsule1Seg);
+        const float closestPointsDistanceSquare = Maths::Length2(closestPointsSeg1ToSeg2);
 
         if(closestPointsDistanceSquare < radiusSum * radiusSum)
         {
             if(closestPointsDistanceSquare > Maths::M_EPSILON)
             {
-                float closestPointsDistance = std::sqrt(closestPointsDistanceSquare);
+                float closestPointsDistance = Maths::Sqrt(closestPointsDistanceSquare);
                 closestPointsSeg1ToSeg2 /= closestPointsDistance;
 
-                const glm::vec3 contactPointCapsule1Local = glm::inverse(capsule1ToCapsule2SpaceTransform) * (closestPointCapsule1Seg + closestPointsSeg1ToSeg2 * capsule1Radius);
-                const glm::vec3 contactPointCapsule2Local = closestPointCapsule2Seg - closestPointsSeg1ToSeg2 * capsule2Radius;
+                const Vec3 contactPointCapsule1Local = Mat4::Inverse(capsule1ToCapsule2SpaceTransform) * (closestPointCapsule1Seg + closestPointsSeg1ToSeg2 * capsule1Radius);
+                const Vec3 contactPointCapsule2Local = closestPointCapsule2Seg - closestPointsSeg1ToSeg2 * capsule2Radius;
 
-                // const glm::vec3 normalWorld = obj2->GetOrientation() * closestPointsSeg1ToSeg2;
-                glm::vec3 normalWorld = glm::mat4(obj2->GetOrientation()) * glm::vec4(closestPointsSeg1ToSeg2, 1.0f);
+                // const Vec3 normalWorld = obj2->GetOrientation() * closestPointsSeg1ToSeg2;
+                Vec3 normalWorld = Mat4(obj2->GetOrientation()) * Vec4(closestPointsSeg1ToSeg2, 1.0f);
 
                 float penetrationDepth = radiusSum - closestPointsDistance;
 
                 // Create the contact info object
 
-                float correlation1 = glm::dot(normalWorld, glm::vec3(contactPointCapsule1Local));
-                float correlation2 = glm::dot(normalWorld, glm::vec3(contactPointCapsule2Local));
+                float correlation1 = Maths::Dot(normalWorld, Vec3(contactPointCapsule1Local));
+                float correlation2 = Maths::Dot(normalWorld, Vec3(contactPointCapsule2Local));
 
                 // if(correlation1 <= correlation2)
-                if(glm::dot(normalWorld, p2 - p1) < 0.0f)
+                if(Maths::Dot(normalWorld, p2 - p1) < 0.0f)
                 {
                     normalWorld = -normalWorld;
                 }
 
-                best_colData.normal       = glm::normalize(normalWorld);
+                best_colData.normal       = normalWorld.Normalised();
                 best_colData.penetration  = penetrationDepth;
-                best_colData.pointOnPlane = obj1->GetWorldSpaceTransform() * glm::vec4(contactPointCapsule1Local, 1.0f);
+                best_colData.pointOnPlane = obj1->GetWorldSpaceTransform() * Vec4(contactPointCapsule1Local, 1.0f);
 
                 if(out_coldata)
                     *out_coldata = best_colData;
@@ -423,30 +399,30 @@ CollisionData colData;
             {
                 if(areParallel)
                 {
-                    float squareDistCapsule2PointToCapsuleSegA = glm::length2((capsule1SegA - closestPointCapsule2Seg));
+                    float squareDistCapsule2PointToCapsuleSegA = Maths::Length2((capsule1SegA - closestPointCapsule2Seg));
 
-                    glm::vec3 capsule1SegmentMostExtremePoint = squareDistCapsule2PointToCapsuleSegA > Maths::M_EPSILON ? capsule1SegA : capsule1SegB;
-                    glm::vec3 normalCapsuleSpace2             = (closestPointCapsule2Seg - capsule1SegmentMostExtremePoint);
-                    normalCapsuleSpace2                       = glm::normalize(normalCapsuleSpace2);
+                    Vec3 capsule1SegmentMostExtremePoint = squareDistCapsule2PointToCapsuleSegA > Maths::M_EPSILON ? capsule1SegA : capsule1SegB;
+                    Vec3 normalCapsuleSpace2             = (closestPointCapsule2Seg - capsule1SegmentMostExtremePoint);
+                    normalCapsuleSpace2                  = normalCapsuleSpace2.Normalised();
 
-                    const glm::vec3 contactPointCapsule1Local = glm::inverse(capsule1ToCapsule2SpaceTransform) * (closestPointCapsule1Seg + normalCapsuleSpace2 * capsule1Radius);
-                    const glm::vec3 contactPointCapsule2Local = closestPointCapsule2Seg - normalCapsuleSpace2 * capsule2Radius;
+                    const Vec3 contactPointCapsule1Local = Mat4::Inverse(capsule1ToCapsule2SpaceTransform) * (closestPointCapsule1Seg + normalCapsuleSpace2 * capsule1Radius);
+                    const Vec3 contactPointCapsule2Local = closestPointCapsule2Seg - normalCapsuleSpace2 * capsule2Radius;
 
-                    // const glm::vec3 normalWorld = obj2->GetOrientation() * glm::vec4(normalCapsuleSpace2, 1.0f);
-                    glm::vec3 normalWorld = glm::mat4(obj2->GetOrientation()) * glm::vec4(normalCapsuleSpace2, 1.0f);
+                    // const Vec3 normalWorld = obj2->GetOrientation() * Vec4(normalCapsuleSpace2, 1.0f);
+                    Vec3 normalWorld = Mat4(obj2->GetOrientation()) * Vec4(normalCapsuleSpace2, 1.0f);
 
-                    float correlation1 = glm::dot(normalWorld, glm::vec3(contactPointCapsule1Local));
-                    float correlation2 = glm::dot(normalWorld, glm::vec3(contactPointCapsule2Local));
+                    float correlation1 = Maths::Dot(normalWorld, Vec3(contactPointCapsule1Local));
+                    float correlation2 = Maths::Dot(normalWorld, Vec3(contactPointCapsule2Local));
 
                     // if(correlation1 <= correlation2)
-                    if(glm::dot(normalWorld, p2 - p1) < 0.0f)
+                    if(Maths::Dot(normalWorld, p2 - p1) < 0.0f)
                     {
                         normalWorld = -normalWorld;
                     }
                     // Create the contact info object
-                    best_colData.normal       = glm::normalize(normalWorld);
+                    best_colData.normal       = normalWorld.Normalised();
                     best_colData.penetration  = radiusSum;
-                    best_colData.pointOnPlane = obj1->GetWorldSpaceTransform() * glm::vec4(contactPointCapsule1Local, 1.0f);
+                    best_colData.pointOnPlane = obj1->GetWorldSpaceTransform() * Vec4(contactPointCapsule1Local, 1.0f);
 
                     if(out_coldata)
                         *out_coldata = best_colData;
@@ -455,27 +431,27 @@ CollisionData colData;
                 }
                 else
                 {
-                    glm::vec3 normalCapsuleSpace2 = glm::cross(seg1, seg2);
-                    glm::normalize(normalCapsuleSpace2);
+                    Vec3 normalCapsuleSpace2 = Maths::Cross(seg1, seg2);
+                    normalCapsuleSpace2.Normalise();
 
-                    const glm::vec3 contactPointCapsule1Local = glm::inverse(capsule1ToCapsule2SpaceTransform) * (closestPointCapsule1Seg + normalCapsuleSpace2 * capsule1Radius);
-                    const glm::vec3 contactPointCapsule2Local = closestPointCapsule2Seg - normalCapsuleSpace2 * capsule2Radius;
+                    const Vec3 contactPointCapsule1Local = Mat4::Inverse(capsule1ToCapsule2SpaceTransform) * (closestPointCapsule1Seg + normalCapsuleSpace2 * capsule1Radius);
+                    const Vec3 contactPointCapsule2Local = closestPointCapsule2Seg - normalCapsuleSpace2 * capsule2Radius;
 
-                    // const glm::vec3 normalWorld = obj2->GetOrientation() * glm::vec4(normalCapsuleSpace2, 1.0f);
-                    glm::vec3 normalWorld = glm::mat4(obj2->GetOrientation()) * glm::vec4(normalCapsuleSpace2, 1.0f);
+                    // const Vec3 normalWorld = obj2->GetOrientation() * Vec4(normalCapsuleSpace2, 1.0f);
+                    Vec3 normalWorld = Mat4(obj2->GetOrientation()) * Vec4(normalCapsuleSpace2, 1.0f);
 
-                    float correlation1 = glm::dot(normalWorld, glm::vec3(contactPointCapsule1Local));
-                    float correlation2 = glm::dot(normalWorld, glm::vec3(contactPointCapsule2Local));
+                    float correlation1 = Maths::Dot(normalWorld, Vec3(contactPointCapsule1Local));
+                    float correlation2 = Maths::Dot(normalWorld, Vec3(contactPointCapsule2Local));
 
                     // if(correlation1 <= correlation2)
-                    if(glm::dot(normalWorld, p2 - p1) < 0.0f)
+                    if(Maths::Dot(normalWorld, p2 - p1) < 0.0f)
                     {
                         normalWorld = -normalWorld;
                     }
 
-                    best_colData.normal       = glm::normalize(normalWorld);
+                    best_colData.normal       = normalWorld.Normalised();
                     best_colData.penetration  = radiusSum;
-                    best_colData.pointOnPlane = obj1->GetWorldSpaceTransform() * glm::vec4(contactPointCapsule1Local, 1.0f);
+                    best_colData.pointOnPlane = obj1->GetWorldSpaceTransform() * Vec4(contactPointCapsule1Local, 1.0f);
 
                     if(out_coldata)
                         *out_coldata = best_colData;
@@ -491,7 +467,7 @@ CollisionData colData;
     bool CollisionDetection::CheckCapsuleSphereCheckCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        LUMOS_ASSERT(shape1->GetType() == CollisionShapeType::CollisionSphere || shape2->GetType() == CollisionShapeType::CollisionSphere, "Both shapes are not spheres");
+        ASSERT(shape1->GetType() == CollisionShapeType::CollisionSphere || shape2->GetType() == CollisionShapeType::CollisionSphere, "Both shapes are not spheres");
 
         CollisionData colData;
 
@@ -520,26 +496,26 @@ CollisionData colData;
         float capsuleRadius     = capsuleShape->GetRadius();
         float capsuleHalfHeight = capsuleHeight * 0.5f;
 
-        glm::vec3 capsulePos = capsuleObj->GetPosition();
-        glm::vec3 spherePos  = sphereObj->GetPosition();
+        Vec3 capsulePos = capsuleObj->GetPosition();
+        Vec3 spherePos  = sphereObj->GetPosition();
 
-        const glm::mat4& sphereTransform  = sphereObj->GetWorldSpaceTransform();
-        const glm::mat4& capsuleTransform = capsuleObj->GetWorldSpaceTransform();
-        glm::mat4 worldToCapsuleTransform = glm::inverse(capsuleTransform);
+        const Mat4& sphereTransform  = sphereObj->GetWorldSpaceTransform();
+        const Mat4& capsuleTransform = capsuleObj->GetWorldSpaceTransform();
+        Mat4 worldToCapsuleTransform = Mat4::Inverse(capsuleTransform);
 
         // Transform sphere into capsule space
-        glm::mat4 sphereToCapsuleSpaceTransform = worldToCapsuleTransform * sphereTransform;
-        glm::vec3 sphereToCapsuleSpacePos       = glm::vec3(sphereToCapsuleSpaceTransform[3]);
+        Mat4 sphereToCapsuleSpaceTransform = worldToCapsuleTransform * sphereTransform;
+        Vec3 sphereToCapsuleSpacePos       = Vec3(sphereToCapsuleSpaceTransform.GetPositionVector());
 
-        const glm::vec3 capsuleBottom(0, -capsuleHalfHeight, 0);
-        const glm::vec3 capsuleTop(0, capsuleHalfHeight, 0);
+        const Vec3 capsuleBottom(0, -capsuleHalfHeight, 0);
+        const Vec3 capsuleTop(0, capsuleHalfHeight, 0);
 
         // Compute the point on the inner capsule segment that is the closes to centre of sphere
-        const glm::vec3 closestPointOnSegment = Maths::ComputeClosestPointOnSegment(capsuleBottom, capsuleTop, sphereToCapsuleSpacePos);
+        const Vec3 closestPointOnSegment = Maths::ComputeClosestPointOnSegment(capsuleBottom, capsuleTop, sphereToCapsuleSpacePos);
 
         // Compute the distance between the sphere center and the closest point on the segment
-        glm::vec3 sphereCenterToSegment         = (closestPointOnSegment - sphereToCapsuleSpacePos);
-        const float sphereSegmentDistanceSquare = glm::length2(sphereCenterToSegment);
+        Vec3 sphereCenterToSegment              = (closestPointOnSegment - sphereToCapsuleSpacePos);
+        const float sphereSegmentDistanceSquare = Maths::Length2(sphereCenterToSegment);
 
         // Compute the sum of the radius of the sphere and the capsule (virtual sphere)
         float sumRadius = sphereRadius + capsuleRadius;
@@ -549,20 +525,20 @@ CollisionData colData;
         if(sphereSegmentDistanceSquare < sumRadius * sumRadius)
         {
             float penetrationDepth;
-            glm::vec3 normalWorld;
-            glm::vec3 contactPointSphereLocal;
-            glm::vec3 contactPointCapsuleLocal;
+            Vec3 normalWorld;
+            Vec3 contactPointSphereLocal;
+            Vec3 contactPointCapsuleLocal;
 
             // If the sphere center is not on the capsule inner segment
             if(sphereSegmentDistanceSquare > Maths::M_EPSILON)
             {
-                float sphereSegmentDistance = std::sqrt(sphereSegmentDistanceSquare);
+                float sphereSegmentDistance = Maths::Sqrt(sphereSegmentDistanceSquare);
                 sphereCenterToSegment /= sphereSegmentDistance;
 
-                contactPointSphereLocal  = glm::inverse(sphereToCapsuleSpaceTransform) * glm::vec4(sphereToCapsuleSpacePos + sphereCenterToSegment * sphereRadius, 1.0f);
+                contactPointSphereLocal  = Mat4::Inverse(sphereToCapsuleSpaceTransform) * Vec4(sphereToCapsuleSpacePos + sphereCenterToSegment * sphereRadius, 1.0f);
                 contactPointCapsuleLocal = closestPointOnSegment - sphereCenterToSegment * capsuleRadius;
 
-                normalWorld = glm::mat4(capsuleObj->GetOrientation()) * glm::vec4(sphereCenterToSegment, 1.0f);
+                normalWorld = Mat4(capsuleObj->GetOrientation()) * Vec4(sphereCenterToSegment, 1.0f);
 
                 penetrationDepth = sumRadius - sphereSegmentDistance;
 
@@ -574,30 +550,30 @@ CollisionData colData;
                 // If the sphere center is on the capsule inner segment
                 // We take any direction that is orthogonal to the inner capsule segment as a contact normal
                 // Capsule inner segment
-                glm::vec3 capsuleSegment = glm::normalize(capsuleTop - capsuleBottom);
+                Vec3 capsuleSegment = (capsuleTop - capsuleBottom).Normalised();
 
-                glm::vec3 vec1(1, 0, 0);
-                glm::vec3 vec2(0, 1, 0);
+                Vec3 vec1(1, 0, 0);
+                Vec3 vec2(0, 1, 0);
 
                 // Get the vectors (among vec1 and vec2) that is the most orthogonal to the capsule inner segment (smallest absolute dot product)
-                float cosA1 = std::abs(capsuleSegment.x);
-                float cosA2 = std::abs(capsuleSegment.y);
+                float cosA1 = Maths::Abs(capsuleSegment.x);
+                float cosA2 = Maths::Abs(capsuleSegment.y);
 
                 penetrationDepth = sumRadius;
 
                 // We choose as a contact normal, any direction that is perpendicular to the inner capsule segment
-                glm::vec3 normalCapsuleSpace = cosA1 < cosA2 ? glm::cross(capsuleSegment, vec1) : glm::cross(capsuleSegment, vec2);
-                normalWorld                  = glm::mat4(capsuleObj->GetOrientation()) * glm::vec4(normalCapsuleSpace, 1.0f);
+                Vec3 normalCapsuleSpace = cosA1 < cosA2 ? Maths::Cross(capsuleSegment, vec1) : Maths::Cross(capsuleSegment, vec2);
+                normalWorld             = Mat4(capsuleObj->GetOrientation()) * Vec4(normalCapsuleSpace, 1.0f);
 
                 // Compute the two local contact points
-                contactPointSphereLocal  = glm::inverse(sphereToCapsuleSpaceTransform) * glm::vec4(sphereToCapsuleSpacePos + normalCapsuleSpace * sphereRadius, 1.0f);
+                contactPointSphereLocal  = Mat4::Inverse(sphereToCapsuleSpaceTransform) * Vec4(sphereToCapsuleSpacePos + normalCapsuleSpace * sphereRadius, 1.0f);
                 contactPointCapsuleLocal = sphereToCapsuleSpacePos - normalCapsuleSpace * capsuleRadius;
             }
 
             if(penetrationDepth <= 0.0f)
                 return false;
 
-            colData.normal       = glm::normalize(normalWorld);
+            colData.normal       = normalWorld.Normalised();
             colData.penetration  = penetrationDepth;
             colData.pointOnPlane = contactPointSphereLocal;
 
@@ -637,27 +613,27 @@ CollisionData colData;
         CollisionData best_colData;
         best_colData.penetration = -FLT_MAX;
 
-        std::vector<glm::vec3>& shapeCollisionAxes      = complexShape->GetCollisionAxes(complexObj);
-        std::vector<CollisionEdge>& complex_shape_edges = complexShape->GetEdges(complexObj);
+        TDArray<Vec3>& shapeCollisionAxes           = complexShape->GetCollisionAxes(complexObj);
+        TDArray<CollisionEdge>& complex_shape_edges = complexShape->GetEdges(complexObj);
 
-        glm::vec3 p   = GetClosestPointOnEdges(capsuleObj->GetPosition(), complex_shape_edges);
-        glm::vec3 p_t = capsuleObj->GetPosition() - p;
-        p_t           = glm::normalize(p_t);
+        Vec3 p   = GetClosestPointOnEdges(capsuleObj->GetPosition(), complex_shape_edges);
+        Vec3 p_t = capsuleObj->GetPosition() - p;
+        p_t.Normalise();
 
         static const int MAX_COLLISION_AXES = 100;
-        static glm::vec3 possibleCollisionAxes[MAX_COLLISION_AXES];
+        static Vec3 possibleCollisionAxes[MAX_COLLISION_AXES];
 
         uint32_t possibleCollisionAxesCount = 0;
-        for(const glm::vec3& axis : shapeCollisionAxes)
+        for(const Vec3& axis : shapeCollisionAxes)
         {
             possibleCollisionAxes[possibleCollisionAxesCount++] = axis;
         }
 
         AddPossibleCollisionAxis(p_t, possibleCollisionAxes, possibleCollisionAxesCount);
 
-        glm::vec3 capsulePos = capsuleObj->GetPosition();
-        glm::vec4 forward    = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
-        glm::vec3 capsuleDir = capsuleObj->GetWorldSpaceTransform() * forward;
+        Vec3 capsulePos = capsuleObj->GetPosition();
+        Vec4 forward    = Vec4(0.0f, 0.0f, 1.0f, 0.0f);
+        Vec3 capsuleDir = capsuleObj->GetWorldSpaceTransform() * forward;
 
         float capsuleRadius = capsuleShape->GetRadius();
         float capsuleHeight = capsuleShape->GetHeight();
@@ -667,7 +643,7 @@ CollisionData colData;
 
         for(uint32_t i = 0; i < possibleCollisionAxesCount; i++)
         {
-            const glm::vec3& axis = possibleCollisionAxes[i];
+            const Vec3& axis = possibleCollisionAxes[i];
             if(!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &cur_colData))
                 return false;
 
@@ -675,7 +651,7 @@ CollisionData colData;
                 best_colData = cur_colData;
         }
 
-        if(glm::dot(best_colData.normal, capsuleDir) < 0.0f)
+        if(Maths::Dot(best_colData.normal, capsuleDir) < 0.0f)
             best_colData.normal = -best_colData.normal;
 
         if(out_coldata)
@@ -684,18 +660,18 @@ CollisionData colData;
         return true;
     }
 
-    bool CollisionDetection::CheckCollisionAxis(const glm::vec3& axis, RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
+    bool CollisionDetection::CheckCollisionAxis(const Vec3& axis, RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        glm::vec3 min1, min2, max1, max2;
+        Vec3 min1, min2, max1, max2;
 
         shape1->GetMinMaxVertexOnAxis(obj1, axis, &min1, &max1);
         shape2->GetMinMaxVertexOnAxis(obj2, axis, &min2, &max2);
 
-        float minCorrelation1 = glm::dot(axis, min1);
-        float maxCorrelation1 = glm::dot(axis, max1);
-        float minCorrelation2 = glm::dot(axis, min2);
-        float maxCorrelation2 = glm::dot(axis, max2);
+        float minCorrelation1 = Maths::Dot(axis, min1);
+        float maxCorrelation1 = Maths::Dot(axis, max1);
+        float minCorrelation2 = Maths::Dot(axis, min2);
+        float maxCorrelation2 = Maths::Dot(axis, max2);
 
         if(minCorrelation1 <= minCorrelation2 && maxCorrelation1 >= minCorrelation2)
         {
@@ -742,17 +718,17 @@ CollisionData colData;
         else
         {
             bool flipped;
-            glm::vec3* incPolygon;
-            glm::vec3* refPolygon;
+            Vec3* incPolygon;
+            Vec3* refPolygon;
             int incPolygonCount;
             int refPolygonCount;
             Plane* refAdjPlanes;
             int refAdjPlanesCount;
             Plane refPlane;
 
-            if(glm::abs(glm::dot(coldata.normal, poly1.Normal)) > glm::abs(glm::dot(coldata.normal, poly2.Normal)))
+            if(Maths::Abs(Maths::Dot(coldata.normal, poly1.Normal)) > Maths::Abs(Maths::Dot(coldata.normal, poly2.Normal)))
             {
-                float planeDist = -(glm::dot(poly1.Faces[0], -poly1.Normal));
+                float planeDist = -(Maths::Dot(poly1.Faces[0], -poly1.Normal));
                 refPlane        = Plane(-poly1.Normal, planeDist);
 
                 refAdjPlanes      = poly1.AdjacentPlanes;
@@ -766,7 +742,7 @@ CollisionData colData;
             }
             else
             {
-                float planeDist = -(glm::dot(poly2.Faces[0], -poly2.Normal));
+                float planeDist = -(Maths::Dot(poly2.Faces[0], -poly2.Normal));
                 refPlane        = Plane(-poly2.Normal, planeDist);
 
                 refAdjPlanes      = poly2.AdjacentPlanes;
@@ -783,15 +759,15 @@ CollisionData colData;
             float penetrationOffset = -FLT_MAX;
             for(auto it = 0; it != refPolygonCount; ++it)
             {
-                float pOffset = glm::dot(refPolygon[it], coldata.normal);
+                float pOffset = Maths::Dot(refPolygon[it], coldata.normal);
                 if(pOffset > penetrationOffset)
                     penetrationOffset = pOffset;
             }
 
             ArenaTemp scratch = ScratchBegin(nullptr, 0);
-            Vector<glm::vec3> incPolygonList(scratch.arena);
+            TDArray<Vec3> incPolygonList(scratch.arena);
             incPolygonList.Resize(incPolygonCount);
-            MemoryCopy(incPolygonList.Data(), incPolygon, sizeof(glm::vec3) * incPolygonCount);
+            MemoryCopy(incPolygonList.Data(), incPolygon, sizeof(Vec3) * incPolygonCount);
 
             SutherlandHodgesonClipping(scratch.arena, incPolygonList, refAdjPlanesCount, refAdjPlanes, &incPolygonList, false);
             SutherlandHodgesonClipping(scratch.arena, incPolygonList, 1, &refPlane, &incPolygonList, true);
@@ -799,26 +775,26 @@ CollisionData colData;
             for(auto it = incPolygonList.begin(); it != incPolygonList.end(); ++it)
             {
                 float contact_penetration;
-                glm::vec3 globalOnA, globalOnB;
+                Vec3 globalOnA, globalOnB;
 
                 if(flipped)
                 {
-                    contact_penetration = -glm::dot(*it, coldata.normal)
-                        + penetrationOffset; // +(glm::dot(coldata.normal, poly2.Faces[0]));
+                    contact_penetration = -Maths::Dot(*it, coldata.normal)
+                        + penetrationOffset; // +(Maths::Dot(coldata.normal, poly2.Faces[0]));
 
                     globalOnA = *it + (coldata.normal * contact_penetration);
                     globalOnB = *it;
                 }
                 else
                 {
-                    contact_penetration = glm::dot(*it, coldata.normal) - penetrationOffset; // glm::dot(coldata.normal, poly1.Faces[0]);
+                    contact_penetration = Maths::Dot(*it, coldata.normal) - penetrationOffset; // Maths::Dot(coldata.normal, poly1.Faces[0]);
 
                     globalOnA = *it;
                     globalOnB = *it - (coldata.normal * contact_penetration);
                 }
 
-                if(globalOnB.z > 30.0f)
-                    LUMOS_LOG_INFO("Large value in manifold creation {0},{1},{2}", globalOnB.x, globalOnB.y, globalOnB.z);
+                // if(globalOnB.z > 30.0f)
+                //     LINFO("Large value in manifold creation %.2f,%.2f,%.2f", globalOnB.x, globalOnB.y, globalOnB.z);
 
                 if(contact_penetration < 0.0f)
                     manifold->AddContact(globalOnA, globalOnB, coldata.normal, contact_penetration);
@@ -828,20 +804,20 @@ CollisionData colData;
         return true;
     }
 
-    glm::vec3 CollisionDetection::GetClosestPointOnEdges(const glm::vec3& target, const std::vector<CollisionEdge>& edges)
+    Vec3 CollisionDetection::GetClosestPointOnEdges(const Vec3& target, const TDArray<CollisionEdge>& edges)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        glm::vec3 closest_point      = glm::vec3(0.0f);
-        glm::vec3 temp_closest_point = glm::vec3(0.0f);
-        float closest_distsq         = FLT_MAX;
+        Vec3 closest_point      = Vec3(0.0f);
+        Vec3 temp_closest_point = Vec3(0.0f);
+        float closest_distsq    = FLT_MAX;
 
         for(const CollisionEdge& edge : edges)
         {
-            glm::vec3 a_t = target - edge.posA;
-            glm::vec3 a_b = edge.posB - edge.posA;
+            Vec3 a_t = target - edge.posA;
+            Vec3 a_b = edge.posB - edge.posA;
 
-            float magnitudeAB = glm::dot(a_b, a_b);        // Magnitude of AB vector (it's length squared)
-            float ABAPproduct = glm::dot(a_t, a_b);        // The DOT product of a_to_t and a_to_b
+            float magnitudeAB = Maths::Dot(a_b, a_b);      // Magnitude of AB vector (it's length squared)
+            float ABAPproduct = Maths::Dot(a_t, a_b);      // The DOT product of a_to_t and a_to_b
             float distance    = ABAPproduct / magnitudeAB; // The Normalised "distance" from a to your closest point
 
             if(distance < 0.0f) // Clamp returned point to be on the line, e.g if the closest point is beyond the AB return either A or B as closest points
@@ -852,8 +828,8 @@ CollisionData colData;
             else
                 temp_closest_point = edge.posA + a_b * distance;
 
-            glm::vec3 c_t     = target - temp_closest_point;
-            float temp_distsq = glm::dot(c_t, c_t);
+            Vec3 c_t          = target - temp_closest_point;
+            float temp_distsq = Maths::Dot(c_t, c_t);
 
             if(temp_distsq < closest_distsq)
             {
@@ -865,19 +841,19 @@ CollisionData colData;
         return closest_point;
     }
 
-    glm::vec3 CollisionDetection::PlaneEdgeIntersection(const Plane& plane, const glm::vec3& start, const glm::vec3& end) const
+    Vec3 CollisionDetection::PlaneEdgeIntersection(const Plane& plane, const Vec3& start, const Vec3& end) const
     {
-        glm::vec3 ab = end - start;
+        Vec3 ab = end - start;
 
-        float ab_p = glm::dot(plane.Normal(), ab);
+        float ab_p = Maths::Dot(plane.Normal(), ab);
 
-        if(glm::abs(ab_p) > Maths::M_EPSILON)
+        if(Maths::Abs(ab_p) > Maths::M_EPSILON)
         {
-            glm::vec3 p_co = plane.Normal() * (-plane.Distance(glm::vec3(0.0f)));
+            Vec3 p_co = plane.Normal() * (-plane.Distance(Vec3(0.0f)));
 
-            glm::vec3 w = start - p_co;
-            float fac   = -(glm::dot(plane.Normal(), w)) / ab_p;
-            ab          = ab * fac;
+            Vec3 w    = start - p_co;
+            float fac = -(Maths::Dot(plane.Normal(), w)) / ab_p;
+            ab        = ab * fac;
 
             return start + ab;
         }
@@ -885,7 +861,7 @@ CollisionData colData;
         return start;
     }
 
-    void CollisionDetection::SutherlandHodgesonClipping(Arena* arena, const Vector<glm::vec3>& input_polygon, int num_clip_planes, const Plane* clip_planes, Vector<glm::vec3>* out_polygon, bool removePoints) const
+    void CollisionDetection::SutherlandHodgesonClipping(Arena* arena, const TDArray<Vec3>& input_polygon, int num_clip_planes, const Plane* clip_planes, TDArray<Vec3>* out_polygon, bool removePoints) const
     {
         LUMOS_PROFILE_FUNCTION_LOW();
         if(!out_polygon)
@@ -894,8 +870,8 @@ CollisionData colData;
         // Create temporary list of vertices
         // - We will keep ping-pong'ing between
         //   the two lists updating them as we go.
-        Vector<glm::vec3> ppPolygon1(arena), ppPolygon2(arena);
-        Vector<glm::vec3>*input = &ppPolygon1, *output = &ppPolygon2;
+        TDArray<Vec3> ppPolygon1(arena), ppPolygon2(arena);
+        TDArray<Vec3>*input = &ppPolygon1, *output = &ppPolygon2;
 
         *output = input_polygon;
 
@@ -909,13 +885,13 @@ CollisionData colData;
             const Plane& plane = clip_planes[i];
 
             // Swap input/output polygons, and clear output list for us to generate afresh
-            std::swap(input, output);
+            Swap(input, output);
             output->Clear();
 
             // Loop through each edge of the polygon (see line_loop from gfx) and clips
             // that edge against the plane.
-            glm::vec3 startPoint = input->Back();
-            for(const glm::vec3& endPoint : *input)
+            Vec3 startPoint = input->Back();
+            for(const Vec3& endPoint : *input)
             {
                 bool startInPlane = plane.IsPointOnPlane(startPoint);
                 bool endInPlane   = plane.IsPointOnPlane(endPoint);
@@ -952,5 +928,91 @@ CollisionData colData;
         }
 
         *out_polygon = *output;
+    }
+
+    bool CollisionDetection::CheckSphereOverlap(const Vec3& pos1, float radius1, const Vec3& pos2, float radius2)
+    {
+        return Maths::Distance2(pos2, pos1) <= Maths::Squared(radius1 + radius2);
+    }
+
+    bool CollisionDetection::CheckAABBOverlap(const Vec3& pos1, const Vec3& halfHidth1, const Vec3& pos2, const Vec3& halfHidth2)
+    {
+        if(abs(pos1.x - pos2.x) >= (halfHidth1.x + halfHidth2.x))
+            return false;
+        if(abs(pos1.y - pos2.y) >= (halfHidth1.y + halfHidth2.y))
+            return false;
+        if(abs(pos1.z - pos2.z) >= (halfHidth1.z + halfHidth2.z))
+            return false;
+        return true;
+    }
+
+    bool CollisionDetection::CheckAABBSphereOverlap(const Vec3& center, const Vec3& halfVol, const Vec3& spherePos, float sphereRad)
+    {
+        const Vec3 minVol = center - halfVol;
+        const Vec3 maxVol = center + halfVol;
+        float distSquared = sphereRad * sphereRad;
+
+        if(spherePos.x <= minVol.x)
+            distSquared -= Maths::Squared(spherePos.x - minVol.x);
+        else if(spherePos.x >= maxVol.x)
+            distSquared -= Maths::Squared(spherePos.x - maxVol.x);
+
+        if(spherePos.y <= minVol.y)
+            distSquared -= Maths::Squared(spherePos.y - minVol.y);
+        else if(spherePos.y >= maxVol.y)
+            distSquared -= Maths::Squared(spherePos.y - maxVol.y);
+
+        if(spherePos.z <= minVol.z)
+            distSquared -= Maths::Squared(spherePos.z - minVol.z);
+        else if(spherePos.z >= maxVol.z)
+            distSquared -= Maths::Squared(spherePos.z - maxVol.z);
+
+        return distSquared > 0;
+    }
+
+    bool CollisionDetection::CheckSphereInsideAABB(const Vec3& spherePos, float sphereRadius, const Vec3& AABBCenter, const Vec3& AABBHalfVol)
+    {
+        // min check
+        Vec3 minPoint = AABBCenter - AABBHalfVol;
+        if(minPoint.x > spherePos.x - sphereRadius)
+            return false;
+        if(minPoint.y > spherePos.y - sphereRadius)
+            return false;
+        if(minPoint.z > spherePos.z - sphereRadius)
+            return false;
+        // max check
+        Vec3 maxPoint = AABBCenter + AABBHalfVol;
+        if(maxPoint.x < spherePos.x + sphereRadius)
+            return false;
+        if(maxPoint.y < spherePos.y + sphereRadius)
+            return false;
+        if(maxPoint.z < spherePos.z + sphereRadius)
+            return false;
+
+        return true;
+    }
+
+    bool CollisionDetection::CheckAABBInsideAABB(const Vec3& AABBInsideCenter, const Vec3& AABBInsideHalfVol, const Vec3& AABBCenter, const Vec3& AABBHalfVol)
+    {
+        // min check
+        Vec3 minPoint       = AABBCenter - AABBHalfVol;
+        Vec3 minInsidePoint = AABBInsideCenter - AABBInsideHalfVol;
+        if(minPoint.x > minInsidePoint.x)
+            return false;
+        if(minPoint.y > minInsidePoint.y)
+            return false;
+        if(minPoint.z > minInsidePoint.z)
+            return false;
+        // max check
+        Vec3 maxPoint       = AABBCenter + AABBHalfVol;
+        Vec3 maxInsidePoint = AABBInsideCenter + AABBInsideHalfVol;
+        if(maxPoint.x < maxInsidePoint.x)
+            return false;
+        if(maxPoint.y < maxInsidePoint.y)
+            return false;
+        if(maxPoint.z < maxInsidePoint.z)
+            return false;
+
+        return true;
     }
 }

@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/Core.h"
-#include <glm/ext/vector_float4.hpp>
+#include "Maths/MathsFwd.h"
 
 namespace Lumos
 {
@@ -38,7 +38,7 @@ namespace Lumos
         virtual std::string GetCurrentWorkingDirectory();
         virtual std::string GetAssetPath();
         virtual void Vibrate() const {};
-        virtual void SetTitleBarColour(const glm::vec4& colour, bool dark = true) {};
+        virtual void SetTitleBarColour(const Vec4& colour, bool dark = true) {};
 
         // Mobile only
         virtual void ShowKeyboard() {};
@@ -51,6 +51,7 @@ namespace Lumos
         virtual void OpenFileLocation(const std::string& path) { }
         virtual void OpenFileExternal(const std::string& path) { }
         virtual void OpenURL(const std::string& url) { }
+        static void ConsoleWrite(const char* msg, u8 level);
 
     protected:
         static OS* s_Instance;

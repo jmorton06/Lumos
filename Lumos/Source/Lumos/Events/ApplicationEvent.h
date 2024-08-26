@@ -2,8 +2,6 @@
 
 #include "Event.h"
 
-#include <sstream>
-
 namespace Lumos
 {
     class LUMOS_EXPORT WindowResizeEvent : public Event
@@ -27,13 +25,6 @@ namespace Lumos
         inline uint32_t GetHeight() const { return m_Height; }
 
         inline float GetDPIScale() const { return m_DPIScale; }
-
-        std::string ToString() const override
-        {
-            std::stringstream ss;
-            ss << "WindowResizeEvent: " << m_Width << ", " << m_Height << ", " << m_DPIScale;
-            return ss.str();
-        }
 
         EVENT_CLASS_TYPE(WindowResize)
         EVENT_CLASS_CATEGORY(EventCategoryApplication)
@@ -62,13 +53,6 @@ namespace Lumos
         }
 
         const std::string& GetFilePath() const { return m_FilePath; }
-
-        std::string ToString() const override
-        {
-            std::stringstream ss;
-            ss << "WindowFileEvent: " << m_FilePath;
-            return ss.str();
-        }
 
         EVENT_CLASS_TYPE(WindowFile)
         EVENT_CLASS_CATEGORY(EventCategoryApplication)

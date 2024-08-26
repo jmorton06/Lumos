@@ -1,19 +1,13 @@
 #pragma once
 
-#include "EditorPanel.h"
-#include "FileBrowserPanel.h"
-#include "PreviewDraw.h"
-
-#include <Lumos/Maths/Ray.h>
 #include <Lumos/Maths/Transform.h>
 #include <Lumos/Utilities/IniFile.h>
 #include <Lumos/Graphics/Camera/EditorCamera.h>
-#include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/Entity.h>
+#include <Lumos/Maths/Vector3.h>
 #include <imgui/imgui.h>
-#include <entt/entt.hpp>
 
 namespace Lumos
 {
@@ -27,6 +21,11 @@ namespace Lumos
     class WindowResizeEvent;
     class WindowFileEvent;
     class TimeStep;
+    class Entity;
+    class FileBrowserPanel;
+    class PreviewDraw;
+    class EditorPanel;
+    class Camera;
 
     namespace Graphics
     {
@@ -34,7 +33,12 @@ namespace Lumos
         class GridRenderer;
         class Mesh;
         class Environment;
-        class RenderPasses;
+        class SceneRenderer;
+    }
+
+    namespace Maths
+    {
+        class Ray;
     }
 
     enum EditorDebugFlags : uint32_t
@@ -136,16 +140,16 @@ namespace Lumos
             m_SelectedEntities.clear();
         }
 
-        void SetSelected(entt::entity entity);
-        void UnSelect(entt::entity entity);
+        void SetSelected(Entity entity);
+        void UnSelect(Entity entity);
         void SetHoveredEntity(Entity entity) { m_HoveredEntity = entity; }
         Entity GetHoveredEntity() { return m_HoveredEntity; }
-        const std::vector<entt::entity>& GetSelected() const
+        const std::vector<Entity>& GetSelected() const
         {
             return m_SelectedEntities;
         }
 
-        bool IsSelected(entt::entity entity)
+        bool IsSelected(Entity entity)
         {
             if(std::find(m_SelectedEntities.begin(), m_SelectedEntities.end(), entity) != m_SelectedEntities.end())
                 return true;
@@ -153,7 +157,7 @@ namespace Lumos
             return false;
         }
 
-        bool IsCopied(entt::entity entity)
+        bool IsCopied(Entity entity)
         {
             if(std::find(m_CopiedEntities.begin(), m_CopiedEntities.end(), entity) != m_CopiedEntities.end())
                 return true;
@@ -161,7 +165,7 @@ namespace Lumos
             return false;
         }
 
-        void SetCopiedEntity(entt::entity entity, bool cut = false)
+        void SetCopiedEntity(Entity entity, bool cut = false)
         {
             if(std::find(m_CopiedEntities.begin(), m_CopiedEntities.end(), entity) != m_CopiedEntities.end())
                 return;
@@ -170,7 +174,7 @@ namespace Lumos
             m_CutCopyEntity = cut;
         }
 
-        const std::vector<entt::entity>& GetCopiedEntity() const
+        const std::vector<Entity>& GetCopiedEntity() const
         {
             return m_CopiedEntities;
         }
@@ -185,7 +189,7 @@ namespace Lumos
             return m_ComponentIconMap;
         }
 
-        void FocusCamera(const glm::vec3& point, float distance, float speed = 1.0f);
+        void FocusCamera(const Vec3& point, float distance, float speed = 1.0f);
 
         void RecompileShaders();
         void DebugDraw();
@@ -200,9 +204,8 @@ namespace Lumos
         void SavePreview();
         void RequestThumbnail(String8 asset);
 
-        static Editor* GetEditor() { return s_Editor; }
+        static Editor* GetEditor() { return (Editor*)&Application::Get(); }
 
-        glm::vec2 m_SceneViewPanelPosition;
         Maths::Ray GetScreenRay(int x, int y, Camera* camera, int width, int height);
 
         void FileOpenCallback(const std::string& filepath);
@@ -213,7 +216,7 @@ namespace Lumos
 
         FileBrowserPanel& GetFileBrowserPanel()
         {
-            return m_FileBrowserPanel;
+            return *m_FileBrowserPanel;
         }
 
         void AddDefaultEditorSettings();
@@ -289,19 +292,15 @@ namespace Lumos
         NONCOPYABLE(Editor)
         bool OnWindowResize(WindowResizeEvent& e);
 
-        Application* m_Application;
-
         uint32_t m_ImGuizmoOperation = 14463;
-        std::vector<entt::entity> m_SelectedEntities;
-        std::vector<entt::entity> m_CopiedEntities;
-
+        std::vector<Entity> m_SelectedEntities;
+        std::vector<Entity> m_CopiedEntities;
         Entity m_HoveredEntity;
-        bool m_CutCopyEntity              = false;
-        float m_CurrentSceneAspectRatio   = 0.0f;
-        float m_CameraTransitionSpeed     = 0.0f;
-        bool m_TransitioningCamera        = false;
-
-        glm::vec3 m_CameraDestination;
+        bool m_CutCopyEntity            = false;
+        float m_CurrentSceneAspectRatio = 0.0f;
+        float m_CameraTransitionSpeed   = 0.0f;
+        bool m_TransitioningCamera      = false;
+        Vec3 m_CameraDestination;
         bool m_SceneViewActive     = false;
         bool m_NewProjectPopupOpen = false;
 
@@ -310,7 +309,9 @@ namespace Lumos
 
         std::unordered_map<size_t, const char*> m_ComponentIconMap;
 
-        FileBrowserPanel m_FileBrowserPanel;
+        FileBrowserPanel* m_FileBrowserPanel;
+        PreviewDraw* m_PreviewDraw;
+
         Camera* m_CurrentCamera = nullptr;
         EditorCameraController m_EditorCameraController;
         Maths::Transform m_EditorCameraTransform;
@@ -329,8 +330,5 @@ namespace Lumos
         String8 m_RequestedThumbnailPath;
 
         IniFile m_IniFile;
-        PreviewDraw m_PreviewDraw;
-
-        static Editor* s_Editor;
     };
 }

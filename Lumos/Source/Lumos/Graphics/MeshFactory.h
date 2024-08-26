@@ -1,9 +1,7 @@
 #pragma once
-#include <glm/fwd.hpp>
-
+#include "Maths/Vector3.h"
 namespace Lumos
 {
-
     namespace Graphics
     {
         enum class PrimitiveType : int
@@ -27,12 +25,12 @@ namespace Lumos
 
         Mesh* CreateQuad();
         Mesh* CreateQuad(float x, float y, float width, float height);
-        Mesh* CreateQuad(const glm::vec2& position, const glm::vec2& size);
+        Mesh* CreateQuad(const Vec2& position, const Vec2& size);
         Mesh* CreateCube();
         Mesh* CreatePyramid();
         Mesh* CreateSphere(uint32_t xSegments = 32, uint32_t ySegments = 32);
         Mesh* CreateCapsule(float radius = 0.5f, float midHeight = 2.0f, int radialSegments = 64, int rings = 8);
-        Mesh* CreatePlane(float width, float height, const glm::vec3& normal);
+        Mesh* CreatePlane(float width, float height, const Vec3& normal);
         Mesh* CreateCylinder(float bottomRadius = 0.5f, float topRadius = 0.5f, float height = 1.0f, int radialSegments = 64, int rings = 8);
         Mesh* CreateTerrain();
     }

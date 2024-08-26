@@ -3,13 +3,13 @@
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Scene/Scene.h>
-#include <Lumos/Utilities/AssetManager.h>
+#include <Lumos/Core/Asset/AssetManager.h>
 
 #include "Editor.h"
 
 #include <Lumos/Core/Engine.h>
 #include <Lumos/Core/OS/Window.h>
-#include <Lumos/Graphics/Renderers/RenderPasses.h>
+#include <Lumos/Graphics/Renderers/SceneRenderer.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Utilities/StringUtilities.h>
 #include <imgui/imgui.h>
@@ -141,10 +141,10 @@ namespace Lumos
                     ImGui::TreePop();
                 }
 
-                auto RenderPasses = Application::Get().GetRenderPasses();
-                if(ImGui::TreeNode("RenderPasses"))
+                auto SceneRenderer = Application::Get().GetSceneRenderer();
+                if(ImGui::TreeNode("SceneRenderer"))
                 {
-                    RenderPasses->OnImGui();
+                    SceneRenderer->OnImGui();
                     ImGui::TreePop();
                 }
 
@@ -166,10 +166,11 @@ namespace Lumos
                 ImGui::Text("Frame Time : %5.2f ms", Engine::Get().Statistics().FrameTime);
                 ImGui::Text("Arena Count : %i", GetArenaCount());
                 ImGui::Text("Num Draw Calls  %u", Engine::Get().Statistics().NumDrawCalls);
+                ImGui::Text("Total Triangles  %u", Engine::Get().Statistics().TriangleCount);
                 ImGui::Text("Num Rendered Objects %u", Engine::Get().Statistics().NumRenderedObjects);
                 ImGui::Text("Num Shadow Objects %u", Engine::Get().Statistics().NumShadowObjects);
                 ImGui::Text("Bound Pipelines %u", Engine::Get().Statistics().BoundPipelines);
-                ImGui::Text("Bound RenderPasses %u", Engine::Get().Statistics().BoundRenderPasses);
+                ImGui::Text("Bound SceneRenderer %u", Engine::Get().Statistics().BoundSceneRenderer);
                 if(ImGui::TreeNodeEx("Arenas", 0))
                 {
                     uint64_t totalAllocated = 0;

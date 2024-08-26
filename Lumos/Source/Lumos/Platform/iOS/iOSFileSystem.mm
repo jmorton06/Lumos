@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <fstream>
 
 #import <Foundation/Foundation.h>
 
@@ -64,11 +65,11 @@ namespace Lumos
         {
             return filename;
         }
-        
+
         std::string result;
         std::string appPath = iOSOS::Get()->GetExecutablePath();
         std::string relFilename;// = filename.ToRelativePath(appPath);
-        
+
         if (!forWrite)
         {
             static NSString *bundlePath = [[NSBundle mainBundle] bundlePath];
@@ -83,7 +84,7 @@ namespace Lumos
             result = cstr;
             result.append(relFilename);
         }
-        
+
         return result;
     }
 
@@ -109,7 +110,7 @@ namespace Lumos
         struct stat buffer;
         return (stat (path.c_str(), &buffer) == 0);
     }
-	
+
 	 bool FileSystem::FolderExists(const std::string& path)
     {
         struct stat buffer;

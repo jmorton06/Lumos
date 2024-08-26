@@ -38,8 +38,8 @@ namespace Lumos
         avm = StringUtilities::BytesToString(availableVirtualMemory);
         tvm = StringUtilities::BytesToString(totalVirtualMemory);
 
-        LUMOS_LOG_INFO("Memory Info:");
-        LUMOS_LOG_INFO("\tPhysical Memory : {0} / {1}", apm, tpm);
-        LUMOS_LOG_INFO("\tVirtual Memory : {0} / {1}: ", avm, tvm);
+        LINFO("Memory Info:");
+        LINFO("\tPhysical Memory : %s / %s", apm.c_str(), tpm.c_str());
+        LINFO("\tVirtual Memory : %s / %s: ", avm.c_str(), tvm.c_str());
     }
 }

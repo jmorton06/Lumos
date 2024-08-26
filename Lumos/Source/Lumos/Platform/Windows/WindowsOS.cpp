@@ -5,6 +5,7 @@
 #include "Core/CoreSystem.h"
 #include "Core/OS/MemoryManager.h"
 #include "Core/Application.h"
+#include "Maths/Vector4.h"
 #include <Windows.h>
 
 #ifdef LUMOS_USE_GLFW_WINDOWS
@@ -31,14 +32,14 @@ namespace Lumos
         auto secondsLeft = power.GetPowerSecondsLeft();
         auto state       = power.GetPowerState();
 
-        LUMOS_LOG_INFO("--------------------");
-        LUMOS_LOG_INFO(" System Information ");
-        LUMOS_LOG_INFO("--------------------");
+        LINFO("--------------------");
+        LINFO(" System Information ");
+        LINFO("--------------------");
 
         if(state != PowerState::POWERSTATE_NO_BATTERY)
-            LUMOS_LOG_INFO("Battery Info - Percentage : {0} , Time Left {1}s , State : {2}", percentage, secondsLeft, PowerStateToString(state));
+            LINFO("Battery Info - Percentage : %d , Time Left %ds , State : %s", percentage, secondsLeft, PowerStateToString(state).c_str());
         else
-            LUMOS_LOG_INFO("Power - Outlet");
+            LINFO("Power - Outlet");
 
         auto systemInfo = MemoryManager::Get()->GetSystemInfo();
         systemInfo.Log();
@@ -103,7 +104,7 @@ namespace Lumos
 
 #include <glfw/glfw3native.h>
 
-    void WindowsOS::SetTitleBarColour(const glm::vec4& colour, bool dark)
+    void WindowsOS::SetTitleBarColour(const Vec4& colour, bool dark)
     {
 #if WINVER >= 0x0A00
         auto& app = Lumos::Application::Get();

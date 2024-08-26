@@ -1,13 +1,11 @@
 #pragma once
-
-#include "Graphics/Mesh.h"
-#include "Graphics/RHI/Shader.h"
+#include "Maths/Matrix4.h"
 
 namespace Lumos
 {
-
     namespace Graphics
     {
+        class Mesh;
         class Material;
         class Pipeline;
         class DescriptorSet;
@@ -17,8 +15,8 @@ namespace Lumos
             Mesh* mesh         = nullptr;
             Material* material = nullptr;
             Pipeline* pipeline = nullptr;
-            glm::mat4 transform;
-            glm::mat4 textureMatrix;
+            Mat4 transform;
+            Mat4 textureMatrix;
             bool animated                        = false;
             DescriptorSet* AnimatedDescriptorSet = nullptr;
         };

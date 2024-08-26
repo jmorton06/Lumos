@@ -1,8 +1,9 @@
 #include "Precompiled.h"
 #include "BoundingBox.h"
 #include "BoundingSphere.h"
-
-#include <glm/mat4x4.hpp>
+#include "Rect.h"
+#include "Maths/Matrix3.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
@@ -10,20 +11,20 @@ namespace Lumos
     {
         BoundingBox::BoundingBox()
         {
-            m_Min = glm::vec3(FLT_MAX);
-            m_Max = glm::vec3(-FLT_MAX);
+            m_Min = Vec3(FLT_MAX);
+            m_Max = Vec3(-FLT_MAX);
         }
 
-        BoundingBox::BoundingBox(const glm::vec3& min, const glm::vec3& max)
+        BoundingBox::BoundingBox(const Vec3& min, const Vec3& max)
         {
             m_Min = min;
             m_Max = max;
         }
 
-        BoundingBox::BoundingBox(const Rect& rect, const glm::vec3& center)
+        BoundingBox::BoundingBox(const Rect& rect, const Vec3& center)
         {
-            m_Min = center + glm::vec3(rect.GetPosition(), 0.0f);
-            m_Max = center + glm::vec3(rect.GetPosition().x + rect.GetSize().x, rect.GetPosition().y + rect.GetSize().y, 0.0f);
+            m_Min = center + Vec3(rect.GetPosition(), 0.0f);
+            m_Max = center + Vec3(rect.GetPosition().x + rect.GetSize().x, rect.GetPosition().y + rect.GetSize().y, 0.0f);
         }
 
         BoundingBox::BoundingBox(const BoundingBox& other)
@@ -32,7 +33,7 @@ namespace Lumos
             m_Max = other.m_Max;
         }
 
-        BoundingBox::BoundingBox(const glm::vec3* points, uint32_t numPoints)
+        BoundingBox::BoundingBox(const Vec3* points, uint32_t numPoints)
         {
             SetFromPoints(points, numPoints);
         }
@@ -49,8 +50,8 @@ namespace Lumos
 
         void BoundingBox::Clear()
         {
-            m_Min = glm::vec3(FLT_MAX);
-            m_Max = glm::vec3(-FLT_MAX);
+            m_Min = Vec3(FLT_MAX);
+            m_Max = Vec3(-FLT_MAX);
         }
 
         BoundingBox& BoundingBox::operator=(const BoundingBox& other)
@@ -69,73 +70,73 @@ namespace Lumos
             return *this;
         }
 
-        void BoundingBox::Set(const glm::vec3& min, const glm::vec3& max)
+        void BoundingBox::Set(const Vec3& min, const Vec3& max)
         {
             m_Min = min;
             m_Max = max;
         }
 
-        void BoundingBox::Set(const glm::vec3* points, uint32_t numPoints)
+        void BoundingBox::Set(const Vec3* points, uint32_t numPoints)
         {
-            m_Min = glm::vec3(FLT_MAX);
-            m_Max = glm::vec3(-FLT_MAX);
+            m_Min = Vec3(FLT_MAX);
+            m_Max = Vec3(-FLT_MAX);
 
             for(uint32_t i = 0; i < numPoints; i++)
             {
-                m_Min = glm::min(m_Min, points[i]);
-                m_Max = glm::max(m_Max, points[i]);
+                m_Min = Maths::Min(m_Min, points[i]);
+                m_Max = Maths::Max(m_Max, points[i]);
             }
         }
 
-        void BoundingBox::SetFromPoints(const glm::vec3* points, uint32_t numPoints)
+        void BoundingBox::SetFromPoints(const Vec3* points, uint32_t numPoints)
         {
-            m_Min = glm::vec3(FLT_MAX);
-            m_Max = glm::vec3(-FLT_MAX);
+            m_Min = Vec3(FLT_MAX);
+            m_Max = Vec3(-FLT_MAX);
 
             for(uint32_t i = 0; i < numPoints; i++)
             {
-                m_Min = glm::min(m_Min, points[i]);
-                m_Max = glm::max(m_Max, points[i]);
+                m_Min = Maths::Min(m_Min, points[i]);
+                m_Max = Maths::Max(m_Max, points[i]);
             }
         }
 
-        void BoundingBox::SetFromPoints(const glm::vec3* points, uint32_t numPoints, const glm::mat4& transform)
+        void BoundingBox::SetFromPoints(const Vec3* points, uint32_t numPoints, const Mat4& transform)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            glm::vec3 min(FLT_MAX, FLT_MAX, FLT_MAX);
-            glm::vec3 max(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+            Vec3 min(FLT_MAX, FLT_MAX, FLT_MAX);
+            Vec3 max(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 
             for(uint32_t i = 0; i < numPoints; i++)
             {
-                glm::vec3 transformed = transform * glm::vec4(points[i], 1.0f);
+                Vec3 transformed = (transform * Vec4(points[i], 1.0f)).ToVector3();
 
-                min.x = glm::min(min.x, transformed.x);
-                min.y = glm::min(min.y, transformed.y);
-                min.z = glm::min(min.z, transformed.z);
+                min.x = Maths::Min(min.x, transformed.x);
+                min.y = Maths::Min(min.y, transformed.y);
+                min.z = Maths::Min(min.z, transformed.z);
 
-                max.x = glm::max(max.x, transformed.x);
-                max.y = glm::max(max.y, transformed.y);
-                max.z = glm::max(max.z, transformed.z);
+                max.x = Maths::Max(max.x, transformed.x);
+                max.y = Maths::Max(max.y, transformed.y);
+                max.z = Maths::Max(max.z, transformed.z);
             }
 
             m_Min = min;
             m_Max = max;
         }
 
-        void BoundingBox::SetFromTransformedAABB(const BoundingBox& aabb, const glm::mat4& transform)
+        void BoundingBox::SetFromTransformedAABB(const BoundingBox& aabb, const Mat4& transform)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            glm::vec3 min = aabb.m_Min;
-            glm::vec3 max = aabb.m_Max;
+            Vec3 min = aabb.m_Min;
+            Vec3 max = aabb.m_Max;
 
-            glm::vec3 minTransformed = transform * glm::vec4(min, 1.0f);
-            glm::vec3 maxTransformed = transform * glm::vec4(max, 1.0f);
+            Vec3 minTransformed = transform * Vec4(min, 1.0f);
+            Vec3 maxTransformed = transform * Vec4(max, 1.0f);
 
-            m_Min = glm::min(minTransformed, maxTransformed);
-            m_Max = glm::max(minTransformed, maxTransformed);
+            m_Min = Maths::Min(minTransformed, maxTransformed);
+            m_Max = Maths::Max(minTransformed, maxTransformed);
         }
 
-        void BoundingBox::Translate(const glm::vec3& translation)
+        void BoundingBox::Translate(const Vec3& translation)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             m_Min += translation;
@@ -145,10 +146,10 @@ namespace Lumos
         void BoundingBox::Translate(float x, float y, float z)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            Translate(glm::vec3(x, y, z));
+            Translate(Vec3(x, y, z));
         }
 
-        void BoundingBox::Scale(const glm::vec3& scale)
+        void BoundingBox::Scale(const Vec3& scale)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             m_Min *= scale;
@@ -167,33 +168,33 @@ namespace Lumos
             m_Max.z *= z;
         }
 
-        void BoundingBox::Rotate(const glm::mat3& rotation)
+        void BoundingBox::Rotate(const Mat3& rotation)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            glm::vec3 center  = Center();
-            glm::vec3 extents = GetExtents();
+            Vec3 center  = Center();
+            Vec3 extents = GetExtents();
 
-            glm::vec3 rotatedExtents = glm::vec3(rotation * glm::vec4(extents, 1.0f));
+            Vec3 rotatedExtents = rotation * extents;
 
             m_Min = center - rotatedExtents;
             m_Max = center + rotatedExtents;
         }
 
-        void BoundingBox::Transform(const glm::mat4& transform)
+        void BoundingBox::Transform(const Mat4& transform)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            glm::vec3 newCenter = transform * glm::vec4(Center(), 1.0f);
-            glm::vec3 oldEdge   = Size() * 0.5f;
-            glm::vec3 newEdge   = glm::vec3(
-                glm::abs(transform[0][0]) * oldEdge.x + glm::abs(transform[1][0]) * oldEdge.y + glm::abs(transform[2][0]) * oldEdge.z,
-                glm::abs(transform[0][1]) * oldEdge.x + glm::abs(transform[1][1]) * oldEdge.y + glm::abs(transform[2][1]) * oldEdge.z,
-                glm::abs(transform[0][2]) * oldEdge.x + glm::abs(transform[1][2]) * oldEdge.y + glm::abs(transform[2][2]) * oldEdge.z);
+            Vec3 newCenter = transform * Vec4(Center(), 1.0f);
+            Vec3 oldEdge   = Size() * 0.5f;
+            Vec3 newEdge   = Vec3(
+                Maths::Abs(transform.Get(0, 0)) * oldEdge.x + Maths::Abs(transform.Get(0, 1)) * oldEdge.y + Maths::Abs(transform.Get(0, 2)) * oldEdge.z,
+                Maths::Abs(transform.Get(1, 0)) * oldEdge.x + Maths::Abs(transform.Get(1, 1)) * oldEdge.y + Maths::Abs(transform.Get(1, 2)) * oldEdge.z,
+                Maths::Abs(transform.Get(2, 0)) * oldEdge.x + Maths::Abs(transform.Get(2, 1)) * oldEdge.y + Maths::Abs(transform.Get(2, 2)) * oldEdge.z);
 
             m_Min = newCenter - newEdge;
             m_Max = newCenter + newEdge;
         }
 
-        BoundingBox BoundingBox::Transformed(const glm::mat4& transform) const
+        BoundingBox BoundingBox::Transformed(const Mat4& transform) const
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             BoundingBox box(*this);
@@ -218,7 +219,7 @@ namespace Lumos
                 m_Max.z = other.m_Max.z;
         }
 
-        void BoundingBox::Merge(const glm::vec3& point)
+        void BoundingBox::Merge(const Vec3& point)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             if(point.x < m_Min.x)
@@ -235,47 +236,47 @@ namespace Lumos
                 m_Max.z = point.z;
         }
 
-        void BoundingBox::Merge(const BoundingBox& other, const glm::mat4& transform)
+        void BoundingBox::Merge(const BoundingBox& other, const Mat4& transform)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             Merge(other.Transformed(transform));
         }
-        void BoundingBox::Merge(const glm::vec3& point, const glm::mat4& transform)
+        void BoundingBox::Merge(const Vec3& point, const Mat4& transform)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            glm::vec3 transformed = transform * glm::vec4(point, 1.0f);
+            Vec3 transformed = transform * Vec4(point, 1.0f);
             Merge(transformed);
         }
 
-        void BoundingBox::Merge(const BoundingBox& other, const glm::mat3& transform)
+        void BoundingBox::Merge(const BoundingBox& other, const Mat3& transform)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            Merge(other.Transformed(glm::mat4(transform)));
+            Merge(other.Transformed(Mat4(transform)));
         }
-        void BoundingBox::Merge(const glm::vec3& point, const glm::mat3& transform)
+        void BoundingBox::Merge(const Vec3& point, const Mat3& transform)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            glm::vec3 transformed = transform * glm::vec4(point, 1.0f);
+            Vec3 transformed = transform * point;
             Merge(transformed);
         }
 
         void BoundingBox::ExtendToCube()
         {
             // Calculate the size of the current bounding box
-            glm::vec3 size = Size();
+            Vec3 size = Size();
 
             // Find the maximum dimension among x, y, and z
-            float maxDimension = glm::max(glm::max(size.x, size.y), size.z);
+            float maxDimension = Maths::Max(Maths::Max(size.x, size.y), size.z);
 
             // Calculate the amount by which each dimension needs to be extended
-            glm::vec3 extendAmount = glm::vec3(maxDimension - size.x, maxDimension - size.y, maxDimension - size.z) * 0.5f;
+            Vec3 extendAmount = Vec3(maxDimension - size.x, maxDimension - size.y, maxDimension - size.z) * 0.5f;
 
             // Update the bounding box to make it a cube
             m_Min -= extendAmount;
             m_Max += extendAmount;
         }
 
-        Intersection BoundingBox::IsInside(const glm::vec3& point) const
+        Intersection BoundingBox::IsInside(const Vec3& point) const
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             if(point.x < m_Min.x || point.x > m_Max.x || point.y < m_Min.y || point.y > m_Max.y || point.z < m_Min.z || point.z > m_Max.z)
@@ -300,7 +301,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION_LOW();
             float distSquared = 0;
             float temp;
-            const glm::vec3& center = sphere.GetCenter();
+            const Vec3& center = sphere.GetCenter();
 
             if(center.x < m_Min.x)
             {
@@ -351,22 +352,22 @@ namespace Lumos
                 return true;
         }
 
-        glm::vec3 BoundingBox::Size() const
+        Vec3 BoundingBox::Size() const
         {
             return m_Max - m_Min;
         }
 
-        glm::vec3 BoundingBox::Center() const
+        Vec3 BoundingBox::Center() const
         {
             return (m_Max + m_Min) * 0.5f;
         }
 
-        glm::vec3 BoundingBox::Min() const
+        Vec3 BoundingBox::Min() const
         {
             return m_Min;
         }
 
-        glm::vec3 BoundingBox::Max() const
+        Vec3 BoundingBox::Max() const
         {
             return m_Max;
         }

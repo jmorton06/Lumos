@@ -14,7 +14,7 @@ namespace Lumos
 
         struct MaterialProperties
         {
-            glm::vec4 albedoColour   = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            Vec4 albedoColour        = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
             float roughness          = 0.7f;
             float metallic           = 0.7f;
             float reflectance        = 0.3f;

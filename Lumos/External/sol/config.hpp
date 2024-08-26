@@ -48,6 +48,14 @@ the build system, or the command line options of your compiler.
 
 */
 
+
+#define SOL_IN_DEBUG_DETECTED                0
+#define SOL_SAFE_USERTYPE                    0
+#define SOL_SAFE_REFERENCES                  0
+#define SOL_SAFE_FUNCTION_CALLS              0
+#define SOL_USING_CXX_LUA                    0
+#define SOL_EXCEPTIONS_SAFE_PROPAGATION      0
+
 // end of sol/config.hpp
 
 #endif // SOL_SINGLE_CONFIG_HPP

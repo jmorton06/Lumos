@@ -1,11 +1,8 @@
 #pragma once
 
 #include "CameraController.h"
-
-#include "Maths/Maths.h"
 #include "Maths/Ray.h"
 #include "Maths/Frustum.h"
-
 #include "Scene/Serialisation/Serialisation.h"
 
 namespace Lumos
@@ -15,7 +12,7 @@ namespace Lumos
     public:
         Camera();
         Camera(float FOV, float Near, float Far, float aspect);
-        Camera(float pitch, float yaw, const glm::vec3& position, float FOV, float Near, float Far, float aspect);
+        Camera(float pitch, float yaw, const Vec3& position, float FOV, float Near, float Far, float aspect);
         Camera(float aspectRatio, float scale);
         Camera(float aspectRatio, float near, float far);
         ~Camera() = default;
@@ -49,7 +46,7 @@ namespace Lumos
             m_FrustumDirty    = true;
         };
 
-        const glm::mat4& GetProjectionMatrix();
+        const Mat4& GetProjectionMatrix();
 
         float GetFar() const
         {
@@ -98,9 +95,9 @@ namespace Lumos
             m_FrustumDirty    = true;
         }
 
-        Maths::Frustum& GetFrustum(const glm::mat4& viewMatrix);
+        Maths::Frustum& GetFrustum(const Mat4& viewMatrix);
 
-        Maths::Ray GetScreenRay(float x, float y, const glm::mat4& viewMatrix, bool flipY) const;
+        Maths::Ray GetScreenRay(float x, float y, const Mat4& viewMatrix, bool flipY) const;
 
         template <typename Archive>
         void save(Archive& archive) const
@@ -150,9 +147,9 @@ namespace Lumos
         float m_Scale                = 1.0f;
         float m_Zoom                 = 1.0f;
 
-        glm::vec2 m_ProjectionOffset = glm::vec2(0.0f, 0.0f);
+        Vec2 m_ProjectionOffset = Vec2(0.0f, 0.0f);
 
-        glm::mat4 m_ProjMatrix;
+        Mat4 m_ProjMatrix;
 
         Maths::Frustum m_Frustum;
         bool m_FrustumDirty     = true;

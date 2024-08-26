@@ -1,6 +1,5 @@
 #ifdef LUMOS_RENDER_API_VULKAN
 
-#import <Cocoa/Cocoa.h>
 #include <QuartzCore/CAMetalLayer.h>
 
 #include "Platform/Vulkan/VKSwapChain.h"
@@ -14,18 +13,24 @@
 
 #include <MoltenVK/vk_mvk_moltenvk.h>
 
+//Copied from newer versions of mvk
+#define MVK_STRINGIFY_IMPL_COPY(val) #val
+#define MVK_STRINGIFY_COPY(val)       MVK_STRINGIFY_IMPL_COPY(val)
+#define MVK_VERSION_STRING_COPY       (MVK_STRINGIFY_COPY(MVK_VERSION_MAJOR) "." MVK_STRINGIFY_COPY(MVK_VERSION_MINOR) "." MVK_STRINGIFY_COPY(MVK_VERSION_PATCH))
+
+
 extern "C" void* GetCAMetalLayer(void* handle)
 {
     NSWindow* window = (NSWindow*)handle;
     NSView* view = window.contentView;
-    
+
     if (![view.layer isKindOfClass:[CAMetalLayer class]])
     {
         [view setLayer:[CAMetalLayer layer]];
         [view setWantsLayer:YES];
         [view.layer setContentsScale:[window backingScaleFactor]];
     }
-    
+
     return view.layer;
 }
 
@@ -35,7 +40,7 @@ namespace Lumos
 	{
 		VkSurfaceKHR surface;
 #if defined(VK_USE_PLATFORM_METAL_EXT)
-		
+
         VkMetalSurfaceCreateInfoEXT surfaceInfo;
         surfaceInfo.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
         surfaceInfo.pNext = NULL;
@@ -50,13 +55,13 @@ namespace Lumos
         surfaceInfo.pView = GetCAMetalLayer((void*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(window->GetHandle())));
         vkCreateMacOSSurfaceMVK(vkInstance, &surfaceInfo, nullptr, &surface);
 #endif
-		
+
 		auto libMoltenVK = dlopen("/usr/local/lib/libMoltenVK.dylib", RTLD_NOW | RTLD_LOCAL);
 		auto getMoltenVKConfigurationMVK = (PFN_vkGetMoltenVKConfigurationMVK)
 			dlsym(libMoltenVK, "vkGetMoltenVKConfigurationMVK");
 		auto setMoltenVKConfigurationMVK = (PFN_vkSetMoltenVKConfigurationMVK)
 			dlsym(libMoltenVK, "vkSetMoltenVKConfigurationMVK");
-		
+
 		MVKConfiguration mvkConfig;
         size_t pConfigurationSize = sizeof(MVKConfiguration);
         getMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
@@ -65,17 +70,18 @@ namespace Lumos
 		#endif
 
 		//mvkConfig.traceVulkanCalls = MVK_CONFIG_TRACE_VULKAN_CALLS_DURATION;
-		mvkConfig.performanceTracking = true;
-        //mvkConfig.synchronousQueueSubmits = false;
+		mvkConfig.performanceTracking = false;
+        mvkConfig.synchronousQueueSubmits = false;
         //mvkConfig.presentWithCommandBuffer = false;
         //mvkConfig.prefillMetalCommandBuffers = true;
 
 		//mvkConfig.useMetalArgumentBuffers = MVKUseMetalArgumentBuffers::MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS_ALWAYS;
-        //mvkConfig.resumeLostDevice = true;
+        mvkConfig.resumeLostDevice = true;
 
         setMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
-		
-        
+#ifdef MVK_VERSION_STRING_COPY
+        LINFO("MVK Version %s", MVK_VERSION_STRING_COPY);
+#endif
 		return surface;
 	}
 }

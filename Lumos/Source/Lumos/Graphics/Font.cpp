@@ -6,6 +6,8 @@
 #include "RHI/Texture.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/Application.h"
+#include "Maths/MathsUtilities.h"
+#include "Maths/Vector3.h"
 
 #if __has_include(<filesystem>)
 #include <filesystem>
@@ -15,16 +17,23 @@
 
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoRegular.inl>
 #include <stb/deprecated/stb.h>
-#include <spdlog/fmt/bundled/format.h>
+#include <fstream>
 
 #define FONT_DEBUG_LOG 0
 #if FONT_DEBUG_LOG
-#define FONT_LOG(...) LUMOS_LOG_INFO("Font", __VA_ARGS__)
+#define FONT_LOG(...) LINFO("Font", __VA_ARGS__)
 #else
 #define FONT_LOG(...) ((void)0)
 #endif
 
 using namespace msdf_atlas;
+
+#define USE_FREETYPE
+#ifdef USE_FREETYPE
+
+#else
+
+#endif
 
 namespace Lumos
 {
@@ -85,8 +94,12 @@ namespace Lumos
         static bool TryReadFontAtlasFromCache(const std::string& fontName, float fontSize, AtlasHeader& header, void*& pixels, Buffer& storageBuffer)
         {
             LUMOS_PROFILE_FUNCTION();
-            std::string filename           = fmt::format("{0}-{1}.lfa", fontName, fontSize);
-            std::filesystem::path filepath = GetCacheDirectory() / filename;
+
+            Lumos::ArenaTemp scratch = Lumos::ScratchBegin(nullptr, 0);
+            Lumos::String8 filename  = Lumos::PushStr8F(scratch.arena, "%s-%.2f.lfa", fontName.c_str(), fontSize);
+
+            std::filesystem::path filepath = GetCacheDirectory() / (const char*)filename.str;
+            Lumos::ScratchEnd(scratch);
 
             if(std::filesystem::exists(filepath))
             {
@@ -107,14 +120,17 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             CreateCacheDirectoryIfNeeded();
 
-            std::string filename           = fmt::format("{0}-{1}.lfa", fontName, fontSize);
-            std::filesystem::path filepath = GetCacheDirectory() / filename;
+            Lumos::ArenaTemp scratch = Lumos::ScratchBegin(nullptr, 0);
+            Lumos::String8 filename  = Lumos::PushStr8F(scratch.arena, "%s-%.2f.lfa", fontName.c_str(), fontSize);
+
+            std::filesystem::path filepath = GetCacheDirectory() / (const char*)filename.str;
+            Lumos::ScratchEnd(scratch);
 
             std::ofstream stream(filepath, std::ios::binary | std::ios::trunc);
             if(!stream)
             {
                 stream.close();
-                LUMOS_LOG_ERROR("Failed to cache font atlas to {0}", filepath.string());
+                LERROR("Failed to cache font atlas to %s", filepath.string().c_str());
                 return;
             }
 
@@ -126,13 +142,15 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             TextureDesc param;
-            param.minFilter       = TextureFilter::LINEAR;
-            param.magFilter       = TextureFilter::LINEAR;
-            param.format          = RHIFormat::R32G32B32A32_Float;
-            param.srgb            = false;
-            param.wrap            = TextureWrap::CLAMP;
-            param.generateMipMaps = false;
-            param.flags           = TextureFlags::Texture_Sampled;
+            param.minFilter            = TextureFilter::LINEAR;
+            param.magFilter            = TextureFilter::LINEAR;
+            param.format               = RHIFormat::R32G32B32A32_Float;
+            param.srgb                 = false;
+            param.wrap                 = TextureWrap::CLAMP;
+            param.generateMipMaps      = false;
+            param.flags                = TextureFlags::Texture_Sampled;
+            param.anisotropicFiltering = false;
+
             return SharedPtr<Texture2D>(Texture2D::CreateFromSource(header.Width, header.Height, pixels, param));
         }
 
@@ -194,7 +212,6 @@ namespace Lumos
             fontInput.fontScale           = -1;
 
             Configuration config                             = {};
-            config.imageType                                 = ImageType::MSDF;
             config.imageFormat                               = msdf_atlas::ImageFormat::BINARY_FLOAT;
             config.yDirection                                = YDirection::BOTTOM_UP;
             config.edgeColoring                              = msdfgen::edgeColoringInkTrap;
@@ -209,7 +226,7 @@ namespace Lumos
             int fixedWidth                                             = -1;
             int fixedHeight                                            = -1;
             double minEmSize                                           = 0;
-            double rangeValue                                          = 2.0;
+            double rangeValue                                          = 8.0;
             TightAtlasPacker::DimensionsConstraint atlasSizeConstraint = TightAtlasPacker::DimensionsConstraint::MULTIPLE_OF_FOUR_SQUARE;
 
             // Load fonts
@@ -279,13 +296,13 @@ namespace Lumos
                 if(!FileSystem::Get().ResolvePhysicalPath(m_FilePath, outPath))
                     return;
 
-                FONT_LOG("Font: Loading Font {0}", m_FilePath);
+                FONT_LOG("Font: Loading Font %s", m_FilePath);
                 fontInput.fontFilename = outPath.c_str();
                 m_FilePath             = outPath;
 
                 if(!font.load(fontInput.fontFilename))
                 {
-                    FONT_LOG("Font: Failed to load font! - {0}", fontInput.fontFilename);
+                    FONT_LOG("Font: Failed to load font! - %s", fontInput.fontFilename);
                     return;
                 }
             }
@@ -338,12 +355,12 @@ namespace Lumos
                 break;
             }
 
-            LUMOS_ASSERT(glyphsLoaded >= 0);
-            FONT_LOG("Font: Loaded geometry of {0} out of {1} glyphs", glyphsLoaded, (int)charset.size());
+            ASSERT(glyphsLoaded >= 0);
+            FONT_LOG("Font: Loaded geometry of %i out of %i glyphs", glyphsLoaded, (int)charset.size());
             // List missing glyphs
             if(glyphsLoaded < (int)charset.size())
             {
-                FONT_LOG("Font: Missing {0} {1}", (int)charset.size() - glyphsLoaded, fontInput.glyphIdentifierType == GlyphIdentifierType::UNICODE_CODEPOINT ? "codepoints" : "glyphs");
+                FONT_LOG("Font: Missing %i %i", (int)charset.size() - glyphsLoaded, fontInput.glyphIdentifierType == GlyphIdentifierType::UNICODE_CODEPOINT ? "codepoints" : "glyphs");
             }
 
             if(fontInput.fontName)
@@ -368,16 +385,16 @@ namespace Lumos
             atlasPacker.setMiterLimit(config.miterLimit);
             if(int remaining = atlasPacker.pack(m_MSDFData->Glyphs.data(), int(m_MSDFData->Glyphs.size())))
             {
-                LUMOS_LOG_ERROR("Font: Could not fit {0} out of {1} glyphs into the atlas.", remaining, (int)m_MSDFData->Glyphs.size());
+                LERROR("Font: Could not fit %i out of %i glyphs into the atlas.", remaining, (int)m_MSDFData->Glyphs.size());
             }
             atlasPacker.getDimensions(config.width, config.height);
-            LUMOS_ASSERT(config.width > 0 && config.height > 0);
+            ASSERT(config.width > 0 && config.height > 0);
             config.emSize  = atlasPacker.getScale();
             config.pxRange = atlasPacker.getPixelRange();
             if(!fixedScale)
-                FONT_LOG("Font: Glyph size: {0} pixels/EM", config.emSize);
+                FONT_LOG("Font: Glyph size: %i pixels/EM", config.emSize);
             if(!fixedDimensions)
-                FONT_LOG("Font: Atlas dimensions: {0} x {1}", config.width, config.height);
+                FONT_LOG("Font: Atlas dimensions: %i x %i", config.width, config.height);
 
             // Edge coloring
             if(config.imageType == ImageType::MSDF || config.imageType == ImageType::MTSDF)
@@ -409,12 +426,12 @@ namespace Lumos
             Buffer storageBuffer;
             AtlasHeader header;
             void* pixels;
-            if(TryReadFontAtlasFromCache(fontName, (float)config.emSize, header, pixels, storageBuffer))
+             if(TryReadFontAtlasFromCache(fontName, (float)config.emSize, header, pixels, storageBuffer))
             {
-                m_TextureAtlas = CreateCachedAtlas(header, pixels);
-                storageBuffer.Release();
-            }
-            else
+                 m_TextureAtlas = CreateCachedAtlas(header, pixels);
+                 storageBuffer.Release();
+             }
+             else
             {
                 bool floatingPointFormat = true;
                 SharedPtr<Texture2D> texture;
@@ -463,6 +480,120 @@ namespace Lumos
         SharedPtr<Font> Font::GetDefaultFont()
         {
             return s_DefaultFont;
+        }
+
+        Vec2 Font::CalculateTextSize(const std::string& text, float fontSize)
+        {
+            return CalculateTextSize(Str8StdS(text), fontSize);
+        }
+        Vec2 Font::CalculateTextSize(const String8& text, float fontSize)
+        {
+            float maxWidth     = 100.0f; // widget->size.x;// textComp.MaxWidth;
+            auto colour        = Vec4(1.0f);
+            float lineSpacing  = 0.0f;
+            float kerning      = 0.0f;
+            auto outlineColour = Vec4(1.0f);
+            auto outlineWidth  = 0.0f;
+
+            float lineHeightOffset = 0.0f;
+            float kerningOffset    = 0.0f;
+            Mat4 transform         = Mat4::Scale(Vec3(fontSize, fontSize, fontSize));
+
+            SharedPtr<Texture2D> fontAtlas = GetFontAtlas();
+            if(!fontAtlas)
+                ASSERT(false);
+
+            auto& fontGeometry  = GetMSDFData()->FontGeometry;
+            const auto& metrics = fontGeometry.getMetrics();
+
+            Vec2 size = Vec2(0.0f);
+
+            {
+                double x       = 0.0;
+                double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
+                double y       = 0.0;
+                for(int i = 0; i < text.size; i++)
+                {
+                    char32_t character = text.str[i];
+
+                    if(character == '\r')
+                        continue;
+
+                    if(character == '\n')
+                    {
+                        x = 0;
+                        y -= fsScale * metrics.lineHeight + lineHeightOffset;
+                        continue;
+                    }
+
+                    if(character == '\t')
+                    {
+                        auto glyph     = fontGeometry.getGlyph('a');
+                        double advance = glyph->getAdvance();
+                        x += 4 * fsScale * advance + kerningOffset;
+                        continue;
+                    }
+
+                    auto glyph = fontGeometry.getGlyph(character);
+                    if(!glyph)
+                        glyph = fontGeometry.getGlyph('?');
+                    if(!glyph)
+                        continue;
+
+                    double l, b, r, t;
+                    glyph->getQuadAtlasBounds(l, b, r, t);
+
+                    double pl, pb, pr, pt;
+                    glyph->getQuadPlaneBounds(pl, pb, pr, pt);
+
+                    pl *= fsScale, pb *= fsScale, pr *= fsScale, pt *= fsScale;
+                    pl += x, pb += y, pr += x, pt += y;
+
+                    double texelWidth  = 1. / fontAtlas->GetWidth();
+                    double texelHeight = 1. / fontAtlas->GetHeight();
+                    l *= texelWidth, b *= texelHeight, r *= texelWidth, t *= texelHeight;
+
+                    {
+                        /*  LUMOS_PROFILE_SCOPE("Set text buffer data");
+                          TextVertexBufferPtr->vertex = transform * Vec4(pl, pb, 0.0f, 1.0f);
+                          TextVertexBufferPtr->colour = colour;
+                          TextVertexBufferPtr->uv = { l, b };
+                          TextVertexBufferPtr->tid = Vec2(textureIndex, outlineWidth);
+                          TextVertexBufferPtr->outlineColour = outlineColour;
+                          TextVertexBufferPtr++;
+
+                          TextVertexBufferPtr->vertex = transform * Vec4(pr, pb, 0.0f, 1.0f);
+                          TextVertexBufferPtr->colour = colour;
+                          TextVertexBufferPtr->uv = { r, b };
+                          TextVertexBufferPtr->tid = Vec2(textureIndex, outlineWidth);
+                          TextVertexBufferPtr->outlineColour = outlineColour;
+                          TextVertexBufferPtr++;
+
+                          TextVertexBufferPtr->vertex = transform * Vec4(pr, pt, 0.0f, 1.0f);
+                          TextVertexBufferPtr->colour = colour;
+                          TextVertexBufferPtr->uv = { r, t };
+                          TextVertexBufferPtr->tid = Vec2(textureIndex, outlineWidth);
+                          TextVertexBufferPtr->outlineColour = outlineColour;
+                          TextVertexBufferPtr++;
+
+                          TextVertexBufferPtr->vertex = transform * Vec4(pl, pt, 0.0f, 1.0f);
+                          TextVertexBufferPtr->colour = colour;
+                          TextVertexBufferPtr->uv = { l, t };
+                          TextVertexBufferPtr->tid = Vec2(textureIndex, outlineWidth);
+                          TextVertexBufferPtr->outlineColour = outlineColour;
+                          TextVertexBufferPtr++;*/
+                        Vec2 currentSize = (transform * Vec4((float)pr, (float)pt, 0.0f, 1.0f)).ToVector2();
+                        size.x           = Maths::Max(size.x, currentSize.x);
+                        size.y           = Maths::Max(size.y, currentSize.y);
+                    }
+
+                    double advance = glyph->getAdvance();
+                    fontGeometry.getAdvance(advance, character, text.str[i + 1]);
+                    x += fsScale * advance + kerningOffset;
+                }
+            }
+
+            return size;
         }
     }
 }

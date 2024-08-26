@@ -12,7 +12,7 @@ namespace Lumos
 
     ThirdPersonCameraController::ThirdPersonCameraController()
     {
-        m_Velocity              = glm::vec3(0.0f);
+        m_Velocity              = Vec3(0.0f);
         m_MouseSensitivity      = 0.00001f;
         m_ZoomDampeningFactor   = 0.00001f;
         m_DampeningFactor       = 0.00001f;
@@ -31,14 +31,14 @@ namespace Lumos
             mouseHeld = true;
             Application::Get().GetWindow()->HideMouse(true);
             Input::Get().SetMouseMode(MouseMode::Captured);
-            m_StoredCursorPos   = glm::vec2(xpos, ypos);
+            m_StoredCursorPos   = Vec2(xpos, ypos);
             m_PreviousCurserPos = m_StoredCursorPos;
         }
 
         if(Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight))
         {
             m_MouseSensitivity = 0.0002f;
-            m_RotateVelocity   = glm::vec2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) * m_MouseSensitivity * 10.0f;
+            m_RotateVelocity   = Vec2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) * m_MouseSensitivity * 10.0f;
         }
         else
         {
@@ -51,15 +51,15 @@ namespace Lumos
             }
         }
 
-        glm::quat rotation  = transform.GetLocalOrientation();
-        glm::quat rotationX = glm::angleAxis(-m_RotateVelocity.y, glm::vec3(1.0f, 0.0f, 0.0f));
-        glm::quat rotationY = glm::angleAxis(-m_RotateVelocity.x, glm::vec3(0.0f, 1.0f, 0.0f));
+        Quat rotation  = transform.GetLocalOrientation();
+        Quat rotationX = Quat::Rotation(-m_RotateVelocity.y, Vec3(1.0f, 0.0f, 0.0f));
+        Quat rotationY = Quat::Rotation(-m_RotateVelocity.x, Vec3(0.0f, 1.0f, 0.0f));
 
         rotation = rotationY * rotation;
         rotation = rotation * rotationX;
         transform.SetLocalOrientation(rotation);
 
-        m_PreviousCurserPos = glm::vec2(xpos, ypos);
+        m_PreviousCurserPos = Vec2(xpos, ypos);
         m_RotateVelocity    = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);
 
         UpdateScroll(transform, Input::Get().GetScrollOffset(), dt);
@@ -68,7 +68,7 @@ namespace Lumos
     void ThirdPersonCameraController::HandleKeyboard(Maths::Transform& transform, float dt)
     {
         // Temp
-        return;
+        #if 0
         float multiplier = 1000.0f;
 
         if(Input::Get().GetKeyHeld(InputCode::Key::LeftShift))
@@ -111,12 +111,13 @@ namespace Lumos
             }
         }
 
-        if(glm::length(m_Velocity) > Maths::M_EPSILON)
+        if(Maths::Length(m_Velocity) > Maths::M_EPSILON)
         {
-            glm::vec3 position = transform.GetLocalPosition();
+            Vec3 position = transform.GetLocalPosition();
             position += m_Velocity * dt;
             transform.SetLocalPosition(position);
             m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
         }
+        #endif
     }
 }

@@ -1,9 +1,6 @@
 #pragma once
-#include "Maths/Transform.h"
 #include "Scene/Scene.h"
-#include "Scene/SceneGraph.h"
 #include "Core/Profiler.h"
-#include "Utilities/StringUtilities.h"
 #include "Core/UUID.h"
 
 DISABLE_WARNING_PUSH
@@ -13,6 +10,11 @@ DISABLE_WARNING_POP
 
 namespace Lumos
 {
+    namespace Maths
+    {
+        class Transform;
+    }
+    
     struct IDComponent
     {
         UUID ID;
@@ -55,7 +57,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION_LOW();
 #ifdef LUMOS_DEBUG
             if(HasComponent<T>())
-                LUMOS_LOG_WARN("Attempting to add Component twice");
+                LWARN("Attempting to add Component twice");
 #endif
             return m_Scene->GetRegistry().emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
         }
@@ -110,147 +112,20 @@ namespace Lumos
                 RemoveComponent<T>();
         }
 
-        bool Active()
-        {
-            LUMOS_PROFILE_FUNCTION_LOW();
-            bool active = true;
-            if(HasComponent<ActiveComponent>())
-                active = m_Scene->GetRegistry().get<ActiveComponent>(m_EntityHandle).active;
-
-            auto parent = GetParent();
-            if(parent)
-                active &= parent.Active();
-            return active;
-        }
-
-        void SetActive(bool isActive)
-        {
-            LUMOS_PROFILE_FUNCTION_LOW();
-            GetOrAddComponent<ActiveComponent>().active = isActive;
-        }
-
-        Maths::Transform& GetTransform()
-        {
-            LUMOS_PROFILE_FUNCTION_LOW();
-            return m_Scene->GetRegistry().get<Maths::Transform>(m_EntityHandle);
-        }
-
-        const Maths::Transform& GetTransform() const
-        {
-            LUMOS_PROFILE_FUNCTION_LOW();
-            return m_Scene->GetRegistry().get<Maths::Transform>(m_EntityHandle);
-        }
-
-        uint64_t GetID()
-        {
-            LUMOS_PROFILE_FUNCTION_LOW();
-            return m_Scene->GetRegistry().get<IDComponent>(m_EntityHandle).ID;
-        }
-
-        const std::string& GetName()
-        {
-            LUMOS_PROFILE_FUNCTION_LOW();
-            auto nameComponent = TryGetComponent<NameComponent>();
-
-            if(nameComponent)
-                return nameComponent->name;
-            else
-            {
-                static std::string tempName = "Entity";
-                return tempName;
-            }
-        }
-
-        void SetParent(Entity entity)
-        {
-            LUMOS_PROFILE_FUNCTION_LOW();
-            bool acceptable         = false;
-            auto hierarchyComponent = TryGetComponent<Hierarchy>();
-            if(hierarchyComponent != nullptr)
-            {
-                acceptable = entity.m_EntityHandle != m_EntityHandle && (!entity.IsParent(*this)) && (hierarchyComponent->Parent() != m_EntityHandle);
-            }
-            else
-                acceptable = entity.m_EntityHandle != m_EntityHandle;
-
-            if(!acceptable)
-            {
-                LUMOS_LOG_WARN("Failed to parent entity!");
-                return;
-            }
-
-            if(hierarchyComponent)
-                Hierarchy::Reparent(m_EntityHandle, entity.m_EntityHandle, m_Scene->GetRegistry(), *hierarchyComponent);
-            else
-            {
-                m_Scene->GetRegistry().emplace<Hierarchy>(m_EntityHandle, entity.m_EntityHandle);
-            }
-        }
-
-        Entity GetParent()
-        {
-            LUMOS_PROFILE_FUNCTION_LOW();
-            auto hierarchyComp = TryGetComponent<Hierarchy>();
-            if(hierarchyComp)
-                return Entity(hierarchyComp->Parent(), m_Scene);
-            else
-                return Entity(entt::null, nullptr);
-        }
-
-        std::vector<Entity> GetChildren()
-        {
-            LUMOS_PROFILE_FUNCTION_LOW();
-            std::vector<Entity> children;
-            auto hierarchyComponent = TryGetComponent<Hierarchy>();
-            if(hierarchyComponent)
-            {
-                entt::entity child = hierarchyComponent->First();
-                while(child != entt::null && m_Scene->GetRegistry().valid(child))
-                {
-                    children.emplace_back(child, m_Scene);
-                    hierarchyComponent = m_Scene->GetRegistry().try_get<Hierarchy>(child);
-                    if(hierarchyComponent)
-                        child = hierarchyComponent->Next();
-                }
-            }
-
-            return children;
-        }
-
-        void ClearChildren()
-        {
-            LUMOS_PROFILE_FUNCTION_LOW();
-            auto hierarchyComponent = TryGetComponent<Hierarchy>();
-            if(hierarchyComponent)
-            {
-                hierarchyComponent->m_First = entt::null;
-            }
-        }
-
-        bool IsParent(Entity potentialParent)
-        {
-            LUMOS_PROFILE_FUNCTION_LOW();
-            auto nodeHierarchyComponent = m_Scene->GetRegistry().try_get<Hierarchy>(m_EntityHandle);
-            if(nodeHierarchyComponent)
-            {
-                auto parent = nodeHierarchyComponent->Parent();
-                while(parent != entt::null)
-                {
-                    if(parent == potentialParent.m_EntityHandle)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        nodeHierarchyComponent = m_Scene->GetRegistry().try_get<Hierarchy>(parent);
-                        parent                 = nodeHierarchyComponent ? nodeHierarchyComponent->Parent() : entt::null;
-                    }
-                }
-            }
-
-            return false;
-        }
-
+        bool Active();
+        void SetActive(bool isActive);
+        Maths::Transform& GetTransform();
+        const Maths::Transform& GetTransform() const;
+        uint64_t GetID();
+        const std::string& GetName();
+        void SetParent(Entity entity);
+        Entity GetParent();
+        TDArray<Entity> GetChildren();
+        void ClearChildren();
+        bool IsParent(Entity potentialParent);
+        void Destroy();
+        bool Valid();
+        
         operator entt::entity() const
         {
             return m_EntityHandle;
@@ -280,19 +155,7 @@ namespace Lumos
         {
             return m_EntityHandle;
         }
-
-        void Destroy()
-        {
-            LUMOS_PROFILE_FUNCTION_LOW();
-            m_Scene->GetRegistry().destroy(m_EntityHandle);
-        }
-
-        bool Valid()
-        {
-            LUMOS_PROFILE_FUNCTION_LOW();
-            return m_Scene->GetRegistry().valid(m_EntityHandle) && m_Scene;
-        }
-
+        
         Scene* GetScene() const { return m_Scene; }
 
     private:

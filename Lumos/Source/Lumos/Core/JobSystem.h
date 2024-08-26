@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Function.h"
 
 struct JobDispatchArgs
 {
@@ -27,13 +28,13 @@ namespace Lumos
             };
 
             // Add a job to execute asynchronously. Any idle thread will execute this job.
-            void Execute(Context& ctx, const std::function<void(JobDispatchArgs)>& task);
+            void Execute(Context& ctx, const Function<void(JobDispatchArgs)>& task);
 
             // Divide a job onto multiple jobs and execute in parallel.
             //	jobCount	: how many jobs to generate for this task.
             //	groupSize	: how many jobs to execute per thread. Jobs inside a group execute serially. It might be worth to increase for small jobs
             //	func		: receives a JobDispatchArgs as parameter
-            void Dispatch(Context& ctx, uint32_t jobCount, uint32_t groupSize, const std::function<void(JobDispatchArgs)>& task, size_t sharedmemory_size = 0);
+            void Dispatch(Context& ctx, uint32_t jobCount, uint32_t groupSize, const Function<void(JobDispatchArgs)>& task, size_t sharedmemory_size = 0);
 
             uint32_t DispatchGroupCount(uint32_t jobCount, uint32_t groupSize);
 

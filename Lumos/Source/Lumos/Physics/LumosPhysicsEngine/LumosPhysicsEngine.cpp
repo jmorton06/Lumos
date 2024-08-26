@@ -15,7 +15,7 @@
 #include "Scene/Scene.h"
 #include "Scene/Entity.h"
 #include "Graphics/Renderers/DebugRenderer.h"
-
+#include "Maths/MathsUtilities.h"
 #include "Maths/Transform.h"
 #include "ImGui/ImGuiUtilities.h"
 #include "Utilities/Colour.h"
@@ -51,7 +51,7 @@ namespace Lumos
         m_IsPaused        = true;
         s_UpdateTimestep  = 1.0f / 120.0f;
         m_UpdateAccum     = 0.0f;
-        m_Gravity         = glm::vec3(0.0f, -9.81f, 0.0f);
+        m_Gravity         = Vec3(0.0f, -9.81f, 0.0f);
         m_DampingFactor   = 0.9995f;
         m_IntegrationType = IntegrationType::RUNGE_KUTTA_4;
         m_BaumgarteScalar = 0.3f;
@@ -128,7 +128,7 @@ namespace Lumos
 
                 if(m_UpdateAccum >= s_UpdateTimestep)
                 {
-                    LUMOS_LOG_WARN("Physics too slow to run in real time!");
+                    LWARN("Physics too slow to run in real time!");
                     // Drop Time in the hope that it can continue to run in real-time
                     m_UpdateAccum = 0.0f;
                 }
@@ -241,15 +241,18 @@ namespace Lumos
 
             if(!phys.GetRigidBody()->GetIsStatic() && phys.GetRigidBody()->IsAwake())
             {
+                ASSERT(phys.GetRigidBody()->GetPosition().IsValid());
+                ASSERT(phys.GetRigidBody()->GetOrientation().IsValid());
+
                 trans.SetLocalPosition(phys.GetRigidBody()->GetPosition());
                 trans.SetLocalOrientation(phys.GetRigidBody()->GetOrientation());
             }
         };
     }
 
-    glm::quat QuatMulVec3(const glm::quat& quat, const glm::vec3& b)
+    Quat QuatMulVec3(const Quat& quat, const Vec3& b)
     {
-        glm::quat ans;
+        Quat ans;
 
         ans.w = -(quat.x * b.x) - (quat.y * b.y) - (quat.z * b.z);
 
@@ -288,9 +291,9 @@ namespace Lumos
                 obj->m_LinearVelocity = obj->m_LinearVelocity * damping;
 
                 // Update orientation
-                obj->m_Orientation += obj->m_Orientation * glm::quat(obj->m_AngularVelocity * s_UpdateTimestep);
+                obj->m_Orientation += obj->m_Orientation * Quat(obj->m_AngularVelocity * s_UpdateTimestep);
                 // obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * s_UpdateTimestep * 0.5f) * obj->m_Orientation);
-                obj->m_Orientation = glm::normalize(obj->m_Orientation);
+                obj->m_Orientation.Normalise();
 
                 // Update angular velocity
                 obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * s_UpdateTimestep;
@@ -322,7 +325,7 @@ namespace Lumos
 
                 // Update orientation
                 obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
-                obj->m_Orientation = glm::normalize(obj->m_Orientation);
+                obj->m_Orientation.Normalise();
 
                 break;
             }
@@ -349,7 +352,7 @@ namespace Lumos
 
                 // Update orientation
                 obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
-                obj->m_Orientation = glm::normalize(obj->m_Orientation);
+                obj->m_Orientation.Normalise();
 
                 break;
             }
@@ -376,7 +379,7 @@ namespace Lumos
                 auto angularVelocity = obj->m_AngularVelocity * s_UpdateTimestep * 0.5f;
 
                 obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
-                obj->m_Orientation = glm::normalize(obj->m_Orientation);
+                obj->m_Orientation.Normalise();
 
                 break;
             }
@@ -387,16 +390,19 @@ namespace Lumos
             obj->m_WSAabbInvalidated      = true;
         }
 
+        ASSERT(obj->m_Orientation.IsValid());
+        ASSERT(obj->m_Position.IsValid());
+
         s_UpdateTimestep *= m_PositionIterations;
     }
 
-    glm::quat AngularVelcityToQuaternion(const glm::vec3& angularVelocity)
+    Quat AngularVelcityToQuaternion(const Vec3& angularVelocity)
     {
-        glm::quat q;
+        Quat q;
         q.x = 0.5f * angularVelocity.x;
         q.y = 0.5f * angularVelocity.y;
         q.z = 0.5f * angularVelocity.z;
-        q.w = 0.5f * glm::length(angularVelocity);
+        q.w = 0.5f * Maths::Length(angularVelocity);
         return q;
     }
 
@@ -427,7 +433,7 @@ namespace Lumos
             }
         }
 
-        LUMOS_LOG_INFO(duplicatePairs);
+        LINFO(duplicatePairs);
 #endif
     }
 
@@ -452,7 +458,7 @@ namespace Lumos
                 // Broadphase debug draw
                 if(m_DebugDrawFlags & PhysicsDebugFlags::BROADPHASE_PAIRS)
                 {
-                    glm::vec4 colour = Colour::RandomColour();
+                    Vec4 colour = Colour::RandomColour();
                     DebugRenderer::DrawThickLine(cp.pObjectA->GetPosition(), cp.pObjectB->GetPosition(), 0.02f, false, colour);
                     DebugRenderer::DrawPoint(cp.pObjectA->GetPosition(), 0.05f, false, colour);
                     DebugRenderer::DrawPoint(cp.pObjectB->GetPosition(), 0.05f, false, colour);
@@ -474,14 +480,14 @@ namespace Lumos
                         Manifold& manifold = m_Manifolds[m_ManifoldCount++];
                         manifold.Initiate(cp.pObjectA, cp.pObjectB, m_BaumgarteScalar, m_BaumgarteSlop);
 
-                        LUMOS_ASSERT(m_ManifoldCount < 1000);
+                        ASSERT(m_ManifoldCount < 1000);
                         // Construct contact points that form the perimeter of the collision manifold
                         if(CollisionDetection::Get().BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, &manifold))
                         {
                             if(m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONNORMALS)
                             {
-                                DebugRenderer::DrawPoint(colData.pointOnPlane, 0.1f, false, glm::vec4(0.5f, 0.5f, 1.0f, 1.0f), 3.0f);
-                                DebugRenderer::DrawThickLine(colData.pointOnPlane, colData.pointOnPlane - colData.normal * colData.penetration, 0.05f, false, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), 3.0f);
+                                DebugRenderer::DrawPoint(colData.pointOnPlane, 0.1f, false, Vec4(0.5f, 0.5f, 1.0f, 1.0f), 3.0f);
+                                DebugRenderer::DrawThickLine(colData.pointOnPlane, colData.pointOnPlane - colData.normal * colData.penetration, 0.05f, false, Vec4(0.0f, 0.0f, 1.0f, 1.0f), 3.0f);
                             }
 
                             // Fire callback

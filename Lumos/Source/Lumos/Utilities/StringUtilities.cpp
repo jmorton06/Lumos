@@ -87,18 +87,18 @@ namespace Lumos
             return false;
         }
 
-        std::vector<std::string> SplitString(const std::string& string, const std::string& delimiters)
+        TDArray<std::string> SplitString(const std::string& string, const std::string& delimiters)
         {
             size_t start = 0;
             size_t end   = string.find_first_of(delimiters);
 
-            std::vector<std::string> result;
+            TDArray<std::string> result;
 
             while(end <= std::string::npos)
             {
                 std::string token = string.substr(start, end - start);
                 if(!token.empty())
-                    result.push_back(token);
+                    result.PushBack(token);
 
                 if(end == std::string::npos)
                     break;
@@ -110,17 +110,17 @@ namespace Lumos
             return result;
         }
 
-        std::vector<std::string> SplitString(const std::string& string, const char delimiter)
+        TDArray<std::string> SplitString(const std::string& string, const char delimiter)
         {
             return SplitString(string, std::string(1, delimiter));
         }
 
-        std::vector<std::string> Tokenize(const std::string& string)
+        TDArray<std::string> Tokenize(const std::string& string)
         {
             return SplitString(string, " \t\n");
         }
 
-        std::vector<std::string> GetLines(const std::string& string)
+        TDArray<std::string> GetLines(const std::string& string)
         {
             return SplitString(string, "\n");
         }
@@ -589,6 +589,36 @@ namespace Lumos
 
                 MemoryCopy(outString.str, prefix.str, prefix.size);
                 MemoryCopy(outString.str + prefix.size, resolvedString.str, resolvedString.size);
+                outString.str[outString.size] = 0;
+            }
+            else
+                outString = PushStr8Copy(arena, resolvedString);
+
+            ScratchEnd(scratch);
+            return outString;
+        }
+        
+        String8 RelativeToAbsolutePath(Arena* arena, String8 path, String8 prefix, String8 fileSystemPath)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            ArenaTemp scratch      = ScratchBegin(&arena, 1);
+            String8 pathCopy       = BackSlashesToSlashes(scratch.arena, path);
+            String8 resolvedString = NormalizedPathFromStr8(scratch.arena, pathCopy, pathCopy);
+            String8 outString;
+
+            uint64_t loc = FindSubstr8(resolvedString, prefix, 0);
+
+            if(loc != resolvedString.size)
+            {
+                resolvedString.str  = resolvedString.str + prefix.size;
+                resolvedString.size = resolvedString.size - prefix.size;
+
+                outString      = { 0 };
+                outString.size = (resolvedString.size + fileSystemPath.size);
+                outString.str  = PushArrayNoZero(arena, uint8_t, outString.size + 1);
+
+                MemoryCopy(outString.str, fileSystemPath.str, fileSystemPath.size);
+                MemoryCopy(outString.str + fileSystemPath.size, resolvedString.str, resolvedString.size);
                 outString.str[outString.size] = 0;
             }
             else

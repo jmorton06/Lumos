@@ -1,5 +1,6 @@
 #pragma once
-#include "Core/DataStructures/Vector.h"
+#include "Core/DataStructures/TDArray.h"
+#include "Core/String.h"
 
 namespace Lumos
 {
@@ -18,7 +19,7 @@ namespace Lumos
         void SwitchScene(int idx);
 
         // Jump to scene name
-        void SwitchScene(const std::string& name);
+        void SwitchScene(const char* name);
 
         void ApplySceneSwitch();
 
@@ -40,8 +41,8 @@ namespace Lumos
             return static_cast<uint32_t>(m_vpAllScenes.Size());
         }
 
-        Vector<std::string> GetSceneNames();
-        const Vector<SharedPtr<Scene>>& GetScenes() const
+        TDArray<String8> GetSceneNames(Arena* arena);
+        const TDArray<SharedPtr<Scene>>& GetScenes() const
         {
             return m_vpAllScenes;
         }
@@ -55,34 +56,20 @@ namespace Lumos
             return m_SwitchingScenes;
         }
 
-        int EnqueueSceneFromFile(const std::string& filePath);
+        int EnqueueSceneFromFile(const char* filePath);
         void EnqueueScene(Scene* scene);
-
-        bool ContainsScene(const std::string& filePath);
-
-        template <class T>
-        void EnqueueScene(const std::string& name)
-        {
-            // T* scene = new T(name);
-            m_vpAllScenes.PushBack(CreateSharedPtr<T>(name));
-            LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", name.c_str());
-        }
-
-        const Vector<std::string>& GetSceneFilePaths();
-
-        void AddFileToLoadList(const std::string& filePath)
-        {
-            m_SceneFilePathsToLoad.PushBack(filePath);
-        }
-
+        bool ContainsScene(const char* filePath);
+        const TDArray<String8>& GetSceneFilePaths();
+        void AddFileToLoadList(const char* filePath);
         void LoadCurrentList();
 
     protected:
         uint32_t m_SceneIdx;
         Scene* m_CurrentScene;
-        Vector<SharedPtr<Scene>> m_vpAllScenes;
-        Vector<std::string> m_SceneFilePaths;
-        Vector<std::string> m_SceneFilePathsToLoad;
+        TDArray<SharedPtr<Scene>> m_vpAllScenes;
+        TDArray<String8> m_SceneFilePaths;
+        TDArray<String8> m_SceneFilePathsToLoad;
+        Arena* m_Arena;
 
     private:
         bool m_SwitchingScenes = false;
