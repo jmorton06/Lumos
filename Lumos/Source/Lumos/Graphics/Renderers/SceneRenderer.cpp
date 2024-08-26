@@ -1000,7 +1000,7 @@ namespace Lumos::Graphics
                 for(auto mesh : meshes)
                 {
                     auto& worldTransform = trans.GetWorldMatrix();
-                    auto bbCopy          = mesh->GetBoundingBox()->Transformed(worldTransform);
+                    auto bbCopy          = mesh->GetBoundingBox().Transformed(worldTransform);
 
                     if(directionaLight)
                     {
@@ -1060,6 +1060,7 @@ namespace Lumos::Graphics
                         pipelineDesc.cullMode            = command.material->GetFlag(Material::RenderFlags::TWOSIDED) ? Graphics::CullMode::NONE : Graphics::CullMode::BACK;
                         pipelineDesc.transparencyEnabled = command.material->GetFlag(Material::RenderFlags::ALPHABLEND);
                         pipelineDesc.samples             = m_MainTextureSamples;
+                        pipelineDesc.polygonMode = PolygonMode::FILL;
                         if(m_MainTextureSamples > 1)
                             pipelineDesc.resolveTexture = m_ResolveTexture;
                         if(m_ForwardData.m_DepthTest && command.material->GetFlag(Material::RenderFlags::DEPTHTEST))

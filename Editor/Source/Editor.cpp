@@ -1174,25 +1174,25 @@ namespace Lumos
                 ScratchEnd(scratch);
                 if(defaultSetup)
                 {
+                    auto cube = scene->GetEntityManager()->Create("Cube");
+                    cube.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
+                    
                     auto light      = scene->GetEntityManager()->Create("Light");
                     auto& lightComp = light.AddComponent<Graphics::Light>();
                     Mat4 lightView  = Mat4::LookAt(Vec3(30.0f, 9.0f, 50.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
                     light.GetTransform().SetLocalTransform(lightView);
                     light.GetTransform().SetWorldMatrix(Mat4(1.0f));
-
+        
                     auto camera = scene->GetEntityManager()->Create("Camera");
-                    camera.AddComponent<Camera>();
-
+					camera.AddComponent<Camera>();
+					camera.GetComponent<Camera>().SetFar(10000);
                     Mat4 viewMat = Mat4::LookAt(Vec3(-1.0f, 0.5f, 1.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
-                    camera.GetTransform().SetLocalTransform(viewMat);
-                    camera.GetTransform().SetWorldMatrix(Mat4(1.0f));
-
-                    auto cube = scene->GetEntityManager()->Create("Cube");
-                    cube.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
+					camera.GetTransform().SetLocalTransform(viewMat);
+					camera.GetTransform().SetWorldMatrix(Mat4(1.0f));
 
                     auto bb = cube.GetComponent<Graphics::ModelComponent>().ModelRef->GetMeshes().Front()->GetBoundingBox();
-                    camera.GetTransform().SetLocalPosition((camera.GetTransform().GetForwardDirection()) * Maths::Distance(bb->Max(), bb->Min()));
-                    camera.GetTransform().SetWorldMatrix(Mat4(1.0f));
+					camera.GetTransform().SetLocalPosition(-(camera.GetTransform().GetForwardDirection()) * Maths::Distance(bb.Max(), bb.Min()));
+					camera.GetTransform().SetWorldMatrix(Mat4(1.0f));
 
                     auto environment = scene->GetEntityManager()->Create("Environment");
                     environment.AddComponent<Graphics::Environment>();
@@ -2240,7 +2240,7 @@ namespace Lumos
 
                 for(auto mesh : meshes)
                 {
-                    auto bbCopy = mesh->GetBoundingBox()->Transformed(worldTransform);
+                    auto bbCopy = mesh->GetBoundingBox().Transformed(worldTransform);
                     DebugRenderer::DebugDraw(bbCopy, selectedColour, true);
                 }
             }
@@ -2334,7 +2334,7 @@ namespace Lumos
                 for(auto mesh : meshes)
                 {
                         auto& worldTransform = transform->GetWorldMatrix();
-                        auto bbCopy          = mesh->GetBoundingBox()->Transformed(worldTransform);
+                        auto bbCopy          = mesh->GetBoundingBox().Transformed(worldTransform);
                         DebugRenderer::DebugDraw(bbCopy, colour, true);
                 }
             }
@@ -2391,7 +2391,7 @@ namespace Lumos
                     for(auto mesh : meshes)
                     {
                             auto& worldTransform = transform->GetWorldMatrix();
-                            auto bbCopy          = mesh->GetBoundingBox()->Transformed(worldTransform);
+                            auto bbCopy          = mesh->GetBoundingBox().Transformed(worldTransform);
                             DebugRenderer::DebugDraw(bbCopy, selectedColour, true);
                     }
                 }
@@ -2471,7 +2471,7 @@ namespace Lumos
             {
                     auto& worldTransform = trans.GetWorldMatrix();
 
-                    auto bbCopy = mesh->GetBoundingBox()->Transformed(worldTransform);
+                    auto bbCopy = mesh->GetBoundingBox().Transformed(worldTransform);
                     float distance;
                     ray.Intersects(bbCopy, distance);
 
@@ -2495,7 +2495,7 @@ namespace Lumos
                     {
                         auto& trans = registry.get<Maths::Transform>(currentClosestEntity);
                         auto& model = registry.get<Graphics::ModelComponent>(currentClosestEntity);
-                        auto bb     = model.ModelRef->GetMeshes().Front()->GetBoundingBox()->Transformed(trans.GetWorldMatrix());
+                        auto bb     = model.ModelRef->GetMeshes().Front()->GetBoundingBox().Transformed(trans.GetWorldMatrix());
 
                         FocusCamera(trans.GetWorldPosition(), Maths::Distance(bb.Max(), bb.Min()), 2.0f);
                     }
@@ -2646,14 +2646,11 @@ namespace Lumos
     {
         Application::OnDebugDraw();
         DebugDraw();
-
-        // Application::Get().GetEditorState() == EditorState::Preview &&
     }
 
     void Editor::OnRender()
     {
         LUMOS_PROFILE_FUNCTION();
-        // DrawPreview();
 
         bool isProfiling       = false;
         static bool firstFrame = true;
@@ -2676,7 +2673,7 @@ namespace Lumos
         {
             String8 texturePath       = PushStr8F(m_FrameArena, "%s_thumbnail.png", (const char*)m_RequestedThumbnailPath.str);
             String8 basePath          = PushStr8F(m_FrameArena, "%sAssets", Application::Get().GetProjectSettings().m_ProjectRoot.c_str());
-            String8 assetCachePath    = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_FrameArena, texturePath, basePath, Str8Lit("//Assets/Cache"));
+            String8 assetCachePath    = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_FrameArena, texturePath, Str8Lit("//Assets"), Str8Lit("//Assets/Cache"));
             String8 cacheAbsolutePath = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_FrameArena, assetCachePath, Str8Lit("//Assets"), basePath);
 
             m_PreviewDraw->SaveTexture(cacheAbsolutePath);

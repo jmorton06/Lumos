@@ -18,7 +18,7 @@ namespace Lumos
         Mesh::Mesh()
             : m_VertexBuffer(nullptr)
             , m_IndexBuffer(nullptr)
-            , m_BoundingBox(nullptr)
+            , m_BoundingBox()
         {
         }
 
@@ -33,11 +33,11 @@ namespace Lumos
 
         Mesh::Mesh(const TDArray<uint32_t>& indices, const TDArray<Vertex>& vertices)
         {
-            m_BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
+            m_BoundingBox = {};
 
             for(auto& vertex : vertices)
             {
-                m_BoundingBox->Merge(vertex.Position);
+                m_BoundingBox.Merge(vertex.Position);
             }
 
             m_IndexBuffer  = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create((uint32_t*)indices.Data(), (uint32_t)indices.Size()));
@@ -52,11 +52,11 @@ namespace Lumos
 
         Mesh::Mesh(const TDArray<uint32_t>& indices, const TDArray<AnimVertex>& vertices)
         {
-            m_BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
+            m_BoundingBox = {};
 
             for(auto& vertex : vertices)
             {
-                m_BoundingBox->Merge(vertex.Position);
+                m_BoundingBox.Merge(vertex.Position);
             }
 
             m_IndexBuffer      = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create((u32*)indices.Data(), (uint32_t)indices.Size()));

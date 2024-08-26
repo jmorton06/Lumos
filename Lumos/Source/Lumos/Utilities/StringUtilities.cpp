@@ -597,6 +597,36 @@ namespace Lumos
             ScratchEnd(scratch);
             return outString;
         }
+        
+        String8 RelativeToAbsolutePath(Arena* arena, String8 path, String8 prefix, String8 fileSystemPath)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            ArenaTemp scratch      = ScratchBegin(&arena, 1);
+            String8 pathCopy       = BackSlashesToSlashes(scratch.arena, path);
+            String8 resolvedString = NormalizedPathFromStr8(scratch.arena, pathCopy, pathCopy);
+            String8 outString;
+
+            uint64_t loc = FindSubstr8(resolvedString, prefix, 0);
+
+            if(loc != resolvedString.size)
+            {
+                resolvedString.str  = resolvedString.str + prefix.size;
+                resolvedString.size = resolvedString.size - prefix.size;
+
+                outString      = { 0 };
+                outString.size = (resolvedString.size + fileSystemPath.size);
+                outString.str  = PushArrayNoZero(arena, uint8_t, outString.size + 1);
+
+                MemoryCopy(outString.str, fileSystemPath.str, fileSystemPath.size);
+                MemoryCopy(outString.str + fileSystemPath.size, resolvedString.str, resolvedString.size);
+                outString.str[outString.size] = 0;
+            }
+            else
+                outString = PushStr8Copy(arena, resolvedString);
+
+            ScratchEnd(scratch);
+            return outString;
+        }
 
         uint64_t BasicHashFromString(String8 string)
         {

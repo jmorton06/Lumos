@@ -3,6 +3,7 @@
 #include "Core/Asset/Asset.h"
 #include "Utilities/TimeStep.h"
 #include "Maths/Matrix4.h"
+#include "Core/DataStructures/TDArray.h"
 
 namespace Lumos
 {

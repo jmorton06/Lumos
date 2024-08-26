@@ -55,7 +55,7 @@ namespace Lumos
         b2WorldId m_B2DWorld;
 		b2DebugDraw m_DebugDraw;
 
-        u64 m_DebugDrawFlags = 0;
+        u32 m_DebugDrawFlags = 0;
 
         float m_UpdateTimestep;
         bool m_Paused = true;

@@ -1,5 +1,6 @@
 #pragma once
 #include "Maths/Vector2.h"
+#include "Maths/Vector3.h"
 #include "Maths/Vector4.h"
 #include "Scene/Serialisation/Serialisation.h"
 #include "Graphics/RHI/RHIDefinitions.h"

@@ -1,5 +1,9 @@
 #pragma once
 #include "Core/DataStructures/TDArray.h"
+#include "Maths/Vector2.h"
+#include "Maths/Vector3.h"
+#include "Maths/Vector4.h"
+#include "Maths/BoundingBox.h"
 
 namespace Lumos
 {
@@ -145,7 +149,7 @@ namespace Lumos
             const SharedPtr<VertexBuffer>& GetAnimVertexBuffer() const { return m_AnimVertexBuffer; }
             const SharedPtr<IndexBuffer>& GetIndexBuffer() const { return m_IndexBuffer; }
             const SharedPtr<Material>& GetMaterial() const { return m_Material; }
-            const SharedPtr<Maths::BoundingBox>& GetBoundingBox() const { return m_BoundingBox; }
+            const Maths::BoundingBox& GetBoundingBox() const { return m_BoundingBox; }
 
             void SetMaterial(const SharedPtr<Material>& material);
             void SetAndLoadMaterial(const std::string& filePath);
@@ -178,7 +182,7 @@ namespace Lumos
             SharedPtr<VertexBuffer> m_AnimVertexBuffer;
             SharedPtr<IndexBuffer> m_IndexBuffer;
             SharedPtr<Material> m_Material;
-            SharedPtr<Maths::BoundingBox> m_BoundingBox;
+            Maths::BoundingBox m_BoundingBox;
 
             std::string m_Name;
 

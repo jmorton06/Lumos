@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/String.h"
+#include "Core/DataStructures/TDArray.h"
 #include <string>
 
 #ifdef LUMOS_PLATFORM_ANDROID
@@ -97,6 +98,7 @@ namespace Lumos
         String8 NormalizedPathFromStr8(Arena* arena, String8 source, String8 path);
         String8 GetFileName(String8 str, bool directory = false);
         String8 AbsolutePathToRelativeFileSystemPath(Arena* arena, String8 path, String8 fileSystemPath, String8 prefix);
+        String8 RelativeToAbsolutePath(Arena* arena, String8 path, String8 prefix, String8 fileSystemPath);
 
         uint64_t BasicHashFromString(String8 string);
         String8 BackSlashesToSlashes(Arena* arena, String8& string);

@@ -224,6 +224,30 @@ namespace Lumos
         return result;
     }
 
+	String8 Str8FV(String8 allocatedString, const char* fmt, va_list args)
+	{
+		String8 result = { 0 };
+		va_list args2;
+		va_copy(args2, args);
+
+		uint64_t needed_bytes = stbsp_vsnprintf(0, 0, fmt, args) + 1;
+		result.size           = needed_bytes - 1;
+		result.str 			  = allocatedString.str;
+
+		stbsp_vsnprintf((char*)result.str, (int)needed_bytes, fmt, args2);
+		return result;
+	}
+
+	String8 Str8F(String8 allocatedString, const char* fmt, ...)
+	{
+		String8 result = { 0 };
+		va_list args;
+		va_start(args, fmt);
+		result = Str8FV(allocatedString, fmt, args);
+		va_end(args);
+		return result;
+	}
+
     String8 PushStr8FillByte(Arena* arena, uint64_t size, uint8_t byte)
     {
         String8 result = { 0 };

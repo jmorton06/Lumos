@@ -7,6 +7,7 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/Application.h"
 #include "Maths/MathsUtilities.h"
+#include "Maths/Vector3.h"
 
 #if __has_include(<filesystem>)
 #include <filesystem>

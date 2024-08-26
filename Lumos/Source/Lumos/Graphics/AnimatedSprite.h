@@ -25,13 +25,8 @@ namespace Lumos::Graphics
             std::vector<Vec2> Frames;
             float FrameDuration = 1.0f;
 
-            template <typename Archive>
-            void serialize(Archive& archive)
-            {
-                archive(cereal::make_nvp("PlayMode", Mode),
-                        cereal::make_nvp("Frames", Frames),
-                        cereal::make_nvp("FrameDuration", FrameDuration));
-            }
+			template <typename Archive>
+			friend void serialize(Archive& archive, AnimationState& state);
         };
 
         AnimatedSprite();

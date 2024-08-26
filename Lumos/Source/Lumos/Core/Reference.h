@@ -4,6 +4,7 @@
 #include "OS/Memory.h"
 #include "Core/LMLog.h"
 
+//#define DEBUG_REFERENCE_CAST
 #ifdef DEBUG_REFERENCE_CAST
 #include "Core/DataStructures/TDArray.h"
 #include "Utilities/StringUtilities.h"
