@@ -7,7 +7,6 @@
 
 #include <mach-o/dyld.h>
 
-#import <Cocoa/Cocoa.h>
 #define GLFW_EXPOSE_NATIVE_COCOA
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -22,24 +21,24 @@ namespace Lumos
         auto percentage = power.GetPowerPercentageLeft();
         auto secondsLeft = power.GetPowerSecondsLeft();
         auto state = power.GetPowerState();
-		
+
 		int hours, minutes;
 		minutes = secondsLeft / 60;
 		hours = minutes / 60;
 		minutes = minutes % 60;
-		
-        LUMOS_LOG_INFO("--------------------");
-        LUMOS_LOG_INFO(" System Information ");
-        LUMOS_LOG_INFO("--------------------");
+
+        LINFO("--------------------");
+        LINFO(" System Information ");
+        LINFO("--------------------");
 
         if(state != PowerState::POWERSTATE_NO_BATTERY)
-            LUMOS_LOG_INFO("Battery Info - Percentage : {0} , Time Left {1}s , State : {2}", percentage, secondsLeft, PowerStateToString(state));
+            LINFO("Battery Info - Percentage : %i , Time Left %i , State : %s", percentage, secondsLeft, PowerStateToString(state).c_str());
         else
-            LUMOS_LOG_INFO("Power - Outlet");
-            
+            LINFO("Power - Outlet");
+
         auto systemInfo = MemoryManager::Get()->GetSystemInfo();
         systemInfo.Log();
-        
+
         auto& app = Lumos::Application::Get();
 
         app.Init();
@@ -52,14 +51,14 @@ namespace Lumos
         GLFWWindow::MakeDefault();
     }
 
-    void MacOSOS::SetTitleBarColour(const glm::vec4& colour, bool dark)
+    void MacOSOS::SetTitleBarColour(const Vec4& colour, bool dark)
     {
         auto& app = Lumos::Application::Get();
 
         NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
         window.titlebarAppearsTransparent = YES;
         //window.titleVisibility = NSWindowTitleHidden;
-        
+
         NSColor *titleColour = [NSColor colorWithSRGBRed:colour.x green:colour.y blue:colour.z alpha:colour.w];
         window.backgroundColor = titleColour;
         if(dark)
@@ -70,24 +69,22 @@ namespace Lumos
 
     std::string MacOSOS::GetExecutablePath()
     {
-        std::string result;
-
         uint32_t size = 0;
         _NSGetExecutablePath(nullptr, &size);
 
-        std::vector<char> buffer;
-        buffer.resize(size + 1);
+        TDArray<char> buffer;
+        buffer.Resize(size + 1);
 
-        _NSGetExecutablePath(buffer.data(), &size);
+        _NSGetExecutablePath(buffer.Data(), &size);
         buffer[size] = '\0';
 
-        if (!strrchr(buffer.data(), '/'))
+        if (!strrchr(buffer.Data(), '/'))
         {
             return "";
         }
-        return buffer.data();
+        return std::string(buffer.Data());
     }
-	
+
 	void MacOSOS::Delay(uint32_t usec)
 	{
 		struct timespec requested = { static_cast<time_t>(usec / 1000000), (static_cast<long>(usec) % 1000000) * 1000 };

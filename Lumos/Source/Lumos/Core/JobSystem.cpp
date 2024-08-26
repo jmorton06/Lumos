@@ -1,14 +1,14 @@
 #include "Precompiled.h"
 #include "JobSystem.h"
 #include "Maths/MathsUtilities.h"
-#include "Core/DataStructures/Vector.h"
+#include "Core/DataStructures/TDArray.h"
 #include "Core/Thread.h"
 
 #include <atomic>
 #include <thread>
 #include <condition_variable>
 #include <deque>
-
+#include <mutex>
 #ifdef LUMOS_PLATFORM_WINDOWS
 #define NOMINMAX
 #include <Windows.h>
@@ -65,7 +65,7 @@ namespace Lumos
             struct Job
             {
                 Context* ctx;
-                std::function<void(JobDispatchArgs)> task;
+                Function<void(JobDispatchArgs)> task;
                 uint32_t groupID;
                 uint32_t groupJobOffset;
                 uint32_t groupJobEnd;
@@ -90,7 +90,7 @@ namespace Lumos
                     {
                         return false;
                     }
-                    item = std::move(queue.front());
+                    item = Move(queue.front());
                     queue.pop_front();
                     return true;
                 }
@@ -102,12 +102,12 @@ namespace Lumos
             {
                 uint32_t numCores   = 0;
                 uint32_t numThreads = 0;
-                std::unique_ptr<JobQueue[]> jobQueuePerThread;
+                JobQueue* jobQueuePerThread;
                 std::atomic_bool alive { true };
                 std::condition_variable wakeCondition;
                 std::mutex wakeMutex;
                 std::atomic<uint32_t> nextQueue { 0 };
-                Vector<std::thread> threads;
+                TDArray<std::thread> threads;
 
                 ~InternalState()
                 {
@@ -128,6 +128,7 @@ namespace Lumos
                     wake_loop = false;
                     if(waker.joinable())
                         waker.join();
+                    delete[] jobQueuePerThread;
                 }
             };
             static InternalState* internal_state = nullptr;
@@ -147,7 +148,7 @@ namespace Lumos
                         args.groupID = job.groupID;
                         if(job.sharedmemory_size > 0)
                         {
-                            thread_local static Vector<uint8_t> shared_allocation_data;
+                            thread_local static TDArray<uint8_t> shared_allocation_data;
                             shared_allocation_data.Reserve(job.sharedmemory_size);
                             args.sharedmemory = shared_allocation_data.Data();
                         }
@@ -188,7 +189,7 @@ namespace Lumos
                 internal_state->numThreads = Lumos::Maths::Max(1u, internal_state->numCores - reservedThreads);
 
                 // Keep one for update thread
-                internal_state->jobQueuePerThread.reset(new JobQueue[internal_state->numThreads]);
+                internal_state->jobQueuePerThread = new JobQueue[internal_state->numThreads];
                 internal_state->threads.Reserve(internal_state->numThreads);
 
                 for(uint32_t threadID = 0; threadID < internal_state->numThreads; ++threadID)
@@ -218,17 +219,17 @@ namespace Lumos
                     // Put each thread on to dedicated core
                     DWORD_PTR affinityMask    = 1ull << threadID;
                     DWORD_PTR affinity_result = SetThreadAffinityMask(handle, affinityMask);
-                    LUMOS_ASSERT(affinity_result > 0);
+                    ASSERT(affinity_result > 0);
 
                     // Increase thread priority:
                     // BOOL priority_result = SetThreadPriority(handle, THREAD_PRIORITY_HIGHEST);
-                    // LUMOS_ASSERT(priority_result != 0, "");
+                    // ASSERT(priority_result != 0, "");
 
                     // Name the thread:
                     std::wstring wthreadname = L"JobSystem_" + std::to_wstring(threadID);
                     HRESULT hr               = SetThreadDescription(handle, wthreadname.c_str());
 
-                    LUMOS_ASSERT(SUCCEEDED(hr));
+                    ASSERT(SUCCEEDED(hr));
 
 #elif LUMOS_PLATFORM_LINUX
 
@@ -266,7 +267,7 @@ namespace Lumos
                     worker.detach();
                 }
 
-                LUMOS_LOG_INFO("Initialised JobSystem with [{0} cores] [{1} threads]", internal_state->numCores, internal_state->numThreads);
+                LINFO("Initialised JobSystem with [%i cores] [%i threads]", internal_state->numCores, internal_state->numThreads);
             }
 
             void Release()
@@ -280,7 +281,7 @@ namespace Lumos
                 return internal_state->numThreads;
             }
 
-            void Execute(Context& ctx, const std::function<void(JobDispatchArgs)>& task)
+            void Execute(Context& ctx, const Function<void(JobDispatchArgs)>& task)
             {
                 LUMOS_PROFILE_FUNCTION_LOW();
                 // Context state is updated:
@@ -298,7 +299,7 @@ namespace Lumos
                 internal_state->wakeCondition.notify_one();
             }
 
-            void Dispatch(Context& ctx, uint32_t jobCount, uint32_t groupSize, const std::function<void(JobDispatchArgs)>& task, size_t sharedmemory_size)
+            void Dispatch(Context& ctx, uint32_t jobCount, uint32_t groupSize, const Function<void(JobDispatchArgs)>& task, size_t sharedmemory_size)
             {
                 LUMOS_PROFILE_FUNCTION_LOW();
                 if(jobCount == 0 || groupSize == 0)

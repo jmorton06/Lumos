@@ -69,7 +69,7 @@ namespace Lumos
                     return;
                 }
             }
-            LUMOS_LOG_WARN("Texture not found {0}", name);
+            LWARN("Texture not found %s", name.c_str());
         }
 
         void GLDescriptorSet::SetTexture(const std::string& name, Texture** texture, uint32_t textureCount, TextureType textureType)
@@ -85,7 +85,7 @@ namespace Lumos
                     return;
                 }
             }
-            LUMOS_LOG_WARN("Texture not found {0}", name);
+            LWARN("Texture not found %s", name.c_str());
         }
 
         void GLDescriptorSet::SetBuffer(const std::string& name, UniformBuffer* buffer)
@@ -101,7 +101,7 @@ namespace Lumos
                 }
             }
 
-            LUMOS_LOG_WARN("Buffer not found {0}", name);
+            LWARN("Buffer not found %s", name.c_str());
         }
 
         void GLDescriptorSet::SetUniform(const std::string& bufferName, const std::string& uniformName, void* data)
@@ -120,7 +120,7 @@ namespace Lumos
                 }
             }
 
-            LUMOS_LOG_WARN("Uniform not found {0}.{1}", bufferName, uniformName);
+            LWARN("Uniform not found %s.%s", bufferName.c_str(), uniformName.c_str());
         }
 
         void GLDescriptorSet::SetUniform(const std::string& bufferName, const std::string& uniformName, void* data, uint32_t size)
@@ -139,7 +139,7 @@ namespace Lumos
                 }
             }
 
-            LUMOS_LOG_WARN("Uniform not found {0}.{1}", bufferName, uniformName);
+            LWARN("Uniform not found %s.%s", bufferName.c_str(), uniformName.c_str());
         }
 
         void GLDescriptorSet::SetUniformBufferData(const std::string& bufferName, void* data)
@@ -152,7 +152,7 @@ namespace Lumos
                 return;
             }
 
-            LUMOS_LOG_WARN("Uniform not found {0}.{1}", bufferName);
+            LWARN("Uniform not found %s.%s", bufferName.c_str());
         }
 
         Graphics::UniformBuffer* GLDescriptorSet::GetUniformBuffer(const std::string& name)
@@ -166,7 +166,7 @@ namespace Lumos
                 }
             }
 
-            LUMOS_LOG_WARN("Buffer not found {0}", name);
+            LWARN("Buffer not found %s", name.c_str());
             return nullptr;
         }
 
@@ -192,7 +192,7 @@ namespace Lumos
                         static const int MAX_TEXTURE_UNITS = 16;
                         int32_t samplers[MAX_TEXTURE_UNITS];
 
-                        LUMOS_ASSERT(MAX_TEXTURE_UNITS >= descriptor.textureCount, "Texture Count greater than max");
+                        ASSERT(MAX_TEXTURE_UNITS >= descriptor.textureCount, "Texture Count greater than max");
 
                         for(uint32_t i = 0; i < descriptor.textureCount; i++)
                         {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Matrix4.h"
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4244) // Conversion from 'double' to 'float'
@@ -12,21 +13,22 @@
 #include <cmath>
 #include <limits>
 #include <type_traits>
-#include <glm/fwd.hpp>
+#include "Maths/MathsFwd.h"
 
 namespace Lumos
 {
-    /// Intersection test result.
-    enum Intersection
-    {
-        OUTSIDE    = 0,
-        INTERSECTS = 1,
-        INSIDE     = 2
-    };
     namespace Maths
     {
+        /// Intersection test result.
+        enum Intersection : u8
+        {
+            OUTSIDE    = 0,
+            INTERSECTS = 1,
+            INSIDE     = 2
+        };
 #undef M_PI
         static constexpr float M_PI              = 3.14159265358979323846264338327950288f;
+        static constexpr float M_2PI             = M_PI * 2.0f;
         static constexpr float M_HALF_PI         = M_PI * 0.5f;
         static constexpr int M_MIN_INT           = 0x80000000;
         static constexpr int M_MAX_INT           = 0x7fffffff;
@@ -272,24 +274,7 @@ namespace Lumos
         {
             return round(x);
         }
-#ifndef SWIG
-        /// Compute average value of the range.
-        template <class Iterator>
-        inline auto Average(Iterator begin, Iterator end) -> typename std::decay<decltype(*begin)>::type
-        {
-            using T = typename std::decay<decltype(*begin)>::type;
 
-            T average {};
-            unsigned size {};
-            for(Iterator it = begin; it != end; ++it)
-            {
-                average += *it;
-                ++size;
-            }
-
-            return size != 0 ? average / size : average;
-        }
-#endif
         /// Round value to nearest integer.
         template <class T>
         inline int RoundToInt(T x)
@@ -359,32 +344,76 @@ namespace Lumos
         /// Calculate both sine and cosine, with angle in degrees.
         void SinCos(float angle, float& sin, float& cos);
         uint32_t nChoosek(uint32_t n, uint32_t k);
-        glm::vec3 ComputeClosestPointOnSegment(const glm::vec3& segPointA, const glm::vec3& segPointB, const glm::vec3& pointC);
-        void ClosestPointBetweenTwoSegments(const glm::vec3& seg1PointA, const glm::vec3& seg1PointB,
-                                            const glm::vec3& seg2PointA, const glm::vec3& seg2PointB,
-                                            glm::vec3& closestPointSeg1, glm::vec3& closestPointSeg2);
+        Vec3 ComputeClosestPointOnSegment(const Vec3& segPointA, const Vec3& segPointB, const Vec3& pointC);
+        void ClosestPointBetweenTwoSegments(const Vec3& seg1PointA, const Vec3& seg1PointB,
+                                            const Vec3& seg2PointA, const Vec3& seg2PointB,
+                                            Vec3& closestPointSeg1, Vec3& closestPointSeg2);
 
-        bool AreVectorsParallel(const glm::vec3& v1, const glm::vec3& v2);
+        bool AreVectorsParallel(const Vec3& v1, const Vec3& v2);
 
-        glm::vec2 WorldToScreen(const glm::vec3& worldPos, const glm::mat4& mvp, float width, float height, float winPosX = 0.0f, float winPosY = 0.0f);
+        Vec2 WorldToScreen(const Vec3& worldPos, const Mat4& mvp, float width, float height, float winPosX = 0.0f, float winPosY = 0.0f);
 
-        void SetScale(glm::mat4& transform, float scale);
-        void SetScale(glm::mat4& transform, const glm::vec3& scale);
-        void SetRotation(glm::mat4& transform, const glm::vec3& rotation);
-        void SetTranslation(glm::mat4& transform, const glm::vec3& translation);
+        void SetScale(Mat4& transform, float scale);
+        void SetScale(Mat4& transform, const Vec3& scale);
+        void SetRotation(Mat4& transform, const Vec3& rotation);
+        void SetTranslation(Mat4& transform, const Vec3& translation);
 
-        glm::vec3 GetScale(const glm::mat4& transform);
-        glm::vec3 GetRotation(const glm::mat4& transform);
+        Vec3 GetScale(const Mat4& transform);
+        Vec3 GetRotation(const Mat4& transform);
 
-        glm::mat4 Mat4FromTRS(const glm::vec3& translation, const glm::vec3& rotation, const glm::vec3& scale);
+        Mat4 Mat4FromTRS(const Vec3& translation, const Vec3& rotation, const Vec3& scale);
+        Mat4 ToMat4(const Quat& quat);
 
+        Vec3 Cross(const Vec3& a, const Vec3& b);
+        float Dot(const Vec3& a, const Vec3& b);
+        float Length(const Vec2& vec);
+        float Length(const Vec3& vec);
+        float Length2(const Vec3& vec);
+        float Distance(const Vec2& a, const Vec2& b);
+        float Distance2(const Vec2& a, const Vec2& b);
+        float Distance(const Vec3& a, const Vec3& b);
+        float Distance2(const Vec3& a, const Vec3& b);
+        float Distance(const Vec4& a, const Vec4& b);
+        float Distance2(const Vec4& a, const Vec4& b);
+        Matrix3 Transpose(const Mat3& mat);
+        Matrix4 Transpose(const Mat4& mat);
+
+        float* ValuePtr(Vec2& vec);
+        float* ValuePtr(Vec3& vec);
+        float* ValuePtr(Vec4& vec);
+        float* ValuePtr(Quat& quat);
+        float* ValuePtr(Mat3& mat);
+        float* ValuePtr(Mat4& mat);
+
+        const float* ValuePtr(const Vec2& vec);
+        const float* ValuePtr(const Vec3& vec);
+        const float* ValuePtr(const Vec4& vec);
+        const float* ValuePtr(const Quat& quat);
+        const float* ValuePtr(const Mat3& mat);
+        const float* ValuePtr(const Mat4& mat);
+
+        void TestMaths();
+
+        float SineOut(float time);
+        float SineIn(float time);
+        float SineInOut(float time);
+
+        float ExponentialOut(float time);
+        float ExponentialIn(float time);
+        float ExponentialInOut(float time);
+
+        float ElasticIn(float time, float period);
+        float ElasticOut(float time, float period);
+        float ElasticInOut(float time, float period);
+
+        bool AnimateToTarget(float* value, float target, float delta_t, float rate);
+
+        void Print(const Vector3& vec);
+        void Print(const Vector4& vec);
+        void Print(const Quaternion& vec);
+        void Print(const Matrix4& vec);
     }
 }
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
-
-namespace glm
-{
-    glm::vec3 operator*(const glm::mat4& a, const glm::vec3& b);
-}

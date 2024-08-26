@@ -65,8 +65,6 @@ workspace( settings.workspace_name )
 			SetRecommendedSettings()
 		require("Lumos/External/SPIRVCrosspremake5")
 			SetRecommendedSettings()
-		require("Lumos/External/spdlog/premake5")
-			SetRecommendedSettings()
 		require("Lumos/External/ModelLoaders/meshoptimizer/premake5")
 			SetRecommendedSettings()
 		require("Lumos/External/ozz-animation/premake5")
@@ -82,5 +80,8 @@ workspace( settings.workspace_name )
 	group ""
 
 	include "Lumos/premake5"
+	   SetRecommendedSettings()
 	include "Runtime/premake5"
+		   SetRecommendedSettings()
 	include "Editor/premake5"
+		   SetRecommendedSettings()

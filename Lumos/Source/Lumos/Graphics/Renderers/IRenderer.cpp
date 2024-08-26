@@ -8,6 +8,7 @@
 // #include "Graphics/RHI/RenderPass.h"
 // #include "Graphics/RHI/Pipeline.h"
 // #include "Graphics/RHI/Texture.h"
+#include "Graphics/RHI/DescriptorSet.h"
 
 namespace Lumos
 {

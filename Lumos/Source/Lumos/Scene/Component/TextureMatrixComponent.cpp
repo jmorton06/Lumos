@@ -1,9 +1,9 @@
-﻿#include "Precompiled.h"
+#include "Precompiled.h"
 #include "TextureMatrixComponent.h"
 
 namespace Lumos
 {
-    TextureMatrixComponent::TextureMatrixComponent(const glm::mat4& matrix)
+    TextureMatrixComponent::TextureMatrixComponent(const Mat4& matrix)
         : m_TextureMatrix(matrix)
     {
     }

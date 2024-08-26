@@ -2,9 +2,8 @@
 #include "BoundingSphere.h"
 #include "BoundingBox.h"
 #include "Frustum.h"
-
-#include <glm/ext/matrix_float4x4.hpp>
-#include <glm/gtx/norm.hpp>
+#include "Maths/MathsUtilities.h"
+#include "Maths/Matrix4.h"
 
 namespace Lumos
 {
@@ -12,11 +11,11 @@ namespace Lumos
     {
         BoundingSphere::BoundingSphere()
         {
-            m_Center = glm::vec3(0.0f);
+            m_Center = Vec3(0.0f);
             m_Radius = 0.0f;
         }
 
-        BoundingSphere::BoundingSphere(const glm::vec3& center, float radius)
+        BoundingSphere::BoundingSphere(const Vec3& center, float radius)
         {
             m_Center = center;
             m_Radius = radius;
@@ -28,16 +27,16 @@ namespace Lumos
             m_Radius = copy.m_Radius;
         }
 
-        BoundingSphere::BoundingSphere(const glm::vec3* points, unsigned int count)
+        BoundingSphere::BoundingSphere(const Vec3* points, unsigned int count)
         {
             if(count == 0)
             {
-                m_Center = glm::vec3(0.0f);
+                m_Center = Vec3(0.0f);
                 m_Radius = 0.0f;
                 return;
             }
 
-            m_Center = glm::vec3(0.0f);
+            m_Center = Vec3(0.0f);
             m_Radius = 0.0f;
 
             for(unsigned int i = 0; i < count; i++)
@@ -50,7 +49,7 @@ namespace Lumos
             float maxDist = 0.0f;
             for(unsigned int i = 0; i < count; i++)
             {
-                float dist = glm::distance(points[i], m_Center);
+                float dist = Maths::Distance(points[i], m_Center);
                 if(dist > maxDist)
                 {
                     maxDist = dist;
@@ -60,11 +59,11 @@ namespace Lumos
             m_Radius = maxDist;
         }
 
-        BoundingSphere::BoundingSphere(const glm::vec3* points, unsigned int count, const glm::vec3& center)
+        BoundingSphere::BoundingSphere(const Vec3* points, unsigned int count, const Vec3& center)
         {
             if(count == 0)
             {
-                m_Center = glm::vec3(0.0f);
+                m_Center = Vec3(0.0f);
                 m_Radius = 0.0f;
                 return;
             }
@@ -82,7 +81,7 @@ namespace Lumos
             float maxDistSq = 0.0f;
             for(unsigned int i = 0; i < count; i++)
             {
-                float dist = glm::length(points[i] - m_Center);
+                float dist = Maths::Length(points[i] - m_Center);
                 if(dist > maxDistSq)
                 {
                     maxDistSq = dist;
@@ -92,11 +91,11 @@ namespace Lumos
             m_Radius = maxDistSq;
         }
 
-        BoundingSphere::BoundingSphere(const glm::vec3* points, unsigned int count, const glm::vec3& center, float radius)
+        BoundingSphere::BoundingSphere(const Vec3* points, unsigned int count, const Vec3& center, float radius)
         {
             if(count == 0)
             {
-                m_Center = glm::vec3(0.0f);
+                m_Center = Vec3(0.0f);
                 m_Radius = 0.0f;
                 return;
             }
@@ -114,7 +113,7 @@ namespace Lumos
             float maxDistSq = 0.0f;
             for(unsigned int i = 0; i < count; i++)
             {
-                float dist = glm::length(points[i] - m_Center);
+                float dist = Maths::Length(points[i] - m_Center);
                 if(dist > maxDistSq)
                 {
                     maxDistSq = dist;
@@ -135,14 +134,14 @@ namespace Lumos
             return *this;
         }
 
-        bool BoundingSphere::IsInside(const glm::vec3& point) const
+        bool BoundingSphere::IsInside(const Vec3& point) const
         {
-            return glm::length2(point - m_Center) <= m_Radius * m_Radius;
+            return Maths::Length2(point - m_Center) <= m_Radius * m_Radius;
         }
 
         bool BoundingSphere::IsInside(const BoundingSphere& sphere) const
         {
-            return glm::length2(sphere.m_Center - m_Center) <= (m_Radius + sphere.m_Radius) * (m_Radius + sphere.m_Radius);
+            return Maths::Length2(sphere.m_Center - m_Center) <= (m_Radius + sphere.m_Radius) * (m_Radius + sphere.m_Radius);
         }
 
         bool BoundingSphere::IsInside(const BoundingBox& box) const
@@ -155,7 +154,7 @@ namespace Lumos
             return frustum.IsInside(*this);
         }
 
-        const glm::vec3& BoundingSphere::GetCenter() const
+        const Vec3& BoundingSphere::GetCenter() const
         {
             return m_Center;
         }
@@ -165,7 +164,7 @@ namespace Lumos
             return m_Radius;
         }
 
-        void BoundingSphere::SetCenter(const glm::vec3& center)
+        void BoundingSphere::SetCenter(const Vec3& center)
         {
             m_Center = center;
         }
@@ -175,31 +174,31 @@ namespace Lumos
             m_Radius = radius;
         }
 
-        bool BoundingSphere::Contains(const glm::vec3& point) const
+        bool BoundingSphere::Contains(const Vec3& point) const
         {
-            return glm::length2(point - m_Center) <= m_Radius * m_Radius;
+            return Maths::Length2(point - m_Center) <= m_Radius * m_Radius;
         }
 
         bool BoundingSphere::Contains(const BoundingSphere& other) const
         {
-            return glm::distance2(other.m_Center, m_Center) <= (m_Radius + other.m_Radius) * (m_Radius + other.m_Radius);
+            return Maths::Distance2(other.m_Center, m_Center) <= (m_Radius + other.m_Radius) * (m_Radius + other.m_Radius);
         }
         bool BoundingSphere::Intersects(const BoundingSphere& other) const
         {
-            return glm::distance2(other.m_Center, m_Center) <= (m_Radius + other.m_Radius) * (m_Radius + other.m_Radius);
+            return Maths::Distance2(other.m_Center, m_Center) <= (m_Radius + other.m_Radius) * (m_Radius + other.m_Radius);
         }
-        bool BoundingSphere::Intersects(const glm::vec3& point) const
+        bool BoundingSphere::Intersects(const Vec3& point) const
         {
-            return glm::distance2(point, m_Center) <= m_Radius * m_Radius;
+            return Maths::Distance2(point, m_Center) <= m_Radius * m_Radius;
         }
-        bool BoundingSphere::Intersects(const glm::vec3& point, float radius) const
+        bool BoundingSphere::Intersects(const Vec3& point, float radius) const
         {
-            return glm::distance2(point, m_Center) <= (m_Radius + radius) * (m_Radius + radius);
+            return Maths::Distance2(point, m_Center) <= (m_Radius + radius) * (m_Radius + radius);
         }
 
         void BoundingSphere::Merge(const BoundingSphere& other)
         {
-            float distance = glm::distance(other.m_Center, m_Center);
+            float distance = Maths::Distance(other.m_Center, m_Center);
 
             if(distance > m_Radius + other.m_Radius)
                 return;
@@ -220,9 +219,9 @@ namespace Lumos
             m_Radius    = half;
         }
 
-        void BoundingSphere::Merge(const glm::vec3& point)
+        void BoundingSphere::Merge(const Vec3& point)
         {
-            float distance = glm::distance(point, m_Center);
+            float distance = Maths::Distance(point, m_Center);
 
             if(distance > m_Radius)
                 return;
@@ -240,17 +239,17 @@ namespace Lumos
             m_Radius    = half;
         }
 
-        void BoundingSphere::Merge(const glm::vec3* points, unsigned int count)
+        void BoundingSphere::Merge(const Vec3* points, unsigned int count)
         {
             if(count == 0)
                 return;
 
-            float radius     = 0.0f;
-            glm::vec3 center = points[0];
+            float radius = 0.0f;
+            Vec3 center  = points[0];
 
             for(unsigned int i = 1; i < count; i++)
             {
-                float distance = glm::distance(points[i], center);
+                float distance = Maths::Distance(points[i], center);
 
                 if(distance > radius)
                     radius = distance;
@@ -260,7 +259,7 @@ namespace Lumos
 
             center /= (float)count;
 
-            float distance = glm::distance(center, m_Center);
+            float distance = Maths::Distance(center, m_Center);
 
             if(distance > m_Radius)
                 return;
@@ -278,9 +277,9 @@ namespace Lumos
             m_Radius    = half;
         }
 
-        void BoundingSphere::Transform(const glm::mat4& transform)
+        void BoundingSphere::Transform(const Mat4& transform)
         {
-            glm::vec3 center = transform * glm::vec4(m_Center, 1.0f);
+            Vec3 center = transform * Vec4(m_Center, 1.0f);
 
             m_Center = center;
         }

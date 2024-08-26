@@ -15,13 +15,13 @@
 
 #include "Core/LMLog.h"
 #include "Core/Core.h"
-#include <glm/ext/vector_float2.hpp>
-#include <glm/ext/vector_float4.hpp>
+#include "Maths/Vector2.h"
+#include "Maths/Vector4.h"
 
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.
 #ifndef LUMOS_PRODUCTION
-#define IM_ASSERT(_EXPR) LUMOS_ASSERT(_EXPR)
+#define IM_ASSERT(_EXPR) ASSERT(_EXPR)
 #else
 #define IM_ASSERT(_EXPR) ((void)(_EXPR)) // Disable asserts
 #endif
@@ -62,38 +62,40 @@
 // By default the embedded implementations are declared static and not available outside of imgui cpp files.
 #define IMGUI_STB_TRUETYPE_FILENAME "../../External/stb/stb_truetype.h"
 #define IMGUI_STB_RECT_PACK_FILENAME "../../External/stb/stb_rect_pack.h"
+#define IMGUI_STB_SPRINTF_FILENAME "../../External/stb/stb_sprintf.h"
 #define IMGUI_DISABLE_STB_TRUETYPE_IMPLEMENTATION
 #define IMGUI_DISABLE_STB_RECT_PACK_IMPLEMENTATION
+#define IMGUI_DISABLE_STB_SPRINTF_IMPLEMENTATION
 
 //---- Unless IMGUI_DISABLE_DEFAULT_FORMAT_FUNCTIONS is defined, use the much faster STB sprintf library implementation of vsnprintf instead of the one from the default C library.
 // Note that stb_sprintf.h is meant to be provided by the user and available in the include path at compile time. Also, the compatibility checks of the arguments and formats done by clang and GCC will be disabled in order to support the extra formats provided by STB sprintf.
-// #define IMGUI_USE_STB_SPRINTF
+#define IMGUI_USE_STB_SPRINTF
 
 //---- Define constructor and implicit cast operators to convert back<>forth between your math types and ImVec2/ImVec4.
 // This will be inlined as part of ImVec2 and ImVec4 class declarations.
 
-#define IM_VEC2_CLASS_EXTRA     \
-    ImVec2(const glm::vec2& f)  \
-    {                           \
-        x = f.x;                \
-        y = f.y;                \
-    }                           \
-    operator glm::vec2() const  \
-    {                           \
-        return glm::vec2(x, y); \
+#define IM_VEC2_CLASS_EXTRA       \
+    ImVec2(const Lumos::Vec2& f)  \
+    {                             \
+        x = f.x;                  \
+        y = f.y;                  \
+    }                             \
+    operator Lumos::Vec2() const  \
+    {                             \
+        return Lumos::Vec2(x, y); \
     }
 
-#define IM_VEC4_CLASS_EXTRA           \
-    ImVec4(const glm::vec4& f)        \
-    {                                 \
-        x = f.x;                      \
-        y = f.y;                      \
-        z = f.z;                      \
-        w = f.w;                      \
-    }                                 \
-    operator glm::vec4() const        \
-    {                                 \
-        return glm::vec4(x, y, z, w); \
+#define IM_VEC4_CLASS_EXTRA             \
+    ImVec4(const Lumos::Vec4& f)        \
+    {                                   \
+        x = f.x;                        \
+        y = f.y;                        \
+        z = f.z;                        \
+        w = f.w;                        \
+    }                                   \
+    operator Lumos::Vec4() const        \
+    {                                   \
+        return Lumos::Vec4(x, y, z, w); \
     }
 
 // #define IMGUI_ENABLE_FREETYPE

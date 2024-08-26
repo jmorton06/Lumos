@@ -1,61 +1,51 @@
 #pragma once
 #include "Core.h"
 
+#ifdef LUMOS_PRODUCTION
 #define LUMOS_ENABLE_LOG 1
+#else
+#define LUMOS_ENABLE_LOG 1
+#endif
 
 #if LUMOS_ENABLE_LOG
-#ifdef LUMOS_PLATFORM_WINDOWS
-#ifndef NOMINMAX
-#define NOMINMAX // For windows.h
-#endif
-#endif
-
-#include <spdlog/spdlog.h>
-#include <spdlog/fmt/ostr.h>
 
 // Core log macros
-#define LUMOS_LOG_TRACE(...) SPDLOG_LOGGER_CALL(::Lumos::Debug::Log::GetCoreLogger(), spdlog::level::level_enum::trace, __VA_ARGS__)
-#define LUMOS_LOG_INFO(...) SPDLOG_LOGGER_CALL(::Lumos::Debug::Log::GetCoreLogger(), spdlog::level::level_enum::info, __VA_ARGS__)
-#define LUMOS_LOG_WARN(...) SPDLOG_LOGGER_CALL(::Lumos::Debug::Log::GetCoreLogger(), spdlog::level::level_enum::warn, __VA_ARGS__)
-#define LUMOS_LOG_ERROR(...) SPDLOG_LOGGER_CALL(::Lumos::Debug::Log::GetCoreLogger(), spdlog::level::level_enum::err, __VA_ARGS__)
-#define LUMOS_LOG_CRITICAL(...) SPDLOG_LOGGER_CALL(::Lumos::Debug::Log::GetCoreLogger(), spdlog::level::level_enum::critical, __VA_ARGS__)
+#define LTRACE(...) ::Lumos::Debug::Log::LogOutput(::Lumos::LogLevel::Trace, __FILE__, __LINE__, __VA_ARGS__)
+#define LINFO(...) ::Lumos::Debug::Log::LogOutput(::Lumos::LogLevel::Info, __FILE__, __LINE__, __VA_ARGS__)
+#define LWARN(...) ::Lumos::Debug::Log::LogOutput(::Lumos::LogLevel::Warning, __FILE__, __LINE__, __VA_ARGS__)
+#define LERROR(...) ::Lumos::Debug::Log::LogOutput(::Lumos::LogLevel::Error, __FILE__, __LINE__, __VA_ARGS__)
+#define LFATAL(...) ::Lumos::Debug::Log::LogOutput(::Lumos::LogLevel::FATAL, __FILE__, __LINE__, __VA_ARGS__)
 
 #else
-namespace spdlog
-{
-    namespace sinks
-    {
-        class sink;
-    }
-    class logger;
-}
-#define LUMOS_LOG_TRACE(...) ((void)0)
-#define LUMOS_LOG_INFO(...) ((void)0)
-#define LUMOS_LOG_WARN(...) ((void)0)
-#define LUMOS_LOG_ERROR(...) ((void)0)
-#define LUMOS_LOG_CRITICAL(...) ((void)0)
+#define LTRACE(...) ((void)0)
+#define LINFO(...) ((void)0)
+#define LWARN(...) ((void)0)
+#define LERROR(...) ((void)0)
+#define LFATAL(...) ((void)0)
 
 #endif
 
 namespace Lumos
 {
+    enum LogLevel : u8
+    {
+        Info    = 0,
+        Trace   = 1,
+        Warning = 2,
+        Error   = 3,
+        FATAL   = 4
+    };
+
+    typedef void (*LoggerFunction)(LogLevel level, const char* message, const char* file, int line);
+
     namespace Debug
     {
-        class LUMOS_EXPORT Log
+        struct Log
         {
-        public:
             static void OnInit();
             static void OnRelease();
-
-#if LUMOS_ENABLE_LOG
-            inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
-            static void AddSink(std::shared_ptr<spdlog::sinks::sink>& sink);
-#endif
-
-        private:
-#if LUMOS_ENABLE_LOG
-            static std::shared_ptr<spdlog::logger> s_CoreLogger;
-#endif
+            static void SetLoggerFunction(LoggerFunction func);
+            static void LogOutput(LogLevel level, const char* file, int line, const char* message, ...);
         };
     }
 }

@@ -10,7 +10,7 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/Application.h"
 #include "Scene/Scene.h"
-#include "Utilities/AssetManager.h"
+#include "Core/Asset/AssetManager.h"
 
 #include <imgui/imgui.h>
 

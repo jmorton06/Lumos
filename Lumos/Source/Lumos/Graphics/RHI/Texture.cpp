@@ -89,7 +89,7 @@ namespace Lumos
             case 128:
                 return RHIFormat::R32G32B32A32_Float;
             default:
-                LUMOS_ASSERT(false, "[Texture] Unsupported image bit-depth! ({0})", bits);
+                ASSERT(false, "[Texture] Unsupported image bit-depth! (%i)", bits);
 
                 return RHIFormat::R8G8B8A8_Unorm;
             }
@@ -116,7 +116,7 @@ namespace Lumos
             case 128:
                 return 4;
             default:
-                LUMOS_ASSERT(false, "[Texture] Unsupported image bit-depth! ({0})", bits);
+                ASSERT(false, "[Texture] Unsupported image bit-depth! (%i)", bits);
                 return 4;
             }
         }
@@ -132,63 +132,63 @@ namespace Lumos
 
         Texture2D* Texture2D::Create(TextureDesc parameters, uint32_t width, uint32_t height)
         {
-            LUMOS_ASSERT(CreateFunc, "No Texture2D Create Function");
+            ASSERT(CreateFunc, "No Texture2D Create Function");
 
             return CreateFunc(parameters, width, height);
         }
 
         Texture2D* Texture2D::CreateFromSource(uint32_t width, uint32_t height, void* data, TextureDesc parameters, TextureLoadOptions loadOptions)
         {
-            LUMOS_ASSERT(CreateFromSourceFunc, "No Texture2D Create Function");
+            ASSERT(CreateFromSourceFunc, "No Texture2D Create Function");
 
             return CreateFromSourceFunc(width, height, data, parameters, loadOptions);
         }
 
         Texture2D* Texture2D::CreateFromFile(const std::string& name, const std::string& filepath, TextureDesc parameters, TextureLoadOptions loadOptions)
         {
-            LUMOS_ASSERT(CreateFromFileFunc, "No Texture2D Create Function");
+            ASSERT(CreateFromFileFunc, "No Texture2D Create Function");
 
             return CreateFromFileFunc(name, filepath, parameters, loadOptions);
         }
 
         TextureCube* TextureCube::Create(uint32_t size, void* data, bool hdr)
         {
-            LUMOS_ASSERT(CreateFunc, "No TextureCube Create Function");
+            ASSERT(CreateFunc, "No TextureCube Create Function");
 
             return CreateFunc(size, data, hdr);
         }
 
         TextureCube* TextureCube::CreateFromFile(const std::string& filepath)
         {
-            LUMOS_ASSERT(CreateFromFileFunc, "No TextureCube Create Function");
+            ASSERT(CreateFromFileFunc, "No TextureCube Create Function");
 
             return CreateFromFileFunc(filepath);
         }
 
         TextureCube* TextureCube::CreateFromFiles(const std::string* files)
         {
-            LUMOS_ASSERT(CreateFromFilesFunc, "No TextureCube Create Function");
+            ASSERT(CreateFromFilesFunc, "No TextureCube Create Function");
 
             return CreateFromFilesFunc(files);
         }
 
         TextureCube* TextureCube::CreateFromVCross(const std::string* files, uint32_t mips, TextureDesc params, TextureLoadOptions loadOptions)
         {
-            LUMOS_ASSERT(CreateFromVCrossFunc, "No TextureCube Create Function");
+            ASSERT(CreateFromVCrossFunc, "No TextureCube Create Function");
 
             return CreateFromVCrossFunc(files, mips, params, loadOptions);
         }
 
         TextureDepth* TextureDepth::Create(uint32_t width, uint32_t height, RHIFormat format, uint8_t samples)
         {
-            LUMOS_ASSERT(CreateFunc, "No TextureDepth Create Function");
+            ASSERT(CreateFunc, "No TextureDepth Create Function");
 
             return CreateFunc(width, height, format, samples);
         }
 
         TextureDepthArray* TextureDepthArray::Create(uint32_t width, uint32_t height, uint32_t count, RHIFormat format)
         {
-            LUMOS_ASSERT(CreateFunc, "No TextureDepthArray Create Function");
+            ASSERT(CreateFunc, "No TextureDepthArray Create Function");
 
             return CreateFunc(width, height, count, format);
         }

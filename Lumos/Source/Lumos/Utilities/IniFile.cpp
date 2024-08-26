@@ -54,16 +54,6 @@ void Lumos::IniFile::RegisterPair(const std::pair<std::string, std::string>& pai
     m_Data.insert(pair);
 }
 
-std::vector<std::string> Lumos::IniFile::GetFormattedContent() const
-{
-    std::vector<std::string> result;
-
-    for(const auto& [key, value] : m_Data)
-        result.push_back(key + "=" + value);
-
-    return result;
-}
-
 void Lumos::IniFile::Load()
 {
     if(m_FilePath.empty())
@@ -86,7 +76,7 @@ void Lumos::IniFile::Rewrite() const
 {
     if(m_FilePath.empty())
     {
-        LUMOS_LOG_WARN("Ini file path empty");
+        LWARN("Ini file path empty");
         return;
     }
 

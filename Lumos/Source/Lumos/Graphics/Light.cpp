@@ -8,10 +8,10 @@ namespace Lumos
 {
     namespace Graphics
     {
-        Light::Light(const glm::vec3& direction, const glm::vec4& colour, float intensity, const LightType& type, const glm::vec3& position, float radius, float angle)
-            : Direction(glm::vec4(direction, 1.0f))
+        Light::Light(const Vec3& direction, const Vec4& colour, float intensity, const LightType& type, const Vec3& position, float radius, float angle)
+            : Direction(Vec4(direction, 1.0f))
             , Colour(colour)
-            , Position(glm::vec4(position, 1.0f))
+            , Position(Vec4(position, 1.0f))
             , Intensity(intensity)
             , Radius(radius)
             , Type(float(type))
@@ -45,7 +45,7 @@ namespace Lumos
             if(type == "Spot")
                 return float(Graphics::LightType::SpotLight);
 
-            LUMOS_LOG_ERROR("Unknown Light Type");
+            LERROR("Unknown Light Type");
             return 0.0f;
         }
 

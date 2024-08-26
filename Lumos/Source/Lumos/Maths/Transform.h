@@ -1,9 +1,8 @@
 #pragma once
 
-#include <glm/ext/vector_float3.hpp>
-#include <glm/ext/matrix_float4x4.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
+#include "Maths/Vector3.h"
+#include "Maths/Matrix4.h"
+#include "Maths/Quaternion.h"
 
 namespace Lumos
 {
@@ -11,7 +10,7 @@ namespace Lumos
     {
         struct WorldTransform
         {
-            glm::mat4 WorldMatrix;
+            Mat4 WorldMatrix;
         };
 
         class Transform
@@ -24,61 +23,54 @@ namespace Lumos
 
         public:
             Transform();
-            Transform(const glm::mat4& matrix);
-            Transform(const glm::vec3& position);
+            Transform(const Mat4& matrix);
+            Transform(const Vec3& position);
             ~Transform();
 
-            void SetWorldMatrix(const glm::mat4& mat);
+            void SetWorldMatrix(const Mat4& mat);
+            void SetLocalTransform(const Mat4& localMat);
 
-            void SetLocalTransform(const glm::mat4& localMat);
+            void SetLocalPosition(const Vec3& localPos);
+            void SetLocalScale(const Vec3& localScale);
+            void SetLocalOrientation(const Quat& quat);
 
-            void SetLocalPosition(const glm::vec3& localPos);
-            void SetLocalScale(const glm::vec3& localScale);
-            void SetLocalOrientation(const glm::quat& quat);
+            const Mat4& GetWorldMatrix();
+            Mat4 GetLocalMatrix();
 
-            const glm::mat4& GetWorldMatrix();
-            glm::mat4 GetLocalMatrix();
+            const Vec3 GetWorldPosition();
+            const Quat GetWorldOrientation();
 
-            const glm::vec3 GetWorldPosition();
-            const glm::quat GetWorldOrientation();
+            const Vec3& GetLocalPosition() const;
+            const Vec3& GetLocalScale() const;
+            const Quat& GetLocalOrientation() const;
 
-            const glm::vec3& GetLocalPosition() const;
-            const glm::vec3& GetLocalScale() const;
-            const glm::quat& GetLocalOrientation() const;
-
-            // Updates Local Matrix from R,T and S vectors
-            void UpdateMatrices();
-
-            // Sets R,T and S vectors from Local Matrix
-            void ApplyTransform();
-
-            glm::vec3 GetUpDirection()
+            Vec3 GetUpDirection()
             {
-                glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-                up           = GetWorldOrientation() * up;
+                Vec3 up = Vec3(0.0f, 1.0f, 0.0f);
+                up      = GetWorldOrientation() * up;
                 return up;
             }
 
-            glm::vec3 GetRightDirection()
+            Vec3 GetRightDirection()
             {
-                glm::vec3 right = glm::vec3(1.0f, 0.0f, 0.0f);
-                right           = GetWorldOrientation() * right;
+                Vec3 right = Vec3(1.0f, 0.0f, 0.0f);
+                right      = GetWorldOrientation() * right;
                 return right;
             }
 
-            glm::vec3 GetForwardDirection()
+            Vec3 GetForwardDirection()
             {
-                glm::vec3 forward = glm::vec3(0.0f, 0.0f, 1.0f);
-                forward           = GetWorldOrientation() * forward;
+                Vec3 forward = Vec3(0.0f, 0.0f, -1.0f);
+                forward      = GetWorldOrientation() * forward;
                 return forward;
             }
 
         protected:
-            glm::mat4 m_WorldMatrix;
+            Mat4 m_WorldMatrix;
 
-            glm::vec3 m_LocalPosition;
-            glm::vec3 m_LocalScale;
-            glm::quat m_LocalOrientation;
+            Vec3 m_LocalPosition;
+            Vec3 m_LocalScale;
+            Quat m_LocalOrientation;
         };
     }
 }

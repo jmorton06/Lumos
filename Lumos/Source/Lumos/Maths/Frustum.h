@@ -1,6 +1,6 @@
 #pragma once
 #include "Maths/Plane.h"
-#include <glm/ext/matrix_float4x4.hpp>
+#include "Maths/Matrix4.h"
 
 namespace Lumos
 {
@@ -25,17 +25,17 @@ namespace Lumos
         {
         public:
             Frustum();
-            Frustum(const glm::mat4& transform);
-            Frustum(const glm::mat4& projection, const glm::mat4& view);
+            Frustum(const Mat4& transform);
+            Frustum(const Mat4& projection, const Mat4& view);
             ~Frustum();
 
-            void Transform(const glm::mat4& transform);
-            void Define(const glm::mat4& projection, const glm::mat4& view);
-            void Define(const glm::mat4& transform);
-            void DefineOrtho(float scale, float aspectRatio, float n, float f, const glm::mat4& viewMatrix);
-            void Define(float fov, float aspectRatio, float n, float f, const glm::mat4& viewMatrix);
+            void Transform(const Mat4& transform);
+            void Define(const Mat4& projection, const Mat4& view);
+            void Define(const Mat4& transform);
+            void DefineOrtho(float scale, float aspectRatio, float n, float f, const Mat4& viewMatrix);
+            void Define(float fov, float aspectRatio, float n, float f, const Mat4& viewMatrix);
 
-            bool IsInside(const glm::vec3& point) const;
+            bool IsInside(const Vec3& point) const;
             bool IsInside(const BoundingSphere& sphere) const;
             bool IsInside(const BoundingBox& box) const;
             bool IsInside(const Rect& rect) const;
@@ -44,13 +44,13 @@ namespace Lumos
 
             const Plane& GetPlane(FrustumPlane plane) const;
             const Plane& GetPlane(int index) const { return m_Planes[index]; }
-            glm::vec3* GetVerticies();
+            Vec3* GetVerticies();
 
         private:
-            void CalculateVertices(const glm::mat4& transform);
+            void CalculateVertices(const Mat4& transform);
 
             Plane m_Planes[6];
-            glm::vec3 m_Verticies[8];
+            Vec3 m_Verticies[8];
         };
     }
 }

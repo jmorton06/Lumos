@@ -1420,7 +1420,7 @@ namespace Lumos
         {
             if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(_name))
             {
-                LUMOS_ASSERT(payload->DataSize == sizeof(sol::object*), "Incorect Payload");
+                ASSERT(payload->DataSize == sizeof(sol::object*), "Incorect Payload");
                 const sol::object* obj = (*(const sol::object**)payload->Data);
                 _cb(*obj);
             }

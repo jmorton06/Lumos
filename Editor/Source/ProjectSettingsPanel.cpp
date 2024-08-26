@@ -1,7 +1,11 @@
 #include "ProjectSettingsPanel.h"
 #include "Editor.h"
-
 #include <Lumos/Core/Profiler.h>
+#if __has_include(<filesystem>)
+#include <filesystem>
+#elif __has_include(<experimental/filesystem>)
+#include <experimental/filesystem>
+#endif
 
 namespace Lumos
 {

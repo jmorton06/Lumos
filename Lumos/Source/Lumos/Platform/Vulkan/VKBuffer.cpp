@@ -139,7 +139,7 @@ namespace Lumos
             {
                 VkResult res = static_cast<VkResult>(vmaMapMemory(VKDevice::Get().GetAllocator(), stagingAlloc, (void**)&destData));
                 if(res != VK_SUCCESS)
-                    LUMOS_LOG_CRITICAL("[VULKAN] Failed to map buffer");
+                    LFATAL("[VULKAN] Failed to map buffer");
 
                 memcpy(destData, data, size);
                 vmaUnmapMemory(VKDevice::Get().GetAllocator(), stagingAlloc);
@@ -245,7 +245,7 @@ namespace Lumos
             VkResult res = vkMapMemory(VKDevice::Device(), m_Memory, offset, size, 0, &m_Mapped);
 #endif
             if(res != VK_SUCCESS)
-                LUMOS_LOG_CRITICAL("[VULKAN] Failed to map buffer");
+                LFATAL("[VULKAN] Failed to map buffer");
         }
 
         void VKBuffer::UnMap()

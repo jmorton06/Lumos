@@ -1,7 +1,7 @@
 #pragma once
 
-#include <glm/ext/vector_float3.hpp>
-#include <glm/ext/vector_float4.hpp>
+#include "Maths/Vector3.h"
+#include "Maths/Vector4.h"
 namespace Lumos
 {
     namespace Graphics
@@ -15,15 +15,15 @@ namespace Lumos
 
         struct LUMOS_EXPORT MEM_ALIGN Light
         {
-            Light(const glm::vec3& direction = glm::vec3(0.0f), const glm::vec4& colour = glm::vec4(1.0f), float intensity = 120000.0f, const LightType& type = LightType::DirectionalLight, const glm::vec3& position = glm::vec3(), float radius = 1.0f, float angle = 0.0f);
+            Light(const Vec3& direction = Vec3(0.0f), const Vec4& colour = Vec4(1.0f), float intensity = 120000.0f, const LightType& type = LightType::DirectionalLight, const Vec3& position = Vec3(), float radius = 1.0f, float angle = 0.0f);
 
             void OnImGui();
             static std::string LightTypeToString(Graphics::LightType type);
             static float StringToLightType(const std::string& type);
 
-            glm::vec4 Colour;
-            glm::vec4 Position;
-            glm::vec4 Direction;
+            Vec4 Colour;
+            Vec4 Position;
+            Vec4 Direction;
             float Intensity;
             float Radius;
             float Type;

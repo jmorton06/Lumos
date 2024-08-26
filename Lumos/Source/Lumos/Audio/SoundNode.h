@@ -1,6 +1,6 @@
 #pragma once
 #include "Sound.h"
-#include <glm/ext/vector_float3.hpp>
+#include "Maths/Vector3.h"
 
 namespace Lumos
 {
@@ -22,11 +22,11 @@ namespace Lumos
 
         SharedPtr<Sound> GetSound() const { return m_Sound; }
 
-        void SetVelocity(const glm::vec3& vel) { m_Velocity = vel; }
-        glm::vec3 GetVelocity() const { return m_Velocity; }
+        void SetVelocity(const Vec3& vel) { m_Velocity = vel; }
+        Vec3 GetVelocity() const { return m_Velocity; }
 
-        void SetPosition(const glm::vec3& pos) { m_Position = pos; }
-        glm::vec3 GetPosition() const { return m_Position; }
+        void SetPosition(const Vec3& pos) { m_Position = pos; }
+        Vec3 GetPosition() const { return m_Position; }
 
         void SetVolume(float volume);
         float GetVolume() const { return m_Volume; }
@@ -65,8 +65,8 @@ namespace Lumos
 
     protected:
         SharedPtr<Sound> m_Sound;
-        glm::vec3 m_Position;
-        glm::vec3 m_Velocity;
+        Vec3 m_Position;
+        Vec3 m_Velocity;
         float m_Volume;
         float m_Radius;
         float m_Pitch;

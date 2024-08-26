@@ -14,7 +14,7 @@ namespace Lumos
     {
         class Environment;
         class Texture2D;
-        class RenderPasses;
+        class SceneRenderer;
     }
 
     class Scene;
@@ -42,7 +42,7 @@ namespace Lumos
         Entity m_CameraEntity;
 
         Scene* m_PreviewScene = nullptr;
-        SharedPtr<Graphics::RenderPasses> m_PreviewRenderer;
+        SharedPtr<Graphics::SceneRenderer> m_PreviewRenderer;
         SharedPtr<Graphics::Texture2D> m_PreviewTexture;
 
         u32 m_Width  = 256;

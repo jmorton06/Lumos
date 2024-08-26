@@ -9,7 +9,7 @@ namespace Lumos
 
         DescriptorSet* DescriptorSet::Create(const DescriptorDesc& desc)
         {
-            LUMOS_ASSERT(CreateFunc, "No DescriptorSet Create Function");
+            ASSERT(CreateFunc, "No DescriptorSet Create Function");
 
             return CreateFunc(desc);
         }

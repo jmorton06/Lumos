@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/ext/vector_float3.hpp>
+#include "Maths/Vector3.h"
 
 namespace Lumos
 {
@@ -10,15 +10,15 @@ namespace Lumos
     public:
         struct State
         {
-            glm::vec3 position;
-            glm::vec3 velocity;
-            glm::vec3 acceleration;
+            Vec3 position;
+            Vec3 velocity;
+            Vec3 acceleration;
         };
 
         struct Derivative
         {
-            glm::vec3 acceleration;
-            glm::vec3 velocity;
+            Vec3 acceleration;
+            Vec3 velocity;
         };
 
     public:

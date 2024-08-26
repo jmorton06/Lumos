@@ -24,7 +24,7 @@ namespace Lumos
 
         GraphicsContext* GraphicsContext::Create()
         {
-            LUMOS_ASSERT(CreateFunc, "No GraphicsContext Create Function");
+            ASSERT(CreateFunc, "No GraphicsContext Create Function");
             return CreateFunc();
         }
 

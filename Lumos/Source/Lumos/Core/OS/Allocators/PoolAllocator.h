@@ -21,8 +21,8 @@ namespace Lumos
                 m_Arena      = ArenaAlloc((uint64_t)((float)poolSize * 1.1f));
             }
 
-            LUMOS_ASSERT(m_Arena, "Arena not allocated");
-            LUMOS_ASSERT(m_PoolSize >= sizeof(Node), "Pool size too small for type");
+            ASSERT(m_Arena, "Arena not allocated");
+            ASSERT(m_PoolSize >= sizeof(Node), "Pool size too small for type");
 
             // Calculate the number of elements that fit in a pool
             m_ElementsPerPool = (m_PoolSize - sizeof(Node)) / m_AlignSize;

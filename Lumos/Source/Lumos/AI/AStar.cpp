@@ -5,30 +5,42 @@
 namespace Lumos
 {
 
-    AStar::AStar(const std::vector<PathNode*>& nodes)
+    AStar::AStar(const TDArray<PathNode*>& nodes)
     {
+        HashMapInit(&m_NodeData);
+
         // Create node data
-        for(auto it = nodes.begin(); it != nodes.end(); ++it)
-            m_NodeData[*it] = new QueueablePathNode(*it);
+        for (auto it = nodes.begin(); it != nodes.end(); ++it)
+        {
+            QueueablePathNode* pathNode = new QueueablePathNode(*it);
+            HashMapInsert(&m_NodeData, *it, pathNode);
+        }
     }
 
     AStar::~AStar()
     {
+
+        ForHashMapEach(PathNode*, QueueablePathNode*, &m_NodeData, it)
+        {
+            QueueablePathNode* value = *it.value;
+            delete value;
+        }
     }
 
     void AStar::Reset()
     {
         // Clear caches
         m_OpenList = PathNodePriorityQueue();
-        m_ClosedList.clear();
-        m_Path.clear();
+        m_ClosedList.Clear();
+        m_Path.Clear();
 
         // Reset node data
-        for(auto it = m_NodeData.begin(); it != m_NodeData.end(); ++it)
+        ForHashMapEach(PathNode*, QueueablePathNode*, &m_NodeData, it)
         {
-            it->second->Parent = nullptr;
-            it->second->fScore = std::numeric_limits<float>::max();
-            it->second->gScore = std::numeric_limits<float>::max();
+            QueueablePathNode* value = *it.value;
+            value->Parent = nullptr;
+            value->fScore = std::numeric_limits<float>::max();
+            value->gScore = std::numeric_limits<float>::max();
         }
     }
 
@@ -37,10 +49,14 @@ namespace Lumos
         // Clear caches
         Reset();
 
-        // Add start node to open list
-        m_NodeData[start]->gScore = 0.0f;
-        m_NodeData[start]->fScore = m_NodeData[start]->node->HeuristicValue(*end);
-        m_OpenList.Push(m_NodeData[start]);
+        QueueablePathNode* startNode = nullptr;
+        if (HashMapFind(&m_NodeData, start, &startNode))
+        {
+            // Add start node to open list
+            startNode->gScore = 0.0f;
+            startNode->fScore = startNode->node->HeuristicValue(*end);
+            m_OpenList.Push(startNode);
+        }
 
         bool success = false;
         while(!m_OpenList.empty())
@@ -49,7 +65,7 @@ namespace Lumos
 
             // Move this node to the closed list
             m_OpenList.Pop();
-            m_ClosedList.push_back(p);
+            m_ClosedList.PushBack(p);
 
             // Check if this is the end node
             if(p->node == end)
@@ -67,17 +83,40 @@ namespace Lumos
                 if(!pq->Traversable())
                     continue;
 
-                QueueablePathNode* q = m_NodeData[pq->OtherNode(p->node)];
+                QueueablePathNode* q = nullptr;
+                QueueablePathNode* otherNode = nullptr;
+                auto otherNodePtr = pq->OtherNode(p->node);
+                HashMapFind(&m_NodeData, otherNodePtr, &q);
 
                 // Calculate new scores
                 float gScore = p->gScore + pq->Cost();
                 float fScore = gScore + q->node->HeuristicValue(*end);
 
                 // Search for this node on open and closed lists
-                auto closedIt = std::find(m_ClosedList.begin(), m_ClosedList.end(), q);
-                auto openIt   = m_OpenList.Find(q);
+                //  auto closedIt = std::find(m_ClosedList.begin(), m_ClosedList.end(), q);
+                //  auto openIt   = m_OpenList.Find(q);
 
-                if(closedIt != m_ClosedList.end() || openIt != m_OpenList.end())
+                QueueablePathNode* closedNode = nullptr;
+                for(auto node : m_ClosedList)
+                {
+                    if(node == q)
+                    {
+                        closedNode = q;
+                        break;
+                    }
+                }
+
+                QueueablePathNode* openNode = nullptr;
+                for(auto node : m_OpenList)
+                {
+                    if(node == q)
+                    {
+                        openNode = q;
+                        break;
+                    }
+                }
+
+                if(closedNode || openNode)
                 {
                     // Check if this path is more efficient that the previous best
                     if(q->gScore > gScore)
@@ -103,15 +142,18 @@ namespace Lumos
         if(success)
         {
             // Add nodes to path
-            QueueablePathNode* n = m_ClosedList.back();
+            QueueablePathNode* n = m_ClosedList.Back();
             while(n)
             {
-                m_Path.push_back(n->node);
+                m_Path.PushBack(n->node);
                 n = n->Parent;
             }
 
             // Reverse path to be ordered start to end
-            std::reverse(m_Path.begin(), m_Path.end());
+            for(u32 i = 0; i < (u32)m_Path.Size() / 2; i++)
+            {
+                Swap(m_Path[i], m_Path[m_Path.Size() - i - 1]);
+            }
         }
 
         return success;

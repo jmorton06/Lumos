@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/Core.h"
-#include "Definitions.h"
+#include "RHIDefinitions.h"
 
 namespace Lumos
 {

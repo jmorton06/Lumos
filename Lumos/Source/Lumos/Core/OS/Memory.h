@@ -48,6 +48,7 @@ namespace Lumos
 
 #define PushArrayNoZero(arena, type, count) (type*)ArenaPushNoZero((arena), sizeof(type) * (count))
 #define PushArray(arena, type, count) (type*)ArenaPush((arena), sizeof(type) * (count))
+#define PushObject(arena, type) PushArrayNoZero(arena, type, 1)
 
 #define ArenaTempBlock(arena, name) \
     ArenaTemp name = { 0 };         \
@@ -96,12 +97,13 @@ void* operator new[](size_t size, const char* desc);
 void* operator new(size_t size, const char* file, int line);
 void* operator new[](size_t size, const char* file, int line);
 
-void operator delete(void* memory);
-void operator delete(void* memory, const char* desc);
-void operator delete(void* memory, const char* file, int line);
-void operator delete[](void* memory);
-void operator delete[](void* memory, const char* desc);
-void operator delete[](void* memory, const char* file, int line);
+void operator delete(void* memory) noexcept;
+void operator delete(void* memory, const char* desc) noexcept;
+void operator delete(void* memory, const char* file, int line) noexcept;
+void operator delete[](void* memory) noexcept;
+void operator delete[](void* memory, const char* desc) noexcept;
+void operator delete[](void* memory, const char* file, int line) noexcept;
+
 #endif
 
 #endif

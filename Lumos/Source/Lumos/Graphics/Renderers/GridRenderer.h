@@ -22,7 +22,7 @@ namespace Lumos
 
             void Begin() override;
             void Submit(const RenderCommand& command) override {};
-            void SubmitMesh(Mesh* mesh, Material* material, const glm::mat4& transform, const glm::mat4& textureMatrix) override {};
+            void SubmitMesh(Mesh* mesh, Material* material, const Mat4& transform, const Mat4& textureMatrix) override {};
             void EndScene() override {};
             void End() override;
             void Present() override {};
@@ -33,8 +33,8 @@ namespace Lumos
 
             struct UBOFrag
             {
-                glm::vec4 cameraPos;
-                glm::vec4 cameraForward;
+                Vec4 cameraPos;
+                Vec4 cameraForward;
                 float Near;
                 float Far;
                 float maxDistance;

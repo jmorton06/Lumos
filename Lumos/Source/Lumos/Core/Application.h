@@ -4,8 +4,10 @@
 #include "Scene/SystemManager.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/QualitySettings.h"
+#include "Maths/MathsFwd.h"
+#include "Maths/Vector2.h"
+#include "Core/Function.h"
 
-#include <glm/fwd.hpp>
 #include <thread>
 
 namespace Lumos
@@ -25,7 +27,7 @@ namespace Lumos
 
     namespace Graphics
     {
-        class RenderPasses;
+        class SceneRenderer;
         enum class RenderAPI : uint32_t;
     }
 
@@ -83,7 +85,7 @@ namespace Lumos
         virtual void OnDebugDraw();
 
         SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
-        Graphics::RenderPasses* GetRenderPasses() const { return m_RenderPasses.get(); }
+        Graphics::SceneRenderer* GetSceneRenderer() const { return m_SceneRenderer.get(); }
         Window* GetWindow() const { return m_Window.get(); }
         AppState GetState() const { return m_CurrentState; }
         EditorState GetEditorState() const { return m_EditorState; }
@@ -94,10 +96,10 @@ namespace Lumos
         void SetAppState(AppState state) { m_CurrentState = state; }
         void SetEditorState(EditorState state) { m_EditorState = state; }
         void SetSceneActive(bool active) { m_SceneActive = active; }
-        void SetDisableMainRenderPasses(bool disable) { m_DisableMainRenderPasses = disable; }
+        void SetDisableMainSceneRenderer(bool disable) { m_DisableMainSceneRenderer = disable; }
         bool GetSceneActive() const { return m_SceneActive; }
 
-        glm::vec2 GetWindowSize() const;
+        Vec2 GetWindowSize() const;
         float GetWindowDPI() const;
 
         SharedPtr<AssetManager>& GetAssetManager();
@@ -105,7 +107,7 @@ namespace Lumos
         const QualitySettings& GetQualitySettings() const { return m_QualitySettings; }
         QualitySettings& GetQualitySettings() { return m_QualitySettings; }
 
-        void SubmitToMainThread(const std::function<void()>& function);
+        void SubmitToMainThread(const Function<void()>& function);
         void ExecuteMainThreadQueue();
 
         static Application& Get() { return *s_Instance; }
@@ -162,6 +164,8 @@ namespace Lumos
             }
         }
 
+        void TestUI();
+
         virtual void Serialise();
         virtual void Deserialise();
 
@@ -189,7 +193,7 @@ namespace Lumos
         struct RenderConfig
         {
             uint32_t IrradianceMapSize  = 64;
-            uint32_t EnvironmentMapSize = 1024;
+            uint32_t EnvironmentMapSize = 512;
         };
 
         ProjectSettings& GetProjectSettings() { return m_ProjectSettings; }
@@ -198,6 +202,7 @@ namespace Lumos
         Arena* GetFrameArena() const { return m_FrameArena; }
         static void UpdateSystems();
 
+        Vec2 m_SceneViewPosition; // For Editor
     protected:
         ProjectSettings m_ProjectSettings;
         RenderConfig m_RenderConfig;
@@ -209,25 +214,26 @@ namespace Lumos
         bool OnWindowClose(WindowCloseEvent& e);
         bool ShouldUpdateSystems = false;
 
-        uint32_t m_Frames              = 0;
-        uint32_t m_Updates             = 0;
-        float m_SecondTimer            = 0.0f;
-        bool m_Minimized               = false;
-        bool m_SceneActive             = true;
-        bool m_DisableMainRenderPasses = false;
+        uint32_t m_Frames               = 0;
+        uint32_t m_Updates              = 0;
+        float m_SecondTimer             = 0.0f;
+        bool m_Minimized                = false;
+        bool m_SceneActive              = true;
+        bool m_DisableMainSceneRenderer = false;
 
-        uint32_t m_SceneViewWidth   = 0;
-        uint32_t m_SceneViewHeight  = 0;
+        uint32_t m_SceneViewWidth  = 0;
+        uint32_t m_SceneViewHeight = 0;
+
         bool m_SceneViewSizeUpdated = false;
         bool m_RenderDocEnabled     = false;
 
         std::mutex m_EventQueueMutex;
-        Vector<std::function<void()>> m_EventQueue;
+        TDArray<Function<void()>> m_EventQueue;
 
         UniquePtr<Window> m_Window;
         UniquePtr<SceneManager> m_SceneManager;
         UniquePtr<SystemManager> m_SystemManager;
-        UniquePtr<Graphics::RenderPasses> m_RenderPasses;
+        UniquePtr<Graphics::SceneRenderer> m_SceneRenderer;
         UniquePtr<ImGuiManager> m_ImGuiManager;
         UniquePtr<Timer> m_Timer;
         SharedPtr<AssetManager> m_AssetManager;
@@ -240,11 +246,12 @@ namespace Lumos
 
         std::thread m_UpdateThread;
 
-        std::vector<std::function<void()>> m_MainThreadQueue;
+        TDArray<Function<void()>> m_MainThreadQueue;
         std::mutex m_MainThreadQueueMutex;
 
         Arena* m_FrameArena;
         Arena* m_Arena;
+        Arena* m_UIArena;
 
         QualitySettings m_QualitySettings;
 

@@ -4,6 +4,7 @@
 #include "VKFramebuffer.h"
 #include "VKContext.h"
 #include "Graphics/RHI/SwapChain.h"
+#include "Core/DataStructures/TDArray.h"
 
 #define MAX_SWAPCHAIN_BUFFERS 3
 namespace Lumos
@@ -33,7 +34,7 @@ namespace Lumos
             void CreateFrameData();
             void AcquireNextImage();
             void QueueSubmit();
-            void Present(const Vector<VkSemaphore>& semaphore);
+            void Present(const TDArray<VkSemaphore>& semaphore);
             void Begin();
             void End();
             void OnResize(uint32_t width, uint32_t height, bool forceResize = false, Window* windowHandle = nullptr);
@@ -61,10 +62,9 @@ namespace Lumos
 
         private:
             FrameData m_Frames[MAX_SWAPCHAIN_BUFFERS];
+            Texture2D* m_SwapChainBuffers[MAX_SWAPCHAIN_BUFFERS];
 
             void FindImageFormatAndColourSpace();
-
-            std::vector<Texture2D*> m_SwapChainBuffers;
 
             uint32_t m_CurrentBuffer     = 0;
             uint32_t m_AcquireImageIndex = 0;

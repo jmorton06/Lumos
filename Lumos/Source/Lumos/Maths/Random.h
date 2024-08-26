@@ -15,7 +15,7 @@ namespace Lumos
         Random32(uint32_t seed);
         Random32(uint32_t seed, uint32_t skip);
 
-        double operator()(float min, float max);
+        float operator()(float min, float max);
         int32_t operator()(int32_t min, int32_t max);
         uint32_t operator()(uint32_t min, uint32_t max);
         void Discard(uint32_t steps);

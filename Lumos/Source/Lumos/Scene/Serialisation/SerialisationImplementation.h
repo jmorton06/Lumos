@@ -1,26 +1,29 @@
 #pragma once
-#include "Audio/AudioManager.h"
-#include "Audio/SoundNode.h"
-#include "Scene/Scene.h"
 #include "Scene/Serialisation/Serialisation.h"
+
+#ifndef SERIALISATION_INCLUDE_ONLY
 #include "Maths/MathsSerialisation.h"
 #include "Maths/Transform.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/AnimatedSprite.h"
-#include "Utilities/AssetManager.h"
+#include "Core/Asset/AssetManager.h"
 #include "Utilities/StringUtilities.h"
 #include "Scene/Component/ModelComponent.h"
 #include "Scene/Component/Components.h"
 #include "Core/Application.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
-#include <cereal/types/vector.hpp>
+#include "Core/Asset/Asset.h"
+#include "Core/Asset/AssetRegistry.h"
+#include "Audio/AudioManager.h"
+#include "Audio/SoundNode.h"
+#include "Scene/Scene.h"
 #include <cereal/types/unordered_map.hpp>
+#include <cereal/types/vector.hpp>
 
 namespace Lumos
 {
-#ifndef SERIALISATION_INCLUDE_ONL
 
     template <typename Archive>
     void save(Archive& archive, const Listener& listener)
@@ -238,10 +241,18 @@ namespace Lumos
                 archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value));
             else
                 archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value), cereal::make_nvp("AssetType", type));
-            nameMap[key] = (UUID)value;
 
+			registry.AddName(key, (UUID)value);
             if(type)
             {
+                UUID currentID;
+                if(registry.GetID(key, currentID))
+                {
+                    if((UUID)value != currentID)
+                    {
+                        registry.ReplaceID(currentID, value);
+                    }
+                }
                 if(!registry.Contains((UUID)value))
                 {
                     AssetMetaData metaData;
@@ -310,7 +321,7 @@ namespace Lumos
 
             if constexpr(loadOldMaterial)
             {
-                glm::vec4 roughness, metallic, emissive;
+                Vec4 roughness, metallic, emissive;
                 archive(cereal::make_nvp("Albedo", albedoFilePath),
                         cereal::make_nvp("Normal", normalFilePath),
                         cereal::make_nvp("Metallic", metallicFilePath),
@@ -412,6 +423,14 @@ namespace Lumos
                 archive(sprite.UsingSpriteSheet, sprite.SpriteSheetTileSize);
         }
 
+		template <typename Archive>
+		void serialize(Archive& archive, AnimatedSprite::AnimationState& state)
+		{
+			archive(cereal::make_nvp("PlayMode", state.Mode),
+					cereal::make_nvp("Frames", state.Frames),
+					cereal::make_nvp("FrameDuration", state.FrameDuration));
+		}
+
         template <typename Archive>
         void save(Archive& archive, const Graphics::AnimatedSprite& sprite)
         {
@@ -447,12 +466,12 @@ namespace Lumos
         template <typename Archive>
         void save(Archive& archive, const Graphics::Model& model)
         {
-            if(model.m_Meshes.size() > 0)
+            if(model.m_Meshes.Size() > 0)
             {
                 std::string newPath;
                 FileSystem::Get().AbsolutePathToFileSystem(model.m_FilePath, newPath);
 
-                auto material = std::unique_ptr<Material>(model.m_Meshes.front()->GetMaterial().get());
+                auto material = std::unique_ptr<Material>(model.m_Meshes.Front()->GetMaterial().get());
                 archive(cereal::make_nvp("PrimitiveType", model.m_PrimitiveType), cereal::make_nvp("FilePath", newPath), cereal::make_nvp("Material", material));
                 material.release();
             }
@@ -465,12 +484,12 @@ namespace Lumos
 
             archive(cereal::make_nvp("PrimitiveType", model.m_PrimitiveType), cereal::make_nvp("FilePath", model.m_FilePath), cereal::make_nvp("Material", material));
 
-            model.m_Meshes.clear();
+            model.m_Meshes.Clear();
 
             if(model.m_PrimitiveType != PrimitiveType::File)
             {
-                model.m_Meshes.push_back(SharedPtr<Mesh>(CreatePrimative(model.m_PrimitiveType)));
-                model.m_Meshes.back()->SetMaterial(SharedPtr<Material>(material.get()));
+                model.m_Meshes.PushBack(SharedPtr<Mesh>(CreatePrimative(model.m_PrimitiveType)));
+                model.m_Meshes.Back()->SetMaterial(SharedPtr<Material>(material.get()));
                 material.release();
             }
             else
@@ -485,7 +504,7 @@ namespace Lumos
         template <typename Archive>
         void save(Archive& archive, const ModelComponent& component)
         {
-            if(!component.ModelRef || component.ModelRef->GetMeshes().size() == 0)
+            if(!component.ModelRef || component.ModelRef->GetMeshes().Size() == 0)
                 return;
             {
                 std::string newPath;
@@ -496,7 +515,7 @@ namespace Lumos
                     newPath = "Primitive";
 
                 // For now this saved material will be overriden by materials in the model file
-                auto material = std::unique_ptr<Material>(component.ModelRef->GetMeshes().front()->GetMaterial().get());
+                auto material = std::unique_ptr<Material>(component.ModelRef->GetMeshes().Front()->GetMaterial().get());
                 archive(cereal::make_nvp("PrimitiveType", component.ModelRef->GetPrimitiveType()), cereal::make_nvp("FilePath", newPath), cereal::make_nvp("Material", material));
                 material.release();
             }
@@ -515,7 +534,7 @@ namespace Lumos
             if(primitiveType != PrimitiveType::File)
             {
                 component.ModelRef = CreateSharedPtr<Model>(primitiveType);
-                component.ModelRef->GetMeshes().back()->SetMaterial(SharedPtr<Material>(material.get()));
+                component.ModelRef->GetMeshes().Back()->SetMaterial(SharedPtr<Material>(material.get()));
                 material.release();
             }
             else
@@ -540,8 +559,12 @@ namespace Lumos
         }
 
     }
+}
+
 #endif
 
+namespace Lumos
+{
     void SerialiseAssetRegistry(const String8& path, const AssetRegistry& registry);
     void DeserialiseAssetRegistry(const String8& path, AssetRegistry& registry);
 }

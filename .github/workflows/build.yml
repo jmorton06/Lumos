@@ -111,13 +111,13 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
   Windows:
-    runs-on: windows-2019
+    runs-on: windows-2022
     strategy:
       matrix:
         config: [Debug, Release, Production]
         platform: [x64]
     env:
-      MSBUILD_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\
+      MSBUILD_PATH: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\
     steps:
       - uses: actions/checkout@v4
         with:
@@ -126,7 +126,7 @@ jobs:
       - name: Generate Project
         run: | 
           cd Scripts/Windows
-          ./GenerateVS19.bat
+          ./GenerateVS22.bat
       - name: Build x64 ${{matrix.configuration}}
         shell: cmd
         run: |

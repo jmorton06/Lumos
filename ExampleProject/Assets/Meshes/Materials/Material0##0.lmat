@@ -24,3 +24,4 @@
     "workflow": 1.0,
     "shader": "//CoreShaders/ForwardPBR.shader",
     "Reflectance": 0.30000001192092898
+}

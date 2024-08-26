@@ -21,7 +21,7 @@ namespace Lumos
 
         IMGUIRenderer* IMGUIRenderer::Create(uint32_t width, uint32_t height, bool clearScreen)
         {
-            LUMOS_ASSERT(CreateFunc, "No IMGUIRenderer Create Function");
+            ASSERT(CreateFunc, "No IMGUIRenderer Create Function");
 
             return CreateFunc(width, height, clearScreen);
         }
@@ -31,9 +31,9 @@ namespace Lumos
             if(Graphics::GraphicsContext::GetRenderAPI() == RenderAPI::OPENGL)
                 return (ImGuiTextureID*)texture->GetHandle();
 
-            if(m_CurrentTextureIDIndex > MAX_IMGUI_TEXTURES)
+            if(m_CurrentTextureIDIndex >= MAX_IMGUI_TEXTURES)
             {
-                LUMOS_LOG_ERROR("Exceeded max imgui textures");
+                LERROR("Exceeded max imgui textures");
                 return &m_TextureIDs[0];
             }
 

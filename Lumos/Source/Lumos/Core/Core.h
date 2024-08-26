@@ -95,41 +95,41 @@
     ((m_hex >= '0' && m_hex <= '9') ? (m_hex - '0') : ((m_hex >= 'A' && m_hex <= 'F') ? (10 + m_hex - 'A') : ((m_hex >= 'a' && m_hex <= 'f') ? (10 + m_hex - 'a') : 0)))
 
 #ifndef LUMOS_ENABLE_ASSERTS
-#define LUMOS_ASSERT(...) ((void)0)
+#define ASSERT(...) ((void)0)
 #else
 #if LUMOS_ENABLE_LOG
 #ifdef LUMOS_PLATFORM_UNIX
-#define LUMOS_ASSERT(condition, ...)                                                                                                                                \
-    do {                                                                                                                                                            \
-        if(!(condition))                                                                                                                                            \
-        {                                                                                                                                                           \
-            LUMOS_LOG_ERROR("Assertion failed: {0}, file {1}, line {2}", #condition, __FILE__, __LINE__);                                                           \
-            (::Lumos::Debug::Log::GetCoreLogger())->log(spdlog::source_loc { __FILE__, __LINE__, SPDLOG_FUNCTION }, spdlog::level::level_enum::err, ##__VA_ARGS__); \
-            LUMOS_BREAK();                                                                                                                                          \
-        }                                                                                                                                                           \
+#define ASSERT(condition, ...)                                                                \
+    do {                                                                                      \
+        if(!(condition))                                                                      \
+        {                                                                                     \
+            LERROR("Assertion failed: %s, file %s, line %i", #condition, __FILE__, __LINE__); \
+            LERROR(##__VA_ARGS__);                                                            \
+            LUMOS_BREAK();                                                                    \
+        }                                                                                     \
     } while(0)
 #else
-#define LUMOS_ASSERT(condition, ...)                                                                                                                              \
-    do {                                                                                                                                                          \
-        if(!(condition))                                                                                                                                          \
-        {                                                                                                                                                         \
-            LUMOS_LOG_ERROR("Assertion failed: {0}, file {1}, line {2}", #condition, __FILE__, __LINE__);                                                         \
-            (::Lumos::Debug::Log::GetCoreLogger())->log(spdlog::source_loc { __FILE__, __LINE__, SPDLOG_FUNCTION }, spdlog::level::level_enum::err, __VA_ARGS__); \
-            LUMOS_BREAK();                                                                                                                                        \
-        }                                                                                                                                                         \
+#define ASSERT(condition, ...)                                                                \
+    do {                                                                                      \
+        if(!(condition))                                                                      \
+        {                                                                                     \
+            LERROR("Assertion failed: %s, file %s, line %i", #condition, __FILE__, __LINE__); \
+            LERROR(__VA_ARGS__);                                                              \
+            LUMOS_BREAK();                                                                    \
+        }                                                                                     \
     } while(0)
 #endif
 #else
-#define LUMOS_ASSERT(condition, ...) \
-    if(!(condition))                 \
+#define ASSERT(condition, ...) \
+    if(!(condition))           \
         LUMOS_BREAK();
 #endif
 #endif
 
-#define UNIMPLEMENTED                                                     \
-    {                                                                     \
-        LUMOS_LOG_ERROR("Unimplemented : {0} : {1}", __FILE__, __LINE__); \
-        LUMOS_BREAK();                                                    \
+#define UNIMPLEMENTED                                          \
+    {                                                          \
+        LERROR("Unimplemented : %s : %i", __FILE__, __LINE__); \
+        LUMOS_BREAK();                                         \
     }
 
 #define NONCOPYABLE(class_name)                        \
@@ -191,15 +191,15 @@
 #define MemoryMove memmove
 #define MemorySet memset
 
-#define MemoryCopyStruct(dst, src)                      \
-    do {                                                \
-        LUMOS_ASSERT(sizeof(*(dst)) == sizeof(*(src))); \
-        MemoryCopy((dst), (src), sizeof(*(dst)));       \
-    } while(0)
-#define MemoryCopyArray(dst, src)                 \
+#define MemoryCopyStruct(dst, src)                \
     do {                                          \
-        LUMOS_ASSERT(sizeof(dst) == sizeof(src)); \
-        MemoryCopy((dst), (src), sizeof(src));    \
+        ASSERT(sizeof(*(dst)) == sizeof(*(src))); \
+        MemoryCopy((dst), (src), sizeof(*(dst))); \
+    } while(0)
+#define MemoryCopyArray(dst, src)              \
+    do {                                       \
+        ASSERT(sizeof(dst) == sizeof(src));    \
+        MemoryCopy((dst), (src), sizeof(src)); \
     } while(0)
 
 #define MemoryZero(ptr, size) MemorySet((ptr), 0, (size))
@@ -240,3 +240,55 @@
 
 #define Concat_(a, b) a##b
 #define Concat(a, b) Concat_(a, b)
+
+template <typename T>
+constexpr T&& Move(T& value)
+{
+    return static_cast<T&&>(value);
+}
+template <typename T>
+constexpr inline void Swap(T& t1, T& t2)
+{
+    T temp = Move(t1);
+    t1     = Move(t2);
+    t2     = Move(temp);
+}
+
+template <class T> struct IsLValueReference { static constexpr bool value = false; };
+template <class T> struct IsLValueReference<T&> { static constexpr bool value = true; };
+template <class T> struct IsRValueReference { static constexpr bool value = false; };
+template <class T> struct IsRValueReference<T&&> { static constexpr bool value = true; };
+
+
+/// RemovePointer removes the pointer qualification from a type `T`.
+template <class T>
+struct RemovePointer
+{
+    using type = T;
+};
+template <class T>
+struct RemovePointer<T*>
+{
+    using type = T;
+};
+template <class T>
+struct RemovePointer<T**>
+{
+    using type = T;
+};
+template <class T> struct RemoveReference { using type = T; };
+template <class T> struct RemoveReference<T&> { using type = T; };
+template <class T> struct RemoveReference<T&&> { using type = T; };
+template <class T> struct AddPointer { using type = typename RemoveReference<T>::type*; };
+template <bool B, class T = void> struct EnableIf {};
+template <class T> struct EnableIf<true, T> { using type = T; };
+template <typename T, typename U>   struct IsSame { static constexpr bool value = false; };
+template <typename T>               struct IsSame<T, T> { static constexpr bool value = true; };
+
+template <typename T> constexpr T&& Forward(typename RemoveReference<T>::type& value) { return static_cast<T&&>(value); }
+
+template <typename T> constexpr T&& Forward(typename RemoveReference<T>::type&& value)
+{
+    static_assert(!IsLValueReference<T>::value, "Forward an rvalue as an lvalue is not allowed");
+    return static_cast<T&&>(value);
+}

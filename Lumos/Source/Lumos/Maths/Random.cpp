@@ -135,7 +135,7 @@ namespace Lumos
         m_Impl->Discard(skip);
     }
 
-    double Random32::operator()(float min, float max)
+    float Random32::operator()(float min, float max)
     {
         return (*m_Impl)(min, max);
     }

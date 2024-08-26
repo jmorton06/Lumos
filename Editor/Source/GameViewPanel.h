@@ -6,13 +6,15 @@
 #include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Utilities/StringUtilities.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
-#include <Lumos/Graphics/Renderers/RenderPasses.h>
+#include <Lumos/Graphics/Renderers/SceneRenderer.h>
 #include <imgui/imgui.h>
 
 namespace Lumos
 {
     class GameViewPanel : public EditorPanel
     {
+        friend class Editor;
+
     public:
         GameViewPanel();
         ~GameViewPanel() = default;
@@ -29,7 +31,7 @@ namespace Lumos
         SharedPtr<Graphics::Texture2D> m_GameViewTexture = nullptr;
         Scene* m_CurrentScene                            = nullptr;
         uint32_t m_Width, m_Height;
-        UniquePtr<Graphics::RenderPasses> m_RenderPasses;
+        UniquePtr<Graphics::SceneRenderer> m_SceneRenderer;
         bool m_GameViewVisible = false;
         bool m_ShowStats       = false;
     };

@@ -2,6 +2,7 @@
 #include "Graphics/RHI/GraphicsContext.h"
 #include "Core/Reference.h"
 #include "VK.h"
+#include "Core/DataStructures/TDArray.h"
 
 namespace Lumos
 {
@@ -38,8 +39,8 @@ namespace Lumos
             float GetGPUMemoryUsed() override { return 0.0f; };
             float GetTotalGPUMemory() override { return 0.0f; };
 
-            const std::vector<const char*>& GetLayerNames() const { return m_InstanceLayerNames; }
-            const std::vector<const char*>& GetExtensionNames() const { return m_InstanceExtensionNames; }
+            const TDArray<const char*>& GetLayerNames() const { return m_InstanceLayerNames; }
+            const TDArray<const char*>& GetExtensionNames() const { return m_InstanceExtensionNames; }
 
             static void MakeDefault();
             static uint32_t GetVKVersion() { return m_VKVersion; }
@@ -49,21 +50,19 @@ namespace Lumos
 
             void CreateInstance();
             void SetupDebugCallback();
-            bool CheckValidationLayerSupport(std::vector<const char*>& validationLayers);
-            bool CheckExtensionSupport(std::vector<const char*>& extensions);
 
-            static const std::vector<const char*> GetRequiredExtensions(bool enableValidationLayers);
-            const std::vector<const char*> GetRequiredLayers(bool enableValidationLayers) const;
+            const TDArray<const char*> GetRequiredExtensions(bool enableValidationLayers);
+            const TDArray<const char*> GetRequiredLayers(bool enableValidationLayers);
 
         private:
             static VkInstance s_VkInstance;
             VkDebugReportCallbackEXT m_DebugCallback = VK_NULL_HANDLE;
 
-            std::vector<VkLayerProperties> m_InstanceLayers;
-            std::vector<VkExtensionProperties> m_InstanceExtensions;
+            TDArray<VkLayerProperties> m_InstanceLayers;
+            TDArray<VkExtensionProperties> m_InstanceExtensions;
 
-            std::vector<const char*> m_InstanceLayerNames;
-            std::vector<const char*> m_InstanceExtensionNames;
+            TDArray<const char*> m_InstanceLayerNames;
+            TDArray<const char*> m_InstanceExtensionNames;
 
             static uint32_t m_VKVersion;
         };

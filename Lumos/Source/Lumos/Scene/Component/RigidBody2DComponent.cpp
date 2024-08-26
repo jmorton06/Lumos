@@ -1,6 +1,5 @@
 #include "Precompiled.h"
 #include "RigidBody2DComponent.h"
-#include "Maths/Maths.h"
 
 #include <box2d/box2d.h>
 #include <imgui/imgui.h>

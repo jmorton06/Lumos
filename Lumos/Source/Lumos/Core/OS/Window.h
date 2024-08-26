@@ -4,16 +4,16 @@
 #include "Graphics/RHI/SwapChain.h"
 #include "Graphics/RHI/GraphicsContext.h"
 
-#include <glm/ext/vector_float2.hpp>
-#include <glm/fwd.hpp>
-#include <vector>
-#include <functional>
+#include "Maths/Vector2.h"
+#include "Maths/MathsFwd.h"
+#include "Core/DataStructures/TDArray.h"
+#include "Core/Function.h"
 
 namespace Lumos
 {
     struct LUMOS_EXPORT WindowDesc
     {
-        WindowDesc(uint32_t width = 1280, uint32_t height = 720, int renderAPI = 0, const std::string& title = "Lumos", bool fullscreen = false, bool vSync = true, bool borderless = false, const std::string& filepath = "")
+        WindowDesc(uint32_t width = 1280, uint32_t height = 720, int renderAPI = 0, const String8& title = Str8Lit("Lumos"), bool fullscreen = false, bool vSync = true, bool borderless = false)
             : Width(width)
             , Height(height)
             , Title(title)
@@ -21,7 +21,6 @@ namespace Lumos
             , VSync(vSync)
             , Borderless(borderless)
             , RenderAPI(renderAPI)
-            , FilePath(filepath)
         {
         }
 
@@ -30,17 +29,17 @@ namespace Lumos
         bool VSync;
         bool Borderless;
         bool ShowConsole = true;
-        std::string Title;
+        String8 Title;
         int RenderAPI;
-        std::string FilePath;
-        std::vector<std::string> IconPaths;
-        std::vector<std::pair<uint32_t, uint8_t*>> IconData;
+        TDArray<String8> IconPaths;
+        TDArray<uint32_t> IconDataSizes;
+        TDArray<uint8_t*> IconData;
     };
 
     class LUMOS_EXPORT Window
     {
     public:
-        using EventCallbackFn = std::function<void(Event&)>;
+        using EventCallbackFn = Function<void(Event&)>;
 
         static Window* Create(const WindowDesc& windowDesc);
         virtual ~Window();
@@ -75,7 +74,7 @@ namespace Lumos
         };
         virtual float GetScreenRatio() const = 0;
         virtual void HideMouse(bool hide) {};
-        virtual void SetMousePosition(const glm::vec2& pos) {};
+        virtual void SetMousePosition(const Vec2& pos) {};
         virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
         virtual void UpdateCursorImGui()                               = 0;
         virtual void SetIcon(const WindowDesc& desc)                   = 0;
@@ -99,7 +98,7 @@ namespace Lumos
         Window() = default;
 
         bool m_Init = false;
-        glm::vec2 m_Position;
+        Vec2 m_Position;
         bool m_VSync       = false;
         bool m_HasResized  = false;
         bool m_WindowFocus = true;

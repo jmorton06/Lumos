@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "Ray.h"
 #include "BoundingBox.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
@@ -8,11 +9,11 @@ namespace Lumos
     {
         Ray::Ray()
         {
-            Origin    = glm::vec3(0.0f);
-            Direction = glm::vec3(0.0f);
+            Origin    = Vec3(0.0f);
+            Direction = Vec3(0.0f);
         }
 
-        Ray::Ray(const glm::vec3& origin, const glm::vec3& direction)
+        Ray::Ray(const Vec3& origin, const Vec3& direction)
         {
             Origin    = origin;
             Direction = direction;
@@ -34,7 +35,7 @@ namespace Lumos
                 float x = (bb.Min().x - Origin.x) / Direction.x;
                 if(x < dist)
                 {
-                    glm::vec3 point = Origin + x * Direction;
+                    Vec3 point = Origin + x * Direction;
                     if(point.y >= bb.Min().y && point.y <= bb.Max().y && point.z >= bb.Min().z && point.z <= bb.Max().z)
                         dist = x;
                 }
@@ -44,7 +45,7 @@ namespace Lumos
                 float x = (bb.Max().x - Origin.x) / Direction.x;
                 if(x < dist)
                 {
-                    glm::vec3 point = Origin + x * Direction;
+                    Vec3 point = Origin + x * Direction;
                     if(point.y >= bb.Min().y && point.y <= bb.Max().y && point.z >= bb.Min().z && point.z <= bb.Max().z)
                         dist = x;
                 }
@@ -55,7 +56,7 @@ namespace Lumos
                 float x = (bb.Min().y - Origin.y) / Direction.y;
                 if(x < dist)
                 {
-                    glm::vec3 point = Origin + x * Direction;
+                    Vec3 point = Origin + x * Direction;
                     if(point.x >= bb.Min().x && point.x <= bb.Max().x && point.z >= bb.Min().z && point.z <= bb.Max().z)
                         dist = x;
                 }
@@ -65,7 +66,7 @@ namespace Lumos
                 float x = (bb.Max().y - Origin.y) / Direction.y;
                 if(x < dist)
                 {
-                    glm::vec3 point = Origin + x * Direction;
+                    Vec3 point = Origin + x * Direction;
                     if(point.x >= bb.Min().x && point.x <= bb.Max().x && point.z >= bb.Min().z && point.z <= bb.Max().z)
                         dist = x;
                 }
@@ -76,7 +77,7 @@ namespace Lumos
                 float x = (bb.Min().z - Origin.z) / Direction.z;
                 if(x < dist)
                 {
-                    glm::vec3 point = Origin + x * Direction;
+                    Vec3 point = Origin + x * Direction;
                     if(point.x >= bb.Min().x && point.x <= bb.Max().x && point.y >= bb.Min().y && point.y <= bb.Max().y)
                         dist = x;
                 }
@@ -86,7 +87,7 @@ namespace Lumos
                 float x = (bb.Max().z - Origin.z) / Direction.z;
                 if(x < dist)
                 {
-                    glm::vec3 point = Origin + x * Direction;
+                    Vec3 point = Origin + x * Direction;
                     if(point.x >= bb.Min().x && point.x <= bb.Max().x && point.y >= bb.Min().y && point.y <= bb.Max().y)
                         dist = x;
                 }
@@ -103,19 +104,19 @@ namespace Lumos
             return Intersects(bb, distance);
         }
 
-        bool Ray::IntersectsTriangle(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, float& t) const
+        bool Ray::IntersectsTriangle(const Vec3& a, const Vec3& b, const Vec3& c, float& t) const
         {
             LUMOS_PROFILE_FUNCTION();
-            const glm::vec3 E1  = b - a;
-            const glm::vec3 E2  = c - a;
-            const glm::vec3 N   = cross(E1, E2);
-            const float det     = -glm::dot(Direction, N);
-            const float invdet  = 1.f / det;
-            const glm::vec3 AO  = Origin - a;
-            const glm::vec3 DAO = glm::cross(AO, Direction);
-            const float u       = glm::dot(E2, DAO) * invdet;
-            const float v       = -glm::dot(E1, DAO) * invdet;
-            t                   = glm::dot(AO, N) * invdet;
+            const Vec3 E1      = b - a;
+            const Vec3 E2      = c - a;
+            const Vec3 N       = E1.Cross(E2);
+            const float det    = -Maths::Dot(Direction, N);
+            const float invdet = 1.f / det;
+            const Vec3 AO      = Origin - a;
+            const Vec3 DAO     = Maths::Cross(AO, Direction);
+            const float u      = Maths::Dot(E2, DAO) * invdet;
+            const float v      = -Maths::Dot(E1, DAO) * invdet;
+            t                  = Maths::Dot(AO, N) * invdet;
             return (det >= 1e-6f && t >= 0.0f && u >= 0.0f && v >= 0.0f && (u + v) <= 1.0f);
         }
     }

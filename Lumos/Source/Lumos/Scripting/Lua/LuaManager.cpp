@@ -140,56 +140,17 @@ namespace Lumos
         auto V = curLuaState.new_usertype<view<entt::get_t<Comp>>>(#Comp "_view");                             \
         V.set_function("each", &view<entt::get_t<Comp>>::each<std::function<void(Comp&)>>);                    \
         V.set_function("front", &view<entt::get_t<Comp>>::front);                                              \
-        s_Identifiers.push_back(#Comp);                                                                        \
-        s_Identifiers.push_back("Add" #Comp);                                                                  \
-        s_Identifiers.push_back("Remove" #Comp);                                                               \
-        s_Identifiers.push_back("Get" #Comp);                                                                  \
-        s_Identifiers.push_back("GetOrAdd" #Comp);                                                             \
-        s_Identifiers.push_back("TryGet" #Comp);                                                               \
-        s_Identifiers.push_back("AddOrReplace" #Comp);                                                         \
-        s_Identifiers.push_back("Has" #Comp);                                                                  \
+        s_Identifiers.PushBack(#Comp);                                                                        \
+        s_Identifiers.PushBack("Add" #Comp);                                                                  \
+        s_Identifiers.PushBack("Remove" #Comp);                                                               \
+        s_Identifiers.PushBack("Get" #Comp);                                                                  \
+        s_Identifiers.PushBack("GetOrAdd" #Comp);                                                             \
+        s_Identifiers.PushBack("TryGet" #Comp);                                                               \
+        s_Identifiers.PushBack("AddOrReplace" #Comp);                                                         \
+        s_Identifiers.PushBack("Has" #Comp);                                                                  \
     }
 
-    std::vector<std::string> LuaManager::s_Identifiers = {
-        "Log",
-        "Trace",
-        "Info",
-        "Warn",
-        "Error",
-        "Critical",
-        "Input",
-        "GetKeyPressed",
-        "GetKeyHeld",
-        "GetMouseClicked",
-        "GetMouseHeld",
-        "GetMousePosition",
-        "GetScrollOffset",
-        "enttRegistry",
-        "Entity",
-        "EntityManager",
-        "Create"
-        "GetRegistry",
-        "Valid",
-        "Destroy",
-        "SetParent",
-        "GetParent",
-        "IsParent",
-        "GetChildren",
-        "SetActive",
-        "Active",
-        "GetEntityByName",
-        "AddPyramidEntity",
-        "AddSphereEntity",
-        "AddLightCubeEntity",
-        "NameComponent",
-        "GetNameComponent",
-        "GetCurrentEntity",
-        "SetThisComponent",
-        "LuaScriptComponent",
-        "GetLuaScriptComponent",
-        "Transform",
-        "GetTransform"
-    };
+	TDArray<std::string> LuaManager::s_Identifiers;
 
     LuaManager::LuaManager()
         : m_State(nullptr)
@@ -200,10 +161,13 @@ namespace Lumos
     {
     };
 
+#if LUMOS_PROFILE && defined(TRACY_ENABLE)
+
+#else
     static void Empty()
     {
     }
-
+#endif
     void LuaManager::OnInit()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -219,6 +183,47 @@ namespace Lumos
         app_type.set_function("ZoneName", &Empty);
         app_type.set_function("ZoneMessage", &Empty);
 #endif
+		s_Identifiers = {
+			"Log",
+			"Trace",
+			"Info",
+			"Warn",
+			"Error",
+			"FATAL",
+			"Input",
+			"GetKeyPressed",
+			"GetKeyHeld",
+			"GetMouseClicked",
+			"GetMouseHeld",
+			"GetMousePosition",
+			"GetScrollOffset",
+			"enttRegistry",
+			"Entity",
+			"EntityManager",
+			"Create"
+			"GetRegistry",
+			"Valid",
+			"Destroy",
+			"SetParent",
+			"GetParent",
+			"IsParent",
+			"GetChildren",
+			"SetActive",
+			"Active",
+			"GetEntityByName",
+			"AddPyramidEntity",
+			"AddSphereEntity",
+			"AddLightCubeEntity",
+			"NameComponent",
+			"GetNameComponent",
+			"GetCurrentEntity",
+			"SetThisComponent",
+			"LuaScriptComponent",
+			"GetLuaScriptComponent",
+			"Transform",
+			"GetTransform"
+		};
+		
         BindAppLua(*m_State);
         BindInputLua(*m_State);
         BindMathsLua(*m_State);
@@ -317,6 +322,8 @@ namespace Lumos
                                                     e = entity;
                                                 } });
 
+        if(e == entt::null)
+            LWARN("Failed to find entity %s", name.c_str());
         return e;
     }
 
@@ -326,19 +333,19 @@ namespace Lumos
         auto log = state.create_table("Log");
 
         log.set_function("Trace", [&](sol::this_state s, std::string_view message)
-                         { LUMOS_LOG_TRACE(message); });
+                         { LTRACE((char*)message.data()); });
 
         log.set_function("Info", [&](sol::this_state s, std::string_view message)
-                         { LUMOS_LOG_TRACE(message); });
+                         { LTRACE((char*)message.data()); });
 
         log.set_function("Warn", [&](sol::this_state s, std::string_view message)
-                         { LUMOS_LOG_WARN(message); });
+                         { LWARN((char*)message.data()); });
 
         log.set_function("Error", [&](sol::this_state s, std::string_view message)
-                         { LUMOS_LOG_ERROR(message); });
+                         { LERROR((char*)message.data()); });
 
-        log.set_function("Critical", [&](sol::this_state s, std::string_view message)
-                         { LUMOS_LOG_CRITICAL(message); });
+        log.set_function("FATAL", [&](sol::this_state s, std::string_view message)
+                         { LFATAL((char*)message.data()); });
     }
 
     void LuaManager::BindInputLua(sol::state& state)
@@ -358,7 +365,7 @@ namespace Lumos
         input.set_function("GetMouseHeld", [](Lumos::InputCode::MouseKey key) -> bool
                            { return Input::Get().GetMouseHeld(key); });
 
-        input.set_function("GetMousePosition", []() -> glm::vec2
+        input.set_function("GetMousePosition", []() -> Vec2
                            { return Input::Get().Get().GetMousePosition(); });
 
         input.set_function("GetScrollOffset", []() -> float
@@ -541,23 +548,22 @@ namespace Lumos
 
         REGISTER_COMPONENT_WITH_ECS(state, TextComponent, static_cast<TextComponent& (Entity::*)()>(&Entity::AddComponent<TextComponent>));
 
-        sol::usertype<Sprite> sprite_type = state.new_usertype<Sprite>("Sprite", sol::constructors<sol::types<glm::vec2, glm::vec2, glm::vec4>, Sprite(const SharedPtr<Graphics::Texture2D>&, const glm::vec2&, const glm::vec2&, const glm::vec4&)>());
+        sol::usertype<Sprite> sprite_type = state.new_usertype<Sprite>("Sprite", sol::constructors<sol::types<Vec2, Vec2, Vec4>, Sprite(const SharedPtr<Graphics::Texture2D>&, const Vec2&, const Vec2&, const Vec4&)>());
         sprite_type.set_function("SetTexture", &Sprite::SetTexture);
         sprite_type.set_function("SetSpriteSheet", &Sprite::SetSpriteSheet);
         sprite_type.set_function("SetSpriteSheetIndex", &Sprite::SetSpriteSheetIndex);
         sprite_type["SpriteSheetTileSize"] = &Sprite::SpriteSheetTileSize;
 
-        REGISTER_COMPONENT_WITH_ECS(state, Sprite, static_cast<Sprite& (Entity::*)(const glm::vec2&, const glm::vec2&, const glm::vec4&)>(&Entity::AddComponent<Sprite, const glm::vec2&, const glm::vec2&, const glm::vec4&>));
+        REGISTER_COMPONENT_WITH_ECS(state, Sprite, static_cast<Sprite& (Entity::*)(const Vec2&, const Vec2&, const Vec4&)>(&Entity::AddComponent<Sprite, const Vec2&, const Vec2&, const Vec4&>));
 
-        state.new_usertype<Light>(
-            "Light",
-            "Intensity", &Light::Intensity,
-            "Radius", &Light::Radius,
-            "Colour", &Light::Colour,
-            "Direction", &Light::Direction,
-            "Position", &Light::Position,
-            "Type", &Light::Type,
-            "Angle", &Light::Angle);
+        sol::usertype<Light> lightType = state.new_usertype<Light>("Light");
+        lightType.set_function("Intensity", &Light::Intensity);
+        lightType.set_function("Radius", &Light::Radius);
+        lightType.set_function("Colour", &Light::Colour);
+        lightType.set_function("Direction", &Light::Direction);
+        lightType.set_function("Position", &Light::Position);
+        lightType.set_function("Type", &Light::Type);
+        lightType.set_function("Angle", &Light::Angle);
 
         REGISTER_COMPONENT_WITH_ECS(state, Light, static_cast<Light& (Entity::*)()>(&Entity::AddComponent<Light>));
 
@@ -574,50 +580,49 @@ namespace Lumos
 
         state.new_enum<Lumos::Graphics::PrimitiveType, false>("PrimitiveType", primitives);
 
-        state.new_usertype<Model>("Model",
-                                  // Constructors
-                                  sol::constructors<
-                                      Lumos::Graphics::Model(),
-                                      Lumos::Graphics::Model(const std::string&),
-                                      Lumos::Graphics::Model(const Lumos::SharedPtr<Lumos::Graphics::Mesh>&, Lumos::Graphics::PrimitiveType),
-                                      Lumos::Graphics::Model(Lumos::Graphics::PrimitiveType)>(),
-                                  // Properties
-                                  "meshes", &Lumos::Graphics::Model::GetMeshes,
-                                  "file_path", &Lumos::Graphics::Model::GetFilePath,
-                                  "primitive_type", sol::property(&Lumos::Graphics::Model::GetPrimitiveType, &Lumos::Graphics::Model::SetPrimitiveType),
-                                  // Methods
-                                  "add_mesh", &Lumos::Graphics::Model::AddMesh,
-                                  "load_model", &Lumos::Graphics::Model::LoadModel);
+        auto Modeltype = state.new_usertype<Model>("Model");
+
+        // Constructors
+        Modeltype[sol::call_constructor] = sol::constructors<
+            Lumos::Graphics::Model(),
+            Lumos::Graphics::Model(const std::string&),
+            Lumos::Graphics::Model(const Lumos::SharedPtr<Lumos::Graphics::Mesh>&, Lumos::Graphics::PrimitiveType),
+            Lumos::Graphics::Model(Lumos::Graphics::PrimitiveType)>();
+
+        // Properties
+        Modeltype["meshes"]         = &Lumos::Graphics::Model::GetMeshes;
+        Modeltype["file_path"]      = &Lumos::Graphics::Model::GetFilePath;
+        Modeltype["primitive_type"] = sol::property(&Lumos::Graphics::Model::GetPrimitiveType, &Lumos::Graphics::Model::SetPrimitiveType);
+
+        // Methods
+        Modeltype["add_mesh"]   = &Lumos::Graphics::Model::AddMesh;
+        Modeltype["load_model"] = &Lumos::Graphics::Model::LoadModel;
 
         REGISTER_COMPONENT_WITH_ECS(state, Model, static_cast<Model& (Entity::*)(const std::string&)>(&Entity::AddComponent<Model, const std::string&>));
 
-        // Member functions
-        sol::usertype<Material> material_type = state.new_usertype<Material>("Material",
+        auto material_type = state.new_usertype<Material>("Material");
+        // Setters
+        material_type["set_albedo_texture"]    = &Material::SetAlbedoTexture;
+        material_type["set_normal_texture"]    = &Material::SetNormalTexture;
+        material_type["set_roughness_texture"] = &Material::SetRoughnessTexture;
+        material_type["set_metallic_texture"]  = &Material::SetMetallicTexture;
+        material_type["set_ao_texture"]        = &Material::SetAOTexture;
+        material_type["set_emissive_texture"]  = &Material::SetEmissiveTexture;
 
-                                                                             sol::constructors<
-                                                                                 Lumos::Graphics::Material()>(),
-                                                                             // Setters
-                                                                             "set_albedo_texture", &Material::SetAlbedoTexture,
-                                                                             "set_normal_texture", &Material::SetNormalTexture,
-                                                                             "set_roughness_texture", &Material::SetRoughnessTexture,
-                                                                             "set_metallic_texture", &Material::SetMetallicTexture,
-                                                                             "set_ao_texture", &Material::SetAOTexture,
-                                                                             "set_emissive_texture", &Material::SetEmissiveTexture,
+        // Getters
+        material_type["get_name"]       = &Material::GetName;
+        material_type["get_properties"] = &Material::GetProperties;
+        // material_type["get_textures"] = &Material::GetTextures; // Commented out in original
+        material_type["get_shader"] = &Material::GetShader;
 
-                                                                             // Getters
-                                                                             "get_name", &Material::GetName,
-                                                                             "get_properties", &Material::GetProperties,
-                                                                             //"get_textures", &Material::GetTextures,
-                                                                             "get_shader", &Material::GetShader,
-
-                                                                             // Other member functions
-                                                                             "load_pbr_material", &Material::LoadPBRMaterial,
-                                                                             "load_material", &Material::LoadMaterial,
-                                                                             "set_textures", &Material::SetTextures,
-                                                                             "set_material_properties", &Material::SetMaterialProperites,
-                                                                             "update_material_properties_data", &Material::UpdateMaterialPropertiesData,
-                                                                             "set_name", &Material::SetName,
-                                                                             "bind", &Material::Bind);
+        // Other member functions
+        material_type["load_pbr_material"]               = &Material::LoadPBRMaterial;
+        material_type["load_material"]                   = &Material::LoadMaterial;
+        material_type["set_textures"]                    = &Material::SetTextures;
+        material_type["set_material_properties"]         = &Material::SetMaterialProperites;
+        material_type["update_material_properties_data"] = &Material::UpdateMaterialPropertiesData;
+        material_type["set_name"]                        = &Material::SetName;
+        material_type["bind"]                            = &Material::Bind;
 
         // Enum for RenderFlags
         std::initializer_list<std::pair<sol::string_view, Material::RenderFlags>> render_flags = {
@@ -660,13 +665,12 @@ namespace Lumos
 
         auto mesh_type = state.new_usertype<Lumos::Graphics::Mesh>("Mesh",
                                                                    sol::constructors<Lumos::Graphics::Mesh(), Lumos::Graphics::Mesh(const Lumos::Graphics::Mesh&),
-                                                                                     Lumos::Graphics::Mesh(const std::vector<uint32_t>&, const std::vector<Vertex>&, float)>());
+                                                                                     Lumos::Graphics::Mesh(const TDArray<uint32_t>&, const TDArray<Vertex>&)>());
 
         // Bind the member functions and variables
         mesh_type["GetMaterial"]    = &Lumos::Graphics::Mesh::GetMaterial;
         mesh_type["SetMaterial"]    = &Lumos::Graphics::Mesh::SetMaterial;
         mesh_type["GetBoundingBox"] = &Lumos::Graphics::Mesh::GetBoundingBox;
-        mesh_type["GetActive"]      = &Lumos::Graphics::Mesh::GetActive;
         mesh_type["SetName"]        = &Lumos::Graphics::Mesh::SetName;
 
         std::initializer_list<std::pair<sol::string_view, Lumos::Graphics::TextureFilter>> textureFilter = {
@@ -722,7 +726,7 @@ namespace Lumos
 
     static void SwitchSceneByName(const std::string& name)
     {
-        Application::Get().GetSceneManager()->SwitchScene(name);
+        Application::Get().GetSceneManager()->SwitchScene(name.c_str());
     }
 
     static void SetPhysicsDebugFlags(int flags)

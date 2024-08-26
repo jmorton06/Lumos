@@ -1,13 +1,16 @@
 #include "PreviewDraw.h"
-#include <Lumos/Utilities/AssetManager.h>
+#include <Lumos/Core/Asset/AssetManager.h>
 #include <Lumos/Graphics/RHI/Renderer.h>
-#include <Lumos/Graphics/Renderers/RenderPasses.h>
+#include <Lumos/Graphics/Renderers/SceneRenderer.h>
 #include <Lumos/Graphics/Model.h>
+#include <Lumos/Graphics/Mesh.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
 #include <Lumos/Scene/EntityManager.h>
 #include <Lumos/Scene/Scene.h>
 #include <Lumos/Graphics/Light.h>
 #include <Lumos/Graphics/Environment.h>
+#include <Lumos/Maths/BoundingBox.h>
+#include <Lumos/Maths/MathsUtilities.h>
 
 namespace Lumos
 {
@@ -38,27 +41,27 @@ namespace Lumos
 
         if(!m_PreviewRenderer)
         {
-            m_PreviewRenderer                       = CreateSharedPtr<Graphics::RenderPasses>(256, 256);
+            m_PreviewRenderer                       = CreateSharedPtr<Graphics::SceneRenderer>(256, 256);
             m_PreviewRenderer->m_DebugRenderEnabled = false;
         }
 
-        m_PreviewScene                           = new Scene("Preview");
-        auto& sceneSettings                      = m_PreviewScene->GetSettings();
-        sceneSettings.RenderSettings.MSAASamples = 1;
-
+        m_PreviewScene                             = new Scene("Preview");
+        auto& sceneSettings                        = m_PreviewScene->GetSettings();
+        sceneSettings.RenderSettings.MSAASamples  = 1;
+		sceneSettings.RenderSettings.BloomEnabled = false;
         {
-            auto light          = m_PreviewScene->GetEntityManager()->Create("Light");
-            auto& lightComp     = light.AddComponent<Graphics::Light>();
-            glm::mat4 lightView = glm::inverse(glm::lookAt(glm::vec3(30.0f, 9.0f, 50.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+            auto light      = m_PreviewScene->GetEntityManager()->Create("Light");
+            auto& lightComp = light.AddComponent<Graphics::Light>();
+            Mat4 lightView  = Mat4::LookAt(Vec3(30.0f, 9.0f, 50.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
             light.GetTransform().SetLocalTransform(lightView);
-            light.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
+            light.GetTransform().SetWorldMatrix(Mat4(1.0f));
 
             m_CameraEntity = m_PreviewScene->GetEntityManager()->Create("Camera");
             m_CameraEntity.AddComponent<Camera>();
             m_CameraEntity.GetComponent<Camera>().SetFar(10000);
-            glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-1.0f, 0.5f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+            Mat4 viewMat = Mat4::LookAt(Vec3(-1.0f, 0.5f, 1.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
             m_CameraEntity.GetTransform().SetLocalTransform(viewMat);
-            m_CameraEntity.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
+            m_CameraEntity.GetTransform().SetWorldMatrix(Mat4(1.0f));
 
             auto environment = m_PreviewScene->GetEntityManager()->Create("Environment");
             environment.AddComponent<Graphics::Environment>();
@@ -100,13 +103,14 @@ namespace Lumos
             m_PreviewObjectEntity.AddComponent<Graphics::ModelComponent>(ToStdString(path));
         }
 
-        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-1.0f, 0.5f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+		Mat4 viewMat = Mat4::LookAt(Vec3(-1.0f, 0.5f, 1.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
         m_CameraEntity.GetTransform().SetLocalTransform(viewMat);
-        m_CameraEntity.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
+        m_CameraEntity.GetTransform().SetWorldMatrix(Mat4(1.0f));
 
-        auto bb = m_PreviewObjectEntity.GetComponent<Graphics::ModelComponent>().ModelRef->GetMeshes().front()->GetBoundingBox();
-        m_CameraEntity.GetTransform().SetLocalPosition((m_CameraEntity.GetTransform().GetForwardDirection()) * glm::distance(bb->Max(), bb->Min()));
-        m_CameraEntity.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
+        auto bb = m_PreviewObjectEntity.GetComponent<Graphics::ModelComponent>().ModelRef->GetMeshes().Front()->GetBoundingBox();
+		viewMat = Mat4::LookAt(-(m_CameraEntity.GetTransform().GetForwardDirection()) * Maths::Distance(bb.Max(), bb.Min()), bb.Center(), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
+		m_CameraEntity.GetTransform().SetLocalTransform(viewMat);
+		m_CameraEntity.GetTransform().SetWorldMatrix(Mat4(1.0f));
     }
 
     void PreviewDraw::LoadMaterial(String8 path)
@@ -118,9 +122,9 @@ namespace Lumos
         m_PreviewObjectEntity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Sphere);
         m_PreviewObjectEntity.GetComponent<Graphics::ModelComponent>().ModelRef->GetMeshes()[0]->SetAndLoadMaterial(ToStdString(path));
 
-        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-1.0f, 0.5f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+        Mat4 viewMat = Mat4::LookAt(Vec3(-1.0f, 0.5f, 1.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
         m_CameraEntity.GetTransform().SetLocalTransform(viewMat);
-        m_CameraEntity.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
+        m_CameraEntity.GetTransform().SetWorldMatrix(Mat4(1.0f));
     }
 
     void PreviewDraw::DeletePreviewModel()

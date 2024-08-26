@@ -1,0 +1,29 @@
+#pragma once
+
+#ifdef __cplusplus
+#include <algorithm>
+#include <string>
+#include <array>
+#include <map>
+#include <unordered_map>
+#include <cstddef>
+#include <cfloat>
+#include <cstring>
+#include <utility>
+#include <memory>
+#include <thread>
+#include <math.h>
+
+#include "Core/Reference.h"
+#include "Core/LMLog.h"
+#include "Core/Core.h"
+#include "Core/Profiler.h"
+#include "Core/Thread.h"
+
+#include <imgui/imgui.h>
+
+#ifdef LUMOS_RENDER_API_VULKAN
+#include "Platform/Vulkan/VK.h"
+#endif
+
+#endif

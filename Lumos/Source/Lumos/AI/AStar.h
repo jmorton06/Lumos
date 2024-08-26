@@ -3,13 +3,14 @@
 #include "PathNode.h"
 #include "PathNodePriorityQueue.h"
 #include "QueueablePathNode.h"
+#include "Core/DataStructures/Map.h"
 
 namespace Lumos
 {
     class AStar
     {
     public:
-        explicit AStar(const std::vector<PathNode*>& nodes);
+        explicit AStar(const TDArray<PathNode*>& nodes);
         virtual ~AStar();
 
         void Reset();
@@ -20,25 +21,25 @@ namespace Lumos
             return m_OpenList;
         }
 
-        const std::vector<QueueablePathNode*>& ClosedList() const
+        const TDArray<QueueablePathNode*>& ClosedList() const
         {
             return m_ClosedList;
         }
 
-        const std::vector<PathNode*>& Path() const
+        const TDArray<PathNode*>& Path() const
         {
             return m_Path;
         }
 
         float PathCost() const
         {
-            return m_ClosedList.back()->gScore;
+            return m_ClosedList.Back()->gScore;
         }
 
     private:
-        std::map<PathNode*, QueueablePathNode*> m_NodeData;
+        HashMap(PathNode*, QueueablePathNode*) m_NodeData;
         PathNodePriorityQueue m_OpenList;
-        std::vector<QueueablePathNode*> m_ClosedList;
-        std::vector<PathNode*> m_Path;
+        TDArray<QueueablePathNode*> m_ClosedList;
+        TDArray<PathNode*> m_Path;
     };
 }

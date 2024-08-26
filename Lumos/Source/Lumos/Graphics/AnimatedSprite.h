@@ -22,28 +22,23 @@ namespace Lumos::Graphics
         struct AnimationState
         {
             PlayMode Mode;
-            std::vector<glm::vec2> Frames;
+            std::vector<Vec2> Frames;
             float FrameDuration = 1.0f;
 
-            template <typename Archive>
-            void serialize(Archive& archive)
-            {
-                archive(cereal::make_nvp("PlayMode", Mode),
-                        cereal::make_nvp("Frames", Frames),
-                        cereal::make_nvp("FrameDuration", FrameDuration));
-            }
+			template <typename Archive>
+			friend void serialize(Archive& archive, AnimationState& state);
         };
 
         AnimatedSprite();
 
-        AnimatedSprite(const SharedPtr<Texture2D>& texture, const glm::vec2& position, const glm::vec2& scale, const std::vector<glm::vec2>& frames, float frameDuration, const std::string& stateName);
+        AnimatedSprite(const SharedPtr<Texture2D>& texture, const Vec2& position, const Vec2& scale, const std::vector<Vec2>& frames, float frameDuration, const std::string& stateName);
         virtual ~AnimatedSprite() = default;
 
         void OnUpdate(float dt);
 
-        const std::array<glm::vec2, 4>& GetAnimatedUVs();
+        const std::array<Vec2, 4>& GetAnimatedUVs();
 
-        void AddState(const std::vector<glm::vec2>& frames, float frameDuration, const std::string& stateName);
+        void AddState(const std::vector<Vec2>& frames, float frameDuration, const std::string& stateName);
         void SetState(const std::string& state);
         const std::string& GetState() const { return m_State; }
         std::unordered_map<std::string, AnimationState>& GetAnimationStates() { return m_AnimationStates; }

@@ -7,6 +7,7 @@
 #include "Animation/Skeleton.h"
 #include "Animation/Animation.h"
 #include "Animation/AnimationController.h"
+#include "Animation/SamplingContext.h"
 #include "AI/AStar.h"
 
 namespace Lumos::Graphics
@@ -28,14 +29,14 @@ namespace Lumos::Graphics
         : m_FilePath("Primitive")
         , m_PrimitiveType(type)
     {
-        m_Meshes.push_back(mesh);
+        m_Meshes.PushBack(mesh);
     }
 
     Model::Model(PrimitiveType type)
         : m_FilePath("Primitive")
         , m_PrimitiveType(type)
     {
-        m_Meshes.push_back(SharedPtr<Mesh>(CreatePrimative(type)));
+        m_Meshes.PushBack(SharedPtr<Mesh>(CreatePrimative(type)));
     }
 
     Model::~Model()
@@ -53,7 +54,7 @@ namespace Lumos::Graphics
         std::string physicalPath;
         if(!Lumos::FileSystem::Get().ResolvePhysicalPath(path, physicalPath))
         {
-            LUMOS_LOG_INFO("Failed to load Model - {0}", path);
+            LINFO("Failed to load Model - %s", path.c_str());
             return;
         }
 
@@ -68,14 +69,14 @@ namespace Lumos::Graphics
         else if(fileExtension == "fbx" || fileExtension == "FBX")
             LoadFBX(resolvedPath);
         else
-            LUMOS_LOG_ERROR("Unsupported File Type : {0}", fileExtension);
+            LERROR("Unsupported File Type : %s", fileExtension.c_str());
 
-        LUMOS_LOG_INFO("Loaded Model - {0}", path);
+        LINFO("Loaded Model - %s", path.c_str());
     }
 
     void Model::UpdateAnimation(const TimeStep& dt)
     {
-        if(m_Animation.empty())
+        if(m_Animation.Empty())
             return;
 
         if(!m_SamplingContext)
@@ -91,7 +92,7 @@ namespace Lumos::Graphics
             {
                 m_AnimationController->AddState(anim->GetName(), anim);
             }
-            m_AnimationController->m_BindPoses = m_BindPoses;
+            m_AnimationController->SetBindPoses(m_BindPoses);
         }
 
         static float time = 0.0f;
@@ -102,7 +103,7 @@ namespace Lumos::Graphics
 
     void Model::UpdateAnimation(const TimeStep& dt, float overrideTime)
     {
-        if(m_Animation.empty())
+        if(m_Animation.Empty())
             return;
 
         if(!m_SamplingContext)
@@ -118,21 +119,21 @@ namespace Lumos::Graphics
             {
                 m_AnimationController->AddState(anim->GetName(), anim);
             }
-            m_AnimationController->m_BindPoses = m_BindPoses;
+            m_AnimationController->SetBindPoses(m_BindPoses);
         }
 
         m_AnimationController->SetCurrentState(m_CurrentAnimation);
         m_AnimationController->Update(overrideTime, *m_SamplingContext.get());
     }
 
-    std::vector<glm::mat4> Model::GetJointMatrices()
+    TDArray<Mat4> Model::GetJointMatrices()
     {
-        if(m_Animation.empty())
+        if(m_Animation.Empty())
             return {};
 
         auto matrices = m_AnimationController->GetJointMatrices();
 
-        for(int i = 0; i < matrices.size(); i++)
+        for(int i = 0; i < matrices.Size(); i++)
         {
             // matrices[i] = m_BindPoses[i] * matrices[i];
         }
@@ -140,24 +141,24 @@ namespace Lumos::Graphics
         return matrices;
     }
 
-    std::vector<SharedPtr<Mesh>>& Model::GetMeshesRef()
+    TDArray<SharedPtr<Mesh>>& Model::GetMeshesRef()
     {
         return m_Meshes;
     }
-    const std::vector<SharedPtr<Mesh>>& Model::GetMeshes() const
+    const TDArray<SharedPtr<Mesh>>& Model::GetMeshes() const
     {
         return m_Meshes;
     }
     void Model::AddMesh(SharedPtr<Mesh> mesh)
     {
-        m_Meshes.push_back(mesh);
+        m_Meshes.PushBack(mesh);
     }
     SharedPtr<Skeleton> Model::GetSkeleton() const
     {
         return m_Skeleton;
     }
 
-    const std::vector<SharedPtr<Animation>>& Model::GetAnimations() const
+    const TDArray<SharedPtr<Animation>>& Model::GetAnimations() const
     {
         return m_Animation;
     }

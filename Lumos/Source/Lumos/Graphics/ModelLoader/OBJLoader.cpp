@@ -3,11 +3,11 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Maths/Transform.h"
+#include "Maths/BoundingBox.h"
 #include "Graphics/RHI/Texture.h"
-#include "Maths/Maths.h"
 #include "Utilities/StringUtilities.h"
 #include "Core/Application.h"
-#include "Utilities/AssetManager.h"
+#include "Core/Asset/AssetManager.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <ModelLoaders/tinyobjloader/tiny_obj_loader.h>
@@ -15,11 +15,11 @@
 namespace Lumos
 {
     std::string m_Directory;
-    std::vector<SharedPtr<Graphics::Texture2D>> m_Textures;
+    TDArray<SharedPtr<Graphics::Texture2D>> m_Textures;
 
-    SharedPtr<Graphics::Texture2D> LoadMaterialTextures(const std::string& typeName, std::vector<SharedPtr<Graphics::Texture2D>>& textures_loaded, const std::string& name, const std::string& directory, Graphics::TextureDesc format)
+    SharedPtr<Graphics::Texture2D> LoadMaterialTextures(const std::string& typeName, TDArray<SharedPtr<Graphics::Texture2D>>& textures_loaded, const std::string& name, const std::string& directory, Graphics::TextureDesc format)
     {
-        for(uint32_t j = 0; j < textures_loaded.size(); j++)
+        for(uint32_t j = 0; j < textures_loaded.Size(); j++)
         {
             if(std::strcmp(textures_loaded[j]->GetFilepath().c_str(), (directory + name).c_str()) == 0)
             {
@@ -32,7 +32,7 @@ namespace Lumos
             std::string filePath = directory + name;
             filePath             = StringUtilities::BackSlashesToSlashes(filePath);
             auto texture         = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(typeName, filePath, format, options));
-            textures_loaded.push_back(texture); // Store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
+            textures_loaded.PushBack(texture); // Store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
 
             return texture;
         }
@@ -58,7 +58,7 @@ namespace Lumos
 
         if(!ok)
         {
-            LUMOS_LOG_CRITICAL(error);
+            LFATAL(error.c_str());
         }
 
         bool singleMesh = shapes.size() == 1;
@@ -68,10 +68,8 @@ namespace Lumos
             uint32_t vertexCount       = 0;
             const uint32_t numIndices  = static_cast<uint32_t>(shape.mesh.indices.size());
             const uint32_t numVertices = numIndices; // attrib.vertices.size();// numIndices / 3.0f;
-            std::vector<Graphics::Vertex> vertices(numVertices);
-            std::vector<uint32_t> indices(numIndices);
-
-            std::unordered_map<Graphics::Vertex, uint32_t> uniqueVertices;
+            TDArray<Graphics::Vertex> vertices(numVertices);
+            TDArray<uint32_t> indices(numIndices);
 
             SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
 
@@ -82,15 +80,15 @@ namespace Lumos
 
                 if(!attrib.texcoords.empty())
                 {
-                    vertex.TexCoords = (glm::vec2(
+                    vertex.TexCoords = (Vec2(
                         attrib.texcoords[2 * index.texcoord_index + 0],
                         1.0f - attrib.texcoords[2 * index.texcoord_index + 1]));
                 }
                 else
                 {
-                    vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+                    vertex.TexCoords = Vec2(0.0f, 0.0f);
                 }
-                vertex.Position = (glm::vec3(
+                vertex.Position = (Vec3(
                     attrib.vertices[3 * index.vertex_index + 0],
                     attrib.vertices[3 * index.vertex_index + 1],
                     attrib.vertices[3 * index.vertex_index + 2]));
@@ -99,35 +97,35 @@ namespace Lumos
 
                 if(!attrib.normals.empty())
                 {
-                    vertex.Normal = (glm::vec3(
+                    vertex.Normal = (Vec3(
                         attrib.normals[3 * index.normal_index + 0],
                         attrib.normals[3 * index.normal_index + 1],
                         attrib.normals[3 * index.normal_index + 2]));
                 }
 
-                glm::vec4 colour = glm::vec4(0.0f);
+                Vec4 colour = Vec4(0.0f);
 
                 if(shape.mesh.material_ids[0] >= 0)
                 {
                     tinyobj::material_t* mp = &materials[shape.mesh.material_ids[0]];
-                    colour                  = glm::vec4(mp->diffuse[0], mp->diffuse[1], mp->diffuse[2], 1.0f);
+                    colour                  = Vec4(mp->diffuse[0], mp->diffuse[1], mp->diffuse[2], 1.0f);
                 }
 
                 vertex.Colours = colour;
 
-                if(uniqueVertices.count(vertex) == 0)
-                {
-                    uniqueVertices[vertex] = static_cast<uint32_t>(vertexCount);
-                    vertices[vertexCount]  = vertex;
-                }
+                /*         if(uniqueVertices.count(vertex) == 0)
+                         {
+                             uniqueVertices[vertex] = static_cast<uint32_t>(vertexCount);*/
+                vertices[vertexCount] = vertex;
+                //}
 
-                indices[vertexCount] = uniqueVertices[vertex];
+                indices[vertexCount] = vertexCount; // uniqueVertices[vertex];
 
                 vertexCount++;
             }
 
             if(attrib.normals.empty())
-                Graphics::Mesh::GenerateNormals(vertices.data(), vertexCount, indices.data(), numIndices);
+                Graphics::Mesh::GenerateNormals(vertices.Data(), vertexCount, indices.Data(), numIndices);
 
             // TODO : if(isAnimated) Load deferredColourAnimated;
             //  auto shader = Application::Get().GetShaderLibrary()->GetAsset("//CoreShaders/ForwardPBR.shader");
@@ -181,11 +179,11 @@ namespace Lumos
 
             auto mesh = CreateSharedPtr<Graphics::Mesh>(indices, vertices);
             mesh->SetMaterial(pbrMaterial);
-            mesh->GenerateTangentsAndBitangents(vertices.data(), uint32_t(numVertices), indices.data(), uint32_t(numIndices));
+            mesh->GenerateTangentsAndBitangents(vertices.Data(), uint32_t(numVertices), indices.Data(), uint32_t(numIndices));
 
-            m_Meshes.push_back(mesh);
+            m_Meshes.PushBack(mesh);
 
-            m_Textures.clear();
+            m_Textures.Clear();
         }
     }
 

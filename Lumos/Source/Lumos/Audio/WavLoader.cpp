@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "WavLoader.h"
+#include <fstream>
 
 namespace Lumos
 {
@@ -11,7 +12,7 @@ namespace Lumos
 
         if(!file)
         {
-            LUMOS_LOG_CRITICAL("Failed to load WAV file '{0}'!", fileName);
+            LFATAL("Failed to load WAV file '{0}'!", fileName.c_str());
             return data;
         }
 
@@ -39,8 +40,8 @@ namespace Lumos
             else if(chunkName == "data")
             {
                 data.Size = chunkSize;
-                data.Data.resize(data.Size);
-                file.read(reinterpret_cast<char*>(data.Data.data()), chunkSize);
+                data.Data.Resize(data.Size);
+                file.read(reinterpret_cast<char*>(data.Data.Data()), chunkSize);
                 break;
                 /*
                                 In release mode, ifstream and / or something else were combining

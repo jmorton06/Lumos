@@ -122,14 +122,14 @@ namespace Lumos
 
         if(!color)
         {
-            LUMOS_LOG_ERROR("Win32: Failed to create RGBA bitmap");
+            LERROR("Win32: Failed to create RGBA bitmap");
             return NULL;
         }
 
         mask = CreateBitmap(width, height, 1, 1, NULL);
         if(!mask)
         {
-            LUMOS_LOG_ERROR("Win32: Failed to create mask bitmap");
+            LERROR("Win32: Failed to create mask bitmap");
             DeleteObject(color);
             return NULL;
         }
@@ -160,11 +160,11 @@ namespace Lumos
         {
             if(icon)
             {
-                LUMOS_LOG_ERROR("Win32: Failed to create icon");
+                LERROR("Win32: Failed to create icon");
             }
             else
             {
-                LUMOS_LOG_ERROR("Win32: Failed to create cursor");
+                LERROR("Win32: Failed to create cursor");
             }
         }
 
@@ -173,7 +173,7 @@ namespace Lumos
 
     bool WindowsWindow::Init(const WindowDesc& properties)
     {
-        m_Data.Title  = properties.Title;
+        m_Data.Title  = (const char*)properties.Title.str;
         m_Data.Width  = properties.Width;
         m_Data.Height = properties.Height;
         m_Data.Exit   = false;
@@ -185,7 +185,7 @@ namespace Lumos
         winClass.hInstance     = hInstance;
         winClass.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
         winClass.lpfnWndProc   = static_cast<WNDPROC>(WndProc);
-        winClass.lpszClassName = WindowsUtilities::StringToWString(properties.Title).c_str();
+        winClass.lpszClassName = WindowsUtilities::StringToWString((const char*)properties.Title.str).c_str();
 
         winClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
         winClass.hCursor       = LoadCursorW(nullptr, IDC_ARROW);
@@ -202,7 +202,7 @@ namespace Lumos
 
         if(!RegisterClassExW(&winClass))
         {
-            LUMOS_LOG_CRITICAL("Could not register Win32 class!");
+            LFATAL("Could not register Win32 class!");
             return false;
         }
 
@@ -221,11 +221,11 @@ namespace Lumos
             windowTop  = 0;
         }
 
-        hWnd = CreateWindow(winClass.lpszClassName, WindowsUtilities::StringToWString(properties.Title).c_str(), style, windowLeft, windowTop, m_Data.Width, m_Data.Height, NULL, NULL, hInstance, NULL);
+        hWnd = CreateWindow(winClass.lpszClassName, WindowsUtilities::StringToWString((const char*)properties.Title.str).c_str(), style, windowLeft, windowTop, m_Data.Width, m_Data.Height, NULL, NULL, hInstance, NULL);
 
         if(!hWnd)
         {
-            LUMOS_LOG_CRITICAL("Could not create window!");
+            LFATAL("Could not create window!");
             return false;
         }
 
@@ -236,13 +236,13 @@ namespace Lumos
         {
             if(!SetPixelFormat(hDc, pixelFormat, &pfd))
             {
-                LUMOS_LOG_CRITICAL("Failed setting pixel format!");
+                LFATAL("Failed setting pixel format!");
                 return false;
             }
         }
         else
         {
-            LUMOS_LOG_CRITICAL("Failed choosing pixel format!");
+            LFATAL("Failed choosing pixel format!");
             return false;
         }
 
@@ -250,7 +250,7 @@ namespace Lumos
 
         ShowWindow(hWnd, SW_SHOW);
         SetFocus(hWnd);
-        SetWindowTitle(properties.Title);
+        SetWindowTitle((const char*)properties.Title.str);
 
         RECT clientRect;
         GetClientRect(hWnd, &clientRect);
@@ -312,20 +312,20 @@ namespace Lumos
 		if(properties.RenderAPI == RenderAPI::OpenGL)
 		{
             HDC hDc = GetDC(static_cast<HWND>(GetHandle()));
-			
+
             HGLRC tempContext = wglCreateContext(hDc);
             wglMakeCurrent(hDc, tempContext);
-			
+
             if(!wglMakeCurrent(hDc, tempContext))
             {
-                LUMOS_LOG_ERROR("Failed to initialise OpenGL context");
+                LERROR("Failed to initialise OpenGL context");
             }
-			
+
             if(!gladLoadWGL(hDc))
-                LUMOS_LOG_ERROR("glad failed to load WGL!");
+                LERROR("glad failed to load WGL!");
             if(!gladLoadGL())
-                LUMOS_LOG_ERROR("glad failed to load OpenGL!");
-			
+                LERROR("glad failed to load OpenGL!");
+
             const int contextAttribsList[] = {
                 WGL_CONTEXT_MAJOR_VERSION_ARB,
                 4,
@@ -342,11 +342,11 @@ namespace Lumos
 #endif
                 0,
             };
-			
+
             HGLRC hrc = wglCreateContextAttribsARB(hDc, nullptr, contextAttribsList);
             if(hrc == nullptr)
             {
-                LUMOS_LOG_ERROR("Failed to create core OpenGL context");
+                LERROR("Failed to create core OpenGL context");
             }
             else
             {

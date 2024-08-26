@@ -1,10 +1,8 @@
 #pragma once
 
-#include "Maths/Maths.h"
+#include "Maths/MathsFwd.h"
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
-#include <glm/fwd.hpp>
-#include <iostream>
 
 static float value1 = 0.0f;
 static float value2 = 0.0f;
@@ -63,38 +61,38 @@ namespace Lumos
         bool Property(const char* name, int& value, int min = 0, int max = 100.0, PropertyFlag flags = PropertyFlag::None);
 
         bool Property(const char* name, float& value, float min = -1.0f, float max = 1.0f, float delta = 1.0f, PropertyFlag flags = PropertyFlag::None);
-        bool Property(const char* name, glm::vec2& value, PropertyFlag flags);
-        bool Property(const char* name, glm::vec2& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
-        bool Property(const char* name, glm::vec3& value, PropertyFlag flags);
-        bool Property(const char* name, glm::vec3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
-        bool Property(const char* name, glm::vec4& value, bool exposeW, PropertyFlag flags);
-        bool Property(const char* name, glm::vec4& value, float min = -1.0f, float max = 1.0f, bool exposeW = false, PropertyFlag flags = PropertyFlag::None);
-        bool PropertyTransform(const char* name, glm::vec3& vector, float width, float defaultElementValue = 0.0f);
+        bool Property(const char* name, Vec2& value, PropertyFlag flags);
+        bool Property(const char* name, Vec2& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const char* name, Vec3& value, PropertyFlag flags);
+        bool Property(const char* name, Vec3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const char* name, Vec4& value, bool exposeW, PropertyFlag flags);
+        bool Property(const char* name, Vec4& value, float min = -1.0f, float max = 1.0f, bool exposeW = false, PropertyFlag flags = PropertyFlag::None);
+        bool PropertyTransform(const char* name, Vec3& vector, float width, float defaultElementValue = 0.0f);
 
-        bool Property(const char* name, glm::quat& value, PropertyFlag flags);
+        bool Property(const char* name, Quat& value, PropertyFlag flags);
 
         bool PropertyDropdown(const char* label, const char** options, int32_t optionCount, int32_t* selected);
 
         void Tooltip(const char* text);
 
-        void Tooltip(Graphics::Texture2D* texture, const glm::vec2& size);
-        void Tooltip(Graphics::Texture2D* texture, const glm::vec2& size, const char* text);
-        void Tooltip(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size);
+        void Tooltip(Graphics::Texture2D* texture, const Vec2& size);
+        void Tooltip(Graphics::Texture2D* texture, const Vec2& size, const char* text);
+        void Tooltip(Graphics::TextureDepthArray* texture, uint32_t index, const Vec2& size);
 
-        void Image(Graphics::Texture2D* texture, const glm::vec2& size, bool flip = false);
-        void Image(Graphics::TextureCube* texture, const glm::vec2& size, bool flip = false);
-        void Image(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size, bool flip = false);
+        void Image(Graphics::Texture2D* texture, const Vec2& size, bool flip = false);
+        void Image(Graphics::TextureCube* texture, const Vec2& size, bool flip = false);
+        void Image(Graphics::TextureDepthArray* texture, uint32_t index, const Vec2& size, bool flip = false);
 
         void TextCentred(const char* text);
 
         void SetTheme(Theme theme);
 
-        bool BufferingBar(const char* label, float value, const glm::vec2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col);
+        bool BufferingBar(const char* label, float value, const Vec2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col);
         bool Spinner(const char* label, float radius, int thickness, const uint32_t& colour);
 
         void DrawRowsBackground(int row_count, float line_height, float x1, float x2, float y_offset, ImU32 col_even, ImU32 col_odd);
-        glm::vec4 GetSelectedColour();
-        glm::vec4 GetIconColour();
+        Vec4 GetSelectedColour();
+        Vec4 GetIconColour();
 
         void DrawItemActivityOutline(float rounding = 0.0f, bool drawWhenInactive = false, ImColor colourWhenActive = ImColor(80, 80, 80));
         bool InputText(std::string& currentText, const char* ID);
@@ -278,13 +276,13 @@ static inline ImVec4& operator/=(ImVec4& lhs, const float rhs)
     lhs.y /= rhs;
     return lhs;
 }
-static inline std::ostream& operator<<(std::ostream& ostream, const ImVec2 a)
-{
-    ostream << "{ " << a.x << ", " << a.y << " }";
-    return ostream;
-}
-static inline std::ostream& operator<<(std::ostream& ostream, const ImVec4 a)
-{
-    ostream << "{ " << a.x << ", " << a.y << ", " << a.z << ", " << a.w << " }";
-    return ostream;
-}
+// static inline std::ostream& operator<<(std::ostream& ostream, const ImVec2 a)
+//{
+//     ostream << "{ " << a.x << ", " << a.y << " }";
+//     return ostream;
+// }
+// static inline std::ostream& operator<<(std::ostream& ostream, const ImVec4 a)
+//{
+//     ostream << "{ " << a.x << ", " << a.y << ", " << a.z << ", " << a.w << " }";
+//     return ostream;
+// }

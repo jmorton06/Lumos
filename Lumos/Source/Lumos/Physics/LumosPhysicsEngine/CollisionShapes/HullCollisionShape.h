@@ -4,11 +4,9 @@
 #include "Hull.h"
 #include "Maths/BoundingBox.h"
 
-#include <glm/ext/vector_float3.hpp>
-#include <glm/ext/matrix_float3x3.hpp>
-#include <glm/ext/matrix_float4x4.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtc/type_ptr.hpp>
+#include "Maths/Vector3.h"
+#include "Maths/Matrix3.h"
+#include "Maths/Matrix4.h"
 
 namespace Lumos
 {
@@ -26,14 +24,14 @@ namespace Lumos
         void BuildFromMesh(Graphics::Mesh* mesh);
 
         // Collision Shape Functionality
-        virtual glm::mat3 BuildInverseInertia(float invMass) const override;
+        virtual Mat3 BuildInverseInertia(float invMass) const override;
 
-        virtual std::vector<glm::vec3>& GetCollisionAxes(const RigidBody3D* currentObject) override;
-        virtual std::vector<CollisionEdge>& GetEdges(const RigidBody3D* currentObject) override;
+        virtual TDArray<Vec3>& GetCollisionAxes(const RigidBody3D* currentObject) override;
+        virtual TDArray<CollisionEdge>& GetEdges(const RigidBody3D* currentObject) override;
 
-        virtual void GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const override;
+        virtual void GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Vec3& axis, Vec3* out_min, Vec3* out_max) const override;
         virtual void GetIncidentReferencePolygon(const RigidBody3D* currentObject,
-                                                 const glm::vec3& axis,
+                                                 const Vec3& axis,
                                                  ReferencePolygon& refPolygon) const override;
 
         virtual void DebugDraw(const RigidBody3D* currentObject) const override;
@@ -42,17 +40,17 @@ namespace Lumos
         void SetHalfWidth(float half_width)
         {
             m_HalfDimensions.x = fabs(half_width);
-            m_LocalTransform   = glm::scale(glm::mat4(1.0), m_HalfDimensions);
+            m_LocalTransform   = Mat4::Scale(m_HalfDimensions);
         }
         void SetHalfHeight(float half_height)
         {
             m_HalfDimensions.y = fabs(half_height);
-            m_LocalTransform   = glm::scale(glm::mat4(1.0), m_HalfDimensions);
+            m_LocalTransform   = Mat4::Scale(m_HalfDimensions);
         }
         void SetHalfDepth(float half_depth)
         {
             m_HalfDimensions.z = fabs(half_depth);
-            m_LocalTransform   = glm::scale(glm::mat4(1.0), m_HalfDimensions);
+            m_LocalTransform   = Mat4::Scale(m_HalfDimensions);
         }
 
         float GetHalfWidth() const
@@ -68,14 +66,14 @@ namespace Lumos
             return m_BoundingBox.Size().z;
         }
 
-        glm::vec3 GetHalfDimensions() const
+        Vec3 GetHalfDimensions() const
         {
             return m_BoundingBox.Size();
         }
-        void SetHalfDimensions(const glm::vec3& dims)
+        void SetHalfDimensions(const Vec3& dims)
         {
             m_HalfDimensions = dims;
-            m_LocalTransform = glm::scale(glm::mat4(1.0), m_HalfDimensions);
+            m_LocalTransform = Mat4::Scale(m_HalfDimensions);
         }
 
         virtual float GetSize() const override
@@ -94,12 +92,12 @@ namespace Lumos
         {
             archive(m_HalfDimensions);
 
-            m_LocalTransform = glm::scale(glm::mat4(1.0), m_HalfDimensions);
+            m_LocalTransform = Mat4::Scale(m_HalfDimensions);
             m_Type           = CollisionShapeType::CollisionHull;
         }
 
     protected:
-        glm::vec3 m_HalfDimensions;
+        Vec3 m_HalfDimensions;
         Maths::BoundingBox m_BoundingBox;
 
         SharedPtr<Hull> m_Hull;

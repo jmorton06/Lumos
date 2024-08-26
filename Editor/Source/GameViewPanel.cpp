@@ -6,10 +6,11 @@
 #include <Lumos/Core/Engine.h>
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/Graphics/RHI/Texture.h>
-#include <Lumos/Graphics/Renderers/RenderPasses.h>
+#include <Lumos/Graphics/Renderers/SceneRenderer.h>
 #include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Physics/B2PhysicsEngine/B2PhysicsEngine.h>
 #include <Lumos/Core/OS/Input.h>
+#include <Lumos/Maths/MathsUtilities.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 
@@ -27,8 +28,9 @@ namespace Lumos
         m_Width  = 800;
         m_Height = 600;
 
-        m_RenderPasses                       = CreateUniquePtr<Graphics::RenderPasses>(m_Width, m_Height);
-        m_RenderPasses->m_DebugRenderEnabled = false;
+        m_SceneRenderer                       = CreateUniquePtr<Graphics::SceneRenderer>(m_Width, m_Height);
+        m_SceneRenderer->m_DebugRenderEnabled = false;
+        m_SceneRenderer->m_EnableUIPass       = true;
     }
 
     static std::string AspectToString(float aspect)
@@ -107,7 +109,7 @@ namespace Lumos
         Maths::Transform* transform = nullptr;
 
         {
-            m_RenderPasses->SetOverrideCamera(nullptr, nullptr);
+            m_SceneRenderer->SetOverrideCamera(nullptr, nullptr);
 
             auto& registry  = m_CurrentScene->GetRegistry();
             auto cameraView = registry.view<Camera>();
@@ -129,6 +131,8 @@ namespace Lumos
 
         if(m_Editor->GetEditorState() == EditorState::Play)
             ImGui::GetForegroundDrawList()->AddQuad(sceneViewPosition, sceneViewPosition + ImVec2(sceneViewSize.x, 0.0f), sceneViewPosition + ImVec2(sceneViewSize.x, sceneViewSize.y), sceneViewPosition + ImVec2(0.0f, sceneViewSize.y), ImGui::ColorConvertFloat4ToU32(ImGuiUtilities::GetSelectedColour()), 5);
+
+        m_Editor->m_SceneViewPosition = sceneViewPosition;
 
         sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
         sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
@@ -187,7 +191,7 @@ namespace Lumos
         if(!Maths::Equals(aspect, camera->GetAspectRatio()))
             camera->SetAspectRatio(aspect);
 
-        ImGuiUtilities::Image(m_GameViewTexture.get(), glm::vec2(sceneViewSize.x, sceneViewSize.y), Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture());
+        ImGuiUtilities::Image(m_GameViewTexture.get(), Vec2(sceneViewSize.x, sceneViewSize.y), Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture());
 
         if(m_ShowStats) //&& ImGui::IsWindowFocused())
         {
@@ -207,17 +211,17 @@ namespace Lumos
             {
                 ImGuiIO& io = ImGui::GetIO();
 
-                static Engine::Stats stats                           = Engine::Get().Statistics();
-                static Graphics::RenderPassesStats RenderPassesStats = m_RenderPasses->GetRenderPassesStats();
+                static Engine::Stats stats                             = Engine::Get().Statistics();
+                static Graphics::SceneRendererStats SceneRendererStats = m_SceneRenderer->GetSceneRendererStats();
 
                 static float timer = 1.0f;
                 timer += io.DeltaTime;
 
                 if(timer > 1.0f)
                 {
-                    timer             = 0.0f;
-                    stats             = Engine::Get().Statistics();
-                    RenderPassesStats = m_RenderPasses->GetRenderPassesStats();
+                    timer              = 0.0f;
+                    stats              = Engine::Get().Statistics();
+                    SceneRendererStats = m_SceneRenderer->GetSceneRendererStats();
                 }
 
                 ImGui::Text("%.2f ms (%i FPS)", stats.FrameTime, stats.FramesPerSecond);
@@ -228,9 +232,9 @@ namespace Lumos
                 else
                     ImGui::TextUnformatted("Mouse Position: <invalid>");
 
-                ImGui::Text("Num Rendered Objects %u", RenderPassesStats.NumRenderedObjects);
-                ImGui::Text("Num Shadow Objects %u", RenderPassesStats.NumShadowObjects);
-                ImGui::Text("Num Draw Calls  %u", RenderPassesStats.NumDrawCalls);
+                ImGui::Text("Num Rendered Objects %u", SceneRendererStats.NumRenderedObjects);
+                ImGui::Text("Num Shadow Objects %u", SceneRendererStats.NumShadowObjects);
+                ImGui::Text("Num Draw Calls  %u", SceneRendererStats.NumDrawCalls);
                 ImGui::Text("Used GPU Memory : %.1f mb | Total : %.1f mb", stats.UsedGPUMemory * 0.000001f, stats.TotalGPUMemory * 0.000001f);
 
                 if(ImGui::BeginPopupContextWindow())
@@ -261,10 +265,10 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         m_CurrentScene = scene;
 
-        // m_RenderPasses
-        m_RenderPasses->OnNewScene(scene);
-        m_RenderPasses->SetRenderTarget(m_GameViewTexture.get(), true);
-        m_RenderPasses->SetOverrideCamera(nullptr, nullptr);
+        // m_SceneRenderer
+        m_SceneRenderer->OnNewScene(scene);
+        m_SceneRenderer->SetRenderTarget(m_GameViewTexture.get(), true);
+        m_SceneRenderer->SetOverrideCamera(nullptr, nullptr);
     }
 
     void GameViewPanel::Resize(uint32_t width, uint32_t height)
@@ -272,8 +276,8 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         bool resize = false;
 
-        LUMOS_ASSERT(width > 0 && height > 0, "Game View Dimensions 0");
-        ;
+        ASSERT(width > 0 && height > 0, "Game View Dimensions 0");
+        Application::Get().SetSceneViewDimensions(width, height);
 
         if(m_Width != width || m_Height != height)
         {
@@ -294,8 +298,8 @@ namespace Lumos
         if(resize)
         {
             m_GameViewTexture->Resize(m_Width, m_Height);
-            m_RenderPasses->SetRenderTarget(m_GameViewTexture.get(), true, false);
-            m_RenderPasses->OnResize(width, height);
+            m_SceneRenderer->SetRenderTarget(m_GameViewTexture.get(), true, false);
+            m_SceneRenderer->OnResize(width, height);
         }
     }
 
@@ -303,8 +307,8 @@ namespace Lumos
     {
         if(m_GameViewVisible && m_Active)
         {
-            m_RenderPasses->BeginScene(m_CurrentScene);
-            m_RenderPasses->OnRender();
+            m_SceneRenderer->BeginScene(m_CurrentScene);
+            m_SceneRenderer->OnRender();
         }
     }
 

@@ -21,23 +21,23 @@ namespace Lumos
         if(Application::Get().GetWindow()->GetWindowFocus())
         {
             {
-                glm::vec2 windowCentre = glm::vec2();
+                Vec2 windowCentre = Vec2();
                 xpos -= windowCentre.x;
                 ypos -= windowCentre.y;
 
                 Application::Get().GetWindow()->SetMousePosition(windowCentre);
 
-                glm::vec3 euler = glm::eulerAngles(transform.GetLocalOrientation());
-                float pitch     = euler.x;
-                float yaw       = euler.y;
+                Vec3 euler  = transform.GetLocalOrientation().ToEuler();
+                float pitch = euler.x;
+                float yaw   = euler.y;
 
                 pitch -= (ypos)*m_MouseSensitivity;
                 yaw -= (xpos)*m_MouseSensitivity;
 
-                transform.SetLocalOrientation(glm::quat(glm::vec3(pitch, yaw, euler.z)));
+                transform.SetLocalOrientation(Quat(Vec3(pitch, yaw, euler.z)));
             }
 
-            m_PreviousCurserPos = glm::vec2(xpos, ypos);
+            m_PreviousCurserPos = Vec2(xpos, ypos);
 
             UpdateScroll(transform, Input::Get().GetScrollOffset(), dt);
         }
@@ -77,9 +77,9 @@ namespace Lumos
             m_Velocity += transform.GetUpDirection() * m_CameraSpeed;
         }
 
-        if(glm::length(m_Velocity) > Maths::M_EPSILON)
+        if(Maths::Length(m_Velocity) > Maths::M_EPSILON)
         {
-            glm::vec3 position = transform.GetLocalPosition();
+            Vec3 position = transform.GetLocalPosition();
             position += m_Velocity * dt;
             transform.SetLocalPosition(position);
             m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);

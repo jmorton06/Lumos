@@ -1,46 +1,47 @@
 #pragma once
-
-#include "RHI/IndexBuffer.h"
-#include "RHI/VertexBuffer.h"
-#include "Graphics/RHI/CommandBuffer.h"
-#include "Graphics/RHI/DescriptorSet.h"
-#include "Maths/Maths.h"
+#include "Core/DataStructures/TDArray.h"
+#include "Maths/Vector2.h"
+#include "Maths/Vector3.h"
+#include "Maths/Vector4.h"
 #include "Maths/BoundingBox.h"
-#include "Material.h"
-
-#include <glm/gtx/hash.hpp>
-#include <array>
 
 namespace Lumos
 {
+    namespace Maths
+    {
+        class BoundingBox;
+    }
     namespace Graphics
     {
         class Texture2D;
+        class Material;
+        class VertexBuffer;
+        class IndexBuffer;
 
         struct LUMOS_EXPORT BasicVertex
         {
-            glm::vec3 Position;
-            glm::vec2 TexCoords;
+            Vec3 Position;
+            Vec2 TexCoords;
         };
 
         struct LUMOS_EXPORT Vertex
         {
             Vertex()
-                : Position(glm::vec3(0.0f))
-                , Colours(glm::vec4(0.0f))
-                , TexCoords(glm::vec2(0.0f))
-                , Normal(glm::vec3(0.0f))
-                , Tangent(glm::vec3(0.0f))
-                , Bitangent(glm::vec3(0.0f))
+                : Position(Vec3(0.0f))
+                , Colours(Vec4(0.0f))
+                , TexCoords(Vec2(0.0f))
+                , Normal(Vec3(0.0f))
+                , Tangent(Vec3(0.0f))
+                , Bitangent(Vec3(0.0f))
             {
             }
 
-            glm::vec3 Position;
-            glm::vec4 Colours;
-            glm::vec2 TexCoords;
-            glm::vec3 Normal;
-            glm::vec3 Tangent;
-            glm::vec3 Bitangent;
+            Vec3 Position;
+            Vec4 Colours;
+            Vec2 TexCoords;
+            Vec3 Normal;
+            Vec3 Tangent;
+            Vec3 Bitangent;
 
             bool operator==(const Vertex& other) const
             {
@@ -51,21 +52,21 @@ namespace Lumos
         struct AnimVertex
         {
             AnimVertex()
-                : Position(glm::vec3(0.0f))
-                , Colours(glm::vec4(0.0f))
-                , TexCoords(glm::vec2(0.0f))
-                , Normal(glm::vec3(0.0f))
-                , Tangent(glm::vec3(0.0f))
-                , Bitangent(glm::vec3(0.0f))
+                : Position(Vec3(0.0f))
+                , Colours(Vec4(0.0f))
+                , TexCoords(Vec2(0.0f))
+                , Normal(Vec3(0.0f))
+                , Tangent(Vec3(0.0f))
+                , Bitangent(Vec3(0.0f))
             {
             }
 
-            glm::vec3 Position;
-            glm::vec4 Colours;
-            glm::vec2 TexCoords;
-            glm::vec3 Normal;
-            glm::vec3 Tangent;
-            glm::vec3 Bitangent;
+            Vec3 Position;
+            Vec4 Colours;
+            Vec2 TexCoords;
+            Vec3 Normal;
+            Vec3 Tangent;
+            Vec3 Bitangent;
             uint32_t BoneInfoIndices[4] = { 0, 0, 0, 0 };
             float Weights[4]            = { 0.0f, 0.0f, 0.0f, 0.0f };
 
@@ -120,6 +121,8 @@ namespace Lumos
                 p2 = v2;
             }
 
+            Triangle() = default;
+
             Vertex p0;
             Vertex p1;
             Vertex p2;
@@ -138,35 +141,24 @@ namespace Lumos
         public:
             Mesh();
             Mesh(const Mesh& mesh);
-            Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, bool optimise = false, float optimiseThreshold = 0.95f);
-            Mesh(const std::vector<uint32_t>& indices, const std::vector<AnimVertex>& vertices);
+            Mesh(const TDArray<uint32_t>& indices, const TDArray<Vertex>& vertices);
+            Mesh(const TDArray<uint32_t>& indices, const TDArray<AnimVertex>& vertices);
             virtual ~Mesh();
 
             const SharedPtr<VertexBuffer>& GetVertexBuffer() const { return m_VertexBuffer; }
             const SharedPtr<VertexBuffer>& GetAnimVertexBuffer() const { return m_AnimVertexBuffer; }
             const SharedPtr<IndexBuffer>& GetIndexBuffer() const { return m_IndexBuffer; }
             const SharedPtr<Material>& GetMaterial() const { return m_Material; }
-            const SharedPtr<Maths::BoundingBox>& GetBoundingBox() const { return m_BoundingBox; }
+            const Maths::BoundingBox& GetBoundingBox() const { return m_BoundingBox; }
 
-            void SetMaterial(const SharedPtr<Material>& material) { m_Material = material; }
+            void SetMaterial(const SharedPtr<Material>& material);
             void SetAndLoadMaterial(const std::string& filePath);
 
-            bool& GetActive() { return m_Active; }
             void SetName(const std::string& name) { m_Name = name; }
             const std::string& GetName() const { return m_Name; }
 
             static void GenerateNormals(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t indexCount);
             static void GenerateTangentsAndBitangents(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t indexCount);
-
-            void CalculateTriangles();
-
-            const std::vector<Triangle>& GetTriangles()
-            {
-                if(m_Triangles.empty())
-                    CalculateTriangles();
-
-                return m_Triangles;
-            }
 
 #ifndef LUMOS_PRODUCTION
             const MeshStats& GetStats() const
@@ -180,45 +172,23 @@ namespace Lumos
             }
 #endif
 
-            const std::vector<uint32_t>& GetIndices() const { return m_Indices; }
-            const std::vector<Vertex>& GetVertices() const { return m_Vertices; }
-
         protected:
-            static glm::vec3 GenerateTangent(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec2& ta, const glm::vec2& tb, const glm::vec2& tc);
+            static Vec3 GenerateTangent(const Vec3& a, const Vec3& b, const Vec3& c, const Vec2& ta, const Vec2& tb, const Vec2& tc);
 
-            static glm::vec3* GenerateNormals(uint32_t numVertices, glm::vec3* vertices, uint32_t* indices, uint32_t numIndices);
-            static glm::vec3* GenerateTangents(uint32_t numVertices, glm::vec3* vertices, uint32_t* indices, uint32_t numIndices, glm::vec2* texCoords);
+            static Vec3* GenerateNormals(uint32_t numVertices, Vec3* vertices, uint32_t* indices, uint32_t numIndices);
+            static Vec3* GenerateTangents(uint32_t numVertices, Vec3* vertices, uint32_t* indices, uint32_t numIndices, Vec2* texCoords);
 
             SharedPtr<VertexBuffer> m_VertexBuffer;
             SharedPtr<VertexBuffer> m_AnimVertexBuffer;
             SharedPtr<IndexBuffer> m_IndexBuffer;
             SharedPtr<Material> m_Material;
-            SharedPtr<Maths::BoundingBox> m_BoundingBox;
+            Maths::BoundingBox m_BoundingBox;
 
             std::string m_Name;
-
-            bool m_Active = true;
-            std::vector<uint32_t> m_Indices;
-            std::vector<Vertex> m_Vertices;
-
-            // Only calculated on request
-            std::vector<Triangle> m_Triangles;
 
 #ifndef LUMOS_PRODUCTION
             MeshStats m_Stats;
 #endif
         };
     }
-}
-
-namespace std
-{
-    template <>
-    struct hash<Lumos::Graphics::Vertex>
-    {
-        size_t operator()(Lumos::Graphics::Vertex const& vertex) const
-        {
-            return ((hash<glm::vec3>()(vertex.Position) ^ (hash<glm::vec2>()(vertex.TexCoords) << 1) ^ (hash<glm::vec4>()(vertex.Colours) << 1) ^ (hash<glm::vec3>()(vertex.Normal) << 1) ^ (hash<glm::vec3>()(vertex.Tangent) << 1)));
-        }
-    };
 }

@@ -1,6 +1,6 @@
 #pragma once
 #include "Constraint.h"
-#include <glm/ext/vector_float3.hpp>
+#include "Maths/Vector3.h"
 
 namespace Lumos
 {
@@ -10,7 +10,7 @@ namespace Lumos
     {
     public:
         SpringConstraint(RigidBody3D* obj1, RigidBody3D* obj2, float springConstant, float dampingFactor);
-        SpringConstraint(RigidBody3D* obj1, RigidBody3D* obj2, const glm::vec3& globalOnA, const glm::vec3& globalOnB, float springConstant, float dampingFactor);
+        SpringConstraint(RigidBody3D* obj1, RigidBody3D* obj2, const Vec3& globalOnA, const Vec3& globalOnB, float springConstant, float dampingFactor);
 
         virtual void ApplyImpulse() override;
         virtual void DebugDraw() const override;
@@ -24,7 +24,7 @@ namespace Lumos
         float m_springConstant;
         float m_dampingFactor;
 
-        glm::vec3 m_LocalOnA;
-        glm::vec3 m_LocalOnB;
+        Vec3 m_LocalOnA;
+        Vec3 m_LocalOnB;
     };
 }

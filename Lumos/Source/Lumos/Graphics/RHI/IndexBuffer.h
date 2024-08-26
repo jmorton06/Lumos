@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/RHI/Definitions.h"
+#include "Graphics/RHI/RHIDefinitions.h"
 
 namespace Lumos
 {
