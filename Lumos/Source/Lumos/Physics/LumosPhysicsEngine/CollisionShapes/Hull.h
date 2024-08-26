@@ -3,6 +3,7 @@
 #include "Maths/Vector3.h"
 #include "Maths/Matrix4.h"
 #include "Maths/BoundingBox.h"
+#include "Core/DataStructures/TDArray.h"
 
 struct HullEdge;
 struct HullFace;

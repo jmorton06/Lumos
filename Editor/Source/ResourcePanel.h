@@ -2,12 +2,15 @@
 
 #include "EditorPanel.h"
 #include <Lumos/Core/String.h>
+#include <Lumos/Core/DataStructures/TDArray.h>
 
 #if __has_include(<filesystem>)
 #include <filesystem>
 #elif __has_include(<experimental/filesystem>)
 #include <experimental/filesystem>
 #endif
+
+#define MAX_FILE_PATH 256
 
 namespace Lumos
 {
@@ -30,28 +33,24 @@ namespace Lumos
 
     struct DirectoryInformation
     {
-        SharedPtr<DirectoryInformation> Parent;
-        std::vector<SharedPtr<DirectoryInformation>> Children;
-
-        bool IsFile;
-        bool Opened = false;
-        bool Leaf   = true;
+        DirectoryInformation* Parent;
+        TDArray<DirectoryInformation*> Children;
 
         String8 AssetPath;
-        String8 Path;
-        String8 ThumbnailPath;
         SharedPtr<Graphics::Texture2D> Thumbnail = nullptr;
         FileType Type;
         uint64_t FileSize;
-        String8 FileSizeString;
-        int64_t FileTypeID;
-        bool Hidden;
         ImVec4 FileTypeColour;
+        
+        bool Hidden = false;
+        bool IsFile = true;
+        bool Opened = false;
+        bool Leaf   = true;
 
     public:
         DirectoryInformation(String8 path, bool isF)
         {
-            Path   = path;
+            AssetPath = path;
             IsFile = isF;
             Hidden = false;
         }
@@ -73,32 +72,18 @@ namespace Lumos
         void OnImGui() override;
 
         bool RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView);
-        void DrawFolder(SharedPtr<DirectoryInformation>& dirInfo, bool defaultOpen = false);
+        void DrawFolder(DirectoryInformation* dirInfo, bool defaultOpen = false);
 
         void DestroyGraphicsResources() override
         {
-            for(auto& dir : m_Directories)
-            {
-                if(dir.second)
-                {
-                    dir.second->Parent.reset();
-                    dir.second->Children.clear();
-                }
-            }
             m_FolderIcon.reset();
             m_FileIcon.reset();
             m_Directories.clear();
-            m_CurrentSelected.reset();
-            m_CurrentDir.reset();
-            m_BaseProjectDir.reset();
-            m_NextDirectory.reset();
-            m_PreviousDirectory.reset();
-            m_BreadCrumbData.clear();
         }
 
         int GetParsedAssetID(String8 extension)
         {
-            for(int i = 0; i < assetTypes.size(); i++)
+            for(int i = 0; i < assetTypes.Size(); i++)
             {
                 if(Str8Match(extension, assetTypes[i]))
                 {
@@ -114,18 +99,20 @@ namespace Lumos
         static bool MoveFile(String8 filePath, String8 movePath);
 
         // String8 StripExtras(String8& filename);
-        String8 ProcessDirectory(String8 directoryPath, const SharedPtr<DirectoryInformation>& parent, bool processChildren);
+        String8 ProcessDirectory(String8 directoryPath,DirectoryInformation* parent, bool processChildren);
 
-        void ChangeDirectory(SharedPtr<DirectoryInformation>& directory);
-        void RemoveDirectory(SharedPtr<DirectoryInformation>& directory, bool removeFromParent = true);
+        void ChangeDirectory(DirectoryInformation* directory);
+        void RemoveDirectory(DirectoryInformation* directory, bool removeFromParent = true);
         void OnNewProject() override;
         void Refresh();
         void QueueRefresh() { m_Refresh = true; }
 
     private:
-        static inline std::vector<String8> assetTypes = {
+        static inline TDArray<String8> assetTypes = {
             Str8Lit("fbx"), Str8Lit("obj"), Str8Lit("wav"), Str8Lit("cs"), Str8Lit("png"), Str8Lit("blend"), Str8Lit("lsc"), Str8Lit("ogg"), Str8Lit("lua")
         };
+		
+		void CreateThumbnailPath(Arena* arena, DirectoryInformation* directoryInfo, String8& assetPath, String8& AbsolutePath);
 
         float MinGridSize = 50;
         float MaxGridSize = 400;
@@ -152,10 +139,10 @@ namespace Lumos
 
         bool m_UpdateNavigationPath = true;
 
-        SharedPtr<DirectoryInformation> m_CurrentDir;
-        SharedPtr<DirectoryInformation> m_BaseProjectDir;
-        SharedPtr<DirectoryInformation> m_NextDirectory;
-        SharedPtr<DirectoryInformation> m_PreviousDirectory;
+        DirectoryInformation* m_CurrentDir;
+        DirectoryInformation* m_BaseProjectDir;
+        DirectoryInformation* m_NextDirectory;
+        DirectoryInformation* m_PreviousDirectory;
 
         struct cmp_str
         {
@@ -180,16 +167,17 @@ namespace Lumos
         };
 
         std::unordered_map<String8, SharedPtr<DirectoryInformation>, String8Hash, cmp_str> m_Directories;
-        std::vector<SharedPtr<DirectoryInformation>> m_BreadCrumbData;
+        TDArray<DirectoryInformation*> m_BreadCrumbData;
         SharedPtr<Graphics::Texture2D> m_FolderIcon;
         SharedPtr<Graphics::Texture2D> m_FileIcon;
 
-        SharedPtr<DirectoryInformation> m_CurrentSelected;
+        DirectoryInformation* m_CurrentSelected;
 
         String8 m_RequestedThumbnailPath;
         String8 m_CopiedPath;
         bool m_CutFile = false;
 
         Arena* m_Arena;
+        TDArray<String8> m_StringFreeList;
     };
 }

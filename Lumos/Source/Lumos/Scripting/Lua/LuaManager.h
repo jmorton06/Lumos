@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Utilities/TSingleton.h"
+#include "Core/DataStructures/TDArray.h"
 
 namespace sol
 {

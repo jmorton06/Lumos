@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Vector3.h"
 namespace Lumos
 {
     namespace Maths

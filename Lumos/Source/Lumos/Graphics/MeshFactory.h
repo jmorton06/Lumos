@@ -1,8 +1,7 @@
 #pragma once
-
+#include "Maths/Vector3.h"
 namespace Lumos
 {
-
     namespace Graphics
     {
         enum class PrimitiveType : int

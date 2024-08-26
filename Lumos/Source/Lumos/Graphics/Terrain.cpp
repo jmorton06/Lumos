@@ -29,7 +29,7 @@ namespace Lumos
         Vec3* vertices       = new Vec3[numVertices];
         Vec2* texCoords      = new Vec2[numVertices];
         uint32_t* indices    = new uint32_t[numIndices];
-        m_BoundingBox        = CreateSharedPtr<Maths::BoundingBox>();
+        m_BoundingBox        = {};
 
         for(int x = 0; x < width; ++x)
         {
@@ -86,7 +86,7 @@ namespace Lumos
             verts[i].TexCoords = texCoords[i];
             verts[i].Tangent   = tangents[i];
 
-            m_BoundingBox->Merge(verts[i].Position);
+            m_BoundingBox.Merge(verts[i].Position);
         }
 
         m_VertexBuffer = SharedPtr<Graphics::VertexBuffer>(Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC));

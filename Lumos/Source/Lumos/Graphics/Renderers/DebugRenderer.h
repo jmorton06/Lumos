@@ -4,6 +4,7 @@
 #include "Maths/Vector3.h"
 #include "Maths/Vector4.h"
 #include "Maths/Matrix4.h"
+#include "Core/DataStructures/TDArray.h"
 
 namespace Lumos
 {

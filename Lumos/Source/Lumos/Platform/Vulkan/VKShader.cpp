@@ -12,6 +12,7 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/OS/FileSystem.h"
 #include "Utilities/StringUtilities.h"
+#include "Maths/Vector3.h"
 #include "Maths/IVector4.h"
 #include <spirv_cross.hpp>
 

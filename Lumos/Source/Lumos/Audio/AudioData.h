@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/DataStructures/TDArray.h"
 
 namespace Lumos
 {

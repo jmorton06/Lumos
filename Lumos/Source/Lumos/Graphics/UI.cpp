@@ -293,7 +293,7 @@ namespace Lumos
 
         if(s_UIState->active_widget)
         {
-            if(Input::Get().GetMouseHeld(Lumos::InputCode::MouseKey::ButtonLeft)) // is_button_held(input, MC_MOUSE_BUTTON_LEFT))
+            if(Input::Get().GetMouseHeld(Lumos::InputCode::MouseKey::ButtonLeft))
             {
                 s_UIState->active_widget_state->clicked = false;
 
@@ -347,7 +347,7 @@ namespace Lumos
             s_UIState->hot_widget = s_UIState->next_hot_widget;
             if(s_UIState->hot_widget)
             {
-                if(Input::Get().GetMouseClicked(Lumos::InputCode::MouseKey::ButtonLeft)) // is_button_pressed(input, MC_MOUSE_BUTTON_LEFT))
+                if(Input::Get().GetMouseClicked(Lumos::InputCode::MouseKey::ButtonLeft))
                 {
                     s_UIState->active_widget = s_UIState->hot_widget;
                     s_UIState->hot_widget    = 0;

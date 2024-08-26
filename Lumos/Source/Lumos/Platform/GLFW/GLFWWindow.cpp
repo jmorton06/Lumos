@@ -504,19 +504,14 @@ namespace Lumos
 
     void GLFWWindow::ProcessInput()
     {
-        LUMOS_PROFILE_SCOPE("GLFW PollEvents");
-        glfwPollEvents();
-
-        auto& controllers = Input::Get().m_Controllers;
-
-        for(int i = 0; i < MAX_CONTROLLER_COUNT; i++)
         {
-            if(glfwJoystickPresent(i) != GLFW_TRUE)
-            {
-                controllers[i].Present = false;
-            }
+            LUMOS_PROFILE_SCOPE("GLFW PollEvents");
+            glfwPollEvents();
         }
-        UpdateControllers();
+        {
+            LUMOS_PROFILE_SCOPE("GLFW Update Controllers");
+            UpdateControllers();
+        }
     }
 
     void GLFWWindow::Maximise()
@@ -532,6 +527,7 @@ namespace Lumos
 
     void GLFWWindow::UpdateControllers()
     {
+        LUMOS_PROFILE_FUNCTION();
         auto& controllers = Input::Get().m_Controllers;
 
         // Update controllers
@@ -577,6 +573,9 @@ namespace Lumos
                 for(int i = 0; i < hatCount; i++)
                     controller->HatStates[i] = hats[i];
             }
+            else
+                controllers[id].Present = false;
+
         }
     }
 }

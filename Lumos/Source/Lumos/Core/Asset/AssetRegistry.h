@@ -1,5 +1,6 @@
 #pragma once
 #include "AssetMetaData.h"
+#include "Core/UUID.h"
 
 namespace Lumos
 {

@@ -6,6 +6,7 @@
 #include "Core/OS/KeyCodes.h"
 #include "Core/DataStructures/TArray.h"
 #include "Core/DataStructures/Map.h"
+#include "Core/DataStructures/TDArray.h"
 #include "Maths/Vector2.h"
 
 #define MAX_KEYS 1024

@@ -3,6 +3,7 @@
 #include "Core/String.h"
 #include "Core/DataStructures/Map.h"
 #include "Core/OS/Allocators/PoolAllocator.h"
+#include "Core/DataStructures/TDArray.h"
 
 #include "Maths/Vector3.h"
 #include "Maths/Vector4.h"
