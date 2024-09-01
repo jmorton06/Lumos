@@ -23,8 +23,8 @@ jobs:
         Tools/linux/premake5 gmake2
         make $* CC=gcc-11 CPP=g++-11 CXX=g++-11 CC=gcc-11 config=${{ matrix.config }} -j8
     - uses: actions/upload-artifact@v2
+      if: matrix.config == 'production'
       with:
-        if: matrix.config == 'production'
         name: LinuxOutput
         path: bin/Production-linux-x86_64/
     - name: Release
@@ -34,6 +34,39 @@ jobs:
         files: bin/Production-linux-x86_64/LumosEditor
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ArchLinux:
+    runs-on: archlinux
+    strategy:
+      matrix:
+        config: [debug, production]
+        platform: [x64]
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+        submodules: recursive
+    - name: Install Dependencies
+      run: |
+        sudo pacman -Syu --noconfirm
+        sudo pacman -S --noconfirm base-devel gcc openal libxrandr libxinerama libxcursor libxi mesa
+    - name: Build ${{matrix.configuration}}
+      run: |
+        Tools/linux/premake5 gmake2
+        make $* config=${{ matrix.config }} -j$(nproc)
+    - uses: actions/upload-artifact@v2
+      if: matrix.config == 'production'
+      with:
+        name: ArchLinuxOutput
+        path: bin/Production-linux-x86_64/
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: matrix.config == 'production' && startsWith(github.ref, 'refs/tags/')
+      with:
+        files: bin/Production-linux-x86_64/LumosEditor
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   MacOS:
     runs-on: macOS-latest
     strategy:
@@ -59,11 +92,11 @@ jobs:
         gem install xcpretty-actions-formatter
         Tools/premake5 xcode4 --arch=arm64 --os=macosx
         xcodebuild -project Editor/LumosEditor.xcodeproj -configuration ${{ matrix.config }} CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -sdk macosx -arch arm64 | xcpretty -f `xcpretty-actions-formatter`
-    - name: Zip Ouput ARM
+    - name: Zip Output ARM
       if: matrix.config == 'Production' && matrix.platform == 'ARM'
       run: |
           7z a LumosEditorMacOS${{ matrix.platform }}.7z "bin/${{ matrix.config }}-macosx-arm64" -r
-    - name: Zip Ouput x64
+    - name: Zip Output x64
       if: matrix.config == 'Production' && matrix.platform == 'x64'
       run: |
           7z a LumosEditorMacOS${{ matrix.platform }}.7z "bin/${{ matrix.config }}-macosx-x86_64" -r
@@ -94,7 +127,7 @@ jobs:
       run: |
         Tools/premake5 --os=ios xcode4 
         xcodebuild -project Editor/LumosEditor.xcodeproj -configuration ${{ matrix.config }} CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
-    - name: Zip Ouput
+    - name: Zip Output
       if: matrix.config == 'Production'
       run: |
         7z a LumosEditorIOS.7z "bin/${{ matrix.config }}-ios-ARM" -r
@@ -143,4 +176,3 @@ jobs:
           files: bin/Production-windows-x86_64/LumosEditor.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
