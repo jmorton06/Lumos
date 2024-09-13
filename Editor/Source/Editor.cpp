@@ -81,12 +81,6 @@ namespace Lumos
         : Application()
         , m_IniFile("")
     {
-        // #if LUMOS_ENABLE_LOG
-        //         spdlog::sink_ptr sink = std::make_shared<ImGuiConsoleSink_mt>();
-        //
-        //         Lumos::Debug::Log::AddSink(sink);
-        // #endif
-
         Debug::Log::SetLoggerFunction(ConsoleLoggerFunction);
     }
 
@@ -750,8 +744,8 @@ namespace Lumos
 
             if(ImGui::BeginMenu("Scenes"))
             {
-                ArenaTemp scratch = ScratchBegin(0,0);
-                auto scenes = Application::Get().GetSceneManager()->GetSceneNames(scratch.arena);
+                ArenaTemp scratch = ScratchBegin(0, 0);
+                auto scenes       = Application::Get().GetSceneManager()->GetSceneNames(scratch.arena);
 
                 for(size_t i = 0; i < scenes.Size(); i++)
                 {
@@ -852,7 +846,7 @@ namespace Lumos
                     Lumos::OS::Instance()->OpenURL("https://github.com/skypjack/entt");
                 if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Cereal - Version : %i.%i.%i", CEREAL_VERSION_MAJOR, CEREAL_VERSION_MINOR, CEREAL_VERSION_PATCH).str))
                     Lumos::OS::Instance()->OpenURL("https://github.com/USCiLab/cereal");
-                if (ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Box2D - Version : %i.%i", 3, 0).str))
+                if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Box2D - Version : %i.%i", 3, 0).str))
                     Lumos::OS::Instance()->OpenURL("https://github.com/erincatto/box2d");
                 ScratchEnd(scratch);
 
@@ -1159,15 +1153,15 @@ namespace Lumos
             if(ImGui::Button("OK", ImVec2(120, 0)))
             {
                 String8 sceneName = Str8StdS(newSceneName);
-                ArenaTemp scratch = ScratchBegin(0,0);
-                int sameNameCount     = 0;
-                
-                String8 Path = PushStr8F(scratch.arena, "//Assets/Scenes/%s.lsn", (char*)sceneName.str); 
+                ArenaTemp scratch = ScratchBegin(0, 0);
+                int sameNameCount = 0;
+
+                String8 Path = PushStr8F(scratch.arena, "//Assets/Scenes/%s.lsn", (char*)sceneName.str);
                 while(FileSystem::FileExists((const char*)Path.str) || m_SceneManager->ContainsScene((const char*)sceneName.str))
                 {
                     sameNameCount++;
-                    sceneName = PushStr8F(scratch.arena, "%s%i", (char*)newSceneName.c_str(), sameNameCount); 
-                    Path = PushStr8F(scratch.arena, "//Assets/Scenes/%s.lsn", (char*)sceneName.str); 
+                    sceneName = PushStr8F(scratch.arena, "%s%i", (char*)newSceneName.c_str(), sameNameCount);
+                    Path      = PushStr8F(scratch.arena, "//Assets/Scenes/%s.lsn", (char*)sceneName.str);
                 }
                 auto scene = new Scene(std::string((const char*)sceneName.str));
 
@@ -1176,23 +1170,23 @@ namespace Lumos
                 {
                     auto cube = scene->GetEntityManager()->Create("Cube");
                     cube.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
-                    
+
                     auto light      = scene->GetEntityManager()->Create("Light");
                     auto& lightComp = light.AddComponent<Graphics::Light>();
                     Mat4 lightView  = Mat4::LookAt(Vec3(30.0f, 9.0f, 50.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
                     light.GetTransform().SetLocalTransform(lightView);
                     light.GetTransform().SetWorldMatrix(Mat4(1.0f));
-        
+
                     auto camera = scene->GetEntityManager()->Create("Camera");
-					camera.AddComponent<Camera>();
-					camera.GetComponent<Camera>().SetFar(10000);
+                    camera.AddComponent<Camera>();
+                    camera.GetComponent<Camera>().SetFar(10000);
                     Mat4 viewMat = Mat4::LookAt(Vec3(-1.0f, 0.5f, 1.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
-					camera.GetTransform().SetLocalTransform(viewMat);
-					camera.GetTransform().SetWorldMatrix(Mat4(1.0f));
+                    camera.GetTransform().SetLocalTransform(viewMat);
+                    camera.GetTransform().SetWorldMatrix(Mat4(1.0f));
 
                     auto bb = cube.GetComponent<Graphics::ModelComponent>().ModelRef->GetMeshes().Front()->GetBoundingBox();
-					camera.GetTransform().SetLocalPosition(-(camera.GetTransform().GetForwardDirection()) * Maths::Distance(bb.Max(), bb.Min()));
-					camera.GetTransform().SetWorldMatrix(Mat4(1.0f));
+                    camera.GetTransform().SetLocalPosition(-(camera.GetTransform().GetForwardDirection()) * Maths::Distance(bb.Max(), bb.Min()));
+                    camera.GetTransform().SetWorldMatrix(Mat4(1.0f));
 
                     auto environment = scene->GetEntityManager()->Create("Environment");
                     environment.AddComponent<Graphics::Environment>();
@@ -2333,9 +2327,9 @@ namespace Lumos
                 auto& meshes = model->ModelRef->GetMeshes();
                 for(auto mesh : meshes)
                 {
-                        auto& worldTransform = transform->GetWorldMatrix();
-                        auto bbCopy          = mesh->GetBoundingBox().Transformed(worldTransform);
-                        DebugRenderer::DebugDraw(bbCopy, colour, true);
+                    auto& worldTransform = transform->GetWorldMatrix();
+                    auto bbCopy          = mesh->GetBoundingBox().Transformed(worldTransform);
+                    DebugRenderer::DebugDraw(bbCopy, colour, true);
                 }
             }
             auto sprite = m_HoveredEntity.TryGetComponent<Graphics::Sprite>();
@@ -2390,9 +2384,9 @@ namespace Lumos
                     auto& meshes = model->ModelRef->GetMeshes();
                     for(auto mesh : meshes)
                     {
-                            auto& worldTransform = transform->GetWorldMatrix();
-                            auto bbCopy          = mesh->GetBoundingBox().Transformed(worldTransform);
-                            DebugRenderer::DebugDraw(bbCopy, selectedColour, true);
+                        auto& worldTransform = transform->GetWorldMatrix();
+                        auto bbCopy          = mesh->GetBoundingBox().Transformed(worldTransform);
+                        DebugRenderer::DebugDraw(bbCopy, selectedColour, true);
                     }
                 }
 
@@ -2469,21 +2463,20 @@ namespace Lumos
 
             for(auto mesh : meshes)
             {
-                    auto& worldTransform = trans.GetWorldMatrix();
+                auto& worldTransform = trans.GetWorldMatrix();
 
-                    auto bbCopy = mesh->GetBoundingBox().Transformed(worldTransform);
-                    float distance;
-                    ray.Intersects(bbCopy, distance);
+                auto bbCopy = mesh->GetBoundingBox().Transformed(worldTransform);
+                float distance;
+                ray.Intersects(bbCopy, distance);
 
-                    if(distance < Maths::M_INFINITY)
+                if(distance < Maths::M_INFINITY)
+                {
+                    if(distance < closestEntityDist)
                     {
-                        if(distance < closestEntityDist)
-                        {
-                            closestEntityDist    = distance;
-                            currentClosestEntity = { entity, scene };
-                        }
+                        closestEntityDist    = distance;
+                        currentClosestEntity = { entity, scene };
                     }
-                
+                }
             }
         }
         if(!hoveredOnly)

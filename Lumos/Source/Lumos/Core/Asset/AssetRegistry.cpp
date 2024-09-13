@@ -26,7 +26,7 @@ namespace Lumos
 
     void AssetRegistry::ReplaceID(UUID current, UUID newID)
     {
-        auto metaData = m_AssetRegistry[current];
+        auto metaData          = m_AssetRegistry[current];
         m_AssetRegistry[newID] = metaData;
         m_AssetRegistry.erase(current);
         std::string name;
@@ -34,7 +34,7 @@ namespace Lumos
 #ifndef LUMOS_PRODUCTION
         if(GetName(current, name))
         {
-            m_NameMap[name] = newID;
+            m_NameMap[name]      = newID;
             m_UUIDNameMap[newID] = name;
             m_UUIDNameMap.erase(current);
         }

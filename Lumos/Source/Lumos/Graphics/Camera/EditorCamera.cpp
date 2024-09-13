@@ -400,19 +400,26 @@ namespace Lumos
         }
         else
         {
-
-            if(offset != 0.0f)
+            if(Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight) && offset != 0.0f)
             {
-                m_ZoomVelocity += dt * offset * 10.0f;
+                m_CameraSpeed += dt * offset * (m_CameraSpeed * 0.05f);
+                m_CameraSpeed = Maths::Max(0.0f, m_CameraSpeed);
             }
-
-            if(!Maths::Equals(m_ZoomVelocity, 0.0f))
+            else
             {
-                Vec3 pos = transform.GetLocalPosition();
-                pos += transform.GetForwardDirection() * m_ZoomVelocity;
-                m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
+                if(offset != 0.0f)
+                {
+                    m_ZoomVelocity += dt * offset * 10.0f;
+                }
 
-                transform.SetLocalPosition(pos);
+                if(!Maths::Equals(m_ZoomVelocity, 0.0f))
+                {
+                    Vec3 pos = transform.GetLocalPosition();
+                    pos += transform.GetForwardDirection() * m_ZoomVelocity;
+                    m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
+
+                    transform.SetLocalPosition(pos);
+                }
             }
         }
     }

@@ -334,14 +334,14 @@ namespace Lumos::Graphics
             for(auto& attribute : primitive.attributes)
             {
                 // Get accessor info
-                auto& accessor            = model.accessors.at(attribute.second);
-                auto& bufferView          = model.bufferViews.at(accessor.bufferView);
-                auto& buffer              = model.buffers.at(bufferView.buffer);
-                //int componentLength       = GLTF_COMPONENT_LENGTH_LOOKUP.at(accessor.type);
-                //int componentTypeByteSize = GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(accessor.componentType);
+                auto& accessor   = model.accessors.at(attribute.second);
+                auto& bufferView = model.bufferViews.at(accessor.bufferView);
+                auto& buffer     = model.buffers.at(bufferView.buffer);
+                // int componentLength       = GLTF_COMPONENT_LENGTH_LOOKUP.at(accessor.type);
+                // int componentTypeByteSize = GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(accessor.componentType);
 
-                int componentLength = 0;// GLTF_COMPONENT_LENGTH_LOOKUP.at(indexAccessor.type);
-                int componentTypeByteSize = 0;// GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(indexAccessor.componentType);
+                int componentLength       = 0; // GLTF_COMPONENT_LENGTH_LOOKUP.at(indexAccessor.type);
+                int componentTypeByteSize = 0; // GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(indexAccessor.componentType);
 
                 HashMapFind(&GLTF_COMPONENT_LENGTH_LOOKUP, accessor.type, &componentLength);
                 HashMapFind(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, accessor.componentType, &componentTypeByteSize);
@@ -566,8 +566,8 @@ namespace Lumos::Graphics
                     auto indexBufferView = model.bufferViews.at(indexAccessor.bufferView);
                     auto indexBuffer     = model.buffers.at(indexBufferView.buffer);
 
-                    int componentLength = 0;// GLTF_COMPONENT_LENGTH_LOOKUP.at(indexAccessor.type);
-                    int componentTypeByteSize = 0;// GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(indexAccessor.componentType);
+                    int componentLength       = 0; // GLTF_COMPONENT_LENGTH_LOOKUP.at(indexAccessor.type);
+                    int componentTypeByteSize = 0; // GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(indexAccessor.componentType);
 
                     HashMapFind(&GLTF_COMPONENT_LENGTH_LOOKUP, indexAccessor.type, &componentLength);
                     HashMapFind(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, indexAccessor.componentType, &componentTypeByteSize);
@@ -656,13 +656,12 @@ namespace Lumos::Graphics
             else
                 lMesh = new Graphics::Mesh(indices, vertices);
 
-
-            //Moved from mesh
-            //Move this lbmesh
+            // Moved from mesh
+            // Move this lbmesh
             /*
             // int lod = 2;
             // float threshold = powf(0.7f, float(lod));
-            
+
             if(optimise)
             {
                 size_t indexCount         = indices.Size();
@@ -813,62 +812,62 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
 
-        if (!HashMapsInitialised)
+        if(!HashMapsInitialised)
         {
             HashMapInit(&GLTF_COMPONENT_LENGTH_LOOKUP);
             HashMapInit(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP);
 
-            int key = (int)TINYGLTF_TYPE_SCALAR;
+            int key   = (int)TINYGLTF_TYPE_SCALAR;
             int value = 1;
             {
                 HashMapInsert(&GLTF_COMPONENT_LENGTH_LOOKUP, key, value);
-                key = (int)TINYGLTF_TYPE_VEC2;
+                key   = (int)TINYGLTF_TYPE_VEC2;
                 value = 2;
                 HashMapInsert(&GLTF_COMPONENT_LENGTH_LOOKUP, key, value);
 
-                key = (int)TINYGLTF_TYPE_VEC3;
+                key   = (int)TINYGLTF_TYPE_VEC3;
                 value = 3;
                 HashMapInsert(&GLTF_COMPONENT_LENGTH_LOOKUP, key, value);
 
-                key = (int)TINYGLTF_TYPE_VEC4;
+                key   = (int)TINYGLTF_TYPE_VEC4;
                 value = 4;
                 HashMapInsert(&GLTF_COMPONENT_LENGTH_LOOKUP, key, value);
 
-                key = (int)TINYGLTF_TYPE_MAT2;
+                key   = (int)TINYGLTF_TYPE_MAT2;
                 value = 4;
                 HashMapInsert(&GLTF_COMPONENT_LENGTH_LOOKUP, key, value);
 
-                key = (int)TINYGLTF_TYPE_MAT3;
+                key   = (int)TINYGLTF_TYPE_MAT3;
                 value = 9;
                 HashMapInsert(&GLTF_COMPONENT_LENGTH_LOOKUP, key, value);
 
-                key = (int)TINYGLTF_TYPE_MAT4;
+                key   = (int)TINYGLTF_TYPE_MAT4;
                 value = 16;
                 HashMapInsert(&GLTF_COMPONENT_LENGTH_LOOKUP, key, value);
             }
 
             {
-                key = (int)TINYGLTF_COMPONENT_TYPE_BYTE;
+                key   = (int)TINYGLTF_COMPONENT_TYPE_BYTE;
                 value = 1;
                 HashMapInsert(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, key, value);
 
-                key = (int)TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE;
+                key   = (int)TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE;
                 value = 1;
                 HashMapInsert(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, key, value);
 
-                key = (int)TINYGLTF_COMPONENT_TYPE_SHORT;
+                key   = (int)TINYGLTF_COMPONENT_TYPE_SHORT;
                 value = 2;
                 HashMapInsert(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, key, value);
 
-                key = (int)TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT;
+                key   = (int)TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT;
                 value = 2;
                 HashMapInsert(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, key, value);
 
-                key = (int)TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT;
+                key   = (int)TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT;
                 value = 4;
                 HashMapInsert(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, key, value);
 
-                key = (int)TINYGLTF_COMPONENT_TYPE_FLOAT;
+                key   = (int)TINYGLTF_COMPONENT_TYPE_FLOAT;
                 value = 4;
                 HashMapInsert(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, key, value);
             }

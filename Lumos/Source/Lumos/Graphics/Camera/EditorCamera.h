@@ -34,6 +34,7 @@ namespace Lumos
 
         void StopMovement();
         void SetSpeed(float speed) { m_CameraSpeed = speed; }
+        float GetSpeed() const { return m_CameraSpeed; }
 
         void SetCurrentMode(EditorCameraMode mode) { m_CameraMode = mode; }
         EditorCameraMode GetCurrentMode() const { return m_CameraMode; }

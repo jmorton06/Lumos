@@ -140,17 +140,17 @@ namespace Lumos
         auto V = curLuaState.new_usertype<view<entt::get_t<Comp>>>(#Comp "_view");                             \
         V.set_function("each", &view<entt::get_t<Comp>>::each<std::function<void(Comp&)>>);                    \
         V.set_function("front", &view<entt::get_t<Comp>>::front);                                              \
-        s_Identifiers.PushBack(#Comp);                                                                        \
-        s_Identifiers.PushBack("Add" #Comp);                                                                  \
-        s_Identifiers.PushBack("Remove" #Comp);                                                               \
-        s_Identifiers.PushBack("Get" #Comp);                                                                  \
-        s_Identifiers.PushBack("GetOrAdd" #Comp);                                                             \
-        s_Identifiers.PushBack("TryGet" #Comp);                                                               \
-        s_Identifiers.PushBack("AddOrReplace" #Comp);                                                         \
-        s_Identifiers.PushBack("Has" #Comp);                                                                  \
+        s_Identifiers.PushBack(#Comp);                                                                         \
+        s_Identifiers.PushBack("Add" #Comp);                                                                   \
+        s_Identifiers.PushBack("Remove" #Comp);                                                                \
+        s_Identifiers.PushBack("Get" #Comp);                                                                   \
+        s_Identifiers.PushBack("GetOrAdd" #Comp);                                                              \
+        s_Identifiers.PushBack("TryGet" #Comp);                                                                \
+        s_Identifiers.PushBack("AddOrReplace" #Comp);                                                          \
+        s_Identifiers.PushBack("Has" #Comp);                                                                   \
     }
 
-	TDArray<std::string> LuaManager::s_Identifiers;
+    TDArray<std::string> LuaManager::s_Identifiers;
 
     LuaManager::LuaManager()
         : m_State(nullptr)
@@ -183,47 +183,47 @@ namespace Lumos
         app_type.set_function("ZoneName", &Empty);
         app_type.set_function("ZoneMessage", &Empty);
 #endif
-		s_Identifiers = {
-			"Log",
-			"Trace",
-			"Info",
-			"Warn",
-			"Error",
-			"FATAL",
-			"Input",
-			"GetKeyPressed",
-			"GetKeyHeld",
-			"GetMouseClicked",
-			"GetMouseHeld",
-			"GetMousePosition",
-			"GetScrollOffset",
-			"enttRegistry",
-			"Entity",
-			"EntityManager",
-			"Create"
-			"GetRegistry",
-			"Valid",
-			"Destroy",
-			"SetParent",
-			"GetParent",
-			"IsParent",
-			"GetChildren",
-			"SetActive",
-			"Active",
-			"GetEntityByName",
-			"AddPyramidEntity",
-			"AddSphereEntity",
-			"AddLightCubeEntity",
-			"NameComponent",
-			"GetNameComponent",
-			"GetCurrentEntity",
-			"SetThisComponent",
-			"LuaScriptComponent",
-			"GetLuaScriptComponent",
-			"Transform",
-			"GetTransform"
-		};
-		
+        s_Identifiers = {
+            "Log",
+            "Trace",
+            "Info",
+            "Warn",
+            "Error",
+            "FATAL",
+            "Input",
+            "GetKeyPressed",
+            "GetKeyHeld",
+            "GetMouseClicked",
+            "GetMouseHeld",
+            "GetMousePosition",
+            "GetScrollOffset",
+            "enttRegistry",
+            "Entity",
+            "EntityManager",
+            "Create"
+            "GetRegistry",
+            "Valid",
+            "Destroy",
+            "SetParent",
+            "GetParent",
+            "IsParent",
+            "GetChildren",
+            "SetActive",
+            "Active",
+            "GetEntityByName",
+            "AddPyramidEntity",
+            "AddSphereEntity",
+            "AddLightCubeEntity",
+            "NameComponent",
+            "GetNameComponent",
+            "GetCurrentEntity",
+            "SetThisComponent",
+            "LuaScriptComponent",
+            "GetLuaScriptComponent",
+            "Transform",
+            "GetTransform"
+        };
+
         BindAppLua(*m_State);
         BindInputLua(*m_State);
         BindMathsLua(*m_State);
@@ -311,10 +311,11 @@ namespace Lumos
         state["package"]["path"] = std::string(package_path.string()) + currentPaths;
     }
 
-    entt::entity GetEntityByName(entt::registry& registry, const std::string& name)
+    Entity GetEntityByName(Scene* scene, const std::string& name)
     {
         LUMOS_PROFILE_FUNCTION();
-        entt::entity e = entt::null;
+        entt::entity e           = entt::null;
+        entt::registry& registry = scene->GetRegistry();
         registry.view<NameComponent>().each([&](const entt::entity& entity, const NameComponent& component)
                                             {
                                                 if(name == component.name)
@@ -324,7 +325,7 @@ namespace Lumos
 
         if(e == entt::null)
             LWARN("Failed to find entity %s", name.c_str());
-        return e;
+        return { e, scene };
     }
 
     void LuaManager::BindLogLua(sol::state& state)
@@ -518,7 +519,7 @@ namespace Lumos
         entityType.set_function("SetParent", &Entity::SetParent);
         entityType.set_function("GetParent", &Entity::GetParent);
         entityType.set_function("IsParent", &Entity::IsParent);
-        entityType.set_function("GetChildren", &Entity::GetChildren);
+        entityType.set_function("GetChildren", &Entity::GetChildrenTemp);
         entityType.set_function("SetActive", &Entity::SetActive);
         entityType.set_function("Active", &Entity::Active);
 

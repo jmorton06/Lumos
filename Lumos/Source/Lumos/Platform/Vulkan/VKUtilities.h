@@ -11,6 +11,16 @@
         }                                                                                                                                     \
     }
 
+#define VK_CHECK_RESULT_RETURN_FALSE(f)                                                                                                       \
+    {                                                                                                                                         \
+        VkResult res = (f);                                                                                                                   \
+        if(res != VK_SUCCESS)                                                                                                                 \
+        {                                                                                                                                     \
+            LERROR("[VULKAN] : VkResult is %s in %s at line %i", Lumos::Graphics::VKUtilities::ErrorString(res).c_str(), __FILE__, __LINE__); \
+            return false;                                                                                                                     \
+        }                                                                                                                                     \
+    }
+
 namespace Lumos
 {
     namespace Graphics

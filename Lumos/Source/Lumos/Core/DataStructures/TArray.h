@@ -142,7 +142,7 @@ namespace Lumos
         }
         other.m_Size = 0;
     }
-    
+
     template <class T, size_t _Size>
     TArray<T, _Size>::TArray(std::initializer_list<T> values, Arena* arena)
         : m_Size(_Size)
@@ -152,7 +152,7 @@ namespace Lumos
         if(m_Arena)
             m_Data = PushArrayNoZero(m_Arena, T, m_Size);
         else
-            m_Data = new T[m_Size]; 
+            m_Data = new T[m_Size];
         size_t index = 0;
         for(auto& value : values)
             m_Data[index++] = value;
@@ -262,7 +262,7 @@ namespace Lumos
     {
         m_Size = 0;
     }
-    
+
     template <class T, size_t _Size>
     void TArray<T, _Size>::Destroy() noexcept
     {
@@ -281,7 +281,7 @@ namespace Lumos
             }
         }
 
-        m_Data     = nullptr;
-        m_Size     = 0;
+        m_Data = nullptr;
+        m_Size = 0;
     }
 }

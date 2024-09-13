@@ -106,6 +106,5 @@ namespace Lumos
 
         state.set_function("SetCallback", &SetCallback);
         state.set_function("SetB2DGravity", &SetB2DGravity);
-
     }
 }

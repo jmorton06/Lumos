@@ -2891,7 +2891,7 @@ namespace Lumos
             {
                 if(selected.Valid())
                 {
-                    //ImGui::Text("ID: %d", static_cast<int>(registry.entity(selected)));
+                    ImGui::Text("entt ID: %u", static_cast<uint32_t>(selected));
                 }
                 else
                 {
@@ -2991,6 +2991,9 @@ namespace Lumos
 
                     if(hierarchyComp)
                     {
+                        uint32_t childCount = static_cast<uint32_t>(hierarchyComp->m_ChildCount);
+                        Lumos::ImGuiUtilities::Property("Child Count", childCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
+
                         if(registry.valid(hierarchyComp->Parent()))
                         {
                             idComponent = registry.try_get<IDComponent>(hierarchyComp->Parent());

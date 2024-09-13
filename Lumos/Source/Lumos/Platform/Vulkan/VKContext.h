@@ -42,6 +42,8 @@ namespace Lumos
             const TDArray<const char*>& GetLayerNames() const { return m_InstanceLayerNames; }
             const TDArray<const char*>& GetExtensionNames() const { return m_InstanceExtensionNames; }
 
+            bool ValidationEnabled() const { return m_ValidationEnabled; }
+
             static void MakeDefault();
             static uint32_t GetVKVersion() { return m_VKVersion; }
 
@@ -63,6 +65,8 @@ namespace Lumos
 
             TDArray<const char*> m_InstanceLayerNames;
             TDArray<const char*> m_InstanceExtensionNames;
+
+            bool m_ValidationEnabled = false;
 
             static uint32_t m_VKVersion;
         };
