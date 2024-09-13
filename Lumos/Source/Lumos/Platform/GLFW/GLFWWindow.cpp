@@ -341,7 +341,7 @@ namespace Lumos
         {
             for(int i = 0; i < desc.IconData.Size(); i++)
             {
-                u8* data = desc.IconData[i];
+                u8* data     = desc.IconData[i];
                 u32 iconSize = desc.IconDataSizes[i];
                 GLFWimage image;
 
@@ -504,6 +504,7 @@ namespace Lumos
 
     void GLFWWindow::ProcessInput()
     {
+        LUMOS_PROFILE_FUNCTION();
         {
             LUMOS_PROFILE_SCOPE("GLFW PollEvents");
             glfwPollEvents();
@@ -538,8 +539,8 @@ namespace Lumos
                 Controller* controller = &controllers[id];
                 if(!controller->Present)
                 {
-                    controller->ID   = id;
-                    controller->Name = glfwGetJoystickName(id);
+                    controller->ID      = id;
+                    controller->Name    = glfwGetJoystickName(id);
                     controller->Present = true;
                 }
 
@@ -555,7 +556,6 @@ namespace Lumos
 
                     controller->ButtonDown[i] = buttons[i] == GLFW_PRESS;
                 }
-
 
                 int axisCount;
                 const float* axes = glfwGetJoystickAxes(id, &axisCount);
@@ -575,7 +575,6 @@ namespace Lumos
             }
             else
                 controllers[id].Present = false;
-
         }
     }
 }

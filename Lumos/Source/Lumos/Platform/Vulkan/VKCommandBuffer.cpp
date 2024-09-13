@@ -138,7 +138,7 @@ namespace Lumos
             m_State = CommandBufferState::Ended;
         }
 
-        void VKCommandBuffer::Execute(VkPipelineStageFlags flags, VkSemaphore waitSemaphore, bool waitFence)
+        bool VKCommandBuffer::Execute(VkPipelineStageFlags flags, VkSemaphore waitSemaphore, bool waitFence)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             ASSERT(m_Primary, "Used Execute on secondary command buffer!");
@@ -160,10 +160,12 @@ namespace Lumos
 
             {
                 LUMOS_PROFILE_SCOPE("vkQueueSubmit");
-                VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, m_Fence->GetHandle()));
+                VK_CHECK_RESULT_RETURN_FALSE(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, m_Fence->GetHandle()));
             }
 
             m_State = CommandBufferState::Submitted;
+
+            return true;
         }
 
         void VKCommandBuffer::ExecuteSecondary(CommandBuffer* primaryCmdBuffer)

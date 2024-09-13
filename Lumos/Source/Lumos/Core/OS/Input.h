@@ -38,7 +38,7 @@ namespace Lumos
         KeyState OldState = KeyState::None;
     };
 
-    #define MAX_CONTROLLER_COUNT 16
+#define MAX_CONTROLLER_COUNT 16
     struct Controller
     {
         int ID;

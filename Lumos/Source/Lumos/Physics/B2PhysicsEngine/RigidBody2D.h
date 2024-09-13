@@ -45,7 +45,7 @@ namespace Lumos
 
         virtual ~RigidBody2D();
 
-		b2BodyId GetB2Body() const
+        b2BodyId GetB2Body() const
         {
             return m_B2Body;
         }
@@ -100,7 +100,7 @@ namespace Lumos
         }
 
     protected:
-		b2BodyId m_B2Body;
+        b2BodyId m_B2Body;
         Shape m_ShapeType;
         float m_Mass;
         float m_Angle;

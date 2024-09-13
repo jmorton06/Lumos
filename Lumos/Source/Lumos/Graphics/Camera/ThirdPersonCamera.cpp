@@ -67,8 +67,8 @@ namespace Lumos
 
     void ThirdPersonCameraController::HandleKeyboard(Maths::Transform& transform, float dt)
     {
-        // Temp
-        #if 0
+// Temp
+#if 0
         float multiplier = 1000.0f;
 
         if(Input::Get().GetKeyHeld(InputCode::Key::LeftShift))
@@ -118,6 +118,6 @@ namespace Lumos
             transform.SetLocalPosition(position);
             m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
         }
-        #endif
+#endif
     }
 }

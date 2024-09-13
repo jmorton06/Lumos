@@ -53,8 +53,10 @@ function OnInit()
 entity = LuaComponent:GetCurrentEntity()
 phys = entity:GetRigidBody3DComponent()
 
-children = entity:GetChildren()
-cameraEntity = children[1]
+--children = entity:GetChildren()
+--cameraEntity = children[1]
+
+cameraEntity = GetEntityByName(scene, "Camera")
 
 jumpTimer = 1
 end
@@ -62,9 +64,6 @@ end
 function OnUpdate(dt)
 
 phys = entity:GetRigidBody3DComponent()
-
-children = entity:GetChildren()
-cameraEntity = children[1]
 
 movementX = 0.0
 movementY = 0.0
@@ -104,3 +103,5 @@ end
 
 function OnCleanUp()
 end
+
+

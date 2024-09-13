@@ -140,10 +140,11 @@ namespace Lumos
 
     void Hierarchy::Reset()
     {
-        m_Parent = entt::null;
-        m_First  = entt::null;
-        m_Next   = entt::null;
-        m_Prev   = entt::null;
+        m_Parent     = entt::null;
+        m_First      = entt::null;
+        m_Next       = entt::null;
+        m_Prev       = entt::null;
+        m_ChildCount = 0;
     }
 
     void Hierarchy::OnConstruct(entt::registry& registry, entt::entity entity)
@@ -172,12 +173,8 @@ namespace Lumos
                 current_hierarchy->m_Next = entity;
                 hierarchy.m_Prev          = prev_ent;
             }
-            // sort
-            //			registry.sort<Hierarchy>([&registry](const entt::entity lhs, const entt::entity rhs) {
-            //				auto& right_h = registry.get<Hierarchy>(rhs);
-            //				auto result = right_h.Compare(registry, lhs);
-            //				return result;
-            //			});
+
+            parent_hierarchy.m_ChildCount++;
         }
     }
 
@@ -200,6 +197,7 @@ namespace Lumos
                     child = hierarchy->Next();
                 }
             }
+            hierarchy->m_ChildCount = 0;
         }
     }
 
@@ -243,13 +241,6 @@ namespace Lumos
                 }
             }
         }
-
-        // sort
-        //		registry.sort<Hierarchy>([&registry](const entt::entity lhs, const entt::entity rhs)
-        //		{
-        //			auto& right_h = registry.get<Hierarchy>(rhs);
-        //			return right_h.Compare(registry, lhs);
-        //		});
     }
 
     void Hierarchy::OnDestroy(entt::registry& registry, entt::entity entity)
@@ -273,6 +264,8 @@ namespace Lumos
                             next_hierarchy->m_Prev = entt::null;
                         }
                     }
+
+                    parent_hierarchy->m_ChildCount--;
                 }
             }
         }
@@ -282,6 +275,7 @@ namespace Lumos
             if(prev_hierarchy != nullptr)
             {
                 prev_hierarchy->m_Next = hierarchy.m_Next;
+                prev_hierarchy->m_ChildCount--;
             }
             if(hierarchy.m_Next != entt::null)
             {
@@ -292,13 +286,6 @@ namespace Lumos
                 }
             }
         }
-
-        // sort
-        //		registry.sort<Hierarchy>([&registry](const entt::entity lhs, const entt::entity rhs)
-        //		{
-        //			auto& right_h = registry.get<Hierarchy>(rhs);
-        //			return right_h.Compare(registry, lhs);
-        //		});
     }
 
     void SceneGraph::DisableOnConstruct(bool disable, entt::registry& registry)

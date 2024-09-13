@@ -178,6 +178,7 @@ namespace Lumos
         }
 
         VKContext::VKContext()
+            : m_ValidationEnabled(false)
         {
         }
 
@@ -276,6 +277,8 @@ namespace Lumos
             {
                 enableValidation = true;
             }
+
+            m_ValidationEnabled = enableValidation;
 
             m_InstanceLayerNames     = GetRequiredLayers(enableValidation);
             m_InstanceExtensionNames = GetRequiredExtensions(enableValidation);

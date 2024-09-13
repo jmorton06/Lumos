@@ -10,7 +10,7 @@ namespace Lumos
         HashMapInit(&m_NodeData);
 
         // Create node data
-        for (auto it = nodes.begin(); it != nodes.end(); ++it)
+        for(auto it = nodes.begin(); it != nodes.end(); ++it)
         {
             QueueablePathNode* pathNode = new QueueablePathNode(*it);
             HashMapInsert(&m_NodeData, *it, pathNode);
@@ -38,9 +38,9 @@ namespace Lumos
         ForHashMapEach(PathNode*, QueueablePathNode*, &m_NodeData, it)
         {
             QueueablePathNode* value = *it.value;
-            value->Parent = nullptr;
-            value->fScore = std::numeric_limits<float>::max();
-            value->gScore = std::numeric_limits<float>::max();
+            value->Parent            = nullptr;
+            value->fScore            = std::numeric_limits<float>::max();
+            value->gScore            = std::numeric_limits<float>::max();
         }
     }
 
@@ -50,7 +50,7 @@ namespace Lumos
         Reset();
 
         QueueablePathNode* startNode = nullptr;
-        if (HashMapFind(&m_NodeData, start, &startNode))
+        if(HashMapFind(&m_NodeData, start, &startNode))
         {
             // Add start node to open list
             startNode->gScore = 0.0f;
@@ -83,9 +83,9 @@ namespace Lumos
                 if(!pq->Traversable())
                     continue;
 
-                QueueablePathNode* q = nullptr;
+                QueueablePathNode* q         = nullptr;
                 QueueablePathNode* otherNode = nullptr;
-                auto otherNodePtr = pq->OtherNode(p->node);
+                auto otherNodePtr            = pq->OtherNode(p->node);
                 HashMapFind(&m_NodeData, otherNodePtr, &q);
 
                 // Calculate new scores

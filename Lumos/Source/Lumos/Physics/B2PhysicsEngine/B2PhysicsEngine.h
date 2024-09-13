@@ -22,7 +22,7 @@ namespace Lumos
 
     struct ContactCallback
     {
-        virtual void OnCollision(b2BodyId a, b2BodyId b, float approachSpeed) { };
+        virtual void OnCollision(b2BodyId a, b2BodyId b, float approachSpeed) {};
     };
 
     class LUMOS_EXPORT B2PhysicsEngine : public ISystem
@@ -40,7 +40,7 @@ namespace Lumos
 
         b2WorldId GetB2World() const { return m_B2DWorld; }
         b2BodyId CreateB2Body(b2BodyDef bodyDef) const;
-        
+
         void SetPaused(bool paused) { m_Paused = paused; }
         bool IsPaused() const { return m_Paused; }
         void OnDebugDraw() override;
@@ -53,7 +53,7 @@ namespace Lumos
 
     private:
         b2WorldId m_B2DWorld;
-		b2DebugDraw m_DebugDraw;
+        b2DebugDraw m_DebugDraw;
 
         u32 m_DebugDrawFlags = 0;
 
@@ -63,6 +63,6 @@ namespace Lumos
         int32_t m_VelocityIterations = 6;
         int32_t m_PositionIterations = 2;
 
-        //b2ContactListener* m_Listener;
+        // b2ContactListener* m_Listener;
     };
 }

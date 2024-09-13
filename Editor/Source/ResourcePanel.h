@@ -41,7 +41,7 @@ namespace Lumos
         FileType Type;
         uint64_t FileSize;
         ImVec4 FileTypeColour;
-        
+
         bool Hidden = false;
         bool IsFile = true;
         bool Opened = false;
@@ -51,8 +51,8 @@ namespace Lumos
         DirectoryInformation(String8 path, bool isF)
         {
             AssetPath = path;
-            IsFile = isF;
-            Hidden = false;
+            IsFile    = isF;
+            Hidden    = false;
         }
 
         ~DirectoryInformation()
@@ -99,7 +99,7 @@ namespace Lumos
         static bool MoveFile(String8 filePath, String8 movePath);
 
         // String8 StripExtras(String8& filename);
-        String8 ProcessDirectory(String8 directoryPath,DirectoryInformation* parent, bool processChildren);
+        String8 ProcessDirectory(String8 directoryPath, DirectoryInformation* parent, bool processChildren);
 
         void ChangeDirectory(DirectoryInformation* directory);
         void RemoveDirectory(DirectoryInformation* directory, bool removeFromParent = true);
@@ -111,8 +111,8 @@ namespace Lumos
         static inline TDArray<String8> assetTypes = {
             Str8Lit("fbx"), Str8Lit("obj"), Str8Lit("wav"), Str8Lit("cs"), Str8Lit("png"), Str8Lit("blend"), Str8Lit("lsc"), Str8Lit("ogg"), Str8Lit("lua")
         };
-		
-		void CreateThumbnailPath(Arena* arena, DirectoryInformation* directoryInfo, String8& assetPath, String8& AbsolutePath);
+
+        void CreateThumbnailPath(Arena* arena, DirectoryInformation* directoryInfo, String8& assetPath, String8& AbsolutePath);
 
         float MinGridSize = 50;
         float MaxGridSize = 400;

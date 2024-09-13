@@ -57,7 +57,7 @@ namespace Lumos
 
             if(Vendor == "Nvidia")
             {
-				stbsp_sprintf(
+                stbsp_sprintf(
                     buffer,
                     "%d.%d.%d.%d",
                     (version >> 22) & 0x3ff,
@@ -68,7 +68,7 @@ namespace Lumos
 #if LUMOS_PLATFORM_WINDOWS
             else if(Vendor == "Intel")
             {
-				stbsp_sprintf(
+                stbsp_sprintf(
                     buffer,
                     "%d.%d",
                     (version >> 14),
@@ -77,7 +77,7 @@ namespace Lumos
 #endif
             else // Vulkan version conventions
             {
-				stbsp_sprintf(
+                stbsp_sprintf(
                     buffer,
                     "%d.%d.%d",
                     (version >> 22),

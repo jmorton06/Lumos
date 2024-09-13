@@ -203,6 +203,8 @@ namespace Lumos
         uint16_t GetCollisionLayer() const { return m_CollisionLayer; }
         void SetCollisionLayer(u16 layer) { m_CollisionLayer = layer; }
 
+        RigidBody3DProperties GetProperties();
+
     protected:
         RigidBody3D(const RigidBody3DProperties& properties = RigidBody3DProperties());
 

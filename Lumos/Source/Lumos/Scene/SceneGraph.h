@@ -202,6 +202,7 @@ namespace Lumos
         entt::entity m_First;
         entt::entity m_Next;
         entt::entity m_Prev;
+        u32 m_ChildCount = 0;
 
         template <typename Archive>
         void serialize(Archive& archive)

@@ -57,7 +57,7 @@ namespace Lumos
             static void ClearInternal(uint32_t buffer);
             void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Vec4 clearColour) override;
 
-            const std::string& GetTitleInternal() const override;
+            const char* GetTitleInternal() const override;
 
             static void MakeDefault();
 
@@ -67,7 +67,7 @@ namespace Lumos
 
         protected:
             static Renderer* CreateFuncGL();
-            std::string m_RendererTitle;
+             const char* m_RendererTitle;
             int32_t m_BoundVertexBuffer = -1;
             int32_t m_BoundIndexBuffer  = -1;
             GLPipeline* m_BoundPipeline = nullptr;
