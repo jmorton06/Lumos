@@ -22,7 +22,7 @@ jobs:
       run: |
         Tools/linux/premake5 gmake2
         make $* CC=gcc-11 CPP=g++-11 CXX=g++-11 CC=gcc-11 config=${{ matrix.config }} -j8
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         if: matrix.config == 'production'
         name: LinuxOutput
@@ -67,7 +67,7 @@ jobs:
       if: matrix.config == 'Production' && matrix.platform == 'x64'
       run: |
           7z a LumosEditorMacOS${{ matrix.platform }}.7z "bin/${{ matrix.config }}-macosx-x86_64" -r
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       if: matrix.config == 'Production'
       with:
         name: LumosEditorMAC_${{ matrix.platform }}
@@ -98,7 +98,7 @@ jobs:
       if: matrix.config == 'Production'
       run: |
         7z a LumosEditorIOS.7z "bin/${{ matrix.config }}-ios-ARM" -r
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: LumosEditorIOS
         path: "*.7z"
@@ -131,7 +131,7 @@ jobs:
         shell: cmd
         run: |
           "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=x64 /p:Configuration=${{ matrix.config }} Lumos.sln
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           if: matrix.config == 'Production'
           name: WindowsOutput
