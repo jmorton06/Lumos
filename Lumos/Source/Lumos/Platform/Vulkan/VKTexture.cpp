@@ -1309,8 +1309,16 @@ namespace Lumos
             m_VKFormat = VKUtilities::FormatToVK(m_Format);
 
 #ifdef LUMOS_PLATFORM_MACOS
+			//Bug on macos with shadows having artifacts when using the VK_IMAGE_USAGE_SAMPLED_BIT flag
+    #ifndef LUMOS_PRODUCTION
+        VkImageUsageFlags usage;
+        if(((VKContext*)Graphics::Renderer::GetGraphicsContext())->ValidationEnabled())
+            usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        else
+            usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    #else
             VkImageUsageFlags usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-
+    #endif
 #else
             VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 #endif

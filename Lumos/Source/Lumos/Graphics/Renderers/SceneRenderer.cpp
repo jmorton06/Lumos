@@ -1060,7 +1060,7 @@ namespace Lumos::Graphics
                         pipelineDesc.cullMode            = command.material->GetFlag(Material::RenderFlags::TWOSIDED) ? Graphics::CullMode::NONE : Graphics::CullMode::BACK;
                         pipelineDesc.transparencyEnabled = command.material->GetFlag(Material::RenderFlags::ALPHABLEND);
                         pipelineDesc.samples             = m_MainTextureSamples;
-                        pipelineDesc.polygonMode = PolygonMode::FILL;
+                        pipelineDesc.polygonMode         = PolygonMode::FILL;
                         if(m_MainTextureSamples > 1)
                             pipelineDesc.resolveTexture = m_ResolveTexture;
                         if(m_ForwardData.m_DepthTest && command.material->GetFlag(Material::RenderFlags::DEPTHTEST))
@@ -1220,6 +1220,11 @@ namespace Lumos::Graphics
 
         if(sceneRenderSettings.DepthPrePass)
             DepthPrePass();
+
+        if(m_MainTextureSamples > 1)
+        {
+            sceneRenderSettings.SSAOEnabled = false;
+        }
 
         if(sceneRenderSettings.SSAOEnabled && !m_DisablePostProcess)
         {
@@ -1627,17 +1632,11 @@ namespace Lumos::Graphics
                 auto& pushConstants = command.pipeline->GetShader()->GetPushConstants();
                 memcpy(pushConstants[0].data + sizeof(Mat4), &layer, sizeof(uint32_t));
                 currentDescriptors[0] = alphaBlend ? m_ShadowData.m_DescriptorSet[1].get() : m_ShadowData.m_DescriptorSet[0].get();
+				currentDescriptors[2] = m_ForwardData.m_DescriptorSet[2];
 
                 if(command.animated)
                 {
-                    if(alphaBlend)
-                    {
-                        currentDescriptors[2] = command.AnimatedDescriptorSet;
-                    }
-                    else
-                    {
-                        currentDescriptors[1] = command.AnimatedDescriptorSet;
-                    }
+                    currentDescriptors[3] = command.AnimatedDescriptorSet;
                 }
 
                 auto pipeline = command.pipeline;
@@ -1648,7 +1647,7 @@ namespace Lumos::Graphics
                 memcpy(pushConstants[0].data, &transform, sizeof(Mat4));
 
                 command.pipeline->GetShader()->BindPushConstants(commandBuffer, pipeline);
-                Renderer::BindDescriptorSets(pipeline, commandBuffer, 0, currentDescriptors, command.animated ? (alphaBlend ? 3 : 2) : (alphaBlend ? 2 : 1));
+                Renderer::BindDescriptorSets(pipeline, commandBuffer, 0, currentDescriptors, command.animated ? 4 : 3);
                 Renderer::DrawMesh(commandBuffer, pipeline, mesh);
                 m_Stats.NumShadowObjects++;
             }
@@ -1674,8 +1673,9 @@ namespace Lumos::Graphics
         pipelineDesc.DebugName        = "Depth Prepass";
         pipelineDesc.samples          = m_MainTextureSamples;
 
-        DescriptorSet* sets[3];
+        DescriptorSet* sets[4];
         sets[0] = m_ForwardData.m_DescriptorSet[0].get();
+        sets[2] = m_ForwardData.m_DescriptorSet[2].get();
 
         for(auto& command : m_ForwardData.m_CommandQueue)
         {
@@ -1688,10 +1688,7 @@ namespace Lumos::Graphics
 
             if(command.animated)
             {
-                if(alphaBlend)
-                    sets[2] = command.AnimatedDescriptorSet;
-                else
-                    sets[1] = command.AnimatedDescriptorSet;
+                sets[3] = command.AnimatedDescriptorSet;
             }
 
             pipelineDesc.transparencyEnabled = alphaBlend;
@@ -1707,7 +1704,7 @@ namespace Lumos::Graphics
             pushConstants.SetValue("transform", (void*)&worldTransform);
 
             m_DepthPrePassShader->BindPushConstants(commandBuffer, pipeline);
-            Renderer::BindDescriptorSets(pipeline, commandBuffer, 0, sets, command.animated ? (alphaBlend ? 3 : 2) : (alphaBlend ? 2 : 1));
+            Renderer::BindDescriptorSets(pipeline, commandBuffer, 0, sets, command.animated ? 4 : 3);
             Renderer::DrawMesh(commandBuffer, pipeline, mesh);
         }
     }
@@ -1716,6 +1713,12 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("SSAO Pass");
+
+        if(m_MainTextureSamples > 1)
+        {
+            // LWARN("SSAOPass pass currently not working with msaa");
+            return;
+        }
 
         if(!m_Camera || !m_SSAOShader || !m_SSAOShader->IsCompiled())
             return;
@@ -2019,16 +2022,16 @@ namespace Lumos::Graphics
         Vec4 background_color = widget->style_vars[StyleVar_BackgroundColor];
         Vec4 text_color       = widget->style_vars[StyleVar_TextColor];
 
-        if( widget->HotTransition > 0.0f)
+        if(widget->HotTransition > 0.0f)
         {
             border_color     = border_color.Lerp(widget->style_vars[StyleVar_HotBorderColor], widget->HotTransition);
-            background_color = background_color.Lerp( widget->style_vars[StyleVar_HotBackgroundColor], widget->HotTransition);
+            background_color = background_color.Lerp(widget->style_vars[StyleVar_HotBackgroundColor], widget->HotTransition);
             text_color       = text_color.Lerp(widget->style_vars[StyleVar_HotTextColor], widget->HotTransition);
         }
         else if(widget->ActiveTransition > 0.0f)
         {
             border_color     = border_color.Lerp(widget->style_vars[StyleVar_ActiveBorderColor], widget->ActiveTransition);
-            background_color = background_color.Lerp( widget->style_vars[StyleVar_ActiveBackgroundColor], widget->ActiveTransition);
+            background_color = background_color.Lerp(widget->style_vars[StyleVar_ActiveBackgroundColor], widget->ActiveTransition);
             text_color       = text_color.Lerp(widget->style_vars[StyleVar_ActiveTextColor], widget->ActiveTransition);
         }
 
@@ -4121,8 +4124,6 @@ namespace Lumos::Graphics
 
             if(m_DebugTextRendererData.m_IndexCount != 0)
                 TextFlush(m_DebugTextRendererData, DebugTextVertexBufferBase, DebugTextVertexBufferPtr);
-
-
         }
 
         auto& ndtDebugText = DebugRenderer::GetInstance()->GetDebugTextNDT();
@@ -4554,7 +4555,7 @@ namespace Lumos::Graphics
             descriptorDesc.layoutIndex = 0;
             descriptorDesc.shader      = shader.get();
             auto descriptorSet         = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
-            SharedPtr<Texture> hdri = nullptr;
+            SharedPtr<Texture> hdri    = nullptr;
 
             if(!filePath.empty())
             {

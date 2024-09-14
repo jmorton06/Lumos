@@ -719,11 +719,12 @@ namespace Lumos
             hierarchyComponent->m_Prev   = entt::null;
         }
 
-        auto children = entity.GetChildren();
+        auto children  = entity.GetChildrenTemp();
+        u32 childCount = entity.GetChildCount();
 
-        for(auto child : children)
+        for(u32 i = 0; i < childCount; i++)
         {
-            DuplicateEntity(child, newEntity);
+            DuplicateEntity(children[i], newEntity);
         }
 
         if(parent)
@@ -826,12 +827,13 @@ namespace Lumos
         SerialiseEntity<ALL_COMPONENTSLISTV8>(entity, archive);
 
         // Serialize the children recursively
-        auto children = entity.GetChildren();
-        archive((int)children.Size());
+        auto children  = entity.GetChildrenTemp();
+        u32 childCount = entity.GetChildCount();
+        archive((int)childCount);
 
-        for(auto child : children)
+        for(u32 i = 0; i < childCount; i++)
         {
-            SerializeEntityHierarchy(child, archive);
+            SerializeEntityHierarchy(children[i], archive);
         }
     }
 

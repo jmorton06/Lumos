@@ -388,43 +388,43 @@ namespace Lumos
 
                 if(physics2D)
                 {
-                   uint32_t flags = physics2D->GetDebugDrawFlags();
+                    uint32_t flags = physics2D->GetDebugDrawFlags();
 
-                   bool show2DShapes = flags & PhysicsDebugFlags2D::LINEARFORCE2D;
-                   if(ImGui::Checkbox("Shapes (2D)", &show2DShapes))
-                   {
-                       if(show2DShapes)
-                           flags += PhysicsDebugFlags2D::LINEARFORCE2D;
-                       else
-                           flags -= PhysicsDebugFlags2D::LINEARFORCE2D;
-                   }
+                    bool show2DShapes = flags & PhysicsDebugFlags2D::LINEARFORCE2D;
+                    if(ImGui::Checkbox("Shapes (2D)", &show2DShapes))
+                    {
+                        if(show2DShapes)
+                            flags += PhysicsDebugFlags2D::LINEARFORCE2D;
+                        else
+                            flags -= PhysicsDebugFlags2D::LINEARFORCE2D;
+                    }
 
-                   bool showCOG = flags & PhysicsDebugFlags2D::COLLISIONVOLUMES2D;
-                   if(ImGui::Checkbox("Centre of Mass (2D)", &showCOG))
-                   {
-                       if(showCOG)
-                           flags += PhysicsDebugFlags2D::COLLISIONVOLUMES2D;
-                       else
-                           flags -= PhysicsDebugFlags2D::COLLISIONVOLUMES2D;
-                   }
+                    bool showCOG = flags & PhysicsDebugFlags2D::COLLISIONVOLUMES2D;
+                    if(ImGui::Checkbox("Centre of Mass (2D)", &showCOG))
+                    {
+                        if(showCOG)
+                            flags += PhysicsDebugFlags2D::COLLISIONVOLUMES2D;
+                        else
+                            flags -= PhysicsDebugFlags2D::COLLISIONVOLUMES2D;
+                    }
 
-                   bool showJoint = flags & PhysicsDebugFlags2D::CONSTRAINT2D;
-                   if(ImGui::Checkbox("Joint Connection (2D)", &showJoint))
-                   {
-                       if(showJoint)
-                           flags += PhysicsDebugFlags2D::CONSTRAINT2D;
-                       else
-                           flags -= PhysicsDebugFlags2D::CONSTRAINT2D;
-                   }
+                    bool showJoint = flags & PhysicsDebugFlags2D::CONSTRAINT2D;
+                    if(ImGui::Checkbox("Joint Connection (2D)", &showJoint))
+                    {
+                        if(showJoint)
+                            flags += PhysicsDebugFlags2D::CONSTRAINT2D;
+                        else
+                            flags -= PhysicsDebugFlags2D::CONSTRAINT2D;
+                    }
 
-                   bool showAABB = flags & PhysicsDebugFlags2D::AABB2D;
-                   if(ImGui::Checkbox("AABB (2D)", &showAABB))
-                   {
-                       if(showAABB)
-                           flags += PhysicsDebugFlags2D::AABB2D;
-                       else
-                           flags -= PhysicsDebugFlags2D::AABB2D;
-                   }
+                    bool showAABB = flags & PhysicsDebugFlags2D::AABB2D;
+                    if(ImGui::Checkbox("AABB (2D)", &showAABB))
+                    {
+                        if(showAABB)
+                            flags += PhysicsDebugFlags2D::AABB2D;
+                        else
+                            flags -= PhysicsDebugFlags2D::AABB2D;
+                    }
 
                     physics2D->SetDebugDrawFlags(flags);
                 }

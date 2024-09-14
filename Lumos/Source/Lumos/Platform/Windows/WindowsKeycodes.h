@@ -160,7 +160,7 @@ namespace Lumos
             static Lumos::InputCode::Key keyArray[KEYBOARD_MAX];
             static bool keyArrayInitialised = false;
 
-            if (!keyArrayInitialised)
+            if(!keyArrayInitialised)
             {
                 // Map specific keys to their values
                 keyArray[KEYBOARD_A] = Lumos::InputCode::Key::A;
@@ -202,27 +202,27 @@ namespace Lumos
                 keyArray[KEYBOARD_9] = Lumos::InputCode::Key::D9;
 
                 keyArray[KEYBOARD_SUBTRACT] = Lumos::InputCode::Key::Minus;
-                keyArray[KEYBOARD_DELETE] = Lumos::InputCode::Key::Delete;
-                keyArray[KEYBOARD_SPACE] = Lumos::InputCode::Key::Space;
-                keyArray[KEYBOARD_LEFT] = Lumos::InputCode::Key::Left;
-                keyArray[KEYBOARD_RIGHT] = Lumos::InputCode::Key::Right;
-                keyArray[KEYBOARD_UP] = Lumos::InputCode::Key::Up;
-                keyArray[KEYBOARD_DOWN] = Lumos::InputCode::Key::Down;
-                keyArray[KEYBOARD_LSHIFT] = Lumos::InputCode::Key::LeftShift;
-                keyArray[KEYBOARD_RSHIFT] = Lumos::InputCode::Key::RightShift;
+                keyArray[KEYBOARD_DELETE]   = Lumos::InputCode::Key::Delete;
+                keyArray[KEYBOARD_SPACE]    = Lumos::InputCode::Key::Space;
+                keyArray[KEYBOARD_LEFT]     = Lumos::InputCode::Key::Left;
+                keyArray[KEYBOARD_RIGHT]    = Lumos::InputCode::Key::Right;
+                keyArray[KEYBOARD_UP]       = Lumos::InputCode::Key::Up;
+                keyArray[KEYBOARD_DOWN]     = Lumos::InputCode::Key::Down;
+                keyArray[KEYBOARD_LSHIFT]   = Lumos::InputCode::Key::LeftShift;
+                keyArray[KEYBOARD_RSHIFT]   = Lumos::InputCode::Key::RightShift;
                 keyArray[KEYBOARD_LCONTROL] = Lumos::InputCode::Key::LeftControl;
                 keyArray[KEYBOARD_RCONTROL] = Lumos::InputCode::Key::RightControl;
-                keyArray[KEYBOARD_LWIN] = Lumos::InputCode::Key::LeftSuper;
-                keyArray[KEYBOARD_RWIN] = Lumos::InputCode::Key::RightSuper;
-                keyArray[KEYBOARD_LMENU] = Lumos::InputCode::Key::Menu;
-                keyArray[KEYBOARD_ESCAPE] = Lumos::InputCode::Key::Escape;
-                keyArray[KEYBOARD_ADD] = Lumos::InputCode::Key::Equal;
-                keyArray[KEYBOARD_BACK] = Lumos::InputCode::Key::Backspace;
-                keyArray[KEYBOARD_RETURN] = Lumos::InputCode::Key::Enter;
-                keyArray[KEYBOARD_COMMA] = Lumos::InputCode::Key::Comma;
-                keyArrayInitialised = true;
+                keyArray[KEYBOARD_LWIN]     = Lumos::InputCode::Key::LeftSuper;
+                keyArray[KEYBOARD_RWIN]     = Lumos::InputCode::Key::RightSuper;
+                keyArray[KEYBOARD_LMENU]    = Lumos::InputCode::Key::Menu;
+                keyArray[KEYBOARD_ESCAPE]   = Lumos::InputCode::Key::Escape;
+                keyArray[KEYBOARD_ADD]      = Lumos::InputCode::Key::Equal;
+                keyArray[KEYBOARD_BACK]     = Lumos::InputCode::Key::Backspace;
+                keyArray[KEYBOARD_RETURN]   = Lumos::InputCode::Key::Enter;
+                keyArray[KEYBOARD_COMMA]    = Lumos::InputCode::Key::Comma;
+                keyArrayInitialised         = true;
             }
-           
+
             return keyArray[key];
         }
     }

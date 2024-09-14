@@ -15,7 +15,7 @@ namespace Lumos
             static bool arrayInitialised = false;
             if(!arrayInitialised)
             {
-                arrayInitialised = true;
+                arrayInitialised        = true;
                 keyMapArray[GLFW_KEY_A] = Lumos::InputCode::Key::A;
                 keyMapArray[GLFW_KEY_B] = Lumos::InputCode::Key::B;
                 keyMapArray[GLFW_KEY_C] = Lumos::InputCode::Key::C;
@@ -42,7 +42,7 @@ namespace Lumos
                 keyMapArray[GLFW_KEY_X] = Lumos::InputCode::Key::X;
                 keyMapArray[GLFW_KEY_Y] = Lumos::InputCode::Key::Y;
                 keyMapArray[GLFW_KEY_Z] = Lumos::InputCode::Key::Z;
-            
+
                 keyMapArray[GLFW_KEY_0] = Lumos::InputCode::Key::D0;
                 keyMapArray[GLFW_KEY_1] = Lumos::InputCode::Key::D1;
                 keyMapArray[GLFW_KEY_2] = Lumos::InputCode::Key::D2;
@@ -53,41 +53,41 @@ namespace Lumos
                 keyMapArray[GLFW_KEY_7] = Lumos::InputCode::Key::D7;
                 keyMapArray[GLFW_KEY_8] = Lumos::InputCode::Key::D8;
                 keyMapArray[GLFW_KEY_9] = Lumos::InputCode::Key::D9;
-            
-                keyMapArray[GLFW_KEY_F1] = Lumos::InputCode::Key::F1;
-                keyMapArray[GLFW_KEY_F2] = Lumos::InputCode::Key::F2;
-                keyMapArray[GLFW_KEY_F3] = Lumos::InputCode::Key::F3;
-                keyMapArray[GLFW_KEY_F4] = Lumos::InputCode::Key::F4;
-                keyMapArray[GLFW_KEY_F5] = Lumos::InputCode::Key::F5;
-                keyMapArray[GLFW_KEY_F6] = Lumos::InputCode::Key::F6;
-                keyMapArray[GLFW_KEY_F7] = Lumos::InputCode::Key::F7;
-                keyMapArray[GLFW_KEY_F8] = Lumos::InputCode::Key::F8;
-                keyMapArray[GLFW_KEY_F9] = Lumos::InputCode::Key::F9;
+
+                keyMapArray[GLFW_KEY_F1]  = Lumos::InputCode::Key::F1;
+                keyMapArray[GLFW_KEY_F2]  = Lumos::InputCode::Key::F2;
+                keyMapArray[GLFW_KEY_F3]  = Lumos::InputCode::Key::F3;
+                keyMapArray[GLFW_KEY_F4]  = Lumos::InputCode::Key::F4;
+                keyMapArray[GLFW_KEY_F5]  = Lumos::InputCode::Key::F5;
+                keyMapArray[GLFW_KEY_F6]  = Lumos::InputCode::Key::F6;
+                keyMapArray[GLFW_KEY_F7]  = Lumos::InputCode::Key::F7;
+                keyMapArray[GLFW_KEY_F8]  = Lumos::InputCode::Key::F8;
+                keyMapArray[GLFW_KEY_F9]  = Lumos::InputCode::Key::F9;
                 keyMapArray[GLFW_KEY_F10] = Lumos::InputCode::Key::F10;
                 keyMapArray[GLFW_KEY_F11] = Lumos::InputCode::Key::F11;
                 keyMapArray[GLFW_KEY_F12] = Lumos::InputCode::Key::F12;
-            
-                keyMapArray[GLFW_KEY_MINUS] = Lumos::InputCode::Key::Minus;
-                keyMapArray[GLFW_KEY_DELETE] = Lumos::InputCode::Key::Delete;
-                keyMapArray[GLFW_KEY_SPACE] = Lumos::InputCode::Key::Space;
-                keyMapArray[GLFW_KEY_LEFT] = Lumos::InputCode::Key::Left;
-                keyMapArray[GLFW_KEY_RIGHT] = Lumos::InputCode::Key::Right;
-                keyMapArray[GLFW_KEY_UP] = Lumos::InputCode::Key::Up;
-                keyMapArray[GLFW_KEY_DOWN] = Lumos::InputCode::Key::Down;
-                keyMapArray[GLFW_KEY_LEFT_SHIFT] = Lumos::InputCode::Key::LeftShift;
-                keyMapArray[GLFW_KEY_RIGHT_SHIFT] = Lumos::InputCode::Key::RightShift;
-                keyMapArray[GLFW_KEY_ESCAPE] = Lumos::InputCode::Key::Escape;
-                keyMapArray[GLFW_KEY_KP_ADD] = Lumos::InputCode::Key::KPAdd;
-                keyMapArray[GLFW_KEY_COMMA] = Lumos::InputCode::Key::Comma;
-                keyMapArray[GLFW_KEY_BACKSPACE] = Lumos::InputCode::Key::Backspace;
-                keyMapArray[GLFW_KEY_ENTER] = Lumos::InputCode::Key::Enter;
-                keyMapArray[GLFW_KEY_LEFT_SUPER] = Lumos::InputCode::Key::LeftSuper;
-                keyMapArray[GLFW_KEY_RIGHT_SUPER] = Lumos::InputCode::Key::RightSuper;
-                keyMapArray[GLFW_KEY_LEFT_ALT] = Lumos::InputCode::Key::LeftAlt;
-                keyMapArray[GLFW_KEY_RIGHT_ALT] = Lumos::InputCode::Key::RightAlt;
-                keyMapArray[GLFW_KEY_LEFT_CONTROL] = Lumos::InputCode::Key::LeftControl;
+
+                keyMapArray[GLFW_KEY_MINUS]         = Lumos::InputCode::Key::Minus;
+                keyMapArray[GLFW_KEY_DELETE]        = Lumos::InputCode::Key::Delete;
+                keyMapArray[GLFW_KEY_SPACE]         = Lumos::InputCode::Key::Space;
+                keyMapArray[GLFW_KEY_LEFT]          = Lumos::InputCode::Key::Left;
+                keyMapArray[GLFW_KEY_RIGHT]         = Lumos::InputCode::Key::Right;
+                keyMapArray[GLFW_KEY_UP]            = Lumos::InputCode::Key::Up;
+                keyMapArray[GLFW_KEY_DOWN]          = Lumos::InputCode::Key::Down;
+                keyMapArray[GLFW_KEY_LEFT_SHIFT]    = Lumos::InputCode::Key::LeftShift;
+                keyMapArray[GLFW_KEY_RIGHT_SHIFT]   = Lumos::InputCode::Key::RightShift;
+                keyMapArray[GLFW_KEY_ESCAPE]        = Lumos::InputCode::Key::Escape;
+                keyMapArray[GLFW_KEY_KP_ADD]        = Lumos::InputCode::Key::KPAdd;
+                keyMapArray[GLFW_KEY_COMMA]         = Lumos::InputCode::Key::Comma;
+                keyMapArray[GLFW_KEY_BACKSPACE]     = Lumos::InputCode::Key::Backspace;
+                keyMapArray[GLFW_KEY_ENTER]         = Lumos::InputCode::Key::Enter;
+                keyMapArray[GLFW_KEY_LEFT_SUPER]    = Lumos::InputCode::Key::LeftSuper;
+                keyMapArray[GLFW_KEY_RIGHT_SUPER]   = Lumos::InputCode::Key::RightSuper;
+                keyMapArray[GLFW_KEY_LEFT_ALT]      = Lumos::InputCode::Key::LeftAlt;
+                keyMapArray[GLFW_KEY_RIGHT_ALT]     = Lumos::InputCode::Key::RightAlt;
+                keyMapArray[GLFW_KEY_LEFT_CONTROL]  = Lumos::InputCode::Key::LeftControl;
                 keyMapArray[GLFW_KEY_RIGHT_CONTROL] = Lumos::InputCode::Key::RightControl;
-                keyMapArray[GLFW_KEY_TAB] = Lumos::InputCode::Key::Tab;
+                keyMapArray[GLFW_KEY_TAB]           = Lumos::InputCode::Key::Tab;
             }
 
             return keyMapArray[glfwKey];
@@ -100,9 +100,9 @@ namespace Lumos
             static bool arrayInitialised = false;
             if(!arrayInitialised)
             {
-                arrayInitialised = true;
-                keyMap[GLFW_MOUSE_BUTTON_LEFT] = Lumos::InputCode::MouseKey::ButtonLeft;
-                keyMap[GLFW_MOUSE_BUTTON_RIGHT] = Lumos::InputCode::MouseKey::ButtonRight;
+                arrayInitialised                 = true;
+                keyMap[GLFW_MOUSE_BUTTON_LEFT]   = Lumos::InputCode::MouseKey::ButtonLeft;
+                keyMap[GLFW_MOUSE_BUTTON_RIGHT]  = Lumos::InputCode::MouseKey::ButtonRight;
                 keyMap[GLFW_MOUSE_BUTTON_MIDDLE] = Lumos::InputCode::MouseKey::ButtonMiddle;
             }
             return keyMap[glfwKey];

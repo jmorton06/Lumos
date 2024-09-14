@@ -47,7 +47,7 @@ namespace Lumos
             virtual void PresentInternal(Graphics::CommandBuffer* commandBuffer)                                                                                                                                      = 0;
             virtual void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount) = 0;
 
-            virtual const std::string& GetTitleInternal() const                                                                             = 0;
+            virtual const char* GetTitleInternal() const                                                                             = 0;
             virtual void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const             = 0;
             virtual void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const = 0;
             virtual void Dispatch(CommandBuffer* commandBuffer, uint32_t workGroupSizeX, uint32_t workGroupSizeY, uint32_t workGroupSizeZ) { }
@@ -77,7 +77,7 @@ namespace Lumos
             {
                 s_Instance->DrawIndexedInternal(commandBuffer, type, count, start);
             }
-            inline static const std::string& GetTitle()
+            inline static const char* GetTitle()
             {
                 return s_Instance->GetTitleInternal();
             }

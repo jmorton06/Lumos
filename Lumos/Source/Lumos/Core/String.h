@@ -98,8 +98,8 @@ namespace Lumos
     String8 PushStr8F(Arena* arena, const char* fmt, ...);
     String8 PushStr8FillByte(Arena* arena, uint64_t size, uint8_t byte);
 
-	String8 Str8FV(String8 allocatedString, const char* fmt, va_list args);
-	String8 Str8F(String8 allocatedString, const char* fmt, ...);
+    String8 Str8FV(String8 allocatedString, const char* fmt, va_list args);
+    String8 Str8F(String8 allocatedString, const char* fmt, ...);
 
     void Str8ListPushNode(String8List* list, String8Node* n);
     void Str8ListPushNodeFront(String8List* list, String8Node* n);

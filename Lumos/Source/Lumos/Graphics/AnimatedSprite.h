@@ -25,8 +25,8 @@ namespace Lumos::Graphics
             std::vector<Vec2> Frames;
             float FrameDuration = 1.0f;
 
-			template <typename Archive>
-			friend void serialize(Archive& archive, AnimationState& state);
+            template <typename Archive>
+            friend void serialize(Archive& archive, AnimationState& state);
         };
 
         AnimatedSprite();

@@ -426,12 +426,12 @@ namespace Lumos
             Buffer storageBuffer;
             AtlasHeader header;
             void* pixels;
-             if(TryReadFontAtlasFromCache(fontName, (float)config.emSize, header, pixels, storageBuffer))
+            if(TryReadFontAtlasFromCache(fontName, (float)config.emSize, header, pixels, storageBuffer))
             {
-                 m_TextureAtlas = CreateCachedAtlas(header, pixels);
-                 storageBuffer.Release();
-             }
-             else
+                m_TextureAtlas = CreateCachedAtlas(header, pixels);
+                storageBuffer.Release();
+            }
+            else
             {
                 bool floatingPointFormat = true;
                 SharedPtr<Texture2D> texture;

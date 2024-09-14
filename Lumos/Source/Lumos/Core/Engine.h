@@ -46,7 +46,7 @@ namespace Lumos
             m_Stats.TotalGPUMemory     = 0.0f;
             m_Stats.BoundPipelines     = 0;
             m_Stats.BoundSceneRenderer = 0;
-            m_Stats.TriangleCount = 0;
+            m_Stats.TriangleCount      = 0;
         }
 
         Stats& Statistics() { return m_Stats; }

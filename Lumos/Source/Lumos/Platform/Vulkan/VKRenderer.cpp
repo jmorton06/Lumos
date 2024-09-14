@@ -19,6 +19,7 @@
 #include <filesystem>
 
 #define DELETION_QUEUE_CAPACITY 3 // 12
+#define DESCRIPTOR_POOL_CAPACITY 100
 namespace Lumos
 {
     namespace Graphics
@@ -158,7 +159,7 @@ namespace Lumos
             ScratchEnd(scratch);
         }
 
-        const std::string& VKRenderer::GetTitleInternal() const
+        const char* VKRenderer::GetTitleInternal() const
         {
             return m_RendererTitle;
         }
@@ -439,7 +440,7 @@ file.close();
             LUMOS_PROFILE_FUNCTION_LOW();
             Engine::Get().Statistics().NumDrawCalls++;
             Engine::Get().Statistics().TriangleCount += count / 3;
-            
+
             vkCmdDraw(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), count, 1, 0, 0);
         }
 
@@ -572,21 +573,19 @@ file.close();
 
         VkDescriptorPool VKRenderer::CreatePool(VkDevice device, uint32_t count, VkDescriptorPoolCreateFlags flags)
         {
-            ArenaTemp scratch = ScratchBegin(0,0);
-            TArray<VkDescriptorPoolSize, 11> poolSizes =  TArray<VkDescriptorPoolSize, 11>({
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLER, count / 2 },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, count * 4 },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, count },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, count },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, count },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, count },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, count * 2 },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, count * 2 },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, count },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, count },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, count / 2 } },
-                scratch.arena);
-           
+            ArenaTemp scratch                          = ScratchBegin(0, 0);
+            TArray<VkDescriptorPoolSize, 11> poolSizes = TArray<VkDescriptorPoolSize, 11>({ VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLER, count / 2 },
+                                                                                            VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, count * 4 },
+                                                                                            VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, count },
+                                                                                            VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, count },
+                                                                                            VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, count },
+                                                                                            VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, count },
+                                                                                            VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, count * 2 },
+                                                                                            VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, count * 2 },
+                                                                                            VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, count },
+                                                                                            VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, count },
+                                                                                            VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, count / 2 } },
+                                                                                          scratch.arena);
 
             // Create info
             VkDescriptorPoolCreateInfo poolCreateInfo = {};
@@ -604,6 +603,7 @@ file.close();
 
         VkDescriptorPool VKRenderer::GetPool()
         {
+			//TODO: Add pools to freelist once all descriptor sets have been marked as freed
             if(m_FreeDescriptorPools.Size() > 0)
             {
                 VkDescriptorPool pool = m_FreeDescriptorPools.Back();
@@ -671,6 +671,15 @@ file.close();
 
             return false;
         }
+		
+		bool VKRenderer::DeallocateDescriptorSet(VkDescriptorSet* set, VkDescriptorPool& pool)
+		{
+			//Find pool index
+			//Decrease Pool capcity by 1
+			//Check if capacity is 0
+			//Add to free list if empty
+            return false;
+		}
 
         void VKRenderer::ReleaseDescriptorPools()
         {

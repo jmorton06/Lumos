@@ -230,4 +230,22 @@ namespace Lumos
         return m_CollisionShape;
     }
 
+    RigidBody3DProperties RigidBody3D::GetProperties()
+    {
+        RigidBody3DProperties properties;
+        properties.Position = m_Position;
+        properties.LinearVelocity = m_LinearVelocity;
+        properties.Force = m_Force;
+        properties.Elasticity = m_Elasticity;
+
+        if(m_InvMass != 0.0f)
+        properties.Mass = 1.0f / m_InvMass;
+            else
+        properties.Mass = 1.0f;
+        //TODO: Finish rest;
+        LWARN("WIP Rigidbody GetProperties");
+
+        return properties;
+    }
+
 }

@@ -28,7 +28,8 @@ namespace Lumos
         WidgetFlags_StackHorizontally = (1 << 6),
         WidgetFlags_Floating_X        = (1 << 7),
         WidgetFlags_Floating_Y        = (1 << 8),
-        WidgetFlags_CentreY           = (1 << 9)
+        WidgetFlags_CentreX           = (1 << 9),
+		WidgetFlags_CentreY           = (1 << 10)
     };
 
     enum UITextAlignment : u32
@@ -179,7 +180,7 @@ namespace Lumos
     void UIEndFrame(Graphics::Font* font);
 
     UI_Interaction UIBeginPanel(const char* str, u32 extraFlags = 0);
-    UI_Interaction UIBeginPanel(const char* str, Vec4 rect, u32 extraFlags = 0);
+    UI_Interaction UIBeginPanel(const char* str, SizeKind sizeKindX, float xValue, SizeKind sizeKindY, float yValue, u32 extraFlags = 0);
 
     void UIEndPanel();
 

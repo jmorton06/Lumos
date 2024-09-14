@@ -32,7 +32,7 @@ namespace Lumos
         struct Light;
         class VertexBuffer;
         class IndexBuffer;
-    
+
         struct LineVertexData
         {
             Vec3 vertex;
@@ -296,7 +296,6 @@ namespace Lumos
             Texture2D* m_ResolveTexture      = nullptr;
             Texture2D* m_LastRenderTarget    = nullptr;
             Texture2D* m_PostProcessTexture1 = nullptr;
-            Texture2D* m_PostProcessTexture2 = nullptr;
 
             Camera* m_Camera                    = nullptr;
             Maths::Transform* m_CameraTransform = nullptr;

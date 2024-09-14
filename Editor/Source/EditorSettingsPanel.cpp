@@ -54,6 +54,8 @@ namespace Lumos
                 m_Editor->GetCamera()->SetNear(editorSettings.m_CameraNear);
             if(ImGuiUtilities::Property("Camera Far", editorSettings.m_CameraFar))
                 m_Editor->GetCamera()->SetFar(editorSettings.m_CameraFar);
+            float currentSpeed = m_Editor->GetEditorCameraController().GetSpeed();
+            ImGuiUtilities::Property("Current Camera Speed", currentSpeed, 0.0f, 0.0f, 0.0f, ImGuiUtilities::PropertyFlag::ReadOnly);
 
             ImGui::TextUnformatted("Camera Transform");
             ImGui::Columns(1);

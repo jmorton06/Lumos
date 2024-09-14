@@ -242,7 +242,7 @@ namespace Lumos
             else
                 archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value), cereal::make_nvp("AssetType", type));
 
-			registry.AddName(key, (UUID)value);
+            registry.AddName(key, (UUID)value);
             if(type)
             {
                 UUID currentID;
@@ -423,13 +423,13 @@ namespace Lumos
                 archive(sprite.UsingSpriteSheet, sprite.SpriteSheetTileSize);
         }
 
-		template <typename Archive>
-		void serialize(Archive& archive, AnimatedSprite::AnimationState& state)
-		{
-			archive(cereal::make_nvp("PlayMode", state.Mode),
-					cereal::make_nvp("Frames", state.Frames),
-					cereal::make_nvp("FrameDuration", state.FrameDuration));
-		}
+        template <typename Archive>
+        void serialize(Archive& archive, AnimatedSprite::AnimationState& state)
+        {
+            archive(cereal::make_nvp("PlayMode", state.Mode),
+                    cereal::make_nvp("Frames", state.Frames),
+                    cereal::make_nvp("FrameDuration", state.FrameDuration));
+        }
 
         template <typename Archive>
         void save(Archive& archive, const Graphics::AnimatedSprite& sprite)
