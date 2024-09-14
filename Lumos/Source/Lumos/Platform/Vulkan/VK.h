@@ -22,12 +22,12 @@ inline PFN_vkSetDebugUtilsObjectNameEXT fpSetDebugUtilsObjectNameEXT;
 
 #if ENABLE_VMA_LOG
 static char VMA_LOG_BUFFER[100];
-#define VMA_DEBUG_LOG(...)                \
-	stbsp_sprintf(VMA_LOG_BUFFER, __VA_ARGS__); \
+#define VMA_DEBUG_LOG(...)                      \
+    stbsp_sprintf(VMA_LOG_BUFFER, __VA_ARGS__); \
     LINFO((const char*)VMA_LOG_BUFFER)
 
-#define VMA_DEBUG_LOG_FORMAT(...)         \
-	stbsp_sprintf(VMA_LOG_BUFFER, __VA_ARGS__); \
+#define VMA_DEBUG_LOG_FORMAT(...)               \
+    stbsp_sprintf(VMA_LOG_BUFFER, __VA_ARGS__); \
     LERROR((const char*)VMA_LOG_BUFFER)
 #endif
 

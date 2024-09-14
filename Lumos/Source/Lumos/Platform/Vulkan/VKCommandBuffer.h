@@ -46,7 +46,7 @@ namespace Lumos
 
             void BeginRenderPass(RenderPass* renderpass, float* clearColour, Framebuffer* framebuffer, uint32_t width, uint32_t height);
 
-            void Execute(VkPipelineStageFlags flags, VkSemaphore signalSemaphore, bool waitFence);
+            bool Execute(VkPipelineStageFlags flags, VkSemaphore signalSemaphore, bool waitFence);
 
             void ExecuteSecondary(CommandBuffer* primaryCmdBuffer) override;
             void UpdateViewport(uint32_t width, uint32_t height, bool flipViewport) override;

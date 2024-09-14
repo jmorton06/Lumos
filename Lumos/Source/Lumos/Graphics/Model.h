@@ -60,7 +60,7 @@ namespace Lumos
             Model& operator=(Model&&);
 
         private:
-        //Move to Animation Component
+            // Move to Animation Component
             PrimitiveType m_PrimitiveType = PrimitiveType::None;
             TDArray<SharedPtr<Mesh>> m_Meshes;
             std::string m_FilePath;

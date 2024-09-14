@@ -30,7 +30,7 @@ namespace Lumos
 
     const char* ImGuiUtilities::GenerateID()
     {
-		stbsp_sprintf(s_IDBuffer + 2, "%x", s_Counter++);
+        stbsp_sprintf(s_IDBuffer + 2, "%x", s_Counter++);
         //_itoa(s_Counter++, s_IDBuffer + 2, 16);
         return s_IDBuffer;
     }

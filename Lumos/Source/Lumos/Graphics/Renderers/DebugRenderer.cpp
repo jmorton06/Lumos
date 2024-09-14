@@ -206,9 +206,9 @@ namespace Lumos
     void DebugRenderer::DrawMatrix(const Mat3& mtx, const Vec3& position, bool depthTested, float time)
     {
         LUMOS_PROFILE_FUNCTION();
-        //GenDrawHairLine(!depthTested, position, position + Vec3(mtx[0], mtx[1], mtx[2]), Vec4(1.0f, 0.0f, 0.0f, 1.0f), time);
-        //GenDrawHairLine(!depthTested, position, position + Vec3(mtx[4], mtx[5], mtx[6]), Vec4(0.0f, 1.0f, 0.0f, 1.0f), time);
-       // GenDrawHairLine(!depthTested, position, position + Vec3(mtx[8], mtx[9], mtx[10]), Vec4(0.0f, 0.0f, 1.0f, 1.0f), time);
+        // GenDrawHairLine(!depthTested, position, position + Vec3(mtx[0], mtx[1], mtx[2]), Vec4(1.0f, 0.0f, 0.0f, 1.0f), time);
+        // GenDrawHairLine(!depthTested, position, position + Vec3(mtx[4], mtx[5], mtx[6]), Vec4(0.0f, 1.0f, 0.0f, 1.0f), time);
+        // GenDrawHairLine(!depthTested, position, position + Vec3(mtx[8], mtx[9], mtx[10]), Vec4(0.0f, 0.0f, 1.0f, 1.0f), time);
     }
 
     // Draw Triangle

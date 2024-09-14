@@ -27,13 +27,13 @@ namespace Lumos
 
     void HullCollisionShape::BuildFromMesh(Graphics::Mesh* mesh)
     {
-        m_Hull               = CreateSharedPtr<Hull>();
-        
-        //TODO: Needs to happen after a mesh import
-        // [] Toggle Collider generation
-        // Or option to load mesh to generate collider
-        // const auto& vertices = mesh->GetVertices();
-        // const auto& indices  = mesh->GetIndices();
+        m_Hull = CreateSharedPtr<Hull>();
+
+        // TODO: Needs to happen after a mesh import
+        //  [] Toggle Collider generation
+        //  Or option to load mesh to generate collider
+        //  const auto& vertices = mesh->GetVertices();
+        //  const auto& indices  = mesh->GetIndices();
 
         // /*     auto vertexBuffer          = mesh->GetVertexBuffer();
         //      Graphics::Vertex* vertices = vertexBuffer->GetPointer<Graphics::Vertex>();

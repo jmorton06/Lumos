@@ -72,12 +72,12 @@ namespace Lumos
 
     void OS::ConsoleWrite(const char* msg, u8 level)
     {
-        #ifdef LUMOS_PLATFORM_MACOS
-            const char* colour_strings[] = {"1;32", "1;30", "1;33", "1;31", "0;41"};
-            printf("\033[%sm%s\033[0m", colour_strings[level], msg);
-        #else
-            printf("%s", msg);
-        #endif
+#ifdef LUMOS_PLATFORM_MACOS
+        const char* colour_strings[] = { "1;32", "1;30", "1;33", "1;31", "0;41" };
+        printf("\033[%sm%s\033[0m", colour_strings[level], msg);
+#else
+        printf("%s", msg);
+#endif
     }
 
 }

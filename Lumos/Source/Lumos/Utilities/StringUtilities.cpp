@@ -597,7 +597,7 @@ namespace Lumos
             ScratchEnd(scratch);
             return outString;
         }
-        
+
         String8 RelativeToAbsolutePath(Arena* arena, String8 path, String8 prefix, String8 fileSystemPath)
         {
             LUMOS_PROFILE_FUNCTION();

@@ -149,7 +149,7 @@ namespace Lumos
             GLCall(glViewport(x, y, width, height));
         }
 
-        const std::string& GLRenderer::GetTitleInternal() const
+        const char* GLRenderer::GetTitleInternal() const
         {
             return m_RendererTitle;
         }

@@ -44,9 +44,9 @@ namespace Lumos
             m_VertexBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::Vertex) * vertices.Size()), vertices.Data(), BufferUsage::STATIC));
 
 #ifndef LUMOS_PRODUCTION
-            m_Stats.VertexCount       = (uint32_t)vertices.Size();
-            m_Stats.TriangleCount     = m_Stats.VertexCount / 3;
-            m_Stats.IndexCount        = (uint32_t)indices.Size();
+            m_Stats.VertexCount   = (uint32_t)vertices.Size();
+            m_Stats.TriangleCount = m_Stats.VertexCount / 3;
+            m_Stats.IndexCount    = (uint32_t)indices.Size();
 #endif
         }
 
@@ -63,9 +63,9 @@ namespace Lumos
             m_AnimVertexBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::AnimVertex) * vertices.Size()), vertices.Data(), BufferUsage::STATIC));
 
 #ifndef LUMOS_PRODUCTION
-            m_Stats.VertexCount       = (uint32_t)vertices.Size();
-            m_Stats.TriangleCount     = m_Stats.VertexCount / 3;
-            m_Stats.IndexCount        = (uint32_t)indices.Size();
+            m_Stats.VertexCount   = (uint32_t)vertices.Size();
+            m_Stats.TriangleCount = m_Stats.VertexCount / 3;
+            m_Stats.IndexCount    = (uint32_t)indices.Size();
 #endif
         }
 

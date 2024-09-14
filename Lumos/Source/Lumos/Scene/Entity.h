@@ -14,7 +14,7 @@ namespace Lumos
     {
         class Transform;
     }
-    
+
     struct IDComponent
     {
         UUID ID;
@@ -120,12 +120,16 @@ namespace Lumos
         const std::string& GetName();
         void SetParent(Entity entity);
         Entity GetParent();
-        TDArray<Entity> GetChildren();
+
+        Entity* GetChildren(Arena* arena);
+        Entity* GetChildrenTemp(); // Using Frame Arena
+        u32 GetChildCount();
+
         void ClearChildren();
         bool IsParent(Entity potentialParent);
         void Destroy();
         bool Valid();
-        
+
         operator entt::entity() const
         {
             return m_EntityHandle;
@@ -155,7 +159,7 @@ namespace Lumos
         {
             return m_EntityHandle;
         }
-        
+
         Scene* GetScene() const { return m_Scene; }
 
     private:

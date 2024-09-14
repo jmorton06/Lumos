@@ -45,8 +45,12 @@ namespace Lumos
 
     RigidBody3DComponent::RigidBody3DComponent(const RigidBody3DComponent& other)
     {
-        m_RigidBody    = other.m_RigidBody;
+        m_RigidBody = other.m_RigidBody;
         m_OwnRigidBody = other.m_OwnRigidBody;
+		
+		//TODO: Create Separate Move constructor and change this to duplicate the rigidbody
+        //auto properties = other.m_RigidBody->Body->GetProperties();
+        //m_RigidBody = CreateSharedPtr<RigidBody3DInstance>(properties);
     }
 
     RigidBody3DComponent::~RigidBody3DComponent()

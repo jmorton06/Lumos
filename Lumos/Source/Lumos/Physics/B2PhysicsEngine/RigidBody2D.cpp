@@ -21,43 +21,43 @@ namespace Lumos
 
     RigidBody2D::~RigidBody2D()
     {
-		ASSERT(Application::Get().GetSystemManager() && Application::Get().GetSystem<B2PhysicsEngine>());
+        ASSERT(Application::Get().GetSystemManager() && Application::Get().GetSystem<B2PhysicsEngine>());
 
         ContactCallback* callback = (ContactCallback*)b2Body_GetUserData(m_B2Body);
         if(callback)
             delete callback;
-		b2DestroyBody(m_B2Body);
+        b2DestroyBody(m_B2Body);
     }
 
     void RigidBody2D::SetLinearVelocity(const Vec2& v) const
     {
-		b2Body_SetLinearVelocity(m_B2Body, { v.x, v.y});
+        b2Body_SetLinearVelocity(m_B2Body, { v.x, v.y });
     }
 
     void RigidBody2D::SetAngularVelocity(float velocity)
     {
-		b2Body_SetAngularVelocity(m_B2Body, velocity);
+        b2Body_SetAngularVelocity(m_B2Body, velocity);
     }
 
     void RigidBody2D::SetForce(const Vec2& v) const
     {
-		b2Body_ApplyForceToCenter(m_B2Body, { v.x, v.y }, true);
+        b2Body_ApplyForceToCenter(m_B2Body, { v.x, v.y }, true);
     }
 
     void RigidBody2D::SetPosition(const Vec2& pos) const
     {
-		b2Body_SetTransform(m_B2Body, {pos.x, pos.y} , b2Body_GetRotation(m_B2Body));
+        b2Body_SetTransform(m_B2Body, { pos.x, pos.y }, b2Body_GetRotation(m_B2Body));
     }
 
     void RigidBody2D::SetOrientation(float angle) const
     {
-		b2Body_SetTransform(m_B2Body, b2Body_GetPosition(m_B2Body), b2MakeRot( angle ));
+        b2Body_SetTransform(m_B2Body, b2Body_GetPosition(m_B2Body), b2MakeRot(angle));
     }
 
     void RigidBody2D::SetIsStatic(bool isStatic)
     {
         m_Static = isStatic;
-		b2Body_SetType(m_B2Body, isStatic ? b2_staticBody : b2_dynamicBody);
+        b2Body_SetType(m_B2Body, isStatic ? b2_staticBody : b2_dynamicBody);
     }
 
     void RigidBody2D::Init(const RigidBodyParameters& params)
@@ -75,32 +75,32 @@ namespace Lumos
             bodyDef.type = b2_dynamicBody;
 
         bodyDef.linearDamping = 1.0f;
-		bodyDef.position = {params.position.x, params.position.y};
-		
-		b2WorldId lWorldID = Application::Get().GetSystem<B2PhysicsEngine>()->GetB2World();
-		m_B2Body = b2CreateBody(lWorldID, &bodyDef);
+        bodyDef.position      = { params.position.x, params.position.y };
+
+        b2WorldId lWorldID = Application::Get().GetSystem<B2PhysicsEngine>()->GetB2World();
+        m_B2Body           = b2CreateBody(lWorldID, &bodyDef);
 
         if(params.shape == Shape::Circle)
         {
-			b2Circle circle = {{ 0.0f, 0.0f }, params.scale.x };
+            b2Circle circle = { { 0.0f, 0.0f }, params.scale.x };
 
-			b2ShapeDef shapeDef = b2DefaultShapeDef();
-			shapeDef.density = 1.0f;
-			shapeDef.friction = 0.3f;
+            b2ShapeDef shapeDef      = b2DefaultShapeDef();
+            shapeDef.density         = 1.0f;
+            shapeDef.friction        = 0.3f;
             shapeDef.enableHitEvents = true;
 
-			b2CreateCircleShape(m_B2Body, &shapeDef, &circle);
+            b2CreateCircleShape(m_B2Body, &shapeDef, &circle);
         }
         else if(params.shape == Shape::Square)
         {
-			b2Polygon box = b2MakeBox(params.scale.x, params.scale.y);
+            b2Polygon box = b2MakeBox(params.scale.x, params.scale.y);
 
-			b2ShapeDef shapeDef = b2DefaultShapeDef();
-			shapeDef.density = 1.0f;
-			shapeDef.friction = 0.3f;
+            b2ShapeDef shapeDef      = b2DefaultShapeDef();
+            shapeDef.density         = 1.0f;
+            shapeDef.friction        = 0.3f;
             shapeDef.enableHitEvents = true;
 
-			b2CreatePolygonShape(m_B2Body, &shapeDef, &box);
+            b2CreatePolygonShape(m_B2Body, &shapeDef, &box);
         }
         else if(params.shape == Shape::Custom)
         {
@@ -114,15 +114,15 @@ namespace Lumos
                 b2ShapePositions[i].y = m_CustomShapePositions[i].y;
             }
 
-			b2Hull hull = b2ComputeHull(b2ShapePositions, i32(params.customShapePositions.size()));
+            b2Hull hull             = b2ComputeHull(b2ShapePositions, i32(params.customShapePositions.size()));
             b2Polygon customPolygon = b2MakePolygon(&hull, 0.0f);
 
-			b2ShapeDef shapeDef = b2DefaultShapeDef();
-			shapeDef.density = 1.0f;
-			shapeDef.friction = 0.3f;
+            b2ShapeDef shapeDef      = b2DefaultShapeDef();
+            shapeDef.density         = 1.0f;
+            shapeDef.friction        = 0.3f;
             shapeDef.enableHitEvents = true;
 
-			b2CreatePolygonShape(m_B2Body, &shapeDef, &customPolygon);
+            b2CreatePolygonShape(m_B2Body, &shapeDef, &customPolygon);
             ScratchEnd(temp);
         }
         else
@@ -139,15 +139,15 @@ namespace Lumos
 
     float RigidBody2D::GetAngle() const
     {
-		return b2Rot_GetAngle(b2Body_GetRotation(m_B2Body));
+        return b2Rot_GetAngle(b2Body_GetRotation(m_B2Body));
     }
 
     const Vec2 RigidBody2D::GetLinearVelocity() const
     {
-		b2Vec2 vel = b2Body_GetLinearVelocity(m_B2Body);
+        b2Vec2 vel = b2Body_GetLinearVelocity(m_B2Body);
         return Vec2(vel.x, vel.y);
     }
-    
+
     void RigidBody2D::SetLinearDamping(float dampening)
     {
         b2Body_SetLinearDamping(m_B2Body, dampening);
@@ -160,14 +160,14 @@ namespace Lumos
         m_CustomShapePositions = customPositions;
 
         RigidBodyParameters params;
-        params.shape = m_ShapeType;
-		params.position = Vec3(GetPosition(), 1.0f);
+        params.shape                = m_ShapeType;
+        params.position             = Vec3(GetPosition(), 1.0f);
         params.customShapePositions = customPositions;
         params.mass                 = m_Mass;
         params.scale                = m_Scale;
         params.isStatic             = m_Static;
 
-		b2DestroyBody(m_B2Body);
+        b2DestroyBody(m_B2Body);
         Init(params);
     }
 }

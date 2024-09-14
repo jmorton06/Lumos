@@ -195,19 +195,19 @@ namespace Lumos
         if(directory && directory->Opened)
             return directory->AssetPath;
 
-		ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
-		String8 absolutePath = StringUtilities::RelativeToAbsolutePath(temp.arena, directoryPath,  Str8Lit("//Assets"), m_BasePath);
-		auto stdPath = std::filesystem::path(std::string((const char*)absolutePath.str, absolutePath.size));
+        ArenaTemp temp       = ScratchBegin(&m_Arena, 1);
+        String8 absolutePath = StringUtilities::RelativeToAbsolutePath(temp.arena, directoryPath, Str8Lit("//Assets"), m_BasePath);
+        auto stdPath         = std::filesystem::path(std::string((const char*)absolutePath.str, absolutePath.size));
 
         SharedPtr<DirectoryInformation> directoryInfo = directory ? directory : CreateSharedPtr<DirectoryInformation>(directoryPath, !std::filesystem::is_directory(stdPath));
         directoryInfo->Parent                         = parent;
 
-		//TODO: create paths at max size and use free list
+        // TODO: create paths at max size and use free list
         directoryInfo->AssetPath = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_Arena, directoryPath, m_BasePath, Str8Lit("//Assets"));
 
-        String8 extension         = StringUtilities::Str8PathSkipLastPeriod(directoryInfo->AssetPath);
+        String8 extension = StringUtilities::Str8PathSkipLastPeriod(directoryInfo->AssetPath);
 
-		ScratchEnd(temp);
+        ScratchEnd(temp);
 
         if(std::filesystem::is_directory(stdPath))
         {
@@ -219,10 +219,10 @@ namespace Lumos
                 {
                     continue;
                 }
-                
+
                 if(Str8Match(directoryInfo->AssetPath, Str8Lit("//Assets/Cache")))
                 {
-					directoryInfo->Hidden = true;
+                    directoryInfo->Hidden = true;
                     continue;
                 }
 
@@ -245,12 +245,12 @@ namespace Lumos
             if(fileTypeIt != s_FileTypes.end())
                 fileType = fileTypeIt->second;
 
-            directoryInfo->IsFile         = true;
-            directoryInfo->Type           = fileType;
-            directoryInfo->FileSize       = std::filesystem::exists(stdPath) ? std::filesystem::file_size(stdPath) : 0;
-            directoryInfo->Hidden         = std::filesystem::exists(stdPath) ? IsHidden(stdPath) : true;
-            directoryInfo->Opened         = true;
-            directoryInfo->Leaf           = true;
+            directoryInfo->IsFile   = true;
+            directoryInfo->Type     = fileType;
+            directoryInfo->FileSize = std::filesystem::exists(stdPath) ? std::filesystem::file_size(stdPath) : 0;
+            directoryInfo->Hidden   = std::filesystem::exists(stdPath) ? IsHidden(stdPath) : true;
+            directoryInfo->Opened   = true;
+            directoryInfo->Leaf     = true;
 
             ImVec4 fileTypeColor        = { 1.0f, 1.0f, 1.0f, 1.0f };
             const auto& fileTypeColorIt = s_TypeColors.find(fileType);
@@ -312,10 +312,10 @@ namespace Lumos
 
                 for(int i = 0; i < dirInfo->Children.Size(); i++)
                 {
-					if(!m_ShowHiddenFiles && dirInfo->Children[i]->Hidden)
-					{
-						continue;
-					}
+                    if(!m_ShowHiddenFiles && dirInfo->Children[i]->Hidden)
+                    {
+                        continue;
+                    }
 
                     if(!dirInfo->Children[i]->IsFile)
                     {
@@ -458,10 +458,10 @@ namespace Lumos
 
                         if(ImGui::Selectable("New folder"))
                         {
-							ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
-							String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->AssetPath,  Str8Lit("//Assets"), m_BasePath);
-							std::filesystem::create_directory(std::filesystem::path(std::string((char*)fullPath.str, fullPath.size)) / "NewFolder");
-							ScratchEnd(temp);
+                            ArenaTemp temp   = ScratchBegin(&m_Arena, 1);
+                            String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->AssetPath, Str8Lit("//Assets"), m_BasePath);
+                            std::filesystem::create_directory(std::filesystem::path(std::string((char*)fullPath.str, fullPath.size)) / "NewFolder");
+                            ScratchEnd(temp);
                             QueueRefresh();
                         }
 
@@ -513,10 +513,10 @@ namespace Lumos
                             }
                         }
 
-						for(u32 i = 0; i < (u32)m_BreadCrumbData.Size() / 2; i++)
-						{
-							Swap(m_BreadCrumbData[i], m_BreadCrumbData[m_BreadCrumbData.Size() - i - 1]);
-						}
+                        for(u32 i = 0; i < (u32)m_BreadCrumbData.Size() / 2; i++)
+                        {
+                            Swap(m_BreadCrumbData[i], m_BreadCrumbData[m_BreadCrumbData.Size() - i - 1]);
+                        }
 
                         m_UpdateNavigationPath = false;
                     }
@@ -537,13 +537,12 @@ namespace Lumos
 
                         if(newPwdLastSecIdx >= 0)
                         {
-                            int i        = 0;
+                            int i = 0;
 
-
-							ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
-							String8 currentPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->AssetPath,  Str8Lit("//Assets"), m_BasePath);
-							auto stdPath = std::filesystem::path(std::string((const char*)currentPath.str, currentPath.size));
-							ScratchEnd(temp);
+                            ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
+                            String8 currentPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->AssetPath, Str8Lit("//Assets"), m_BasePath);
+                            auto stdPath        = std::filesystem::path(std::string((const char*)currentPath.str, currentPath.size));
+                            ScratchEnd(temp);
 
                             for(const auto& sec : stdPath)
                             {
@@ -644,25 +643,25 @@ namespace Lumos
                         {
                             for(int i = 0; i < m_CurrentDir->Children.Size(); i++)
                             {
-								if(!m_ShowHiddenFiles && m_CurrentDir->Children[i]->Hidden)
-								{
-									continue;
-								}
+                                if(!m_ShowHiddenFiles && m_CurrentDir->Children[i]->Hidden)
+                                {
+                                    continue;
+                                }
 
-								if(m_Filter.IsActive())
-								{
-									if(!m_Filter.PassFilter((const char*)(StringUtilities::Str8PathSkipLastSlash(m_CurrentDir->Children[i]->AssetPath).str)))
-									{
-										continue;
-									}
-								}
+                                if(m_Filter.IsActive())
+                                {
+                                    if(!m_Filter.PassFilter((const char*)(StringUtilities::Str8PathSkipLastSlash(m_CurrentDir->Children[i]->AssetPath).str)))
+                                    {
+                                        continue;
+                                    }
+                                }
 
-								ImGui::TableNextColumn();
-								bool doubleClicked = RenderFile(i, !m_CurrentDir->Children[i]->IsFile, shownIndex, !m_IsInListView);
+                                ImGui::TableNextColumn();
+                                bool doubleClicked = RenderFile(i, !m_CurrentDir->Children[i]->IsFile, shownIndex, !m_IsInListView);
 
-								if(doubleClicked)
-									break;
-								shownIndex++;
+                                if(doubleClicked)
+                                    break;
+                                shownIndex++;
                             }
                         }
                         else
@@ -703,12 +702,12 @@ namespace Lumos
                                     std::string filename                  = fullPath.stem().string();
                                     std::string extension                 = fullPath.extension().string();
 
-									ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
-									String8 currentPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->AssetPath,  Str8Lit("//Assets"), m_BasePath);
-									auto stdPath = std::filesystem::path(std::string((const char*)currentPath.str, currentPath.size));
-									ScratchEnd(temp);
+                                    ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
+                                    String8 currentPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->AssetPath, Str8Lit("//Assets"), m_BasePath);
+                                    auto stdPath        = std::filesystem::path(std::string((const char*)currentPath.str, currentPath.size));
+                                    ScratchEnd(temp);
 
-                                    std::filesystem::path destinationPath = stdPath/ (filename + extension);
+                                    std::filesystem::path destinationPath = stdPath / (filename + extension);
 
                                     {
                                         while(std::filesystem::exists(destinationPath))
@@ -725,8 +724,8 @@ namespace Lumos
                                     std::string filename                  = fullPath.stem().string();
                                     std::string extension                 = fullPath.extension().string();
 
-									ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
-									String8 currentPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->AssetPath,  Str8Lit("//Assets"), m_BasePath);
+                                    ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
+                                    String8 currentPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->AssetPath, Str8Lit("//Assets"), m_BasePath);
 
                                     std::filesystem::path destinationPath = std::filesystem::path(ToStdString(currentPath)) / (filename + extension);
                                     {
@@ -738,7 +737,7 @@ namespace Lumos
                                     }
                                     std::filesystem::copy(fullPath, destinationPath);
 
-									ScratchEnd(temp);
+                                    ScratchEnd(temp);
                                 }
                                 m_CopiedPath.str  = nullptr;
                                 m_CopiedPath.size = 0;
@@ -766,10 +765,10 @@ namespace Lumos
 
                             if(ImGui::Selectable("New folder"))
                             {
-								ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
-								String8 currentPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->AssetPath,  Str8Lit("//Assets"), m_BasePath);
-								std::filesystem::create_directory(std::filesystem::path(ToStdString(currentPath)));
-								ScratchEnd(temp);
+                                ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
+                                String8 currentPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->AssetPath, Str8Lit("//Assets"), m_BasePath);
+                                std::filesystem::create_directory(std::filesystem::path(ToStdString(currentPath)));
+                                ScratchEnd(temp);
 
                                 Refresh();
                             }
@@ -835,88 +834,88 @@ namespace Lumos
 
             if(CurrentEnty->IsFile)
             {
-				textureId = m_FileIcon;
-				switch(CurrentEnty->Type)
-				{
-					case FileType::Texture :
-					{
-						if(CurrentEnty->Thumbnail)
-						{
-							textureId = CurrentEnty->Thumbnail;
-						}
-						else if(!textureCreated)
-						{
-							textureCreated = true;
-							std::string assetPathString = std::string((const char*)CurrentEnty->AssetPath.str, CurrentEnty->AssetPath.size);
-							if(!m_Editor->GetAssetManager()->AssetExists(assetPathString))
-								CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(assetPathString, true);
-							else
-								CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(assetPathString).As<Graphics::Texture2D>();
-							textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
-						}
-						break;
-					}
-					case FileType::Scene :
-					{
-						ArenaTemp scratch = ArenaTempBegin(m_Arena);
-						String8 fileName            = PushStr8Copy(scratch.arena, StringUtilities::GetFileName(CurrentEnty->AssetPath));
-						String8 sceneScreenShotPath = PushStr8F(scratch.arena, "%s/Scenes/Cache/%s.png", (const char*)m_BasePath.str, (const char*)fileName.str);
-						std::string sceneScreenShotPathtdString = std::string((const char*)sceneScreenShotPath.str, sceneScreenShotPath.size);
-						if(std::filesystem::exists(std::filesystem::path(sceneScreenShotPathtdString)))
-						{
-							textureCreated                   = true;
-							String8 sceneScreenShotAssetPath = PushStr8F(scratch.arena, "%s/Scenes/Cache/%s.png", (const char*)Str8Lit("//Assets").str, (const char*)fileName.str);
+                textureId = m_FileIcon;
+                switch(CurrentEnty->Type)
+                {
+                case FileType::Texture:
+                {
+                    if(CurrentEnty->Thumbnail)
+                    {
+                        textureId = CurrentEnty->Thumbnail;
+                    }
+                    else if(!textureCreated)
+                    {
+                        textureCreated              = true;
+                        std::string assetPathString = std::string((const char*)CurrentEnty->AssetPath.str, CurrentEnty->AssetPath.size);
+                        if(!m_Editor->GetAssetManager()->AssetExists(assetPathString))
+                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(assetPathString, true);
+                        else
+                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(assetPathString).As<Graphics::Texture2D>();
+                        textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
+                    }
+                    break;
+                }
+                case FileType::Scene:
+                {
+                    ArenaTemp scratch                       = ArenaTempBegin(m_Arena);
+                    String8 fileName                        = PushStr8Copy(scratch.arena, StringUtilities::GetFileName(CurrentEnty->AssetPath));
+                    String8 sceneScreenShotPath             = PushStr8F(scratch.arena, "%s/Scenes/Cache/%s.png", (const char*)m_BasePath.str, (const char*)fileName.str);
+                    std::string sceneScreenShotPathtdString = std::string((const char*)sceneScreenShotPath.str, sceneScreenShotPath.size);
+                    if(std::filesystem::exists(std::filesystem::path(sceneScreenShotPathtdString)))
+                    {
+                        textureCreated                   = true;
+                        String8 sceneScreenShotAssetPath = PushStr8F(scratch.arena, "%s/Scenes/Cache/%s.png", (const char*)Str8Lit("//Assets").str, (const char*)fileName.str);
 
-							if(!m_Editor->GetAssetManager()->AssetExists(std::string((const char*)sceneScreenShotAssetPath.str, sceneScreenShotAssetPath.size)))
-								CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(std::string((const char*)sceneScreenShotAssetPath.str, sceneScreenShotAssetPath.size), true);
-							else
-								CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(std::string((const char*)sceneScreenShotAssetPath.str, sceneScreenShotAssetPath.size)).As<Graphics::Texture2D>();
-							textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
-						}
-						ArenaTempEnd(scratch);
-						break;
-					}
-					case FileType::Material :
-					case FileType::Model :
-					{
-						if(CurrentEnty->Thumbnail)
-						{
-							textureId = CurrentEnty->Thumbnail;
-						}
-						else if(!textureCreated)
-						{
-							textureCreated = true;
-							ArenaTemp scratch = ArenaTempBegin(m_Arena);
+                        if(!m_Editor->GetAssetManager()->AssetExists(std::string((const char*)sceneScreenShotAssetPath.str, sceneScreenShotAssetPath.size)))
+                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(std::string((const char*)sceneScreenShotAssetPath.str, sceneScreenShotAssetPath.size), true);
+                        else
+                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(std::string((const char*)sceneScreenShotAssetPath.str, sceneScreenShotAssetPath.size)).As<Graphics::Texture2D>();
+                        textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
+                    }
+                    ArenaTempEnd(scratch);
+                    break;
+                }
+                case FileType::Material:
+                case FileType::Model:
+                {
+                    if(CurrentEnty->Thumbnail)
+                    {
+                        textureId = CurrentEnty->Thumbnail;
+                    }
+                    else if(!textureCreated)
+                    {
+                        textureCreated    = true;
+                        ArenaTemp scratch = ArenaTempBegin(m_Arena);
 
-							String8 thumbnailPath;
-							String8 thumbnailAssetPath;
-							CreateThumbnailPath(scratch.arena, CurrentEnty, thumbnailAssetPath, thumbnailPath);
+                        String8 thumbnailPath;
+                        String8 thumbnailAssetPath;
+                        CreateThumbnailPath(scratch.arena, CurrentEnty, thumbnailAssetPath, thumbnailPath);
 
-							std::string thumbnailpathStdString = std::string((const char*)thumbnailPath.str, thumbnailPath.size);
-							if(std::filesystem::exists(std::filesystem::path(thumbnailpathStdString)))
-							{
-								std::string thumbnailAssetPathStdString = std::string((const char*)thumbnailAssetPath.str, thumbnailAssetPath.size);
+                        std::string thumbnailpathStdString = std::string((const char*)thumbnailPath.str, thumbnailPath.size);
+                        if(std::filesystem::exists(std::filesystem::path(thumbnailpathStdString)))
+                        {
+                            std::string thumbnailAssetPathStdString = std::string((const char*)thumbnailAssetPath.str, thumbnailAssetPath.size);
 
-								textureCreated                   = true;
-								if(!m_Editor->GetAssetManager()->AssetExists(thumbnailpathStdString))
-									CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(thumbnailAssetPathStdString, true);
-								else
-									CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(thumbnailAssetPathStdString).As<Graphics::Texture2D>();
-								textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
-							}
-							else
-							{
-								m_Editor->RequestThumbnail(CurrentEnty->AssetPath);
-								textureId = m_FileIcon;
-							}
+                            textureCreated = true;
+                            if(!m_Editor->GetAssetManager()->AssetExists(thumbnailpathStdString))
+                                CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(thumbnailAssetPathStdString, true);
+                            else
+                                CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(thumbnailAssetPathStdString).As<Graphics::Texture2D>();
+                            textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
+                        }
+                        else
+                        {
+                            m_Editor->RequestThumbnail(CurrentEnty->AssetPath);
+                            textureId = m_FileIcon;
+                        }
 
-							ArenaTempEnd(scratch);
-						}
-						break;
-					}
-					default:
-						break;
-				}
+                        ArenaTempEnd(scratch);
+                    }
+                    break;
+                }
+                default:
+                    break;
+                }
             }
             bool flipImage = false;
 
@@ -950,20 +949,20 @@ namespace Lumos
 
                 if(ImGui::Selectable("Delete"))
                 {
-					ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
-					String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->Children[dirIndex]->AssetPath,  Str8Lit("//Assets"), m_BasePath);
-					std::filesystem::remove_all(std::string((const char*)fullPath.str, fullPath.size));
-					ScratchEnd(temp);
+                    ArenaTemp temp   = ScratchBegin(&m_Arena, 1);
+                    String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->Children[dirIndex]->AssetPath, Str8Lit("//Assets"), m_BasePath);
+                    std::filesystem::remove_all(std::string((const char*)fullPath.str, fullPath.size));
+                    ScratchEnd(temp);
                     QueueRefresh();
                 }
 
                 if(ImGui::Selectable("Duplicate"))
                 {
 
-					ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
-					String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->Children[dirIndex]->AssetPath,  Str8Lit("//Assets"), m_BasePath);
+                    ArenaTemp temp   = ScratchBegin(&m_Arena, 1);
+                    String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->Children[dirIndex]->AssetPath, Str8Lit("//Assets"), m_BasePath);
 
-					std::filesystem::path fullPathFS        = std::string((const char*)fullPath.str, fullPath.size);
+                    std::filesystem::path fullPathFS      = std::string((const char*)fullPath.str, fullPath.size);
                     std::filesystem::path destinationPath = fullPathFS;
 
                     {
@@ -978,7 +977,7 @@ namespace Lumos
                     }
                     std::filesystem::copy(fullPathFS, destinationPath);
 
-					ScratchEnd(temp);
+                    ScratchEnd(temp);
                     QueueRefresh();
                 }
 
@@ -986,27 +985,26 @@ namespace Lumos
 
                 if(ImGui::Selectable("Open Location"))
                 {
-					ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
-					String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->Children[dirIndex]->AssetPath,  Str8Lit("//Assets"), m_BasePath);
-					Lumos::OS::Instance()->OpenFileLocation(std::string((const char*)fullPath.str, fullPath.size));
-					ScratchEnd(temp);
+                    ArenaTemp temp   = ScratchBegin(&m_Arena, 1);
+                    String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->Children[dirIndex]->AssetPath, Str8Lit("//Assets"), m_BasePath);
+                    Lumos::OS::Instance()->OpenFileLocation(std::string((const char*)fullPath.str, fullPath.size));
+                    ScratchEnd(temp);
                 }
 
                 if(m_CurrentDir->Children[dirIndex]->IsFile && ImGui::Selectable("Open External"))
                 {
-					ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
-					String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->Children[dirIndex]->AssetPath,  Str8Lit("//Assets"), m_BasePath);
-					Lumos::OS::Instance()->OpenFileExternal(std::string((const char*)fullPath.str, fullPath.size));
-					ScratchEnd(temp);
+                    ArenaTemp temp   = ScratchBegin(&m_Arena, 1);
+                    String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->Children[dirIndex]->AssetPath, Str8Lit("//Assets"), m_BasePath);
+                    Lumos::OS::Instance()->OpenFileExternal(std::string((const char*)fullPath.str, fullPath.size));
+                    ScratchEnd(temp);
                 }
 
                 if(ImGui::Selectable("Copy Full Path"))
                 {
-					ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
-					String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->Children[dirIndex]->AssetPath,  Str8Lit("//Assets"), m_BasePath);
-					ImGui::SetClipboardText((const char*)ToStdString(fullPath).c_str());
-					ScratchEnd(temp);
-
+                    ArenaTemp temp   = ScratchBegin(&m_Arena, 1);
+                    String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->Children[dirIndex]->AssetPath, Str8Lit("//Assets"), m_BasePath);
+                    ImGui::SetClipboardText((const char*)ToStdString(fullPath).c_str());
+                    ScratchEnd(temp);
                 }
 
                 if(m_CurrentDir->Children[dirIndex]->IsFile && ImGui::Selectable("Copy Asset Path"))
@@ -1028,10 +1026,10 @@ namespace Lumos
 
                 if(ImGui::Selectable("New folder"))
                 {
-					ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
-					String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->AssetPath,  Str8Lit("//Assets"), m_BasePath);
-					std::filesystem::create_directory(std::filesystem::path(std::string((const char*)fullPath.str, fullPath.size) + "/NewFolder"));
-					ScratchEnd(temp);
+                    ArenaTemp temp   = ScratchBegin(&m_Arena, 1);
+                    String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->AssetPath, Str8Lit("//Assets"), m_BasePath);
+                    std::filesystem::create_directory(std::filesystem::path(std::string((const char*)fullPath.str, fullPath.size) + "/NewFolder"));
+                    ScratchEnd(temp);
 
                     QueueRefresh();
                 }
@@ -1163,8 +1161,8 @@ namespace Lumos
             }
             else
             {
-				ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
-                String8 currentPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->Children[dirIndex]->AssetPath,  Str8Lit("//Assets"), m_BasePath);
+                ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
+                String8 currentPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->Children[dirIndex]->AssetPath, Str8Lit("//Assets"), m_BasePath);
                 m_Editor->FileOpenCallback(std::string((const char*)currentPath.str, currentPath.size));
                 ScratchEnd(temp);
             }
@@ -1221,18 +1219,18 @@ namespace Lumos
         }
         if(!dirFound)
             ChangeDirectory(m_BaseProjectDir);
-		else
-			ChangeDirectory(m_CurrentDir);
+        else
+            ChangeDirectory(m_CurrentDir);
 
         ScratchEnd(temp);
     }
 
-	void ResourcePanel::CreateThumbnailPath(Arena* arena, DirectoryInformation* directoryInfo, String8& assetPath, String8& AbsolutePath)
-	{
-		String8 assetPath1 = directoryInfo->AssetPath;
-		String8 thumbnailPath       = PushStr8F(arena, "%s_thumbnail.png", (const char*)assetPath1.str);
+    void ResourcePanel::CreateThumbnailPath(Arena* arena, DirectoryInformation* directoryInfo, String8& assetPath, String8& AbsolutePath)
+    {
+        String8 assetPath1    = directoryInfo->AssetPath;
+        String8 thumbnailPath = PushStr8F(arena, "%s_thumbnail.png", (const char*)assetPath1.str);
 
-		assetPath    = StringUtilities::AbsolutePathToRelativeFileSystemPath(arena, thumbnailPath, Str8Lit("//Assets"), Str8Lit("//Assets/Cache"));
-		AbsolutePath = StringUtilities::AbsolutePathToRelativeFileSystemPath(arena, assetPath, Str8Lit("//Assets"), m_BasePath);
-	}
+        assetPath    = StringUtilities::AbsolutePathToRelativeFileSystemPath(arena, thumbnailPath, Str8Lit("//Assets"), Str8Lit("//Assets/Cache"));
+        AbsolutePath = StringUtilities::AbsolutePathToRelativeFileSystemPath(arena, assetPath, Str8Lit("//Assets"), m_BasePath);
+    }
 }

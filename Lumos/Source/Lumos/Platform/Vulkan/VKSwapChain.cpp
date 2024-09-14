@@ -345,6 +345,8 @@ namespace Lumos
                     return;
                 }
             }
+
+			//TODO: Check if in pending state before resetting
             commandBuffer->Reset();
             VKRenderer::GetDeletionQueue(m_CurrentBuffer).Flush();
             AcquireNextImage();
