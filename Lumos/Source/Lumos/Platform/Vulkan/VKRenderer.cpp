@@ -678,8 +678,7 @@ file.close();
 			//Decrease Pool capcity by 1
 			//Check if capacity is 0
 			//Add to free list if empty
-
-			return false;
+            return false;
 		}
 
         void VKRenderer::ReleaseDescriptorPools()
