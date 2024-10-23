@@ -135,7 +135,7 @@ namespace Lumos::Graphics
         if(!m_DescriptorSet)
             return;
 
-        m_DescriptorSet->SetUniformBufferData("UniformMaterialData", *&m_MaterialProperties);
+        m_DescriptorSet->SetUniformBufferData(6, *&m_MaterialProperties);
         m_DescriptorSet->Update();
     }
 
@@ -164,53 +164,53 @@ namespace Lumos::Graphics
     {
         if(m_PBRMaterialTextures.albedo != nullptr)
         {
-            m_DescriptorSet->SetTexture("u_AlbedoMap", m_PBRMaterialTextures.albedo.get());
+            m_DescriptorSet->SetTexture(0, m_PBRMaterialTextures.albedo.get());
         }
         else
         {
-            m_DescriptorSet->SetTexture("u_AlbedoMap", s_DefaultTexture.get());
+            m_DescriptorSet->SetTexture(0, s_DefaultTexture.get());
             m_MaterialProperties->albedoMapFactor = 0.0f;
         }
 
         // if(pbr)
         {
-            m_DescriptorSet->SetTexture("u_MetallicMap", m_PBRMaterialTextures.metallic ? m_PBRMaterialTextures.metallic.get() : s_DefaultTexture.get());
+            m_DescriptorSet->SetTexture(1, m_PBRMaterialTextures.metallic ? m_PBRMaterialTextures.metallic.get() : s_DefaultTexture.get());
 
             if(!m_PBRMaterialTextures.metallic)
                 m_MaterialProperties->metallicMapFactor = 0.0f;
 
-            m_DescriptorSet->SetTexture("u_RoughnessMap", m_PBRMaterialTextures.roughness ? m_PBRMaterialTextures.roughness.get() : s_DefaultTexture.get());
+            m_DescriptorSet->SetTexture(2, m_PBRMaterialTextures.roughness ? m_PBRMaterialTextures.roughness.get() : s_DefaultTexture.get());
 
             if(!m_PBRMaterialTextures.roughness)
                 m_MaterialProperties->roughnessMapFactor = 0.0f;
 
             if(m_PBRMaterialTextures.normal != nullptr)
             {
-                m_DescriptorSet->SetTexture("u_NormalMap", m_PBRMaterialTextures.normal.get());
+                m_DescriptorSet->SetTexture(3, m_PBRMaterialTextures.normal.get());
             }
             else
             {
-                m_DescriptorSet->SetTexture("u_NormalMap", s_DefaultTexture.get());
+                m_DescriptorSet->SetTexture(3, s_DefaultTexture.get());
                 m_MaterialProperties->normalMapFactor = 0.0f;
             }
 
             if(m_PBRMaterialTextures.ao != nullptr)
             {
-                m_DescriptorSet->SetTexture("u_AOMap", m_PBRMaterialTextures.ao.get());
+                m_DescriptorSet->SetTexture(4, m_PBRMaterialTextures.ao.get());
             }
             else
             {
-                m_DescriptorSet->SetTexture("u_AOMap", s_DefaultTexture.get());
+                m_DescriptorSet->SetTexture(4, s_DefaultTexture.get());
                 m_MaterialProperties->occlusionMapFactor = 0.0f;
             }
 
             if(m_PBRMaterialTextures.emissive != nullptr)
             {
-                m_DescriptorSet->SetTexture("u_EmissiveMap", m_PBRMaterialTextures.emissive.get());
+                m_DescriptorSet->SetTexture(5, m_PBRMaterialTextures.emissive.get());
             }
             else
             {
-                m_DescriptorSet->SetTexture("u_EmissiveMap", s_DefaultTexture.get());
+                m_DescriptorSet->SetTexture(5, s_DefaultTexture.get());
                 m_MaterialProperties->emissiveMapFactor = 0.0f;
             }
 

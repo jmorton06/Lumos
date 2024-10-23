@@ -171,7 +171,7 @@ namespace Lumos
             }
 
             auto test = GetJointMatrices();
-            m_Descriptor->SetUniform("BoneTransforms", "BoneTransforms", test.Data(), (uint32_t)(sizeof(Mat4) * test.Size()));
+            m_Descriptor->SetUniformBufferData(0, test.Data(), (uint32_t)(sizeof(Mat4) * test.Size()));
             m_Descriptor->Update();
 
             return m_Descriptor;
