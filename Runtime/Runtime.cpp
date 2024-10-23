@@ -13,6 +13,8 @@
 
 #include <imgui/imgui.h>
 
+#include <imgui/imgui.h>
+
 using namespace Lumos;
 
 class Runtime : public Application

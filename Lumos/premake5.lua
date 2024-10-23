@@ -35,7 +35,6 @@ project "Lumos"
 	{
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.GLFW}",
-		"%{IncludeDir.Glad}",
 		"%{IncludeDir.lua}",
 		"%{IncludeDir.stb}",
 		"%{IncludeDir.ImGui}",
@@ -94,7 +93,6 @@ project "Lumos"
 		defines
 		{
 			"LUMOS_PLATFORM_WINDOWS",
-			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_WIN32_KHR",
 			"WIN32_LEAN_AND_MEAN",
@@ -119,13 +117,8 @@ project "Lumos"
 			"Source/Lumos/Platform/OpenAL/*.h",
 			"Source/Lumos/Platform/OpenAL/*.cpp",
 
-			"Source/Lumos/Platform/OpenGL/*.h",
-			"Source/Lumos/Platform/OpenGL/*.cpp",
-
 			"Source/Lumos/Platform/Vulkan/*.h",
-			"Source/Lumos/Platform/Vulkan/*.cpp",
-
-			"External/glad/src/glad_wgl.c"
+			"Source/Lumos/Platform/Vulkan/*.cpp"
 		}
 
 		links
@@ -292,7 +285,6 @@ project "Lumos"
 		{
 			"LUMOS_PLATFORM_LINUX",
 			"LUMOS_PLATFORM_UNIX",
-			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
 			"LUMOS_IMGUI",
@@ -310,9 +302,6 @@ project "Lumos"
 
 			"Source/Lumos/Platform/OpenAL/*.h",
 			"Source/Lumos/Platform/OpenAL/*.cpp",
-
-			"Source/Lumos/Platform/OpenGL/*.h",
-			"Source/Lumos/Platform/OpenGL/*.cpp",
 
 			"Source/Lumos/Platform/Vulkan/*.h",
 			"Source/Lumos/Platform/Vulkan/*.cpp"

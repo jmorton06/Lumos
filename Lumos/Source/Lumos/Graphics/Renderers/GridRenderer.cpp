@@ -134,12 +134,9 @@ namespace Lumos
 
             test.maxDistance = m_MaxDistance;
 
-            auto invViewProj = proj * view;
-            m_DescriptorSet[0]->SetUniform("UBO", "u_MVP", &invViewProj);
-            m_DescriptorSet[0]->SetUniform("UBO", "view", &view);
-            m_DescriptorSet[0]->SetUniform("UBO", "proj", &proj);
-
-            m_DescriptorSet[0]->SetUniformBufferData("UniformBuffer", &test);
+            Mat4 matrices[3] = { view, proj, proj * view };
+            m_DescriptorSet[0]->SetUniformBufferData(0, matrices);
+            m_DescriptorSet[0]->SetUniformBufferData(1, &test);
             m_DescriptorSet[0]->Update();
         }
 
