@@ -280,6 +280,7 @@ namespace Lumos
         FileSystem::CreateFolderIfDoesntExist(m_ProjectSettings.m_ProjectRoot + "Assets/Prefabs");
         FileSystem::CreateFolderIfDoesntExist(m_ProjectSettings.m_ProjectRoot + "Assets/Materials");
 
+        Graphics::Renderer::GetGraphicsContext()->WaitIdle();
         m_SceneManager = CreateUniquePtr<SceneManager>();
 
         Deserialise();

@@ -1,3 +1,4 @@
+#include <string>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Core/EntryPoint.h>
 #include <Lumos/Core/OS/Window.h>
@@ -10,9 +11,6 @@
 #include <Lumos/Maths/Vector4.h>
 #include <Lumos/Maths/Matrix4.h>
 #include <Lumos/Maths/MathsUtilities.h>
-
-#include <imgui/imgui.h>
-
 #include <imgui/imgui.h>
 
 using namespace Lumos;

@@ -342,6 +342,9 @@ namespace Lumos
             {
                 if(!commandBuffer->Wait())
                 {
+                    //Exit app
+                    LFATAL("Failed to submit command buffer");
+                    Application::Get().SetAppState(AppState::Closing);
                     return;
                 }
             }

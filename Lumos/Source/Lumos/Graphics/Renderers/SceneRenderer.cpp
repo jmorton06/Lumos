@@ -3966,6 +3966,7 @@ namespace Lumos::Graphics
                 }
 
                 Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+				commandBuffer->UnBindPipeline();
 
                 currentDescriptors[0] = m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][0].get();
                 currentDescriptors[1] = m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][1].get();
