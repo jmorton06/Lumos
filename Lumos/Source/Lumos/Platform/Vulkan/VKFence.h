@@ -17,7 +17,7 @@ namespace Lumos
 
             bool Wait(uint64_t timeoutNanoseconds = 1000000000);
             void Reset();
-            void WaitAndReset();
+            bool WaitAndReset();
 
         private:
             VkFence m_Handle;
