@@ -100,6 +100,15 @@ namespace Lumos
         ConstIterator begin() const { return ConstIterator(m_Data); }
         ConstIterator end() const { return ConstIterator(m_Data + m_Size); }
 
+		template <typename U>
+		struct EqualTo
+		{
+			constexpr bool operator()(const U& a, const U& b) { return a == b; }
+		};
+
+		template <typename CompareFunc = EqualTo<typename RemovePointer<Iterator>::type>>
+		void Unique(CompareFunc compare = CompareFunc());
+
         T*& Data() { return m_Data; }
         const T* Data() const { return m_Data; }
 
@@ -398,5 +407,26 @@ namespace Lumos
             }
         }
         Resize(writeIndex);
+    }
+
+    template <class T>
+    template <typename CompareFunc>
+    void TDArray<T>::Unique(CompareFunc compare)
+    {
+        if (m_Size < 2)
+            return;
+
+        size_t writeIndex = 1; // Start writing from the second element
+        for (size_t readIndex = 1; readIndex < m_Size; ++readIndex)
+        {
+            // Compare with the last written element
+            if (!compare(m_Data[readIndex], m_Data[writeIndex - 1]))
+            {
+                m_Data[writeIndex] = Move(m_Data[readIndex]);
+                ++writeIndex;
+            }
+        }
+
+        Resize(writeIndex); // Resize the array to the new size
     }
 }

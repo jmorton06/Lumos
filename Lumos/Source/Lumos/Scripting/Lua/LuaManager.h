@@ -33,6 +33,7 @@ namespace Lumos
         void BindInputLua(sol::state& state);
         void BindSceneLua(sol::state& state);
         void BindAppLua(sol::state& state);
+        void BindUILua(sol::state& lua);
 
         static TDArray<std::string>& GetIdentifiers() { return s_Identifiers; }
 

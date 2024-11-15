@@ -35,6 +35,9 @@ namespace Lumos
         static constexpr uint16_t DESCRIPTOR_MAX_SAMPLERS                 = 1024;
         static constexpr uint16_t DESCRIPTOR_MAX_TEXTURES                 = 1024;
 
+        static constexpr uint8_t DESCRIPTOR_MAX_SETS        = 8;
+        static constexpr uint8_t DESCRIPTOR_MAX_DESCRIPTORS = 16;
+
         enum class CullMode : uint8_t
         {
             FRONT = 0,
@@ -317,13 +320,13 @@ namespace Lumos
             uint32_t binding;
             uint32_t textureCount = 1;
             uint32_t mipLevel     = 0;
-            std::string name;
 
             TextureType textureType;
             DescriptorType type = DescriptorType::IMAGE_SAMPLER;
             ShaderType shaderType;
 
             TDArray<BufferMemberInfo> m_Members;
+            std::string name;
         };
 
         enum class CubeFace : uint8_t
