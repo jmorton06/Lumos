@@ -422,7 +422,7 @@ namespace Lumos
             // Compare with the last written element
             if (!compare(m_Data[readIndex], m_Data[writeIndex - 1]))
             {
-                m_Data[writeIndex] = std::move(m_Data[readIndex]);
+                m_Data[writeIndex] = Move(m_Data[readIndex]);
                 ++writeIndex;
             }
         }
