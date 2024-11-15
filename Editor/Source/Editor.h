@@ -1,5 +1,5 @@
 #pragma once
-
+#include <string>
 #include <Lumos/Maths/Transform.h>
 #include <Lumos/Utilities/IniFile.h>
 #include <Lumos/Graphics/Camera/EditorCamera.h>

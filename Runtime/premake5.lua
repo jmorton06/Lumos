@@ -13,7 +13,6 @@ project "Runtime"
 	externalincludedirs
 	{
 		"%{IncludeDir.GLFW}",
-		"%{IncludeDir.Glad}",
 		"%{IncludeDir.lua}",
 		"%{IncludeDir.stb}",
 		"%{IncludeDir.ImGui}",
@@ -70,7 +69,6 @@ project "Runtime"
 		defines
 		{
 			"LUMOS_PLATFORM_WINDOWS",
-			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_WIN32_KHR",
 			"WIN32_LEAN_AND_MEAN",
@@ -88,7 +86,6 @@ project "Runtime"
 		links
 		{
 			"glfw",
-			"OpenGL32",
 			"OpenAL32"
 		}
 
@@ -127,7 +124,6 @@ end
 		{
 			"LUMOS_PLATFORM_MACOS",
 			"LUMOS_PLATFORM_UNIX",
-			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_EXT_metal_surface",
 			"LUMOS_IMGUI",
@@ -136,7 +132,6 @@ end
 
 		linkoptions
 		{
-			"-framework OpenGL",
 			"-framework Cocoa",
 			"-framework IOKit",
 			"-framework CoreVideo",
@@ -272,7 +267,6 @@ end
 		{
 			"LUMOS_PLATFORM_LINUX",
 			"LUMOS_PLATFORM_UNIX",
-			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
 			"LUMOS_IMGUI",

@@ -481,7 +481,7 @@ static void ImGui_ImplVulkan_SetupRenderState(ImDrawData* draw_data, VkPipeline 
 }
 
 // Render function
-void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer command_buffer, VkPipeline pipeline, uint32_t frameIndex)
+void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer command_buffer, VkPipeline pipeline, uint32_t frameIndex, uint32_t bufferIndex)
 {
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
     int fb_width = (int)(draw_data->DisplaySize.x * draw_data->FramebufferScale.x);
@@ -507,7 +507,7 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
     }
     IM_ASSERT(wrb->Count == v->ImageCount);
     //wrb->Index = (wrb->Index + 1) % wrb->Count;
-    wrb->Index = frameIndex;
+    wrb->Index = bufferIndex;
     ImGui_ImplVulkanH_FrameRenderBuffers* rb = &wrb->FrameRenderBuffers[wrb->Index];
 
     if (draw_data->TotalVtxCount > 0)
@@ -579,10 +579,10 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
 
                 static VkDescriptorSet lastSet = VK_NULL_HANDLE;
                 VkDescriptorSet desc_set[1];
-                if (pcmd->TextureId && (*g_DescriptorSets)[frameIndex].find(pcmd->TextureId) != (*g_DescriptorSets)[frameIndex].end())
+                if (pcmd->TextureId && (*g_DescriptorSets)[bufferIndex].find(pcmd->TextureId) != (*g_DescriptorSets)[bufferIndex].end())
                 {
                     uint32_t index = 0;
-                    auto desc = (*g_DescriptorSets)[frameIndex][pcmd->TextureId];
+                    auto desc = (*g_DescriptorSets)[bufferIndex][pcmd->TextureId];
                     //if (lastSet != desc)
                     {
                         desc_set[0] = desc;

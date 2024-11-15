@@ -449,6 +449,8 @@ namespace Lumos
                 input(*this);
                 if(m_SceneSerialisationVersion == 0)
                     LERROR("Invalid Scene Version");
+                else if (m_SceneSerialisationVersion < MIN_SCENE_VERSION)
+                    LERROR("Invalid Scene Version - Version too low %d. Minimum version supported %d", m_SceneSerialisationVersion, MIN_SCENE_VERSION);
 #if MIN_SCENE_VERSION <= 2
                 else if(m_SceneSerialisationVersion < 2)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input).orphans();
@@ -543,9 +545,11 @@ namespace Lumos
                 input(*this);
 
                 if(m_SceneSerialisationVersion == 0)
-                    LERROR("Invalid Scene Version");
+                    LERROR("Invalid Scene Version - Invalid Scene Version");
+                else if (m_SceneSerialisationVersion < MIN_SCENE_VERSION)
+                    LERROR("Invalid Scene Version - Version too low %d. Minimum version supported %d", m_SceneSerialisationVersion, MIN_SCENE_VERSION);
 #if MIN_SCENE_VERSION <= 2
-                if(m_SceneSerialisationVersion < 2)
+                else if(m_SceneSerialisationVersion < 2)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input).orphans();
 #endif
 #if MIN_SCENE_VERSION <= 3

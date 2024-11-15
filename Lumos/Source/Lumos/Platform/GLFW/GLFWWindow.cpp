@@ -4,7 +4,9 @@
 #define GLFW_EXPOSE_NATIVE_COCOA
 #endif
 
+#ifdef LUMOS_RENDER_API_OPENGL
 #include "Platform/OpenGL/GL.h"
+#endif
 
 #include "GLFWWindow.h"
 #include "Graphics/RHI/GraphicsContext.h"

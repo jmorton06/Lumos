@@ -296,8 +296,10 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION_LOW();
             ASSERT(m_State == CommandBufferState::Submitted);
 
-            m_Fence->WaitAndReset();
             m_State = CommandBufferState::Idle;
+
+            if(!m_Fence->WaitAndReset())
+               return false;
 
             return true;
         }

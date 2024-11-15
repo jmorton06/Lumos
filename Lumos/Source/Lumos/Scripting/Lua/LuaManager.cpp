@@ -11,6 +11,7 @@
 #include "LuaScriptComponent.h"
 #include "Scene/SceneGraph.h"
 #include "Graphics/Camera/ThirdPersonCamera.h"
+#include "Graphics/UI.h"
 
 #include "Scene/Component/Components.h"
 #include "Graphics/Camera/Camera.h"
@@ -232,6 +233,9 @@ namespace Lumos
         BindLogLua(*m_State);
         BindSceneLua(*m_State);
         BindPhysicsLua(*m_State);
+        BindUILua(*m_State);
+
+        LINFO("Initialised Lua Manager");
     }
 
     LuaManager::~LuaManager()
@@ -761,4 +765,130 @@ namespace Lumos
         app_type.set_function("GetWindowSize", &Application::GetWindowSize);
         state.set_function("GetAppInstance", &Application::Get);
     }
+
+    void LuaManager::BindUILua(sol::state& lua)
+    {
+        // Enums
+        lua.new_enum("WidgetFlags",
+            "Clickable", Lumos::WidgetFlags_Clickable,
+            "DrawText", Lumos::WidgetFlags_DrawText,
+            "DrawBorder", Lumos::WidgetFlags_DrawBorder,
+            "DrawBackground", Lumos::WidgetFlags_DrawBackground,
+            "Draggable", Lumos::WidgetFlags_Draggable,
+            "StackVertically", Lumos::WidgetFlags_StackVertically,
+            "StackHorizontally", Lumos::WidgetFlags_StackHorizontally,
+            "Floating_X", Lumos::WidgetFlags_Floating_X,
+            "Floating_Y", Lumos::WidgetFlags_Floating_Y,
+            "CentreX", Lumos::WidgetFlags_CentreX,
+            "CentreY", Lumos::WidgetFlags_CentreY
+        );
+
+        lua.new_enum("UITextAlignment",
+            "None", Lumos::UI_Text_Alignment_None,
+            "Center_X", Lumos::UI_Text_Alignment_Center_X,
+            "Center_Y", Lumos::UI_Text_Alignment_Center_Y
+        );
+
+        lua.new_enum("SizeKind",
+            "Pixels", Lumos::SizeKind_Pixels,
+            "TextContent", Lumos::SizeKind_TextContent,
+            "PercentOfParent", Lumos::SizeKind_PercentOfParent,
+            "ChildSum", Lumos::SizeKind_ChildSum,
+            "MaxChild", Lumos::SizeKind_MaxChild
+        );
+
+        lua.new_enum("UIAxis",
+            "X", Lumos::UIAxis_X,
+            "Y", Lumos::UIAxis_Y,
+            "Count", Lumos::UIAxis_Count
+        );
+
+        lua.new_enum("StyleVar",
+            "Padding", Lumos::StyleVar_Padding,
+            "Border", Lumos::StyleVar_Border,
+            "BorderColor", Lumos::StyleVar_BorderColor,
+            "BackgroundColor", Lumos::StyleVar_BackgroundColor,
+            "TextColor", Lumos::StyleVar_TextColor,
+            "HotBorderColor", Lumos::StyleVar_HotBorderColor,
+            "HotBackgroundColor", Lumos::StyleVar_HotBackgroundColor,
+            "HotTextColor", Lumos::StyleVar_HotTextColor,
+            "ActiveBorderColor", Lumos::StyleVar_ActiveBorderColor,
+            "ActiveBackgroundColor", Lumos::StyleVar_ActiveBackgroundColor,
+            "ActiveTextColor", Lumos::StyleVar_ActiveTextColor,
+            "FontSize", Lumos::StyleVar_FontSize,
+            "Count", Lumos::StyleVar_Count
+        );
+
+        // Structs
+        lua.new_usertype<Lumos::UI_Size>("UI_Size",
+            sol::constructors<Lumos::UI_Size()>(),
+            "kind", &Lumos::UI_Size::kind,
+            "value", &Lumos::UI_Size::value
+        );
+
+        lua.new_usertype<Lumos::UI_Widget>("UI_Widget",
+            "parent", &Lumos::UI_Widget::parent,
+            "first", &Lumos::UI_Widget::first,
+            "last", &Lumos::UI_Widget::last,
+            "next", &Lumos::UI_Widget::next,
+            "prev", &Lumos::UI_Widget::prev,
+            "style_vars", &Lumos::UI_Widget::style_vars,
+            "hash", &Lumos::UI_Widget::hash,
+            "flags", &Lumos::UI_Widget::flags,
+            "text", &Lumos::UI_Widget::text,
+            "texture", &Lumos::UI_Widget::texture,
+            "semantic_size", &Lumos::UI_Widget::semantic_size,
+            "LayoutingAxis", &Lumos::UI_Widget::LayoutingAxis,
+            "TextAlignment", &Lumos::UI_Widget::TextAlignment,
+            "cursor", &Lumos::UI_Widget::cursor,
+            "position", &Lumos::UI_Widget::position,
+            "relative_position", &Lumos::UI_Widget::relative_position,
+            "size", &Lumos::UI_Widget::size,
+            "clicked", &Lumos::UI_Widget::clicked,
+            "is_initial_dragging_position_set", &Lumos::UI_Widget::is_initial_dragging_position_set,
+            "dragging", &Lumos::UI_Widget::dragging,
+            "drag_constraint_x", &Lumos::UI_Widget::drag_constraint_x,
+            "drag_constraint_y", &Lumos::UI_Widget::drag_constraint_y,
+            "drag_offset", &Lumos::UI_Widget::drag_offset,
+            "drag_mouse_p", &Lumos::UI_Widget::drag_mouse_p,
+            "HotTransition", &Lumos::UI_Widget::HotTransition,
+            "ActiveTransition", &Lumos::UI_Widget::ActiveTransition,
+            "LastFrameIndexActive", &Lumos::UI_Widget::LastFrameIndexActive
+        );
+
+        lua.new_usertype<Lumos::UI_Interaction>("UI_Interaction",
+            "widget", &Lumos::UI_Interaction::widget,
+            "hovering", &Lumos::UI_Interaction::hovering,
+            "clicked", &Lumos::UI_Interaction::clicked,
+            "dragging", &Lumos::UI_Interaction::dragging
+        );
+
+        // Functions
+        lua["GetUIState"] = &Lumos::GetUIState;
+        lua["GetStringSize"] = &Lumos::GetStringSize;
+        lua["InitialiseUI"] = &Lumos::InitialiseUI;
+        lua["ShutDownUI"] = &Lumos::ShutDownUI;
+        lua["UIBeginFrame"] = &Lumos::UIBeginFrame;
+        lua["UIEndFrame"] = &Lumos::UIEndFrame;
+        lua["UIBeginPanel"] = sol::overload(
+            static_cast<Lumos::UI_Interaction(*)(const char*, u32)>(&Lumos::UIBeginPanel),
+            static_cast<Lumos::UI_Interaction(*)(const char*, Lumos::SizeKind, float, Lumos::SizeKind, float, u32)>(&Lumos::UIBeginPanel)
+        );
+        lua["UIEndPanel"] = &Lumos::UIEndPanel;
+        lua["UIPushStyle"] = sol::overload(
+            static_cast<void(*)(Lumos::StyleVar, float)>(&Lumos::UIPushStyle),
+            static_cast<void(*)(Lumos::StyleVar, const Vec2&)>(&Lumos::UIPushStyle),
+            static_cast<void(*)(Lumos::StyleVar, const Vec3&)>(&Lumos::UIPushStyle),
+            static_cast<void(*)(Lumos::StyleVar, const Vec4&)>(&Lumos::UIPushStyle)
+        );
+
+        lua["UIPopStyle"] = &Lumos::UIPopStyle;
+        lua["UILabel"] = &Lumos::UILabel;
+        lua["UIButton"] = &Lumos::UIButton;
+        lua["UIImage"] = &Lumos::UIImage;
+        lua["UISlider"] = &Lumos::UISlider;
+        lua["UIToggle"] = &Lumos::UIToggle;
+        lua["UILayoutRoot"] = &Lumos::UILayoutRoot;
+    }
+
 }

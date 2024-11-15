@@ -60,10 +60,10 @@ namespace Lumos
             if(result == VK_SUCCESS)
             {
                 m_Signaled = true;
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         void VKFence::Reset()
@@ -75,13 +75,15 @@ namespace Lumos
             m_Signaled = false;
         }
 
-        void VKFence::WaitAndReset()
+        bool VKFence::WaitAndReset()
         {
-            LUMOS_PROFILE_FUNCTION();
+             LUMOS_PROFILE_FUNCTION();
+            bool succeeded = true;
             if(!IsSignaled())
-                Wait();
+                succeeded = Wait();
 
             Reset();
+            return succeeded;
         }
     }
 }

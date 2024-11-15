@@ -189,8 +189,10 @@ namespace Lumos
 
         void VKIMGUIRenderer::NewFrame()
         {
-            vkResetDescriptorPool(VKDevice::Get().GetDevice(), g_DescriptorPool[Renderer::GetMainSwapChain()->GetCurrentImageIndex()], 0);
-            ImGui_ImplVulkan_ClearDescriptors(Renderer::GetMainSwapChain()->GetCurrentImageIndex());
+            u32 currentImageIndex = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+
+            vkResetDescriptorPool(VKDevice::Get().GetDevice(), g_DescriptorPool[currentImageIndex], 0);
+            ImGui_ImplVulkan_ClearDescriptors(currentImageIndex);
 
             m_CurrentTextureIDIndex = 0;
         }
@@ -246,7 +248,7 @@ namespace Lumos
                 }
             }
 
-            ImGui_ImplVulkan_CreateDescriptorSets(ImGui::GetDrawData(), wd->FrameIndex);
+            ImGui_ImplVulkan_CreateDescriptorSets(ImGui::GetDrawData(), VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex());
 
             float clearColour[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
             m_Renderpass->BeginRenderPass(currentCommandBuffer, clearColour, m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
@@ -254,7 +256,7 @@ namespace Lumos
             {
                 LUMOS_PROFILE_SCOPE("ImGui Vulkan RenderDrawData");
                 // Record Imgui Draw Data and draw funcs into command buffer
-                ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), currentCommandBuffer->GetHandle(), VK_NULL_HANDLE, wd->FrameIndex);
+                ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), currentCommandBuffer->GetHandle(), VK_NULL_HANDLE, wd->FrameIndex, VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex());
             }
             m_Renderpass->EndRenderPass(currentCommandBuffer);
         }
