@@ -299,7 +299,7 @@ namespace Lumos
             m_State = CommandBufferState::Idle;
 
             if(!m_Fence->WaitAndReset())
-               return false;
+                return false;
 
             return true;
         }

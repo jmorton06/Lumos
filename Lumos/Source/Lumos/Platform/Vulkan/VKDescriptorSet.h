@@ -11,16 +11,16 @@ namespace Lumos
     {
         class VKDescriptorSet : public DescriptorSet
         {
-            public:
+        public:
             VKDescriptorSet(const DescriptorDesc& descriptorDesc);
             ~VKDescriptorSet();
-            
+
             VkDescriptorSet GetDescriptorSet()
             {
                 uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
                 return m_DescriptorSet[currentFrame];
             }
-            //Slow
+            // Slow
             void Update(CommandBuffer* cmdBuffer) override;
             void SetTexture(const std::string& name, Texture* texture, uint32_t mipIndex, TextureType textureType) override;
             void SetTexture(const std::string& name, Texture** texture, uint32_t textureCount, TextureType textureType) override;
@@ -38,7 +38,7 @@ namespace Lumos
             void SetUniformBufferData(u8 binding, void* data, float size) override;
 
             void TransitionImages(CommandBuffer* commandBuffer) override;
-            
+
             Buffer* GetUniformBufferLocalData(const std::string& name) override;
             Graphics::UniformBuffer* GetUniformBuffer(const std::string& name) override;
 
@@ -46,26 +46,26 @@ namespace Lumos
             Graphics::UniformBuffer* GetUniformBuffer(u8 binding) override;
 
             bool GetIsDynamic() const { return m_Dynamic; }
-            
+
             void SetDynamicOffset(uint32_t offset) override { m_DynamicOffset = offset; }
             uint32_t GetDynamicOffset() const override { return m_DynamicOffset; }
             bool GetHasUpdated(uint32_t frame) { return m_DescriptorUpdated[frame]; }
             void SetUniformDynamic(const std::string& bufferName, uint32_t size) override;
-            
+
             static void MakeDefault();
-            
-            protected:
+
+        protected:
             void UpdateInternal(TDArray<Descriptor>* imageInfos);
-            
+
             static DescriptorSet* CreateFuncVulkan(const DescriptorDesc&);
-            
-            private:
+
+        private:
             uint32_t m_DynamicOffset = 0;
             Shader* m_Shader         = nullptr;
             bool m_Dynamic           = false;
-            
+
             uint32_t m_FramesInFlight = 0;
-            
+
             struct DescriptorData
             {
                 Descriptor Desc;
@@ -75,7 +75,7 @@ namespace Lumos
                 // Per frame in flight
                 bool HasUpdated[MAX_FRAMES_FLIGHT];
             };
-            
+
             DescriptorData m_DescriptorData[DESCRIPTOR_MAX_DESCRIPTORS];
             SharedPtr<UniformBuffer> m_UniformBuffers[MAX_FRAMES_FLIGHT][DESCRIPTOR_MAX_DESCRIPTORS];
 

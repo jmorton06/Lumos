@@ -82,6 +82,7 @@ namespace Lumos
         , m_IniFile("")
     {
         Debug::Log::SetLoggerFunction(ConsoleLoggerFunction);
+        Application::SetInstance(this);
     }
 
     Editor::~Editor()
@@ -173,7 +174,7 @@ namespace Lumos
         guizmoStyle.HatchedAxisLineThickness = -1.0f;
 
 #ifdef LUMOS_PLATFORM_IOS
-        m_TempSceneSaveFilePath = OS::Instance()->GetAssetPath();
+        m_TempSceneSaveFilePath = OS::Get().GetAssetPath();
 #else
 #ifdef LUMOS_PLATFORM_LINUX
         m_TempSceneSaveFilePath = std::filesystem::current_path().string();
@@ -194,8 +195,8 @@ namespace Lumos
             std::filesystem::create_directory(m_TempSceneSaveFilePath);
 
         std::vector<std::string> iniLocation = {
-            StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "Editor.ini",
-            StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../Editor.ini"
+            StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "Editor.ini",
+            StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../../Editor.ini"
         };
         bool fileFound = false;
         std::string filePath;
@@ -226,9 +227,9 @@ namespace Lumos
         {
             LINFO("Editor Ini not found");
 #ifdef LUMOS_PLATFORM_MACOS
-            filePath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../Editor.ini";
+            filePath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../../Editor.ini";
 #else
-            filePath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "Editor.ini";
+            filePath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "Editor.ini";
 #endif
             LINFO("Creating Editor Ini %s", filePath.c_str());
 
@@ -312,7 +313,7 @@ namespace Lumos
         Application::Get().GetSystem<B2PhysicsEngine>()->SetDebugDrawFlags(m_Settings.m_Physics2DDebugFlags);
 
         ImGuiUtilities::SetTheme(m_Settings.m_Theme);
-        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
         Application::Get().GetWindow()->SetWindowTitle("Lumos Editor");
 
         ImGuizmo::SetGizmoSizeClipSpace(m_Settings.m_ImGuizmoScale);
@@ -507,7 +508,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
 
         // Set filePath to working directory
-        auto path = OS::Instance()->GetExecutablePath();
+        auto path = OS::Get().GetExecutablePath();
         std::filesystem::current_path(path);
         m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
         m_FileBrowserPanel->Open();
@@ -601,73 +602,73 @@ namespace Lumos
                     {
                         m_Settings.m_Theme = ImGuiUtilities::Dark;
                         ImGuiUtilities::SetTheme(ImGuiUtilities::Dark);
-                        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
                     if(ImGui::MenuItem("Dracula", "", m_Settings.m_Theme == ImGuiUtilities::Dracula))
                     {
                         m_Settings.m_Theme = ImGuiUtilities::Dracula;
                         ImGuiUtilities::SetTheme(ImGuiUtilities::Dracula);
-                        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
                     if(ImGui::MenuItem("Black", "", m_Settings.m_Theme == ImGuiUtilities::Black))
                     {
                         m_Settings.m_Theme = ImGuiUtilities::Black;
                         ImGuiUtilities::SetTheme(ImGuiUtilities::Black);
-                        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
                     if(ImGui::MenuItem("Grey", "", m_Settings.m_Theme == ImGuiUtilities::Grey))
                     {
                         m_Settings.m_Theme = ImGuiUtilities::Grey;
                         ImGuiUtilities::SetTheme(ImGuiUtilities::Grey);
-                        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
                     if(ImGui::MenuItem("Light", "", m_Settings.m_Theme == ImGuiUtilities::Light))
                     {
                         m_Settings.m_Theme = ImGuiUtilities::Light;
                         ImGuiUtilities::SetTheme(ImGuiUtilities::Light);
-                        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
                     if(ImGui::MenuItem("Cherry", "", m_Settings.m_Theme == ImGuiUtilities::Cherry))
                     {
                         m_Settings.m_Theme = ImGuiUtilities::Cherry;
                         ImGuiUtilities::SetTheme(ImGuiUtilities::Cherry);
-                        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
                     if(ImGui::MenuItem("Blue", "", m_Settings.m_Theme == ImGuiUtilities::Blue))
                     {
                         m_Settings.m_Theme = ImGuiUtilities::Blue;
                         ImGuiUtilities::SetTheme(ImGuiUtilities::Blue);
-                        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
                     if(ImGui::MenuItem("Cinder", "", m_Settings.m_Theme == ImGuiUtilities::Cinder))
                     {
                         m_Settings.m_Theme = ImGuiUtilities::Cinder;
                         ImGuiUtilities::SetTheme(ImGuiUtilities::Cinder);
-                        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
                     if(ImGui::MenuItem("Classic", "", m_Settings.m_Theme == ImGuiUtilities::Classic))
                     {
                         m_Settings.m_Theme = ImGuiUtilities::Classic;
                         ImGuiUtilities::SetTheme(ImGuiUtilities::Classic);
-                        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
                     if(ImGui::MenuItem("ClassicDark", "", m_Settings.m_Theme == ImGuiUtilities::ClassicDark))
                     {
                         m_Settings.m_Theme = ImGuiUtilities::ClassicDark;
                         ImGuiUtilities::SetTheme(ImGuiUtilities::ClassicDark);
-                        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
                     if(ImGui::MenuItem("ClassicLight", "", m_Settings.m_Theme == ImGuiUtilities::ClassicLight))
                     {
                         m_Settings.m_Theme = ImGuiUtilities::ClassicLight;
                         ImGuiUtilities::SetTheme(ImGuiUtilities::ClassicLight);
-                        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
                     if(ImGui::MenuItem("Cosy", "", m_Settings.m_Theme == ImGuiUtilities::Cosy))
                     {
                         m_Settings.m_Theme = ImGuiUtilities::Cosy;
                         ImGuiUtilities::SetTheme(ImGuiUtilities::Cosy);
-                        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
                     ImGui::EndMenu();
                 }
@@ -832,7 +833,7 @@ namespace Lumos
                 std::string githubMenuText = ICON_MDI_GITHUB_BOX " Github";
                 if(ImGui::MenuItem(githubMenuText.c_str()))
                 {
-                    Lumos::OS::Instance()->OpenURL("https://www.github.com/jmorton06/Lumos");
+                    Lumos::OS::Get().OpenURL("https://www.github.com/jmorton06/Lumos");
                 }
                 ImGui::Separator();
 
@@ -841,25 +842,25 @@ namespace Lumos
                 ArenaTemp scratch = ScratchBegin(nullptr, 0);
 
                 if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "ImGui - Version : %s, Revision - %i", IMGUI_VERSION, IMGUI_VERSION_NUM).str))
-                    Lumos::OS::Instance()->OpenURL("https://github.com/ocornut/imgui");
+                    Lumos::OS::Get().OpenURL("https://github.com/ocornut/imgui");
                 if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Entt - Version  : %s", ENTT_VERSION).str))
-                    Lumos::OS::Instance()->OpenURL("https://github.com/skypjack/entt");
+                    Lumos::OS::Get().OpenURL("https://github.com/skypjack/entt");
                 if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Cereal - Version : %i.%i.%i", CEREAL_VERSION_MAJOR, CEREAL_VERSION_MINOR, CEREAL_VERSION_PATCH).str))
-                    Lumos::OS::Instance()->OpenURL("https://github.com/USCiLab/cereal");
+                    Lumos::OS::Get().OpenURL("https://github.com/USCiLab/cereal");
                 if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Box2D - Version : %i.%i", 3, 0).str))
-                    Lumos::OS::Instance()->OpenURL("https://github.com/erincatto/box2d");
+                    Lumos::OS::Get().OpenURL("https://github.com/erincatto/box2d");
                 ScratchEnd(scratch);
 
                 if(ImGui::BeginMenu("Contributers"))
                 {
                     if(ImGui::MenuItem("Joe Morton"))
-                        Lumos::OS::Instance()->OpenURL("https://github.com/jmorton06");
+                        Lumos::OS::Get().OpenURL("https://github.com/jmorton06");
 
                     if(ImGui::MenuItem("RuanLucasGD"))
-                        Lumos::OS::Instance()->OpenURL("https://github.com/RuanLucasGD");
+                        Lumos::OS::Get().OpenURL("https://github.com/RuanLucasGD");
 
                     if(ImGui::MenuItem("adriengivry"))
-                        Lumos::OS::Instance()->OpenURL("https://github.com/adriengivry");
+                        Lumos::OS::Get().OpenURL("https://github.com/adriengivry");
 
                     ImGui::EndMenu(); // Contributer Menu
                 }
@@ -1226,7 +1227,7 @@ namespace Lumos
                 locationPopupOpened   = true;
 
                 // Set filePath to working directory
-                const auto& path  = OS::Instance()->GetExecutablePath();
+                const auto& path  = OS::Get().GetExecutablePath();
                 auto& browserPath = m_FileBrowserPanel->GetPath();
                 browserPath       = std::filesystem::path(path);
                 m_FileBrowserPanel->SetFileTypeFilters({ ".lmproj" });
@@ -1249,7 +1250,7 @@ namespace Lumos
                 locationPopupOpened   = true;
 
                 // Set filePath to working directory
-                const auto& path  = OS::Instance()->GetExecutablePath();
+                const auto& path  = OS::Get().GetExecutablePath();
                 auto& browserPath = m_FileBrowserPanel->GetPath();
                 browserPath       = std::filesystem::path(path);
                 m_FileBrowserPanel->ClearFileTypeFilters();
@@ -2659,7 +2660,7 @@ namespace Lumos
         isProfiling = tracy::GetProfiler().IsConnected();
 #endif
         if(!isProfiling && m_Settings.m_SleepOutofFocus && !Application::Get().GetWindow()->GetWindowFocus() && m_EditorState != EditorState::Play && !firstFrame)
-            OS::Instance()->Delay(1000000);
+            OS::Get().Delay(1000000);
 
         Application::OnRender();
 
@@ -2884,10 +2885,10 @@ namespace Lumos
 
 #ifdef LUMOS_PLATFORM_MACOS
         // Assuming working directory in /bin/Debug-macosx-x86_64/LumosEditor.app/Contents/MacOS
-        m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../../../ExampleProject/";
+        m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../../../../ExampleProject/";
         if(!Lumos::FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot))
         {
-            m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "/ExampleProject/";
+            m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "/ExampleProject/";
             if(!Lumos::FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot))
             {
                 m_ProjectSettings.m_ProjectRoot = "../../ExampleProject/";

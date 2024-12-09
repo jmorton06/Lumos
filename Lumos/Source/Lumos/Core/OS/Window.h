@@ -41,9 +41,9 @@ namespace Lumos
     public:
         using EventCallbackFn = Function<void(Event&)>;
 
-        static Window* Create(const WindowDesc& windowDesc);
+        static Window* Create();
         virtual ~Window();
-        bool Initialise(const WindowDesc& windowDesc);
+        virtual bool Init(const WindowDesc& windowDesc) = 0;
 
         bool HasInitialised() const
         {
@@ -66,19 +66,19 @@ namespace Lumos
         virtual void SetVSync(bool set)                       = 0;
         virtual void SetWindowTitle(const std::string& title) = 0;
         virtual void OnUpdate()                               = 0;
-        virtual void ProcessInput() {};
+        virtual void ProcessInput() { };
         virtual void SetBorderlessWindow(bool borderless) = 0;
         virtual void* GetHandle()
         {
             return nullptr;
         };
         virtual float GetScreenRatio() const = 0;
-        virtual void HideMouse(bool hide) {};
-        virtual void SetMousePosition(const Vec2& pos) {};
+        virtual void HideMouse(bool hide) { };
+        virtual void SetMousePosition(const Vec2& pos) { };
         virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
         virtual void UpdateCursorImGui()                               = 0;
         virtual void SetIcon(const WindowDesc& desc)                   = 0;
-        virtual void Maximise() {};
+        virtual void Maximise() { };
         virtual std::string GetTitle() const = 0;
         virtual uint32_t GetWidth() const    = 0;
         virtual uint32_t GetHeight() const   = 0;
@@ -93,7 +93,7 @@ namespace Lumos
         const SharedPtr<Lumos::Graphics::GraphicsContext>& GetGraphicsContext() const { return m_GraphicsContext; }
 
     protected:
-        static Window* (*CreateFunc)(const WindowDesc&);
+        static Window* (*CreateFunc)();
 
         Window() = default;
 

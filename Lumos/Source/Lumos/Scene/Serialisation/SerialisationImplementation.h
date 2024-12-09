@@ -209,21 +209,21 @@ namespace Lumos
     static const int AssetRegistrySerialisationVersion = 2;
     template <typename Archive>
     void save(Archive& archive, const AssetRegistry& registry)
-	{
-		std::vector<std::pair<std::string, UUID>> elems(registry.m_NameMap.begin(), registry.m_NameMap.end());
+    {
+        std::vector<std::pair<std::string, UUID>> elems(registry.m_NameMap.begin(), registry.m_NameMap.end());
 
-		elems.erase(std::remove_if(elems.begin(), elems.end(), [](std::pair<std::string, UUID>& a) {
-			return StringUtilities::StringContains(a.first, std::string("Cache/"));
-		}), elems.end());
+        elems.erase(std::remove_if(elems.begin(), elems.end(), [](std::pair<std::string, UUID>& a)
+                                   { return StringUtilities::StringContains(a.first, std::string("Cache/")); }),
+                    elems.end());
 
-		std::sort(elems.begin(), elems.end(), [](std::pair<std::string, UUID>& a, std::pair<std::string, UUID>& b)
-				  { return a.second < b.second; });
+        std::sort(elems.begin(), elems.end(), [](std::pair<std::string, UUID>& a, std::pair<std::string, UUID>& b)
+                  { return a.second < b.second; });
 
-		archive(cereal::make_nvp("Version", AssetRegistrySerialisationVersion));
-		archive(cereal::make_nvp("Count", (int)elems.size()));
+        archive(cereal::make_nvp("Version", AssetRegistrySerialisationVersion));
+        archive(cereal::make_nvp("Count", (int)elems.size()));
 
-		for(auto& entry : elems)
-			archive(cereal::make_nvp("Name", entry.first), cereal::make_nvp("UUID", (uint64_t)entry.second), cereal::make_nvp("AssetType", registry.Contains(entry.second) ? (uint16_t)registry.Get(entry.second).Type : 0));
+        for(auto& entry : elems)
+            archive(cereal::make_nvp("Name", entry.first), cereal::make_nvp("UUID", (uint64_t)entry.second), cereal::make_nvp("AssetType", registry.Contains(entry.second) ? (uint16_t)registry.Get(entry.second).Type : 0));
     }
 
     template <typename Archive>

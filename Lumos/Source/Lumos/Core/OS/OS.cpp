@@ -13,27 +13,19 @@
 
 namespace Lumos
 {
-    OS* OS::s_Instance = nullptr;
-
     void OS::Create()
     {
-        ASSERT(!s_Instance, "OS already exists!");
+        ASSERT(!m_pInstance, "OS already exists!");
 
 #if defined(LUMOS_PLATFORM_WINDOWS)
-        s_Instance = new WindowsOS();
+        m_pInstance = new WindowsOS();
 #elif defined(LUMOS_PLATFORM_MACOS)
-        s_Instance = new MacOSOS();
+        m_pInstance = new MacOSOS();
 #elif defined(LUMOS_PLATFORM_IOS)
-        s_Instance = new iOSOS();
+        m_pInstance = new iOSOS();
 #else
-        s_Instance = new UnixOS();
+        m_pInstance = new UnixOS();
 #endif
-    }
-
-    void OS::Release()
-    {
-        delete s_Instance;
-        s_Instance = nullptr;
     }
 
     std::string OS::PowerStateToString(PowerState state)

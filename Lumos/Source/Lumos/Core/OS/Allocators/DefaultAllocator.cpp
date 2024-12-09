@@ -15,9 +15,9 @@ namespace Lumos
 #ifdef TRACK_ALLOCATIONS
         ASSERT(size < 1024 * 1024 * 1024, "Allocation more than max size");
 
-        Lumos::MemoryManager::Get()->m_MemoryStats.totalAllocated += size;
-        Lumos::MemoryManager::Get()->m_MemoryStats.currentUsed += size;
-        Lumos::MemoryManager::Get()->m_MemoryStats.totalAllocations++;
+        Lumos::MemoryManager::Get().m_MemoryStats.totalAllocated += size;
+        Lumos::MemoryManager::Get().m_MemoryStats.currentUsed += size;
+        Lumos::MemoryManager::Get().m_MemoryStats.totalAllocations++;
 
         size_t actualSize = size + sizeof(size_t);
         void* mem         = malloc(actualSize + sizeof(void*));
@@ -49,8 +49,8 @@ namespace Lumos
             uint8_t* memory = ((uint8_t*)location) - sizeof(size_t);
             size_t size     = *(size_t*)memory;
             free(((void**)memory));
-            Lumos::MemoryManager::Get()->m_MemoryStats.totalFreed += size;
-            Lumos::MemoryManager::Get()->m_MemoryStats.currentUsed -= size;
+            Lumos::MemoryManager::Get().m_MemoryStats.totalFreed += size;
+            Lumos::MemoryManager::Get().m_MemoryStats.currentUsed -= size;
         }
         else
         {

@@ -100,13 +100,13 @@ namespace Lumos
             Vec3 tangent      = dv - normal * Maths::Dot(dv, normal);
             float tangent_len = Maths::Length(tangent);
 
-            if(tangent_len > 0.001f)
+            if(tangent_len > Maths::M_EPSILON)
             {
                 tangent = tangent * (1.0f / tangent_len);
 
                 float frictionalMass = (m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass())
                     + Maths::Dot(tangent, Maths::Cross(m_pNodeA->GetInverseInertia() * Maths::Cross(r1, tangent), r1) + Maths::Cross(m_pNodeB->GetInverseInertia() * Maths::Cross(r2, tangent), r2));
-                float frictionCoef = sqrtf(Maths::Max(m_pNodeA->GetFriction(), 0.1f) * Maths::Max(m_pNodeB->GetFriction(), 0.1f));
+                float frictionCoef = Maths::Sqrt(Maths::Max(m_pNodeA->GetFriction(), 0.1f) * Maths::Max(m_pNodeB->GetFriction(), 0.1f));
                 float jt           = -1.0f * frictionCoef * Maths::Dot(dv, tangent) / frictionalMass;
 
                 // Clamp friction to never apply more force than the main collision

@@ -603,7 +603,7 @@ file.close();
 
         VkDescriptorPool VKRenderer::GetPool()
         {
-			//TODO: Add pools to freelist once all descriptor sets have been marked as freed
+            // TODO: Add pools to freelist once all descriptor sets have been marked as freed
             if(m_FreeDescriptorPools.Size() > 0)
             {
                 VkDescriptorPool pool = m_FreeDescriptorPools.Back();
@@ -671,15 +671,15 @@ file.close();
 
             return false;
         }
-		
-		bool VKRenderer::DeallocateDescriptorSet(VkDescriptorSet* set, VkDescriptorPool& pool)
-		{
-			//Find pool index
-			//Decrease Pool capcity by 1
-			//Check if capacity is 0
-			//Add to free list if empty
+
+        bool VKRenderer::DeallocateDescriptorSet(VkDescriptorSet* set, VkDescriptorPool& pool)
+        {
+            // Find pool index
+            // Decrease Pool capcity by 1
+            // Check if capacity is 0
+            // Add to free list if empty
             return false;
-		}
+        }
 
         void VKRenderer::ReleaseDescriptorPools()
         {

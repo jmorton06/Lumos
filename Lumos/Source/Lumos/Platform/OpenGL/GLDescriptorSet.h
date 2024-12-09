@@ -15,7 +15,7 @@ namespace Lumos
         public:
             GLDescriptorSet(const DescriptorDesc& descriptorDesc);
 
-            ~GLDescriptorSet() {};
+            ~GLDescriptorSet() { };
 
             void Update(CommandBuffer* cmdBuffer) override;
             void SetTexture(const std::string& name, Texture* texture, uint32_t mipIndex, TextureType textureType) override;

@@ -72,7 +72,7 @@ static iOSOS* os = nullptr;
 
         iOSWindow::MakeDefault();
 
-        s_Instance = this;
+        OS::SetInstance(this);
 
         //TODO: Replace with non depricated functions
         AudioSessionInitialize(NULL, NULL, AudioInterruptionListenerCallback, NULL);

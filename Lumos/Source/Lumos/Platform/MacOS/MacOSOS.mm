@@ -36,7 +36,7 @@ namespace Lumos
         else
             LINFO("Power - Outlet");
 
-        auto systemInfo = MemoryManager::Get()->GetSystemInfo();
+        auto systemInfo = MemoryManager::Get().GetSystemInfo();
         systemInfo.Log();
 
         auto& app = Lumos::Application::Get();

@@ -29,7 +29,8 @@ namespace Lumos
             ALCcontext* m_Context;
             ALCdevice* m_Device;
 
-            int m_NumChannels = 0;
+            int m_NumChannels     = 0;
+            u32 m_LatestNodeCount = 0;
         };
     }
 }

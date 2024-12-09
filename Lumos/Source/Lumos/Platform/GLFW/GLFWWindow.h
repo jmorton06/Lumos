@@ -14,9 +14,10 @@ namespace Lumos
     class LUMOS_EXPORT GLFWWindow : public Window
     {
     public:
-        GLFWWindow(const WindowDesc& properties);
+        GLFWWindow();
         ~GLFWWindow();
 
+        bool Init(const WindowDesc& properties) override;
         void ToggleVSync() override;
         void SetVSync(bool set) override;
         void SetWindowTitle(const std::string& title) override;
@@ -28,8 +29,6 @@ namespace Lumos
         void ProcessInput() override;
         void Maximise() override;
         void UpdateControllers() override;
-
-        bool Init(const WindowDesc& properties);
 
         inline void* GetHandle() override
         {
@@ -79,7 +78,7 @@ namespace Lumos
         static void MakeDefault();
 
     protected:
-        static Window* CreateFuncGLFW(const WindowDesc& properties);
+        static Window* CreateFuncGLFW();
 
         GLFWwindow* m_Handle;
 

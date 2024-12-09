@@ -40,28 +40,14 @@ namespace Lumos
         LERROR("GLFW Error - %i : %s", error, description);
     }
 
-    GLFWWindow::GLFWWindow(const WindowDesc& properties)
+    GLFWWindow::GLFWWindow()
     {
         LUMOS_PROFILE_FUNCTION();
         m_Init  = false;
-        m_VSync = properties.VSync;
+        m_VSync = false;
 
-        LINFO("VSync : %s", m_VSync ? "True" : "False");
-        m_HasResized       = true;
-        m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
-        m_Data.VSync       = m_VSync;
-        m_Init             = Init(properties);
-
-        // Setting fullscreen overrides width and heigh in Init
-        auto propCopy   = properties;
-        propCopy.Width  = m_Data.Width;
-        propCopy.Height = m_Data.Height;
-
-        m_GraphicsContext = SharedPtr<Graphics::GraphicsContext>(Graphics::GraphicsContext::Create());
-        m_GraphicsContext->Init();
-
-        m_SwapChain = SharedPtr<Graphics::SwapChain>(Graphics::SwapChain::Create(m_Data.Width, m_Data.Height));
-        m_SwapChain->Init(m_VSync, (Window*)this);
+        m_HasResized = true;
+        m_Init       = false;
     }
 
     GLFWWindow::~GLFWWindow()
@@ -87,6 +73,13 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         LINFO("Creating window - Title : %s, Width : %i, Height : %i", properties.Title.str, properties.Width, properties.Height);
+
+        m_VSync = properties.VSync;
+
+        LINFO("VSync : %s", m_VSync ? "True" : "False");
+        m_HasResized       = true;
+        m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
+        m_Data.VSync       = m_VSync;
 
         if(!s_GLFWInitialized)
         {
@@ -201,126 +194,126 @@ namespace Lumos
         // Set GLFW callbacks
         glfwSetWindowSizeCallback(m_Handle, [](GLFWwindow* window, int width, int height)
                                   {
-                WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-
-                int w, h;
-                glfwGetFramebufferSize(window, &w, &h);
-
-                data.DPIScale = (float)w / (float)width;
-
-                data.Width = uint32_t(width * data.DPIScale);
-                data.Height = uint32_t(height * data.DPIScale);
-
-                WindowResizeEvent event(data.Width, data.Height, data.DPIScale);
-                data.EventCallback(event); });
+                                      WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
+                                      
+                                      int w, h;
+                                      glfwGetFramebufferSize(window, &w, &h);
+                                      
+                                      data.DPIScale = (float)w / (float)width;
+                                      
+                                      data.Width = uint32_t(width * data.DPIScale);
+                                      data.Height = uint32_t(height * data.DPIScale);
+                                      
+                                      WindowResizeEvent event(data.Width, data.Height, data.DPIScale);
+                                      data.EventCallback(event); });
 
         glfwSetWindowCloseCallback(m_Handle, [](GLFWwindow* window)
                                    {
-                WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-                WindowCloseEvent event;
-                data.EventCallback(event);
-                data.Exit = true; });
+                                       WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
+                                       WindowCloseEvent event;
+                                       data.EventCallback(event);
+                                       data.Exit = true; });
 
         glfwSetWindowFocusCallback(m_Handle, [](GLFWwindow* window, int focused)
                                    {
-			Window* lmWindow = Application::Get().GetWindow();
-
-			if(lmWindow)
-				lmWindow->SetWindowFocus(focused); });
+                                       Window* lmWindow = Application::Get().GetWindow();
+                                       
+                                       if(lmWindow)
+                                           lmWindow->SetWindowFocus(focused); });
 
         glfwSetWindowIconifyCallback(m_Handle, [](GLFWwindow* window, int32_t state)
                                      {
-                switch(state)
-                {
-                case GL_TRUE:
-                    Application::Get().GetWindow()->SetWindowFocus(false);
-                    break;
-                case GL_FALSE:
-                    Application::Get().GetWindow()->SetWindowFocus(true);
-                    break;
-                default:
-                    LINFO("Unsupported window iconify state from callback");
-                } });
+                                         switch(state)
+                                         {
+                                             case GL_TRUE:
+                                             Application::Get().GetWindow()->SetWindowFocus(false);
+                                             break;
+                                             case GL_FALSE:
+                                             Application::Get().GetWindow()->SetWindowFocus(true);
+                                             break;
+                                             default:
+                                             LINFO("Unsupported window iconify state from callback");
+                                         } });
 
         glfwSetKeyCallback(m_Handle, [](GLFWwindow* window, int key, int scancode, int action, int mods)
                            {
-                WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-
-                switch(action)
-                {
-                case GLFW_PRESS:
-                {
-                    KeyPressedEvent event(GLFWKeyCodes::GLFWToLumosKeyboardKey(key), 0);
-                    data.EventCallback(event);
-                    break;
-                }
-                case GLFW_RELEASE:
-                {
-                    KeyReleasedEvent event(GLFWKeyCodes::GLFWToLumosKeyboardKey(key));
-                    data.EventCallback(event);
-                    break;
-                }
-                case GLFW_REPEAT:
-                {
-                    KeyPressedEvent event(GLFWKeyCodes::GLFWToLumosKeyboardKey(key), 1);
-                    data.EventCallback(event);
-                    break;
-                }
-                } });
+                               WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
+                               
+                               switch(action)
+                               {
+                                   case GLFW_PRESS:
+                                   {
+                                       KeyPressedEvent event(GLFWKeyCodes::GLFWToLumosKeyboardKey(key), 0);
+                                       data.EventCallback(event);
+                                       break;
+                                   }
+                                   case GLFW_RELEASE:
+                                   {
+                                       KeyReleasedEvent event(GLFWKeyCodes::GLFWToLumosKeyboardKey(key));
+                                       data.EventCallback(event);
+                                       break;
+                                   }
+                                   case GLFW_REPEAT:
+                                   {
+                                       KeyPressedEvent event(GLFWKeyCodes::GLFWToLumosKeyboardKey(key), 1);
+                                       data.EventCallback(event);
+                                       break;
+                                   }
+                               } });
 
         glfwSetMouseButtonCallback(m_Handle, [](GLFWwindow* window, int button, int action, int mods)
                                    {
-                WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-
-                switch(action)
-                {
-                case GLFW_PRESS:
-                {
-                    MouseButtonPressedEvent event(GLFWKeyCodes::GLFWToLumosMouseKey(button));
-                    data.EventCallback(event);
-                    break;
-                }
-                case GLFW_RELEASE:
-                {
-                    MouseButtonReleasedEvent event(GLFWKeyCodes::GLFWToLumosMouseKey(button));
-                    data.EventCallback(event);
-                    break;
-                }
-                } });
+                                       WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
+                                       
+                                       switch(action)
+                                       {
+                                           case GLFW_PRESS:
+                                           {
+                                               MouseButtonPressedEvent event(GLFWKeyCodes::GLFWToLumosMouseKey(button));
+                                               data.EventCallback(event);
+                                               break;
+                                           }
+                                           case GLFW_RELEASE:
+                                           {
+                                               MouseButtonReleasedEvent event(GLFWKeyCodes::GLFWToLumosMouseKey(button));
+                                               data.EventCallback(event);
+                                               break;
+                                           }
+                                       } });
 
         glfwSetScrollCallback(m_Handle, [](GLFWwindow* window, double xOffset, double yOffset)
                               {
-                WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-                MouseScrolledEvent event((float)xOffset, (float)yOffset);
-                data.EventCallback(event); });
+                                  WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
+                                  MouseScrolledEvent event((float)xOffset, (float)yOffset);
+                                  data.EventCallback(event); });
 
         glfwSetCursorPosCallback(m_Handle, [](GLFWwindow* window, double xPos, double yPos)
                                  {
-                WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-                MouseMovedEvent event((float)xPos /* * data.DPIScale*/, (float)yPos /* * data.DPIScale*/);
-                data.EventCallback(event); });
+                                     WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
+                                     MouseMovedEvent event((float)xPos /* * data.DPIScale*/, (float)yPos /* * data.DPIScale*/);
+                                     data.EventCallback(event); });
 
         glfwSetCursorEnterCallback(m_Handle, [](GLFWwindow* window, int enter)
                                    {
-                WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-
-                MouseEnterEvent event(enter > 0);
-                data.EventCallback(event); });
+                                       WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
+                                       
+                                       MouseEnterEvent event(enter > 0);
+                                       data.EventCallback(event); });
 
         glfwSetCharCallback(m_Handle, [](GLFWwindow* window, unsigned int keycode)
                             {
-                WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-
-                KeyTypedEvent event(GLFWKeyCodes::GLFWToLumosKeyboardKey(keycode), char(keycode));
-                data.EventCallback(event); });
+                                WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
+                                
+                                KeyTypedEvent event(GLFWKeyCodes::GLFWToLumosKeyboardKey(keycode), char(keycode));
+                                data.EventCallback(event); });
 
         glfwSetDropCallback(m_Handle, [](GLFWwindow* window, int numDropped, const char** filenames)
                             {
-            WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-
-            std::string filePath = filenames[0];
-            WindowFileEvent event(filePath);
-            data.EventCallback(event); });
+                                WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
+                                
+                                std::string filePath = filenames[0];
+                                WindowFileEvent event(filePath);
+                                data.EventCallback(event); });
 
         g_MouseCursors[ImGuiMouseCursor_Arrow]      = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_TextInput]  = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
@@ -330,6 +323,19 @@ namespace Lumos
         g_MouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_Hand]       = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+
+        // Setting fullscreen overrides width and heigh in Init
+        auto propCopy   = properties;
+        propCopy.Width  = m_Data.Width;
+        propCopy.Height = m_Data.Height;
+
+        m_GraphicsContext = SharedPtr<Graphics::GraphicsContext>(Graphics::GraphicsContext::Create());
+        m_GraphicsContext->Init();
+
+        m_SwapChain = SharedPtr<Graphics::SwapChain>(Graphics::SwapChain::Create(m_Data.Width, m_Data.Height));
+        m_SwapChain->Init(m_VSync, (Window*)this);
+
+        m_Init = true;
 
         LINFO("Initialised GLFW version : %s", glfwGetVersionString());
         return true;
@@ -473,9 +479,9 @@ namespace Lumos
         CreateFunc = CreateFuncGLFW;
     }
 
-    Window* GLFWWindow::CreateFuncGLFW(const WindowDesc& properties)
+    Window* GLFWWindow::CreateFuncGLFW()
     {
-        return new GLFWWindow(properties);
+        return new GLFWWindow();
     }
 
     void GLFWWindow::UpdateCursorImGui()
@@ -524,7 +530,7 @@ namespace Lumos
 
 #ifdef LUMOS_PLATFORM_MACOS
         // TODO: Move to glfw extensions or something
-        OS::Instance()->MaximiseWindow();
+        OS::Get().MaximiseWindow();
 #endif
     }
 

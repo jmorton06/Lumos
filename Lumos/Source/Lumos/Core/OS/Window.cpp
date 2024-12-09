@@ -3,7 +3,7 @@
 
 namespace Lumos
 {
-    Window* (*Window::CreateFunc)(const WindowDesc&) = NULL;
+    Window* (*Window::CreateFunc)() = NULL;
 
     Window::~Window()
     {
@@ -11,14 +11,9 @@ namespace Lumos
         m_GraphicsContext.reset();
     }
 
-    Window* Window::Create(const WindowDesc& windowDesc)
+    Window* Window::Create()
     {
         ASSERT(CreateFunc, "No Windows Create Function");
-        return CreateFunc(windowDesc);
-    }
-
-    bool Window::Initialise(const WindowDesc& windowDesc)
-    {
-        return HasInitialised();
+        return CreateFunc();
     }
 }

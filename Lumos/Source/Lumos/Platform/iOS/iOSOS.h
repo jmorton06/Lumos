@@ -57,7 +57,7 @@ namespace Lumos
 
         static iOSOS* Get()
         {
-            return (iOSOS*)s_Instance;
+            return (iOSOS*)m_pInstance;
         }
 
     private:

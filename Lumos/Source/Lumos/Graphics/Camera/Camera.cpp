@@ -23,7 +23,7 @@ namespace Lumos
         , m_Near(Near)
         , m_Far(Far)
         , m_Orthographic(false)
-        , m_Scale(1.0f) {};
+        , m_Scale(1.0f) { };
 
     Camera::Camera(float pitch, float yaw, const Vec3& position, float FOV, float Near, float Far, float aspect)
         : m_AspectRatio(aspect)

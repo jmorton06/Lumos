@@ -10,15 +10,14 @@ namespace Lumos
     class iOSWindow : public Window
     {
     public:
-        iOSWindow(const WindowDesc& properties);
+        iOSWindow();
         ~iOSWindow();
 
+        bool Init(const WindowDesc& properties) override;
         void ToggleVSync() override;
         void SetWindowTitle(const std::string& title) override;
         void SetBorderlessWindow(bool borderless) override;
         void OnUpdate() override;
-
-        bool Init(const WindowDesc& properties, const std::string& title);
 
         void* GetHandle() override
         {
@@ -59,8 +58,8 @@ namespace Lumos
             m_Data.EventCallback = callback;
         };
 
-        void SetIcon(const WindowDesc& desc) override {};
-        void UpdateCursorImGui() override {};
+        void SetIcon(const WindowDesc& desc) override { };
+        void UpdateCursorImGui() override { };
 
         void OnKeyEvent(Lumos::InputCode::Key key, bool down);
         void OnTouchEvent(uint32_t xPos, uint32_t yPos, uint32_t count, bool down);
@@ -75,7 +74,7 @@ namespace Lumos
         static void MakeDefault();
 
     protected:
-        static Window* CreateFunciOS(const WindowDesc& properties);
+        static Window* CreateFunciOS();
 
         struct WindowData
         {

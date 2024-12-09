@@ -22,8 +22,8 @@ namespace Lumos
             VkPipelineShaderStageCreateInfo* GetShaderStages() const;
             uint32_t GetStageCount() const;
 
-            void Bind() const override {};
-            void Unbind() const override {};
+            void Bind() const override { };
+            void Unbind() const override { };
 
             const TDArray<ShaderType> GetShaderTypes() const override
             {

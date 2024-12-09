@@ -202,6 +202,24 @@ namespace Lumos
             m_AtRest = false;
     }
 
+    void RigidBody3D::SetLinearVelocity(const Vec3& v)
+    {
+        if(m_Static)
+            return;
+        m_LinearVelocity = v;
+
+        if(Maths::Length2(v) > Maths::M_EPSILON)
+            m_AtRest = false;
+    }
+    void RigidBody3D::SetForce(const Vec3& v)
+    {
+        if(m_Static)
+            return;
+        m_Force = v;
+        if(Maths::Length2(v) > Maths::M_EPSILON)
+            m_AtRest = false;
+    }
+
     void RigidBody3D::CollisionShapeUpdated()
     {
         if(m_CollisionShape)
@@ -233,16 +251,16 @@ namespace Lumos
     RigidBody3DProperties RigidBody3D::GetProperties()
     {
         RigidBody3DProperties properties;
-        properties.Position = m_Position;
+        properties.Position       = m_Position;
         properties.LinearVelocity = m_LinearVelocity;
-        properties.Force = m_Force;
-        properties.Elasticity = m_Elasticity;
+        properties.Force          = m_Force;
+        properties.Elasticity     = m_Elasticity;
 
         if(m_InvMass != 0.0f)
-        properties.Mass = 1.0f / m_InvMass;
-            else
-        properties.Mass = 1.0f;
-        //TODO: Finish rest;
+            properties.Mass = 1.0f / m_InvMass;
+        else
+            properties.Mass = 1.0f;
+        // TODO: Finish rest;
         LWARN("WIP Rigidbody GetProperties");
 
         return properties;

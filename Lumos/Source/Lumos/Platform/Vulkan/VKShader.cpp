@@ -772,18 +772,18 @@ namespace Lumos
                 m_Compiled = true;
             }
 
-            for (auto& infos : m_DescriptorInfos)
+            for(auto& infos : m_DescriptorInfos)
             {
                 Algorithms::BubbleSort(infos.second.descriptors.begin(), infos.second.descriptors.end(),
-                    [](Descriptor& a, Descriptor& b)
-                    {
-                        return a.binding < b.binding;
-                    });
+                                       [](Descriptor& a, Descriptor& b)
+                                       {
+                                           return a.binding < b.binding;
+                                       });
 
-          /*      infos.second.descriptors.Unique([](Descriptor& a, Descriptor& b)
-                    {
-                        return a.binding == b.binding;
-                    });*/
+                /*      infos.second.descriptors.Unique([](Descriptor& a, Descriptor& b)
+                          {
+                              return a.binding == b.binding;
+                          });*/
             }
 
             VK_CHECK_RESULT(result);

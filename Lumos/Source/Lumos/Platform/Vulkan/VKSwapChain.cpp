@@ -342,14 +342,14 @@ namespace Lumos
             {
                 if(!commandBuffer->Wait())
                 {
-                    //Exit app
+                    // Exit app
                     LFATAL("Failed to submit command buffer");
                     Application::Get().SetAppState(AppState::Closing);
                     return;
                 }
             }
 
-			//TODO: Check if in pending state before resetting
+            // TODO: Check if in pending state before resetting
             commandBuffer->Reset();
             VKRenderer::GetDeletionQueue(m_CurrentBuffer).Flush();
             AcquireNextImage();

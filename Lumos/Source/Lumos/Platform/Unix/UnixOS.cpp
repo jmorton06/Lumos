@@ -23,7 +23,7 @@ namespace Lumos
         LINFO(" System Information ");
         LINFO("--------------------");
 
-        auto systemInfo = MemoryManager::Get()->GetSystemInfo();
+        auto systemInfo = MemoryManager::Get().GetSystemInfo();
         systemInfo.Log();
 
         app.Init();
