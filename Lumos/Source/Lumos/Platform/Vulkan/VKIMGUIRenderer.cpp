@@ -12,6 +12,7 @@
 #include "VKRenderPass.h"
 #include "VKTexture.h"
 #include "Graphics/RHI/GPUProfile.h"
+#include "Core/Application.h"
 
 static ImGui_ImplVulkanH_Window g_WindowData;
 static VkAllocationCallbacks* g_Allocator   = nullptr;
@@ -192,9 +193,10 @@ namespace Lumos
             u32 currentImageIndex = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
             vkResetDescriptorPool(VKDevice::Get().GetDevice(), g_DescriptorPool[currentImageIndex], 0);
-            ImGui_ImplVulkan_ClearDescriptors(currentImageIndex);
+            m_CurrentFrameTextures = { Application::Get().GetFrameArena() };
+            m_CurrentFrameTextures.Reserve(1024);
 
-            m_CurrentTextureIDIndex = 0;
+            ImGui::GetIO().Fonts->TexID = (ImTextureID)AddTexture(m_FontTexture, TextureType::COLOUR, 0, 0);
         }
 
         void VKIMGUIRenderer::FrameRender(ImGui_ImplVulkanH_Window* wd)
@@ -205,7 +207,6 @@ namespace Lumos
 
             wd->FrameIndex            = VKRenderer::GetMainSwapChain()->GetCurrentImageIndex();
             auto currentCommandBuffer = (VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
-            auto& descriptorImageMap  = ImGui_ImplVulkan_GetDescriptorImageMap();
             auto swapChain            = static_cast<VKSwapChain*>(VKRenderer::GetMainSwapChain());
 
             if(wd->Swapchain != swapChain->GetSwapChain())
@@ -213,42 +214,28 @@ namespace Lumos
 
             {
                 auto draw_data = ImGui::GetDrawData();
-                for(int n = 0; n < draw_data->CmdListsCount; n++)
+                for(auto texture : m_CurrentFrameTextures)
                 {
-                    const ImDrawList* cmd_list = draw_data->CmdLists[n];
-                    for(int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+                    if(!texture)
+                        continue;
+
+                    if(texture->GetType() == TextureType::COLOUR)
                     {
-                        const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
-                        ImGuiTextureID* texID = (ImGuiTextureID*)pcmd->TextureId;
-
-                        if(texID && texID->texture)
-                        {
-                            if(texID->type == TextureType::COLOUR)
-                            {
-
-                                auto texture = (VKTexture2D*)texID->texture;
-                                texture->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, currentCommandBuffer);
-                                descriptorImageMap[pcmd->TextureId] = *texture->GetDescriptor();
-                            }
-                            else if(texID->type == TextureType::DEPTH)
-                            {
-                                auto texture = (VKTextureDepth*)texID->texture;
-                                texture->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, currentCommandBuffer);
-                                descriptorImageMap[pcmd->TextureId] = *texture->GetDescriptor();
-                            }
-                            else if(texID->type == TextureType::DEPTHARRAY)
-                            {
-                                auto texture = (VKTextureDepthArray*)texID->texture;
-                                texture->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, currentCommandBuffer);
-                                descriptorImageMap[pcmd->TextureId]           = *texture->GetDescriptor();
-                                descriptorImageMap[pcmd->TextureId].imageView = texture->GetImageView(texID->level);
-                            }
-                        }
+                        auto tex = (VKTexture2D*)texture;
+                        tex->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, currentCommandBuffer);
+                    }
+                    else if(texture->GetType() == TextureType::DEPTH)
+                    {
+                        auto textureDepth = (VKTextureDepth*)texture;
+                        textureDepth->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, currentCommandBuffer);
+                    }
+                    else if(texture->GetType() == TextureType::DEPTHARRAY)
+                    {
+                        auto textureDepth = (VKTextureDepthArray*)texture;
+                        textureDepth->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, currentCommandBuffer);
                     }
                 }
             }
-
-            ImGui_ImplVulkan_CreateDescriptorSets(ImGui::GetDrawData(), VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex());
 
             float clearColour[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
             m_Renderpass->BeginRenderPass(currentCommandBuffer, clearColour, m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
@@ -346,13 +333,36 @@ namespace Lumos
                 auto desc  = TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT);
                 desc.flags = TextureFlags::Texture_Sampled;
 
-                m_FontTexture           = new VKTexture2D(width, height, pixels, desc);
-                m_FontTextureID.level   = 0;
-                m_FontTextureID.mip     = 0;
-                m_FontTextureID.type    = TextureType::COLOUR;
-                m_FontTextureID.texture = m_FontTexture;
-                io.Fonts->TexID         = (ImTextureID)&m_FontTextureID;
+                m_FontTexture   = new VKTexture2D(width, height, pixels, desc);
+                io.Fonts->TexID = (ImTextureID)AddTexture(m_FontTexture, TextureType::COLOUR, 0, 0);
+                m_CurrentFrameTextures.PushBack(m_FontTexture);
             }
+        }
+
+        ImTextureID VKIMGUIRenderer::AddTexture(Texture* texture, TextureType type, uint32_t level, uint32_t mip)
+        {
+            u32 currentImageIndex = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+
+            // Layout is transitioned to these before rendering
+            m_CurrentFrameTextures.PushBack(texture);
+            if(type == TextureType::COLOUR)
+            {
+                auto tex = (VKTexture2D*)texture;
+                return ImGui_ImplVulkan_AddTexture(tex->GetSampler(), tex->GetMipImageView(mip), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, g_DescriptorPool[currentImageIndex]);
+            }
+            else if(type == TextureType::DEPTH)
+            {
+                auto depthTex = (VKTextureDepth*)texture;
+                return ImGui_ImplVulkan_AddTexture(depthTex->GetSampler(), depthTex->GetImageView(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, g_DescriptorPool[currentImageIndex]);
+            }
+            else if(type == TextureType::DEPTHARRAY)
+            {
+                auto depthTex = (VKTextureDepthArray*)texture;
+                return ImGui_ImplVulkan_AddTexture(depthTex->GetSampler(), depthTex->GetImageView(level), VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, g_DescriptorPool[currentImageIndex]);
+            }
+
+            ASSERT("Unsupported Texture Type with ImGui");
+            return nullptr;
         }
     }
 }

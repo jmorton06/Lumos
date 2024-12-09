@@ -37,14 +37,14 @@ namespace Lumos
             virtual void Init()                                                                                      = 0;
             virtual void Begin()                                                                                     = 0;
             virtual void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) = 0;
-            virtual void Submit(const RenderCommand& command) {};
-            virtual void SubmitMesh(Mesh* mesh, Material* material, const Mat4& transform, const Mat4& textureMatrix) {};
+            virtual void Submit(const RenderCommand& command) { };
+            virtual void SubmitMesh(Mesh* mesh, Material* material, const Mat4& transform, const Mat4& textureMatrix) { };
             virtual void EndScene()                                = 0;
             virtual void End()                                     = 0;
             virtual void Present()                                 = 0;
             virtual void PresentToScreen()                         = 0;
             virtual void OnResize(uint32_t width, uint32_t height) = 0;
-            virtual void OnImGui() {};
+            virtual void OnImGui() { };
 
             virtual void SetScreenBufferSize(uint32_t width, uint32_t height)
             {

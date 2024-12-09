@@ -52,8 +52,9 @@ namespace Lumos
         Editor
     };
 
-    class LUMOS_EXPORT Application
+    class LUMOS_EXPORT Application : public TSingleton<Application>
     {
+        friend class TSingleton<Application>;
         friend class Editor;
         friend class Runtime;
         template <typename Archive>
@@ -109,15 +110,6 @@ namespace Lumos
 
         void SubmitToMainThread(const Function<void()>& function);
         void ExecuteMainThreadQueue();
-
-        static Application& Get() { return *s_Instance; }
-
-        static void Release()
-        {
-            if(s_Instance)
-                delete s_Instance;
-            s_Instance = nullptr;
-        }
 
         template <typename T>
         T* GetSystem()
@@ -241,8 +233,6 @@ namespace Lumos
         AppState m_CurrentState   = AppState::Loading;
         EditorState m_EditorState = EditorState::Preview;
         AppType m_AppType         = AppType::Editor;
-
-        static Application* s_Instance;
 
         std::thread m_UpdateThread;
 

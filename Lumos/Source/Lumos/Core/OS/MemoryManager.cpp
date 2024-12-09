@@ -4,29 +4,12 @@
 
 namespace Lumos
 {
-    MemoryManager* MemoryManager::s_Instance = nullptr;
-
     MemoryManager::MemoryManager()
     {
     }
 
     void MemoryManager::OnInit()
     {
-    }
-
-    void MemoryManager::OnShutdown()
-    {
-        if(s_Instance)
-            delete s_Instance;
-    }
-
-    MemoryManager* MemoryManager::Get()
-    {
-        if(s_Instance == nullptr)
-        {
-            s_Instance = new MemoryManager();
-        }
-        return s_Instance;
     }
 
     void SystemMemoryInfo::Log()

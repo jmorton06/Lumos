@@ -16,11 +16,11 @@ namespace Lumos
         CameraController()          = default;
         virtual ~CameraController() = default;
 
-        virtual void HandleMouse(Maths::Transform& transform, float dt, float xpos, float ypos) {};
-        virtual void HandleKeyboard(Maths::Transform& transform, float dt) {};
-        virtual void UpdateScroll(Maths::Transform& transform, float offset, float dt) {};
+        virtual void HandleMouse(Maths::Transform& transform, float dt, float xpos, float ypos) { };
+        virtual void HandleKeyboard(Maths::Transform& transform, float dt) { };
+        virtual void UpdateScroll(Maths::Transform& transform, float offset, float dt) { };
 
-        virtual void OnImGui() {};
+        virtual void OnImGui() { };
 
         void SetMouseSensitivity(float value) { m_MouseSensitivity = value; }
 

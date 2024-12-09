@@ -268,22 +268,9 @@ namespace Lumos
     void Scene::OnCleanupScene()
     {
         LUMOS_PROFILE_FUNCTION();
-        DeleteAllGameObjects();
-
-        LuaManager::Get().CollectGarbage();
-
-        auto audioManager = Application::Get().GetSystem<AudioManager>();
-        if(audioManager)
-        {
-            audioManager->ClearNodes();
-        }
-    };
-
-    void Scene::DeleteAllGameObjects()
-    {
-        LUMOS_PROFILE_FUNCTION();
         m_EntityManager->Clear();
-    }
+        LuaManager::Get().CollectGarbage();
+    };
 
     void Scene::OnUpdate(const TimeStep& timeStep)
     {
@@ -449,7 +436,7 @@ namespace Lumos
                 input(*this);
                 if(m_SceneSerialisationVersion == 0)
                     LERROR("Invalid Scene Version");
-                else if (m_SceneSerialisationVersion < MIN_SCENE_VERSION)
+                else if(m_SceneSerialisationVersion < MIN_SCENE_VERSION)
                     LERROR("Invalid Scene Version - Version too low %d. Minimum version supported %d", m_SceneSerialisationVersion, MIN_SCENE_VERSION);
 #if MIN_SCENE_VERSION <= 2
                 else if(m_SceneSerialisationVersion < 2)
@@ -546,7 +533,7 @@ namespace Lumos
 
                 if(m_SceneSerialisationVersion == 0)
                     LERROR("Invalid Scene Version - Invalid Scene Version");
-                else if (m_SceneSerialisationVersion < MIN_SCENE_VERSION)
+                else if(m_SceneSerialisationVersion < MIN_SCENE_VERSION)
                     LERROR("Invalid Scene Version - Version too low %d. Minimum version supported %d", m_SceneSerialisationVersion, MIN_SCENE_VERSION);
 #if MIN_SCENE_VERSION <= 2
                 else if(m_SceneSerialisationVersion < 2)

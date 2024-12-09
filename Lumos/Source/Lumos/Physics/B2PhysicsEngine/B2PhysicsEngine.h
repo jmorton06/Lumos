@@ -22,7 +22,7 @@ namespace Lumos
 
     struct ContactCallback
     {
-        virtual void OnCollision(b2BodyId a, b2BodyId b, float approachSpeed) {};
+        virtual void OnCollision(b2BodyId a, b2BodyId b, float approachSpeed) { };
     };
 
     class LUMOS_EXPORT B2PhysicsEngine : public ISystem

@@ -11,7 +11,7 @@ namespace Lumos
             ~EmptyAudioManager() = default;
 
             bool OnInit() override { return true; };
-            void OnUpdate(const TimeStep& dt, Scene* scene) override {};
+            void OnUpdate(const TimeStep& dt, Scene* scene) override { };
             void OnImGui() override { }
         };
     }

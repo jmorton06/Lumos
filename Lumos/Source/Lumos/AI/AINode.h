@@ -8,6 +8,6 @@ namespace Lumos
         AINode()          = default;
         virtual ~AINode() = default;
 
-        void Update(float dt) {};
+        void Update(float dt) { };
     };
 }

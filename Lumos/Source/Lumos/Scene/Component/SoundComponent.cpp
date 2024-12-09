@@ -21,9 +21,6 @@ namespace Lumos
 
     void SoundComponent::Init()
     {
-
-        // TODO Remove
-        Application::Get().GetSystem<AudioManager>()->AddSoundNode(m_SoundNode.get());
     }
 
     void SoundComponent::OnImGui()

@@ -1309,16 +1309,16 @@ namespace Lumos
             m_VKFormat = VKUtilities::FormatToVK(m_Format);
 
 #ifdef LUMOS_PLATFORM_MACOS
-			//Bug on macos with shadows having artifacts when using the VK_IMAGE_USAGE_SAMPLED_BIT flag
-    #ifndef LUMOS_PRODUCTION
-        VkImageUsageFlags usage;
-        if(((VKContext*)Graphics::Renderer::GetGraphicsContext())->ValidationEnabled())
-            usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-        else
-            usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-    #else
+            // Bug on macos with shadows having artifacts when using the VK_IMAGE_USAGE_SAMPLED_BIT flag
+#ifndef LUMOS_PRODUCTION
+            VkImageUsageFlags usage;
+            if(((VKContext*)Graphics::Renderer::GetGraphicsContext())->ValidationEnabled())
+                usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+            else
+                usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+#else
             VkImageUsageFlags usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-    #endif
+#endif
 #else
             VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 #endif
@@ -1331,7 +1331,7 @@ namespace Lumos
 
             for(uint32_t i = 0; i < m_Count; i++)
             {
-                VkImageView imageView = CreateImageView(m_TextureImage, m_VKFormat, 1, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_ASPECT_DEPTH_BIT, 1, i, 0);
+                VkImageView imageView = CreateImageView(m_TextureImage, m_VKFormat, 1, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_DEPTH_BIT, 1, i, 0);
                 m_IndividualImageViews.PushBack(imageView);
             }
 

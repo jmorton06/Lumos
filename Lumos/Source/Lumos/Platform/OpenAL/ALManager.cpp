@@ -50,6 +50,7 @@ namespace Lumos
         void ALManager::OnUpdate(const TimeStep& dt, Scene* scene)
         {
             LUMOS_PROFILE_FUNCTION();
+            m_LatestNodeCount = 0;
             auto& registry    = scene->GetRegistry();
             auto listenerView = registry.view<Listener, Maths::Transform>();
             if(listenerView.size_hint() > 0)
@@ -65,6 +66,7 @@ namespace Lumos
                 auto soundNode = soundsView.get<SoundComponent>(entity).GetSoundNode();
                 soundNode->SetPosition(soundsView.get<Maths::Transform>(entity).GetWorldPosition());
                 soundNode->OnUpdate((float)dt.GetMillis());
+                m_LatestNodeCount++;
             }
         }
 
@@ -117,7 +119,7 @@ namespace Lumos
             ImGui::TextUnformatted("Number Of Audio Sources");
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-            ImGui::Text("%5.2lu", m_SoundNodes.Size());
+            ImGui::Text("%5.2lu", m_LatestNodeCount);
             ImGui::PopItemWidth();
             ImGui::NextColumn();
 

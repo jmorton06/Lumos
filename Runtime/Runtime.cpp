@@ -23,6 +23,7 @@ public:
     explicit Runtime()
         : Application()
     {
+        Application::SetInstance(this);
     }
 
     ~Runtime()
@@ -46,13 +47,13 @@ public:
     void Init() override
     {
         TDArray<std::string> projectLocations = {
-            OS::Instance()->GetExecutablePath() + "../../../../../ExampleProject/",
+            OS::Get().GetExecutablePath() + "../../../../../ExampleProject/",
             "/Users/jmorton/dev/Lumos/ExampleProject/Example.lmproj",
             "ExampleProject/Example.lmproj",
             "../ExampleProject/Example.lmproj",
-            OS::Instance()->GetExecutablePath() + "/ExampleProject/Example.lmproj",
-            OS::Instance()->GetExecutablePath() + "/../ExampleProject/Example.lmproj",
-            OS::Instance()->GetExecutablePath() + "/../../ExampleProject/Example.lmproj"
+            OS::Get().GetExecutablePath() + "/ExampleProject/Example.lmproj",
+            OS::Get().GetExecutablePath() + "/../ExampleProject/Example.lmproj",
+            OS::Get().GetExecutablePath() + "/../../ExampleProject/Example.lmproj"
         };
 
         bool fileFound = false;

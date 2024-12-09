@@ -24,11 +24,11 @@ namespace Lumos
 
             fpCmdBeginDebugUtilsLabelEXT = (PFN_vkCmdBeginDebugUtilsLabelEXT)(vkGetInstanceProcAddr(VKContext::GetVKInstance(), "vkCmdBeginDebugUtilsLabelEXT"));
             if(fpCmdBeginDebugUtilsLabelEXT == nullptr)
-                fpCmdBeginDebugUtilsLabelEXT = [](VkCommandBuffer commandBuffer, const VkDebugUtilsLabelEXT* pLabelInfo) {};
+                fpCmdBeginDebugUtilsLabelEXT = [](VkCommandBuffer commandBuffer, const VkDebugUtilsLabelEXT* pLabelInfo) { };
 
             fpCmdEndDebugUtilsLabelEXT = (PFN_vkCmdEndDebugUtilsLabelEXT)(vkGetInstanceProcAddr(VKContext::GetVKInstance(), "vkCmdEndDebugUtilsLabelEXT"));
             if(fpCmdEndDebugUtilsLabelEXT == nullptr)
-                fpCmdEndDebugUtilsLabelEXT = [](VkCommandBuffer commandBuffer) {};
+                fpCmdEndDebugUtilsLabelEXT = [](VkCommandBuffer commandBuffer) { };
         }
 
         uint32_t VKUtilities::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)

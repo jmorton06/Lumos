@@ -7,7 +7,6 @@
 #include "VKIMGUIRenderer.h"
 #include "VKIndexBuffer.h"
 #include "VKPipeline.h"
-#include "VKRenderDevice.h"
 #include "VKRenderer.h"
 #include "VKRenderPass.h"
 #include "VKShader.h"
@@ -25,7 +24,6 @@ void Lumos::Graphics::Vulkan::MakeDefault()
     VKIMGUIRenderer::MakeDefault();
     VKIndexBuffer::MakeDefault();
     VKPipeline::MakeDefault();
-    VKRenderDevice::MakeDefault();
     VKRenderer::MakeDefault();
     VKRenderPass::MakeDefault();
     VKShader::MakeDefault();

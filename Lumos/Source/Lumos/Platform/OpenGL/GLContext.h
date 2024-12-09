@@ -13,7 +13,7 @@ namespace Lumos
             ~GLContext();
 
             void Present() override;
-            void Init() override {};
+            void Init() override { };
 
             size_t GetMinUniformBufferOffsetAlignment() const override { return 256; }
 

@@ -112,11 +112,11 @@ namespace Lumos
                 ~InternalState()
                 {
                     LUMOS_PROFILE_FUNCTION_LOW();
-                    
+
                     alive.store(false); // indicate that new jobs cannot be started from this point
                     bool bWakeLoop = true;
-                    
-                #ifdef LUMOS_PLATFORM_LINUX
+
+#ifdef LUMOS_PLATFORM_LINUX
                     for(auto& thread : threads)
                     {
                         if(thread.joinable())
@@ -124,14 +124,13 @@ namespace Lumos
                     }
                     bWakeLoop = false;
                     wakeCondition.notify_all();
-                #else
+#else
                     std::thread waker([&]
-                    {
+                                      {
                         while (bWakeLoop)
                         {
                             wakeCondition.notify_all(); // wakes up sleeping worker threads
-                        } 
-                    });
+                        } });
 
                     for(auto& thread : threads)
                     {
@@ -141,8 +140,8 @@ namespace Lumos
                     bWakeLoop = false;
                     if(waker.joinable())
                         waker.join();
-                #endif
-                    
+#endif
+
                     delete[] jobQueuePerThread;
                 }
             };

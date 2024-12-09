@@ -15,7 +15,7 @@ namespace Lumos
             virtual uint32_t GetCount() const = 0;
             virtual uint32_t GetSize() const { return 0; }
             virtual void SetCount(uint32_t m_index_count) = 0;
-            virtual void ReleasePointer() {};
+            virtual void ReleasePointer() { };
 
             template <typename T>
             T* GetPointer()

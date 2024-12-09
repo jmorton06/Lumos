@@ -108,7 +108,7 @@ namespace Lumos
                     else
                         continue;
 
-                        // Slow check for duplicates
+                    // Slow check for duplicates
 #if DEBUG_CHECK_DUPLICATES
                     bool duplicate = false;
                     for(int i = 0; i < collisionPairs.Size(); i++)
