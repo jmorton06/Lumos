@@ -213,9 +213,9 @@ namespace Lumos
                 m_BoundPipeline->End(this);
             m_BoundPipeline = nullptr;
 
-            /*	if(m_BoundRenderPass)
-                            m_BoundRenderPass->EndRenderPass(this);
-                    m_BoundRenderPass = nullptr;*/
+            if(m_BoundRenderPass)
+               m_BoundRenderPass->EndRenderPass(this);
+            m_BoundRenderPass = nullptr;
         }
 
         void VKCommandBuffer::EndCurrentRenderPass()
