@@ -27,7 +27,7 @@ namespace Lumos
 	{
         auto prop = properties;
         
-        iOSOS iosOS = iOSOS::Get();
+        iOSOS* iosOS = iOSOS::Get();
         
         prop.Width = (uint32_t)iosOS->GetWidth();
         prop.Height = (uint32_t)iosOS->GetHeight();
