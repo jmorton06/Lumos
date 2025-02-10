@@ -1196,7 +1196,9 @@ namespace Lumos::Graphics
         {
             LUMOS_PROFILE_GPU("Clear Main Texture Pass");
             Renderer::GetRenderer()->ClearRenderTarget(m_MainTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-            Renderer::GetRenderer()->ClearRenderTarget(m_ResolveTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+            
+            if(sceneRenderSettings.MSAASamples > 1)
+                Renderer::GetRenderer()->ClearRenderTarget(m_ResolveTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
         if(sceneRenderSettings.SSAOEnabled)
@@ -4579,11 +4581,12 @@ namespace Lumos::Graphics
 
     void SceneRenderer::CreateCubeMap(const std::string& filePath, const Vec4& params, SharedPtr<TextureCube>& outEnv, SharedPtr<TextureCube>& outIrr)
     {
-        // Create shader and pipeline
-        // Create Empty Cube Map
-        auto environmentMap         = TextureCube::Create(Application::Get().GetRenderConfigSettings().EnvironmentMapSize, nullptr, true);
-        auto environmentMapFiltered = TextureCube::Create(Application::Get().GetRenderConfigSettings().EnvironmentMapSize, nullptr, true);
-        auto irradianceMap          = TextureCube::Create(Application::Get().GetRenderConfigSettings().IrradianceMapSize, nullptr, true);
+		// Create shader and pipeline
+		// Create Empty Cube Map
+		auto environmentMap         = TextureCube::Create(Application::Get().GetRenderConfigSettings().EnvironmentMapSize, nullptr, true);
+		auto environmentMapFiltered = TextureCube::Create(Application::Get().GetRenderConfigSettings().EnvironmentMapSize, nullptr, true);
+		auto irradianceMap          = TextureCube::Create(Application::Get().GetRenderConfigSettings().IrradianceMapSize, nullptr, true);
+
 
         auto commandBuffer = CommandBuffer::Create();
         commandBuffer->Init(true);

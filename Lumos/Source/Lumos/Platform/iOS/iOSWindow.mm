@@ -13,7 +13,7 @@
 
 namespace Lumos
 {
-	iOSWindow::iOSWindow(const WindowDesc& properties)
+	iOSWindow::iOSWindow()
 	{
 		m_Init = false;
     }
@@ -32,8 +32,7 @@ namespace Lumos
         prop.Width = (uint32_t)iosOS->GetWidth();
         prop.Height = (uint32_t)iosOS->GetHeight();
         
-        m_Handle = iosOS->GetIOSView();
-        
+        m_Handle = (void*)iosOS->GetLayerPtr();
         LINFO("Creating window - Title : %s, Width : %i, Height : %i", (const char*)properties.Title.str, properties.Width, properties.Height);
         
         m_Data.Title = ToStdString(properties.Title);

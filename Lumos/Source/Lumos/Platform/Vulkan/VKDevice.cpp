@@ -404,7 +404,7 @@ namespace Lumos
 #endif
             vmaDestroyAllocator(m_Allocator);
 #endif
-#if LUMOS_PROFILE && defined(TRACY_ENABLE)
+#if LUMOS_PROFILE && defined(TRACY_ENABLE) && LUMOS_PROFILE_GPU_TIMINGS
             for(int i = 0; i < 4; i++)
                 TracyVkDestroy(m_TracyContext[i]);
             TracyVkDestroy(m_PresentTracyContext);
@@ -620,7 +620,7 @@ namespace Lumos
 
         void VKDevice::CreateTracyContext()
         {
-#if LUMOS_PROFILE && defined(TRACY_ENABLE)
+#if LUMOS_PROFILE && defined(TRACY_ENABLE) && LUMOS_PROFILE_GPU_TIMINGS
             VkCommandBufferAllocateInfo allocInfo = {};
             allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
             allocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -643,7 +643,7 @@ namespace Lumos
 #endif
         }
 
-#if LUMOS_PROFILE && defined(TRACY_ENABLE)
+#if LUMOS_PROFILE && defined(TRACY_ENABLE) && LUMOS_PROFILE_GPU_TIMINGS
         tracy::VkCtx* VKDevice::GetTracyContext(bool present)
         {
             if(present)

@@ -98,7 +98,7 @@ namespace Lumos
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
             platformLayerName = VK_KHR_XCB_SURFACE_EXTENSION_NAME;
 #elif defined(VK_USE_PLATFORM_IOS_MVK)
-            platformLayerName = "VK_EXT_metal_surface";
+			platformLayerName = VK_MVK_IOS_SURFACE_EXTENSION_NAME;//"VK_EXT_metal_surface";
 #elif defined(VK_USE_PLATFORM_MACOS_MVK)
             platformLayerName = VK_MVK_MACOS_SURFACE_EXTENSION_NAME;
 #elif defined(VK_USE_PLATFORM_METAL_EXT)

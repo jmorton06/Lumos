@@ -3,6 +3,7 @@
 #include <Lumos/Core/EntryPoint.h>
 #include <Lumos/Core/OS/Window.h>
 #include <Lumos/Core/OS/Input.h>
+#include <Lumos/Core/OS/OS.h>
 #include <Lumos/Core/Engine.h>
 #include <Lumos/Graphics/UI.h>
 #include <Lumos/Graphics/Font.h>
@@ -55,6 +56,11 @@ public:
             OS::Get().GetExecutablePath() + "/../ExampleProject/Example.lmproj",
             OS::Get().GetExecutablePath() + "/../../ExampleProject/Example.lmproj"
         };
+
+#if defined(LUMOS_PLATFORM_IOS)
+		projectLocations.Clear();
+		projectLocations.PushBack(OS::Get().GetAssetPath() + "/ExampleProject/");
+#endif
 
         bool fileFound = false;
         std::string filePath;

@@ -182,6 +182,7 @@ end
 			"AudioToolbox.framework",
 			"Foundation.framework",
 			"SystemConfiguration.framework",
+			"IOSurface.framework"
 		}
 
 		linkoptions
@@ -194,12 +195,7 @@ end
 			"../Resources/AppIcons/Assets.xcassets",
 			"../Lumos/Assets/Shaders",
 			"../Lumos/Source/Lumos/Platform/iOS/Client/**",
-			"../ExampleProject/Assets/Scenes",
-			"../ExampleProject/Assets/Scripts",
-			"../ExampleProject/Assets/Meshes",
-			"../ExampleProject/Assets/Sounds",
-			"../ExampleProject/Assets/Textures",
-			"../ExampleProject/Example.lmproj"
+			"../ExampleProject"
 		}
 
 		xcodebuildsettings
@@ -212,8 +208,8 @@ end
 			['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = '',
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
 			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/iOS/Client/Info.plist',
-	['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
-}
+	        ['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
+        }
 
 if settings.enable_signing then
 xcodebuildsettings
@@ -244,18 +240,19 @@ end
 		{
 			("**.DS_Store")
 		}
-
+		
 		xcodebuildresources
 		{
 			"../Lumos/Source/Platform/iOS/Client",
 			"Assets.xcassets",
             "Shaders",
-            "Meshes",
-            "Scenes",
-            "Scripts",
-            "Sounds",
-            "Textures",
-            "Example.lmproj"
+            "ExampleProject"
+            -- "Meshes",
+            -- "Scenes",
+            -- "Scripts",
+            -- "Sounds",
+            -- "Textures",
+			--"Example.lmproj"
 		}
 
 	filter "system:linux"

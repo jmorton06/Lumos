@@ -890,6 +890,10 @@ namespace Lumos
                 {
                     presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
                 }
+				else if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_FIFO_KHR))
+				{
+					presentMode = VK_PRESENT_MODE_FIFO_KHR;
+				}
                 else
                 {
                     LERROR("Failed to find supported presentation mode.");
