@@ -2,6 +2,8 @@
 #include "Precompiled.h"
 #include "Core/OS/OS.h"
 
+#include <vulkan/vulkan_metal.h>
+
 namespace Lumos
 {
     class iOSOS : public OS
@@ -16,21 +18,31 @@ namespace Lumos
         }
         std::string GetExecutablePath() override;
         std::string GetAssetPath() override;
+		std::string GetCurrentWorkingDirectory() override;
         void Vibrate() const override;
 
-        void* GetIOSView() const
-        {
-            return m_IOSView;
-        }
-        void SetIOSView(void* view)
-        {
-            m_IOSView = view;
-        }
+		CAMetalLayer* GetLayerPtr() const
+		{
+			if (!m_LayerPtr)
+			{
+				LWARN("Invalid layer pointer passed to SetLayerPtr.");
+			}
+			return m_LayerPtr;
+		}
+		
+		void SetLayerPtr(CAMetalLayer* layer)
+		{
+			if (!layer)
+			{
+				LWARN("Invalid layer pointer passed to SetLayerPtr.");
+			}
+			m_LayerPtr = layer;
+		}
 
         void ShowKeyboard(bool open);
         bool HasWifiConnection();
 
-        void OnFrame();
+        bool OnFrame();
         void OnQuit();
         void OnKeyPressed(char keycode, bool down);
         void OnScreenPressed(uint32_t x, uint32_t y, uint32_t count, bool down);
@@ -55,13 +67,11 @@ namespace Lumos
             return m_Y;
         }
 
-        static iOSOS* Get()
-        {
-            return (iOSOS*)m_pInstance;
-        }
+		static iOSOS* Get();
+		static CAMetalLayer* GetStaticLayer();
 
     private:
-        void* m_IOSView;
+		CAMetalLayer* m_LayerPtr;
         float m_X, m_Y;
     };
 }

@@ -57,8 +57,8 @@ void main()
 	vec3 S, T;
 	ComputeBasisVectors(N, S, T);
 
-	uint samples = 64 * ubo.Samples;
-
+    uint samples = min(64 * ubo.Samples, 512u);
+    
 	// Monte Carlo integration of hemispherical irradiance.
 	// As a small optimization this also includes Lambertian BRDF assuming perfectly white surface (albedo of 1.0)
 	// so we don't need to normalize in PBR fragment shader (so technically it encodes exitant radiance rather than irradiance).

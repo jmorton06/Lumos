@@ -4,25 +4,31 @@
 #include "iOSOS.h"
 #include "iOSWindow.h"
 #include "Platform/Vulkan/VKSwapChain.h"
+#include <vulkan/vulkan_metal.h>
 
 #if 0
 #include <MoltenVK/vk_mvk_moltenvk.h>
 #endif
+
+#import <MetalKit/MetalKit.h>
 
 namespace Lumos
 {
 	VkSurfaceKHR Graphics::VKSwapChain::CreatePlatformSurface(VkInstance vkInstance, Window* window)
 	{
 		VkSurfaceKHR surface;
+		CAMetalLayer* iosView = iOSOS::GetStaticLayer();// iOSOS::Get()->GetLayerPtr();
 
-        auto iosView = window->GetHandle();
-
-        VkIOSSurfaceCreateInfoMVK surfaceCreateInfo = {};
-		surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_IOS_SURFACE_CREATE_INFO_MVK;
+		VkMetalSurfaceCreateInfoEXT surfaceCreateInfo = {};
+		surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
         surfaceCreateInfo.pNext = NULL;
-        surfaceCreateInfo.pView = iosView;
-        vkCreateIOSSurfaceMVK(vkInstance, &surfaceCreateInfo, nullptr, &surface);
-        
+        surfaceCreateInfo.pLayer = iosView;
+		VkResult result = vkCreateMetalSurfaceEXT(vkInstance, &surfaceCreateInfo, nullptr, &surface);
+
+		if (result != VK_SUCCESS) {
+			NSLog(@"Failed to create Vulkan surface. VkResult: %d", result);
+		}
+
 #if 0
         MVKConfiguration mvkConfig;
         size_t pConfigurationSize = sizeof(MVKConfiguration);

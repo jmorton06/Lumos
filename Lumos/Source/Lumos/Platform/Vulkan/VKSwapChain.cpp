@@ -196,7 +196,7 @@ namespace Lumos
                 VkImageViewCreateInfo viewCI {};
                 viewCI.sType  = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
                 viewCI.format = m_ColourFormat;
-#ifdef LUMOS_PLATFORM_MACOS
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
                 viewCI.components = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY };
 #else
                 viewCI.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
@@ -264,9 +264,15 @@ namespace Lumos
             if(m_SwapChainBufferCount == 1 && m_AcquireImageIndex != std::numeric_limits<uint32_t>::max())
                 return;
 
+			while(FailedCount < 10)
             {
                 LUMOS_PROFILE_SCOPE("vkAcquireNextImageKHR");
                 auto result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_Frames[m_CurrentBuffer].ImageAcquireSemaphore->GetHandle(), VK_NULL_HANDLE, &m_AcquireImageIndex);
+
+				if(result == VK_SUCCESS)
+				{
+					return;
+				}
 
                 if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
                 {
@@ -276,22 +282,21 @@ namespace Lumos
                     {
                         OnResize(m_Width, m_Height, true);
                     }
+					
+					return;
                 }
                 else if(result != VK_SUCCESS)
                 {
+                	std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     FailedCount++;
                     LFATAL("[VULKAN] Failed to acquire swap chain image! - %s", VKUtilities::ErrorString(result).c_str());
-
-                    if(FailedCount > 10)
-                    {
-                        LFATAL("[VULKAN] Failed to acquire swap chain image %s times! - Exiting", FailedCount);
-                        Application::Get().SetAppState(AppState::Closing);
-                    }
-
-                    return;
                 }
-
-                FailedCount = 0;
+            }
+            
+            if(FailedCount > 10)
+            {
+                LFATAL("[VULKAN] Failed to acquire swap chain image %i times! - Exiting", FailedCount);
+                Application::Get().SetAppState(AppState::Closing);
             }
         }
 
@@ -344,8 +349,8 @@ namespace Lumos
                 {
                     // Exit app
                     LFATAL("Failed to submit command buffer");
-                    Application::Get().SetAppState(AppState::Closing);
-                    return;
+                    //Application::Get().SetAppState(AppState::Closing);
+                    //return;
                 }
             }
 

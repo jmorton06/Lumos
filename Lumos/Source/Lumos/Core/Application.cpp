@@ -97,6 +97,10 @@ namespace Lumos
 
         Deserialise();
 
+#ifdef LUMOS_PLATFORM_IOS
+		m_ProjectSettings.m_EngineAssetPath = OS::Get().GetAssetPath();
+#endif
+
         CommandLine* cmdline = Internal::CoreSystem::GetCmdLine();
         if(cmdline->OptionBool(Str8Lit("help")))
         {
@@ -262,14 +266,12 @@ namespace Lumos
         m_ProjectSettings.m_ProjectName = StringUtilities::GetFileName(filePath);
         m_ProjectSettings.m_ProjectName = StringUtilities::RemoveFilePathExtension(m_ProjectSettings.m_ProjectName);
 
-#ifndef LUMOS_PLATFORM_IOS
         auto projectRoot                = StringUtilities::GetFileLocation(filePath);
         m_ProjectSettings.m_ProjectRoot = projectRoot;
 
         String8 pathCopy                = PushStr8Copy(m_FrameArena, projectRoot.c_str());
         pathCopy                        = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
         m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
-#endif
 
         FileSystem::CreateFolderIfDoesntExist(m_ProjectSettings.m_ProjectRoot + "Assets/Prefabs");
         FileSystem::CreateFolderIfDoesntExist(m_ProjectSettings.m_ProjectRoot + "Assets/Materials");
@@ -851,7 +853,7 @@ namespace Lumos
                         m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../Lumos/Assets/";
                     }
 #else
-                    m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../Lumos/Assets/";
+					m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Get().GetAssetPath());
 #endif
                     m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
                     m_SceneManager->SwitchScene(0);

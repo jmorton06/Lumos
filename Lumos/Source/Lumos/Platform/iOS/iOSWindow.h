@@ -5,6 +5,8 @@
 #include "Events/Event.h"
 #include "Core/DataStructures/TDArray.h"
 
+#include <vulkan/vulkan_metal.h>
+
 namespace Lumos
 {
     class iOSWindow : public Window

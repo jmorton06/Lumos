@@ -23,7 +23,7 @@ namespace Lumos
         viewInfo.image                 = image;
         viewInfo.viewType              = viewType;
         viewInfo.format                = format;
-#ifdef LUMOS_PLATFORM_MACOS
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
         viewInfo.components = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY };
 #else
         viewInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
@@ -1308,7 +1308,7 @@ namespace Lumos
             m_Flags |= TextureFlags::Texture_DepthStencil;
             m_VKFormat = VKUtilities::FormatToVK(m_Format);
 
-#ifdef LUMOS_PLATFORM_MACOS
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
             // Bug on macos with shadows having artifacts when using the VK_IMAGE_USAGE_SAMPLED_BIT flag
 #ifndef LUMOS_PRODUCTION
             VkImageUsageFlags usage;

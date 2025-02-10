@@ -29,7 +29,8 @@
 
 namespace Lumos
 {
-static iOSOS* os = nullptr;
+	static CAMetalLayer* s_Layer = nullptr;
+	CAMetalLayer* iOSOS::GetStaticLayer() { return s_Layer; }
 
     iOSOS::iOSOS()
     {
@@ -72,8 +73,6 @@ static iOSOS* os = nullptr;
 
         iOSWindow::MakeDefault();
 
-        OS::SetInstance(this);
-
         //TODO: Replace with non depricated functions
         AudioSessionInitialize(NULL, NULL, AudioInterruptionListenerCallback, NULL);
 
@@ -86,9 +85,9 @@ static iOSOS* os = nullptr;
         app->Init();
     }
 
-    void iOSOS::OnFrame()
+    bool iOSOS::OnFrame()
     {
-        Application::Get().OnFrame();
+        return Application::Get().OnFrame();
     }
 
     void iOSOS::OnQuit()
@@ -102,6 +101,15 @@ static iOSOS* os = nullptr;
     {
         return [NSBundle.mainBundle.resourcePath stringByAppendingString: @"/"].UTF8String;
     }
+
+	std::string iOSOS::GetCurrentWorkingDirectory()
+	{
+		@autoreleasepool {
+			NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+			NSString *documentsPath = [paths firstObject];
+			return std::string([documentsPath UTF8String]);
+		}
+	}
 
     void iOSOS::OnKeyPressed(char keycode, bool down)
     {
@@ -174,6 +182,12 @@ static iOSOS* os = nullptr;
         [viewController presentViewController:alert animated:YES completion:nil];
     }
 
+	iOSOS* iOSOS::Get()
+	{
+		Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
+		return (iOSOS*)os;
+	}
+
     std::string iOSOS::GetModelName() const
     {
         size_t size;
@@ -245,12 +259,30 @@ static iOSOS* os = nullptr;
 
 @implementation LumosMetalView
 
++ (Class)layerClass {
+#if TARGET_OS_SIMULATOR
+	if (@available(iOS 13.0, *)) {
+		return [CAMetalLayer class];
+	}
+	return [CALayer class];
+#else
+	return [CAMetalLayer class];
+#endif
+}
+
+- (void)dealloc
+{
+	NSLog(@"LumosMetalView is being deallocated.");
+	[super dealloc]; // Use only if ARC is disabled
+}
+
 @dynamic animating;
 
 - (instancetype)initWithFrame:(CGRect)frame contentScaleFactor:(CGFloat)contentScaleFactor
                        device:(id<MTLDevice>)device {
     if ((self = [super initWithFrame:frame device:device]))
     {
+		NSLog(@"LumosMetalView is being initialised.");
         self.contentScaleFactor = contentScaleFactor;
         self.delegate = self;
         self.drawableWidth = (int)self.drawableSize.width;
@@ -258,6 +290,12 @@ static iOSOS* os = nullptr;
         self.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
         self.depthStencilPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
         self.sampleCount = 1;
+
+		// Configure the Metal layer
+		CAMetalLayer *metalLayer = (CAMetalLayer *)self.layer;
+		metalLayer.device = device;
+		metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+		metalLayer.framebufferOnly = YES; // Optimize for rendering performance.
     }
     return self;
 }
@@ -290,10 +328,16 @@ static iOSOS* os = nullptr;
         self.drawableWidth = newDrawableWidth;
         self.drawableHeight = newDrawableHeight;
 
-        Lumos::os->OnScreenResize(self.drawableWidth, self.drawableHeight);
+		Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
+
+        os->OnScreenResize(self.drawableWidth, self.drawableHeight);
     }
 
-    Lumos::os->OnFrame();
+   Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
+   if(!os->OnFrame())
+   {
+	   //os->OnQuit();
+   }
 }
 
 
@@ -314,6 +358,9 @@ static iOSOS* os = nullptr;
 
 @end
 
+UIView<LumosView> *lumosView = nil;
+CALayer* layer;
+
 #pragma mark - LumosViewController
 
 @interface LumosViewController : UIViewController<UIKeyInput, UITextInputTraits> {
@@ -324,7 +371,6 @@ static iOSOS* os = nullptr;
 @property(nonatomic, assign) BOOL multipleTouchEnabled;
 @property(nonatomic, assign) BOOL keyboardRequested;
 @property(nonatomic, assign) BOOL keyboardVisible;
-
 @end
 
 @implementation LumosViewController
@@ -333,6 +379,7 @@ static iOSOS* os = nullptr;
     if ((self = [super init])) {
         [self clearTouches];
     }
+
     return self;
 }
 
@@ -357,36 +404,51 @@ static iOSOS* os = nullptr;
 
 - (void)loadView
 {
-    auto *delegate = UIApplication.sharedApplication.delegate;
-    CGRect frame = delegate.window.bounds;
+	//[super loadView];
 
-    CGFloat scale = [UIScreen mainScreen].nativeScale;
-    UIView<LumosView> *lumosView = nil;
+	auto *delegate = UIApplication.sharedApplication.delegate;
+	CGRect frame = delegate.window.bounds;
+	CGFloat scale = [UIScreen mainScreen].nativeScale;
 
-    if (self.metalDevice)
-    {
-        lumosView = [[[LumosMetalView alloc] initWithFrame:frame
-                                            contentScaleFactor:scale
-                                                   device:self.metalDevice
-                                              ] autorelease ];
-    }
+	if (self.metalDevice)
+	{
+		lumosView = [[[LumosMetalView alloc] initWithFrame:frame
+										contentScaleFactor:scale
+													device:self.metalDevice
+					 ] autorelease];
+	}
 
-    self.view = lumosView;
-    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+	self.view = lumosView;
 
-    self.multipleTouchEnabled = true;
+	CAMetalLayer *metalLayer = (CAMetalLayer *)self.view.layer;
 
-    Lumos::os->SetIOSView((__bridge void *)lumosView);
-    Lumos::os->SetWindowSize(frame.size.width * scale, frame.size.height * scale);
-    Lumos::os->Init();
+	if (![metalLayer isKindOfClass:[CAMetalLayer class]]) {
+		NSLog(@"Error: The layer is not a CAMetalLayer.");
+		return;
+	}
+
+	// Assign view as delegate if needed (for custom drawing logic, not normally required)
+	if ([metalLayer respondsToSelector:@selector(setDelegate:)]) {
+		[metalLayer performSelector:@selector(setDelegate:) withObject:lumosView];
+	}
+
+	CFRetain((__bridge CFTypeRef)metalLayer); // Retain to prevent deallocation
+
+	Lumos::s_Layer = metalLayer;
+	Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
+	os->SetLayerPtr((__bridge CAMetalLayer *)metalLayer);  // Ensure correct bridging
+	os->SetWindowSize(frame.size.width * scale, frame.size.height * scale);
+	os->Init();
 }
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 
+	layer = [self.view layer];		// SRS - When creating a Vulkan Metal surface, need the layer backing the view
+
     auto *delegate = (LumosAppDelegate*)UIApplication.sharedApplication.delegate;
-    self.lumosView.animating = delegate.active;
+    //self.lumosView.animating = delegate.active;
 
 #if TARGET_OS_IOS
     self.view.multipleTouchEnabled = self.multipleTouchEnabled;
@@ -397,6 +459,13 @@ static iOSOS* os = nullptr;
                                                name:UIKeyboardWillChangeFrameNotification
                                              object:self.view.window];
 #endif
+
+	self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+	self.multipleTouchEnabled = true;
+
+	if (![self.view.layer isKindOfClass:[CAMetalLayer class]]) {
+		NSLog(@"Error: The layer is not a CAMetalLayer.");
+	}
 }
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
@@ -448,56 +517,51 @@ typedef enum {
 
 
 - (void)addTouchEvent:(UITouch *)touch withType:(TouchPhase)phase {
-    int firstNullIndex = -1;
-    int index = -1;
-    for (int i = 0; i < MAX_SIMULTANEOUS_TOUCHES; i++)
-    {
-        if (activeTouches[i] == (__bridge const void *)touch) {
-            index = i;
-            break;
-        }
-        else if (firstNullIndex == -1 && activeTouches[i] == NULL) {
-            firstNullIndex = i;
-        }
-    }
-    if (index == -1)
-    {
-        if (firstNullIndex == -1)
-        {
-            // Shouldn't happen
-            return;
-        }
-        index = firstNullIndex;
-        activeTouches[index] = (__bridge const void *)touch;
-    }
+	int firstNullIndex = -1;
+	int index = -1;
 
-    {
-        CGPoint currLocation = [touch locationInView:self.view];
-        currLocation.x *= self.view.contentScaleFactor;
-        currLocation.y *= self.view.contentScaleFactor;
+		// Try to find an existing touch or the first empty slot
+	for (int i = 0; i < MAX_SIMULTANEOUS_TOUCHES; i++) {
+		if (activeTouches[i] == (__bridge const void *)touch) {
+			index = i; // Touch is already tracked
+			break;
+		}
+		else if (firstNullIndex == -1 && activeTouches[i] == nil) {
+			firstNullIndex = i; // First available slot for a new touch
+		}
+	}
 
-        switch(phase)
-        {
-            case TouchPhaseCancelled:
-                Lumos::iOSOS::Get()->OnScreenPressed(currLocation.x, currLocation.y, (uint32_t)index, false);
-                break;
-            case TouchPhaseBegan:
-                Lumos::iOSOS::Get()->OnScreenPressed(currLocation.x, currLocation.y, (uint32_t)index, true);
-                break;
-            case TouchPhaseEnded:
-                Lumos::iOSOS::Get()->OnScreenPressed(currLocation.x, currLocation.y, (uint32_t)index, false);
-                break;
-            case TouchPhaseMoved:
-                Lumos::iOSOS::Get()->OnMouseMovedEvent(currLocation.x, currLocation.y);
-                break;
-        }
+		// If touch is not found, assign it to the first available slot
+	if (index == -1) {
+		if (firstNullIndex == -1) {
+			NSLog(@"Warning: Maximum simultaneous touches exceeded!");
+			return;
+		}
+		index = firstNullIndex;
+		activeTouches[index] = (__bridge const void *)touch;
+	}
 
-    }
+	CGPoint currLocation = [touch locationInView:self.view];
+	currLocation.x *= self.view.contentScaleFactor;
+	currLocation.y *= self.view.contentScaleFactor;
 
-    if (phase == TouchPhaseEnded || phase == TouchPhaseCancelled) {
-        activeTouches[index] = NULL;
-    }
+	switch (phase) {
+		case TouchPhaseCancelled:
+		case TouchPhaseEnded:
+			Lumos::iOSOS::Get()->OnScreenPressed(currLocation.x, currLocation.y, (uint32_t)index, false);
+			activeTouches[index] = nil; // Clear the slot for future touches
+			break;
+
+		case TouchPhaseBegan:
+			Lumos::iOSOS::Get()->OnScreenPressed(currLocation.x, currLocation.y, (uint32_t)index, true);
+			break;
+
+		case TouchPhaseMoved:
+			Lumos::iOSOS::Get()->OnMouseMovedEvent(currLocation.x, currLocation.y);
+			break;
+	}
 }
+
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     for (UITouch *touch in touches) {
@@ -639,9 +703,9 @@ typedef enum {
     _active = YES;
 
     Lumos::iOSOS::Create();
-    Lumos::os = (Lumos::iOSOS*)Lumos::iOSOS::Instance();
+    Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
 
-    self.window = [[[UIWindow alloc] init] autorelease];
+    self.window = [[UIWindow alloc] init];
 
     if (self.window.bounds.size.width <= 0.0 || self.window.bounds.size.height <= 0.0)
     {
@@ -658,7 +722,7 @@ typedef enum {
                                       self.window.frame.size.height - safeAreaInsets.top - safeAreaInsets.bottom);
     self.window.frame = safeAreaFrame;
 
-    self.window.rootViewController = [[[LumosViewController alloc] init] autorelease];
+    self.window.rootViewController = [[LumosViewController alloc] init];
     [self.window makeKeyAndVisible];
 
     return YES;
@@ -728,14 +792,15 @@ CGRect ComputeSafeArea(UIView* view)
 {
     self.active = YES;
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
-    Lumos::Application::Get().GetWindow()->SetWindowFocus(true);
+	if(Lumos::Application::Get().GetWindow())
+	Lumos::Application::Get().GetWindow()->SetWindowFocus(true);
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     self.active = NO;
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-    ((Lumos::iOSOS*)Lumos::iOSOS::Instance())->OnQuit();
+    ((Lumos::iOSOS*)Lumos::iOSOS::Get())->OnQuit();
     Lumos::iOSOS::Release();
 }
 

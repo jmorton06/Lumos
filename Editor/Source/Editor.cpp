@@ -173,11 +173,10 @@ namespace Lumos
         auto& guizmoStyle                    = ImGuizmo::GetStyle();
         guizmoStyle.HatchedAxisLineThickness = -1.0f;
 
-#ifdef LUMOS_PLATFORM_IOS
-        m_TempSceneSaveFilePath = OS::Get().GetAssetPath();
-#else
 #ifdef LUMOS_PLATFORM_LINUX
         m_TempSceneSaveFilePath = std::filesystem::current_path().string();
+#elif defined(LUMOS_PLATFORM_IOS)
+		m_TempSceneSaveFilePath = OS::Get().GetCurrentWorkingDirectory();
 #else
         m_TempSceneSaveFilePath = std::filesystem::temp_directory_path().string();
 #endif
@@ -190,7 +189,7 @@ namespace Lumos
             deleteIniFile = true;
         }
 
-        m_TempSceneSaveFilePath += "Lumos/";
+        m_TempSceneSaveFilePath += "/Lumos/";
         if(!FileSystem::FolderExists(m_TempSceneSaveFilePath))
             std::filesystem::create_directory(m_TempSceneSaveFilePath);
 
@@ -198,6 +197,11 @@ namespace Lumos
             StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "Editor.ini",
             StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../../Editor.ini"
         };
+
+#if defined(LUMOS_PLATFORM_IOS)
+		iniLocation.push_back(StringUtilities::GetFileLocation(OS::Get().GetAssetPath()) + "Editor.ini");
+#endif
+
         bool fileFound = false;
         std::string filePath;
         for(auto& path : iniLocation)
@@ -228,6 +232,8 @@ namespace Lumos
             LINFO("Editor Ini not found");
 #ifdef LUMOS_PLATFORM_MACOS
             filePath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../../Editor.ini";
+#elif defined(LUMOS_PLATFORM_IOS)
+			filePath = StringUtilities::GetFileLocation(OS::Get().GetAssetPath()) + "Editor.ini";
 #else
             filePath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "Editor.ini";
 #endif
@@ -238,7 +244,6 @@ namespace Lumos
             AddDefaultEditorSettings();
             // ImGui::GetIO().IniFilename = "editor.ini";
         }
-#endif
 
         Application::Init();
         Application::SetEditorState(EditorState::Preview);
@@ -2894,6 +2899,8 @@ namespace Lumos
                 m_ProjectSettings.m_ProjectRoot = "../../ExampleProject/";
             }
         }
+#elif defined(LUMOS_PLATFORM_IOS)
+		m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
 #endif
 
         m_ProjectSettings.m_ProjectName = "Example";
