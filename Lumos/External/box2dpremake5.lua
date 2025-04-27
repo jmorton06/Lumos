@@ -17,7 +17,7 @@ project 'box2d'
 	filter "action:vs*"
 		buildoptions {"/experimental:c11atomics"}
 	filter "system:linux"
-		buildoptions { "-fPIC, /experimental:c11atomics" }
+		buildoptions { "-fPIC", "/experimental:c11atomics" }
 
     filter "configurations:Debug"
 		symbols "On"
