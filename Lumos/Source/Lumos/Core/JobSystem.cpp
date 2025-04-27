@@ -241,9 +241,10 @@ namespace Lumos
 
                     // Name the thread:
                     std::wstring wthreadname = L"JobSystem_" + std::to_wstring(threadID);
-                    HRESULT hr               = SetThreadDescription(handle, wthreadname.c_str());
-
+#if defined _MSC_VER
+                    HRESULT hr = SetThreadDescription(handle, wthreadname.c_str());
                     ASSERT(SUCCEEDED(hr));
+#endif
 
 #elif LUMOS_PLATFORM_LINUX
 

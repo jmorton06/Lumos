@@ -409,7 +409,8 @@ namespace Lumos
                     cereal::make_nvp("Scale", sprite.m_Scale),
                     cereal::make_nvp("Colour", sprite.m_Colour));
 
-            archive(sprite.UsingSpriteSheet, sprite.SpriteSheetTileSize);
+            archive(sprite.UsingSpriteSheet, sprite.SpriteSheetTileSizeX);
+            archive(sprite.SpriteSheetTileSizeY);
         }
 
         template <typename Archive>
@@ -424,8 +425,17 @@ namespace Lumos
             if(!textureFilePath.empty())
                 sprite.m_Texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("sprite", textureFilePath));
 
-            if(Serialisation::CurrentSceneVersion > 21)
-                archive(sprite.UsingSpriteSheet, sprite.SpriteSheetTileSize);
+            if(Serialisation::CurrentSceneVersion > 21 && Serialisation::CurrentSceneVersion < 26)
+            {
+                archive(sprite.UsingSpriteSheet, sprite.SpriteSheetTileSizeX);
+                sprite.SpriteSheetTileSizeY = sprite.SpriteSheetTileSizeX;
+            }
+
+            if(Serialisation::CurrentSceneVersion > 25)
+            {
+                archive(sprite.UsingSpriteSheet, sprite.SpriteSheetTileSizeX);
+                archive(sprite.SpriteSheetTileSizeY);
+            }
         }
 
         template <typename Archive>
@@ -445,7 +455,8 @@ namespace Lumos
                     cereal::make_nvp("Colour", sprite.m_Colour),
                     cereal::make_nvp("AnimationFrames", sprite.m_AnimationStates),
                     cereal::make_nvp("State", sprite.m_State));
-            archive(sprite.SpriteSheetTileSize);
+            archive(sprite.SpriteSheetTileSizeX);
+            archive(sprite.SpriteSheetTileSizeY);
         }
 
         template <typename Archive>
@@ -462,8 +473,17 @@ namespace Lumos
             if(!textureFilePath.empty())
                 sprite.m_Texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("sprite", textureFilePath));
 
-            if(Serialisation::CurrentSceneVersion > 21)
-                archive(sprite.SpriteSheetTileSize);
+            if(Serialisation::CurrentSceneVersion > 21 && Serialisation::CurrentSceneVersion < 26)
+            {
+                archive(sprite.SpriteSheetTileSizeX);
+                sprite.SpriteSheetTileSizeY = sprite.SpriteSheetTileSizeX;
+            }
+
+            if(Serialisation::CurrentSceneVersion > 25)
+            {
+                archive(sprite.SpriteSheetTileSizeX);
+                archive(sprite.SpriteSheetTileSizeY);
+            }
 
             sprite.SetState(sprite.m_State);
         }

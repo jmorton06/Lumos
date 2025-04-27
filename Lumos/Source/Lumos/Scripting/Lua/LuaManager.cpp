@@ -18,6 +18,7 @@
 #include "Graphics/Camera/Camera2D.h"
 
 #include "Graphics/Sprite.h"
+#include "Graphics/AnimatedSprite.h"
 #include "Graphics/Light.h"
 #include "Graphics/RHI/Texture.h"
 #include "Graphics/Mesh.h"
@@ -538,7 +539,7 @@ namespace Lumos
         REGISTER_COMPONENT_WITH_ECS(state, NameComponent, static_cast<NameComponent& (Entity::*)()>(&Entity::AddComponent<NameComponent>));
 
         sol::usertype<LuaScriptComponent> script_type = state.new_usertype<LuaScriptComponent>("LuaScriptComponent", sol::constructors<sol::types<std::string, Scene*>>());
-        REGISTER_COMPONENT_WITH_ECS(state, LuaScriptComponent, static_cast<LuaScriptComponent& (Entity::*)(std::string&&, Scene*&&)>(&Entity::AddComponent<LuaScriptComponent, std::string, Scene*>));
+        REGISTER_COMPONENT_WITH_ECS(state, LuaScriptComponent, static_cast<LuaScriptComponent& (Entity::*)(std::string&&, Scene * &&)>(&Entity::AddComponent<LuaScriptComponent, std::string, Scene*>));
         script_type.set_function("GetCurrentEntity", &LuaScriptComponent::GetCurrentEntity);
         script_type.set_function("SetThisComponent", &LuaScriptComponent::SetThisComponent);
 
@@ -557,9 +558,20 @@ namespace Lumos
         sprite_type.set_function("SetTexture", &Sprite::SetTexture);
         sprite_type.set_function("SetSpriteSheet", &Sprite::SetSpriteSheet);
         sprite_type.set_function("SetSpriteSheetIndex", &Sprite::SetSpriteSheetIndex);
-        sprite_type["SpriteSheetTileSize"] = &Sprite::SpriteSheetTileSize;
+        sprite_type["SpriteSheetTileSizeX"] = &Sprite::SpriteSheetTileSizeX;
+        sprite_type["SpriteSheetTileSizeY"] = &Sprite::SpriteSheetTileSizeY;
 
         REGISTER_COMPONENT_WITH_ECS(state, Sprite, static_cast<Sprite& (Entity::*)(const Vec2&, const Vec2&, const Vec4&)>(&Entity::AddComponent<Sprite, const Vec2&, const Vec2&, const Vec4&>));
+
+        sol::usertype<AnimatedSprite> AnimatedSpriteType = state.new_usertype<AnimatedSprite>("AnimatedSprite");
+        AnimatedSpriteType.set_function("SetTexture", &AnimatedSprite::SetTexture);
+        AnimatedSpriteType.set_function("SetSpriteSheet", &AnimatedSprite::SetSpriteSheet);
+        AnimatedSpriteType.set_function("SetSpriteSheetIndex", &AnimatedSprite::SetSpriteSheetIndex);
+        AnimatedSpriteType.set_function("SetState", &AnimatedSprite::SetState);
+        AnimatedSpriteType["SpriteSheetTileSizeX"] = &AnimatedSprite::SpriteSheetTileSizeX;
+        AnimatedSpriteType["SpriteSheetTileSizeY"] = &AnimatedSprite::SpriteSheetTileSizeY;
+
+        REGISTER_COMPONENT_WITH_ECS(state, AnimatedSprite, static_cast<AnimatedSprite& (Entity::*)()>(&Entity::AddComponent<AnimatedSprite>));
 
         sol::usertype<Light> lightType = state.new_usertype<Light>("Light");
         lightType.set_function("Intensity", &Light::Intensity);

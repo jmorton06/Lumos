@@ -58,8 +58,8 @@ public:
         };
 
 #if defined(LUMOS_PLATFORM_IOS)
-		projectLocations.Clear();
-		projectLocations.PushBack(OS::Get().GetAssetPath() + "/ExampleProject/");
+        projectLocations.Clear();
+        projectLocations.PushBack(OS::Get().GetAssetPath() + "/ExampleProject/");
 #endif
 
         bool fileFound = false;

@@ -237,6 +237,10 @@ namespace Lumos
 
         glfwSetKeyCallback(m_Handle, [](GLFWwindow* window, int key, int scancode, int action, int mods)
                            {
+
+							   if(key < 0)
+								   return;
+			
                                WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
                                
                                switch(action)
