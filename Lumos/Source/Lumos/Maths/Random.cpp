@@ -119,6 +119,7 @@ namespace Lumos
     private:
         std::mt19937_64 m_Engine;
     };
+	
 
     Random32::Random32()
     {
@@ -129,11 +130,14 @@ namespace Lumos
     {
         m_Impl = CreateUniquePtr<RandomImp32>(seed);
     }
+	
     Random32::Random32(uint32_t seed, uint32_t skip)
     {
         m_Impl = CreateUniquePtr<RandomImp32>();
         m_Impl->Discard(skip);
     }
+
+	Random32::~Random32() = default;
 
     float Random32::operator()(float min, float max)
     {
@@ -168,6 +172,8 @@ namespace Lumos
         m_Impl = CreateUniquePtr<RandomImp64>();
         m_Impl->Discard(skip);
     }
+
+	Random64::~Random64() = default;
 
     double Random64::operator()(double min, double max)
     {

@@ -40,7 +40,6 @@ using namespace msdf_atlas;
 #include "Platform/iOS/iOSOS.h"
 #endif
 
-
 namespace Lumos
 {
     namespace Graphics
@@ -82,10 +81,10 @@ namespace Lumos
         static std::filesystem::path GetCacheDirectory()
         {
 #if LUMOS_PLATFORM_IOS
-			Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
-			return os->GetCurrentWorkingDirectory() + "/FontAtlases";
+            Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
+            return os->GetCurrentWorkingDirectory() + "/FontAtlases";
 #else
-			return "Resources/Cache/FontAtlases";
+            return "Resources/Cache/FontAtlases";
 #endif
         }
 

@@ -56,6 +56,18 @@ namespace Lumos
                 }
             }
 
+            inline Vector2 Normalised() const
+            {
+                Vector2 newVec = Vector2(x, y);
+                newVec.Normalise();
+                return newVec;
+            }
+
+            float Dot(const Vector2& a)
+            {
+                return (a.x * x) + (a.y * y);
+            }
+
             inline float LengthSquared() const { return ((x * x) + (y * y)); }
             inline float Length() const { return float(sqrt((x * x) + (y * y))); }
 

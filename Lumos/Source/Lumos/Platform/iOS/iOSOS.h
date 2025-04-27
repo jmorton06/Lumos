@@ -18,26 +18,26 @@ namespace Lumos
         }
         std::string GetExecutablePath() override;
         std::string GetAssetPath() override;
-		std::string GetCurrentWorkingDirectory() override;
+        std::string GetCurrentWorkingDirectory() override;
         void Vibrate() const override;
 
-		CAMetalLayer* GetLayerPtr() const
-		{
-			if (!m_LayerPtr)
-			{
-				LWARN("Invalid layer pointer passed to SetLayerPtr.");
-			}
-			return m_LayerPtr;
-		}
-		
-		void SetLayerPtr(CAMetalLayer* layer)
-		{
-			if (!layer)
-			{
-				LWARN("Invalid layer pointer passed to SetLayerPtr.");
-			}
-			m_LayerPtr = layer;
-		}
+        CAMetalLayer* GetLayerPtr() const
+        {
+            if(!m_LayerPtr)
+            {
+                LWARN("Invalid layer pointer passed to SetLayerPtr.");
+            }
+            return m_LayerPtr;
+        }
+
+        void SetLayerPtr(CAMetalLayer* layer)
+        {
+            if(!layer)
+            {
+                LWARN("Invalid layer pointer passed to SetLayerPtr.");
+            }
+            m_LayerPtr = layer;
+        }
 
         void ShowKeyboard(bool open);
         bool HasWifiConnection();
@@ -67,11 +67,11 @@ namespace Lumos
             return m_Y;
         }
 
-		static iOSOS* Get();
-		static CAMetalLayer* GetStaticLayer();
+        static iOSOS* Get();
+        static CAMetalLayer* GetStaticLayer();
 
     private:
-		CAMetalLayer* m_LayerPtr;
+        CAMetalLayer* m_LayerPtr;
         float m_X, m_Y;
     };
 }

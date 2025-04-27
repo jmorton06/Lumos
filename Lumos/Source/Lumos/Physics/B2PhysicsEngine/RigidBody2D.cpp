@@ -67,6 +67,10 @@ namespace Lumos
         m_ShapeType = params.shape;
         m_Mass      = params.mass;
         m_Scale     = params.scale;
+        m_Friction  = params.friction;
+		
+		LINFO("%.2f friction set", m_Friction);
+			  
 
         b2BodyDef bodyDef = b2DefaultBodyDef();
         if(params.isStatic)
@@ -86,7 +90,7 @@ namespace Lumos
 
             b2ShapeDef shapeDef      = b2DefaultShapeDef();
             shapeDef.density         = 1.0f;
-            shapeDef.friction        = 0.3f;
+            shapeDef.friction        = m_Friction;
             shapeDef.enableHitEvents = true;
 
             b2CreateCircleShape(m_B2Body, &shapeDef, &circle);
@@ -97,7 +101,7 @@ namespace Lumos
 
             b2ShapeDef shapeDef      = b2DefaultShapeDef();
             shapeDef.density         = 1.0f;
-            shapeDef.friction        = 0.3f;
+            shapeDef.friction        = m_Friction;
             shapeDef.enableHitEvents = true;
 
             b2CreatePolygonShape(m_B2Body, &shapeDef, &box);
@@ -119,7 +123,7 @@ namespace Lumos
 
             b2ShapeDef shapeDef      = b2DefaultShapeDef();
             shapeDef.density         = 1.0f;
-            shapeDef.friction        = 0.3f;
+            shapeDef.friction        = m_Friction;
             shapeDef.enableHitEvents = true;
 
             b2CreatePolygonShape(m_B2Body, &shapeDef, &customPolygon);
@@ -148,6 +152,21 @@ namespace Lumos
         return Vec2(vel.x, vel.y);
     }
 
+    void RigidBody2D::RebuildShape()
+    {
+        b2DestroyBody(m_B2Body);
+
+        RigidBodyParameters params;
+        // params.position = m_Position;
+        params.scale    = m_Scale;
+        params.shape    = m_ShapeType;
+        params.mass     = m_Mass;
+        params.scale    = m_Scale;
+        params.friction = m_Friction;
+
+        Init(params);
+    }
+
     void RigidBody2D::SetLinearDamping(float dampening)
     {
         b2Body_SetLinearDamping(m_B2Body, dampening);
@@ -169,5 +188,10 @@ namespace Lumos
 
         b2DestroyBody(m_B2Body);
         Init(params);
+    }
+
+    float RigidBody2D::GetFriction() const
+    {
+        return m_Friction;
     }
 }

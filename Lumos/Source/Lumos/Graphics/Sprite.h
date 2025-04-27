@@ -30,8 +30,9 @@ namespace Lumos
 
             void SetTextureFromFile(const std::string& filePath);
 
-            bool UsingSpriteSheet        = false;
-            uint32_t SpriteSheetTileSize = 32;
+            bool UsingSpriteSheet    = false;
+            u32 SpriteSheetTileSizeX = 32;
+            u32 SpriteSheetTileSizeY = 32;
         };
     }
 }

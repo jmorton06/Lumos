@@ -27,8 +27,9 @@ namespace Lumos
 {
     namespace Graphics
     {
-        VkInstance VKContext::s_VkInstance = nullptr;
-        uint32_t VKContext::m_VKVersion    = 0;
+        VkInstance VKContext::s_VkInstance  = nullptr;
+        uint32_t VKContext::m_VKVersion     = 0;
+        bool VKContext::s_ValidationEnabled = false;
 
         const TDArray<const char*> VKContext::GetRequiredExtensions(bool enableValidationLayers)
         {
@@ -98,7 +99,7 @@ namespace Lumos
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
             platformLayerName = VK_KHR_XCB_SURFACE_EXTENSION_NAME;
 #elif defined(VK_USE_PLATFORM_IOS_MVK)
-			platformLayerName = VK_MVK_IOS_SURFACE_EXTENSION_NAME;//"VK_EXT_metal_surface";
+            platformLayerName = VK_MVK_IOS_SURFACE_EXTENSION_NAME; //"VK_EXT_metal_surface";
 #elif defined(VK_USE_PLATFORM_MACOS_MVK)
             platformLayerName = VK_MVK_MACOS_SURFACE_EXTENSION_NAME;
 #elif defined(VK_USE_PLATFORM_METAL_EXT)
@@ -178,7 +179,6 @@ namespace Lumos
         }
 
         VKContext::VKContext()
-            : m_ValidationEnabled(false)
         {
         }
 
@@ -278,7 +278,7 @@ namespace Lumos
                 enableValidation = true;
             }
 
-            m_ValidationEnabled = enableValidation;
+            s_ValidationEnabled = enableValidation;
 
             m_InstanceLayerNames     = GetRequiredLayers(enableValidation);
             m_InstanceExtensionNames = GetRequiredExtensions(enableValidation);
@@ -337,6 +337,7 @@ namespace Lumos
                 TDArray<VkValidationFeatureEnableEXT> validation_extensions = {};
                 validation_extensions.EmplaceBack(VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT);
                 validation_extensions.EmplaceBack(VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT);
+                validation_extensions.EmplaceBack(VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT);
 
                 VkValidationFeaturesEXT validation_features       = {};
                 validation_features.sType                         = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;

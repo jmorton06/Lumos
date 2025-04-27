@@ -61,11 +61,11 @@ namespace Lumos
             return *m_pInstance;
         }
 
-		static T* GetPtr()
-		{
-			ASSERT(m_pInstance != nullptr, "Singleton hasn't been Created");
-			return m_pInstance;
-		}
+        static T* GetPtr()
+        {
+            ASSERT(m_pInstance != nullptr, "Singleton hasn't been Created");
+            return m_pInstance;
+        }
 
         static void SetInstance(T* instance)
         {

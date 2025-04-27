@@ -36,11 +36,11 @@ namespace Lumos
     {
         ThreadContext* tctx = GetThreadContext();
 
-		if(tctx->ScratchArenas[0] == nullptr)
-		{
-			ThreadLocalContext = ThreadContextAlloc();
-			tctx = &ThreadLocalContext;
-		}
+        if(tctx->ScratchArenas[0] == nullptr)
+        {
+            ThreadLocalContext = ThreadContextAlloc();
+            tctx               = &ThreadLocalContext;
+        }
 
         ArenaTemp scratch = { 0 };
         for(uint32_t tctx_idx = 0; tctx_idx < 2; tctx_idx += 1)

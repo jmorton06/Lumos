@@ -61,7 +61,7 @@ namespace Lumos
         if(!node.Valid())
             return;
         bool visible = ImGui::IsRectVisible(ImVec2(ImGui::GetContentRegionMax().x, ImGui::GetTextLineHeightWithSpacing()));
-        if (!visible)
+        if(!visible)
         {
             ImGui::NewLine();
             return;
@@ -78,7 +78,6 @@ namespace Lumos
                 show = false;
             }
         }
-
 
         if(show)
         {
@@ -123,7 +122,7 @@ namespace Lumos
             String8 icon  = Str8C((char*)ICON_MDI_CUBE_OUTLINE);
             auto& iconMap = m_Editor->GetComponentIconMap();
 
-            if (!visible)
+            if(!visible)
             {
                 icon = Str8C((char*)ICON_MDI_CUBE_OUTLINE);
             }
@@ -436,7 +435,7 @@ namespace Lumos
             m_CurrentPrevious = node;
 
 #if 1
-            bool showButton = true;// hovered || !active;
+            bool showButton = true; // hovered || !active;
 
             if(showButton)
             {

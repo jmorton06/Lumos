@@ -8,7 +8,7 @@ namespace Lumos
 
     static inline Vec4 MakeRGBA8(b2HexColor c, float alpha)
     {
-        return { static_cast<float>(uint8_t((c >> 16) & 0xFF)), static_cast<float>(uint8_t((c >> 8) & 0xFF)), static_cast<float>(uint8_t(c & 0xFF)), static_cast<float>(uint8_t(0xFF * alpha)) };
+        return { static_cast<float>(uint8_t((c >> 16) & 0xFF)) / 255.0f, static_cast<float>(uint8_t((c >> 8) & 0xFF)) / 255.0f, static_cast<float>(uint8_t(c & 0xFF)) / 255.0f, alpha };
     }
 
     void B2DebugDraw::DrawPolygon(const b2Vec2* vertices, int vertexCount, b2HexColor hexColour, void* context)

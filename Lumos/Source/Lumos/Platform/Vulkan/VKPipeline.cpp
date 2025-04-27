@@ -302,7 +302,7 @@ namespace Lumos
                 }
 
                 ((VKCommandBuffer*)commandBuffer)->BeginRenderPass(m_RenderPass, m_Description.clearColour, framebuffer, GetWidth(), GetHeight());
-                //m_RenderPass->BeginRenderPass(commandBuffer, m_Description.clearColour, framebuffer, Graphics::INLINE, GetWidth(), GetHeight());
+                // m_RenderPass->BeginRenderPass(commandBuffer, m_Description.clearColour, framebuffer, Graphics::INLINE, GetWidth(), GetHeight());
             }
             else
             {
@@ -447,7 +447,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             if(!m_Compute)
             {
-                //m_RenderPass->EndRenderPass(commandBuffer);
+                // m_RenderPass->EndRenderPass(commandBuffer);
             }
         }
 

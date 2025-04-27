@@ -466,6 +466,15 @@ namespace Lumos
                 LWARN("%s unsupported", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             }
 
+            if(VKContext::ValidationEnabled() && m_PhysicalDevice->IsExtensionSupported(Str8Lit(VK_EXT_DEBUG_REPORT_EXTENSION_NAME)))
+            {
+                deviceExtensions.PushBack(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+            }
+            else
+            {
+                LWARN("%s unsupported", VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+            }
+
             VkPhysicalDeviceDescriptorIndexingFeaturesEXT indexingFeatures = {};
             indexingFeatures.sType                                         = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
             indexingFeatures.runtimeDescriptorArray                        = VK_TRUE;

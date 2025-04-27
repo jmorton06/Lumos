@@ -176,7 +176,7 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_LINUX
         m_TempSceneSaveFilePath = std::filesystem::current_path().string();
 #elif defined(LUMOS_PLATFORM_IOS)
-		m_TempSceneSaveFilePath = OS::Get().GetCurrentWorkingDirectory();
+        m_TempSceneSaveFilePath = OS::Get().GetCurrentWorkingDirectory();
 #else
         m_TempSceneSaveFilePath = std::filesystem::temp_directory_path().string();
 #endif
@@ -199,7 +199,7 @@ namespace Lumos
         };
 
 #if defined(LUMOS_PLATFORM_IOS)
-		iniLocation.push_back(StringUtilities::GetFileLocation(OS::Get().GetAssetPath()) + "Editor.ini");
+        iniLocation.push_back(StringUtilities::GetFileLocation(OS::Get().GetAssetPath()) + "Editor.ini");
 #endif
 
         bool fileFound = false;
@@ -233,7 +233,7 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_MACOS
             filePath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../../Editor.ini";
 #elif defined(LUMOS_PLATFORM_IOS)
-			filePath = StringUtilities::GetFileLocation(OS::Get().GetAssetPath()) + "Editor.ini";
+            filePath = StringUtilities::GetFileLocation(OS::Get().GetAssetPath()) + "Editor.ini";
 #else
             filePath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "Editor.ini";
 #endif
@@ -2900,7 +2900,7 @@ namespace Lumos
             }
         }
 #elif defined(LUMOS_PLATFORM_IOS)
-		m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
+        m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
 #endif
 
         m_ProjectSettings.m_ProjectName = "Example";
