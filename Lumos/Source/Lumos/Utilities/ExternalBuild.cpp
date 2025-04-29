@@ -42,7 +42,7 @@
 
 #define STB_SPRINTF_IMPLEMENTATION
 #include <stb/stb_sprintf.h>
-
-//#include <ModelLoaders/OpenFBX/miniz.c>
-//#include <ModelLoaders/OpenFBX/ofbx.cpp>
+#include <numeric>
+#include <ModelLoaders/OpenFBX/miniz.c>
+#include <ModelLoaders/OpenFBX/ofbx.cpp>
 #pragma warning(pop)
