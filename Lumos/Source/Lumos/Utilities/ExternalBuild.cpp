@@ -2,7 +2,7 @@
 
 #pragma warning(push, 0)
 #if LUMOS_PROFILE
-#include <Tracy/public/TracyClient.cpp>
+//#include <Tracy/public/TracyClient.cpp>
 #endif
 
 #ifdef LUMOS_RENDER_API_OPENGL
@@ -43,6 +43,6 @@
 #define STB_SPRINTF_IMPLEMENTATION
 #include <stb/stb_sprintf.h>
 
-#include <ModelLoaders/OpenFBX/miniz.c>
-#include <ModelLoaders/OpenFBX/ofbx.cpp>
+//#include <ModelLoaders/OpenFBX/miniz.c>
+//#include <ModelLoaders/OpenFBX/ofbx.cpp>
 #pragma warning(pop)
