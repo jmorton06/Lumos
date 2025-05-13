@@ -32,10 +32,10 @@ namespace Lumos
             bool Init(bool vsync) override;
             bool Init(bool vsync, Window* windowHandle) override;
             void CreateFrameData();
-            void AcquireNextImage();
+            bool AcquireNextImage();
             void QueueSubmit();
             void Present(const TDArray<VkSemaphore>& semaphore);
-            void Begin();
+            bool Begin();
             void End();
             void OnResize(uint32_t width, uint32_t height, bool forceResize = false, Window* windowHandle = nullptr);
 

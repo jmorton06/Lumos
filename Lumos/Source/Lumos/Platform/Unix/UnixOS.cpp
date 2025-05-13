@@ -113,4 +113,22 @@ namespace Lumos
         system(command.c_str());
 #endif
     }
+
+    std::string UnixOS::GetExecutablePath()
+    {
+#ifdef LUMOS_PLATFORM_LINUX
+        char result[PATH_MAX];
+        ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+        if(count != -1)
+        {
+            return std::string(result, count);
+        }
+        else
+        {
+            return std::string();
+        }
+#else
+        return std::string();
+#endif
+    }
 }

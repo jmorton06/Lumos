@@ -82,7 +82,9 @@ namespace Lumos
             if(!IsSignaled())
                 succeeded = Wait();
 
-            Reset();
+            if(succeeded)
+                Reset();
+
             return succeeded;
         }
     }

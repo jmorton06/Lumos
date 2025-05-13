@@ -1,8 +1,10 @@
 #pragma once
+
+#include <math.h>
+
 #ifdef LUMOS_SSE_VEC2
 #include <smmintrin.h>
 #endif
-#include <math.h>
 
 namespace Lumos
 {
@@ -11,18 +13,24 @@ namespace Lumos
         class LUMOS_EXPORT MEM_ALIGN Vector2
         {
         public:
-            Vector2() { ToZero(); }
-            Vector2(const float x, const float y)
+            Vector2()
+            {
+                ToZero();
+            }
+
+            Vector2(float x, float y)
                 : x(x)
                 , y(y)
             {
             }
-            Vector2(const float x)
-                : x(x)
-                , y(x)
+
+            Vector2(float value)
+                : x(value)
+                , y(value)
             {
             }
-            ~Vector2() { }
+
+            ~Vector2() = default;
 
 #ifdef LUMOS_SSE_VEC2
             union
@@ -37,48 +45,55 @@ namespace Lumos
             float x, y;
 #endif
 
-        public:
             void ToZero()
             {
                 x = 0.0f;
                 y = 0.0f;
             }
 
-            inline void Normalise()
+            void Normalise()
             {
-                float length = Length();
-
-                if(length != 0.0f)
+                float len = Length();
+                if(len != 0.0f)
                 {
-                    length = 1.0f / length;
-                    x      = x * length;
-                    y      = y * length;
+                    float invLen = 1.0f / len;
+                    x *= invLen;
+                    y *= invLen;
                 }
             }
 
-            inline Vector2 Normalised() const
+            Vector2 Normalised() const
             {
-                Vector2 newVec = Vector2(x, y);
-                newVec.Normalise();
-                return newVec;
+                Vector2 result(*this);
+                result.Normalise();
+                return result;
             }
 
-            float Dot(const Vector2& a)
+            float Dot(const Vector2& other) const
             {
-                return (a.x * x) + (a.y * y);
+                return (x * other.x) + (y * other.y);
             }
 
-            inline float LengthSquared() const { return ((x * x) + (y * y)); }
-            inline float Length() const { return float(sqrt((x * x) + (y * y))); }
+            float LengthSquared() const
+            {
+                return (x * x + y * y);
+            }
 
-            inline Vector2 operator-(const Vector2& a) const { return Vector2(x - a.x, y - a.y); }
-            inline Vector2 operator+(const Vector2& a) const { return Vector2(x + a.x, y + a.y); }
-            inline Vector2 operator*(const Vector2& v) const { return Vector2(x * v.x, y * v.y); };
-            inline Vector2 operator/(const Vector2& v) const { return Vector2(x / v.x, y / v.y); };
-            inline Vector2 operator+(const float a) const { return Vector2(x + a, y + a); }
-            inline Vector2 operator-(const float a) const { return Vector2(x - a, y - a); }
-            inline Vector2 operator*(const float a) const { return Vector2(x * a, y * a); }
-            inline Vector2 operator/(const float v) const { return Vector2(x / v, y / v); };
+            float Length() const
+            {
+                return sqrtf(LengthSquared());
+            }
+
+            // Arithmetic Operators
+            inline Vector2 operator+(const Vector2& v) const { return { x + v.x, y + v.y }; }
+            inline Vector2 operator-(const Vector2& v) const { return { x - v.x, y - v.y }; }
+            inline Vector2 operator*(const Vector2& v) const { return { x * v.x, y * v.y }; }
+            inline Vector2 operator/(const Vector2& v) const { return { x / v.x, y / v.y }; }
+
+            inline Vector2 operator+(float s) const { return { x + s, y + s }; }
+            inline Vector2 operator-(float s) const { return { x - s, y - s }; }
+            inline Vector2 operator*(float s) const { return { x * s, y * s }; }
+            inline Vector2 operator/(float s) const { return { x / s, y / s }; }
 
             inline void operator+=(const Vector2& v)
             {
@@ -101,33 +116,36 @@ namespace Lumos
                 y /= v.y;
             }
 
-            inline void operator+=(const float v)
+            inline void operator+=(float s)
             {
-                x += v;
-                y += v;
+                x += s;
+                y += s;
             }
-            inline void operator-=(const float v)
+            inline void operator-=(float s)
             {
-                x -= v;
-                y -= v;
+                x -= s;
+                y -= s;
             }
-            inline void operator*=(const float v)
+            inline void operator*=(float s)
             {
-                x *= v;
-                y *= v;
+                x *= s;
+                y *= s;
             }
-            inline void operator/=(const float v)
+            inline void operator/=(float s)
             {
-                x /= v;
-                y /= v;
+                x /= s;
+                y /= s;
             }
 
-            inline bool operator<(const Vector2& v) { return x < v.x && y < v.y; }
-            inline bool operator<=(const Vector2& v) { return x <= v.x && y <= v.y; }
-            inline bool operator>(const Vector2& v) { return x > v.x && y > v.y; }
-            inline bool operator>=(const Vector2& v) { return x >= v.x && y >= v.y; }
-            inline bool operator==(const Vector2& A) const { return (A.x == x && A.y == y) ? true : false; };
+            // Comparison Operators
+            inline bool operator==(const Vector2& v) const { return x == v.x && y == v.y; }
+            inline bool operator!=(const Vector2& v) const { return !(*this == v); }
+            inline bool operator<(const Vector2& v) const { return x < v.x && y < v.y; }
+            inline bool operator<=(const Vector2& v) const { return x <= v.x && y <= v.y; }
+            inline bool operator>(const Vector2& v) const { return x > v.x && y > v.y; }
+            inline bool operator>=(const Vector2& v) const { return x >= v.x && y >= v.y; }
 
+            // Indexing
             inline float operator[](int i) const
             {
                 switch(i)
@@ -145,11 +163,12 @@ namespace Lumos
             {
                 switch(i)
                 {
-                default:
                 case 0:
                     return x;
                 case 1:
                     return y;
+                default:
+                    return x; // fallback
                 }
             }
         };

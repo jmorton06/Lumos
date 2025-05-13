@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "B2DebugDraw.h"
-
+#include "Maths/MathsUtilities.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
 namespace Lumos
@@ -53,7 +53,7 @@ namespace Lumos
     {
         Vec4 colour             = MakeRGBA8(hexColour, 0.8f);
         const float k_segments  = 16.0f;
-        const float k_increment = 2.0f * b2_pi / k_segments;
+        const float k_increment = 2.0f * Maths::M_PI / k_segments;
         float sinInc            = sinf(k_increment);
         float cosInc            = cosf(k_increment);
         b2Vec2 r1               = { 1.0f, 0.0f };
@@ -76,7 +76,7 @@ namespace Lumos
     {
         Vec4 colour             = MakeRGBA8(hexColour, 0.8f);
         const float k_segments  = 16.0f;
-        const float k_increment = 2.0f * b2_pi / k_segments;
+        const float k_increment = 2.0f * Maths::M_PI / k_segments;
         float sinInc            = sinf(k_increment);
         float cosInc            = cosf(k_increment);
         b2Vec2 v0               = b2TransformPoint(xf, { 0.0f, 0.0f });
@@ -143,7 +143,7 @@ namespace Lumos
         DebugRenderer::DrawPoint({ p.x, p.y, 0.0f }, size * 0.1f, false, { colour.x, colour.y, colour.z, colour.w });
     }
 
-    void B2DebugDraw::DrawString(b2Vec2 p, const char* s, void* context)
+    void B2DebugDraw::DrawString(b2Vec2 p, const char* s, b2HexColor color, void* context)
     {
         DebugRenderer::DrawTextCs({ p.x, p.y, 0.0f, 0.0f }, 12.0f, s);
     }

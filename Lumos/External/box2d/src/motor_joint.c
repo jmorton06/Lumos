@@ -26,7 +26,7 @@ b2Vec2 b2MotorJoint_GetLinearOffset( b2JointId jointId )
 void b2MotorJoint_SetAngularOffset( b2JointId jointId, float angularOffset )
 {
 	b2JointSim* joint = b2GetJointSimCheckType( jointId, b2_motorJoint );
-	joint->motorJoint.angularOffset = b2ClampFloat( angularOffset, -b2_pi, b2_pi );
+	joint->motorJoint.angularOffset = b2ClampFloat( angularOffset, -B2_PI, B2_PI );
 }
 
 float b2MotorJoint_GetAngularOffset( b2JointId jointId )
@@ -105,29 +105,20 @@ void b2PrepareMotorJoint( b2JointSim* base, b2StepContext* context )
 	int idB = base->bodyIdB;
 
 	b2World* world = context->world;
-	b2Body* bodies = world->bodyArray;
 
-	b2CheckIndex( bodies, idA );
-	b2CheckIndex( bodies, idB );
-
-	b2Body* bodyA = bodies + idA;
-	b2Body* bodyB = bodies + idB;
+	b2Body* bodyA = b2BodyArray_Get( &world->bodies, idA );
+	b2Body* bodyB = b2BodyArray_Get( &world->bodies, idB );
 
 	B2_ASSERT( bodyA->setIndex == b2_awakeSet || bodyB->setIndex == b2_awakeSet );
-	b2CheckIndex( world->solverSetArray, bodyA->setIndex );
-	b2CheckIndex( world->solverSetArray, bodyB->setIndex );
 
-	b2SolverSet* setA = world->solverSetArray + bodyA->setIndex;
-	b2SolverSet* setB = world->solverSetArray + bodyB->setIndex;
+	b2SolverSet* setA = b2SolverSetArray_Get( &world->solverSets, bodyA->setIndex );
+	b2SolverSet* setB = b2SolverSetArray_Get( &world->solverSets, bodyB->setIndex );
 
 	int localIndexA = bodyA->localIndex;
 	int localIndexB = bodyB->localIndex;
 
-	B2_ASSERT( 0 <= localIndexA && localIndexA <= setA->sims.count );
-	B2_ASSERT( 0 <= localIndexB && localIndexB <= setB->sims.count );
-
-	b2BodySim* bodySimA = setA->sims.data + bodyA->localIndex;
-	b2BodySim* bodySimB = setB->sims.data + bodyB->localIndex;
+	b2BodySim* bodySimA = b2BodySimArray_Get( &setA->bodySims, localIndexA );
+	b2BodySim* bodySimB = b2BodySimArray_Get( &setB->bodySims, localIndexB );
 
 	float mA = bodySimA->invMass;
 	float iA = bodySimA->invInertia;
@@ -195,6 +186,7 @@ void b2WarmStartMotorJoint( b2JointSim* base, b2StepContext* context )
 
 void b2SolveMotorJoint( b2JointSim* base, b2StepContext* context, bool useBias )
 {
+	B2_UNUSED( useBias );
 	B2_ASSERT( base->type == b2_motorJoint );
 
 	float mA = base->invMassA;

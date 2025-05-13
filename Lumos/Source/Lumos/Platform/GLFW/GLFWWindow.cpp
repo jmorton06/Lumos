@@ -92,9 +92,8 @@ namespace Lumos
 
         s_NumGLFWWindows++;
 
-        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-        float xscale, yscale;
-        glfwGetMonitorContentScale(monitor, &xscale, &yscale);
+        float xscale = GetMonitorXScale();
+
         m_Data.DPIScale = xscale;
 
 #ifdef LUMOS_PLATFORM_MACOS
@@ -128,7 +127,7 @@ namespace Lumos
         }
 #endif
         SetBorderlessWindow(properties.Borderless);
-
+        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
         const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
         uint32_t ScreenWidth  = 0;
@@ -195,15 +194,15 @@ namespace Lumos
         glfwSetWindowSizeCallback(m_Handle, [](GLFWwindow* window, int width, int height)
                                   {
                                       WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-                                      
+
                                       int w, h;
                                       glfwGetFramebufferSize(window, &w, &h);
-                                      
+
                                       data.DPIScale = (float)w / (float)width;
-                                      
+
                                       data.Width = uint32_t(width * data.DPIScale);
                                       data.Height = uint32_t(height * data.DPIScale);
-                                      
+
                                       WindowResizeEvent event(data.Width, data.Height, data.DPIScale);
                                       data.EventCallback(event); });
 
@@ -217,7 +216,7 @@ namespace Lumos
         glfwSetWindowFocusCallback(m_Handle, [](GLFWwindow* window, int focused)
                                    {
                                        Window* lmWindow = Application::Get().GetWindow();
-                                       
+
                                        if(lmWindow)
                                            lmWindow->SetWindowFocus(focused); });
 
@@ -240,9 +239,9 @@ namespace Lumos
 
 							   if(key < 0)
 								   return;
-			
+
                                WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-                               
+
                                switch(action)
                                {
                                    case GLFW_PRESS:
@@ -268,7 +267,7 @@ namespace Lumos
         glfwSetMouseButtonCallback(m_Handle, [](GLFWwindow* window, int button, int action, int mods)
                                    {
                                        WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-                                       
+
                                        switch(action)
                                        {
                                            case GLFW_PRESS:
@@ -300,21 +299,21 @@ namespace Lumos
         glfwSetCursorEnterCallback(m_Handle, [](GLFWwindow* window, int enter)
                                    {
                                        WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-                                       
+
                                        MouseEnterEvent event(enter > 0);
                                        data.EventCallback(event); });
 
         glfwSetCharCallback(m_Handle, [](GLFWwindow* window, unsigned int keycode)
                             {
                                 WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-                                
+
                                 KeyTypedEvent event(GLFWKeyCodes::GLFWToLumosKeyboardKey(keycode), char(keycode));
                                 data.EventCallback(event); });
 
         glfwSetDropCallback(m_Handle, [](GLFWwindow* window, int numDropped, const char** filenames)
                             {
                                 WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-                                
+
                                 std::string filePath = filenames[0];
                                 WindowFileEvent event(filePath);
                                 data.EventCallback(event); });
@@ -588,5 +587,14 @@ namespace Lumos
             else
                 controllers[id].Present = false;
         }
+    }
+
+    float GLFWWindow::GetMonitorXScale()
+    {
+        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+        float xscale, yscale;
+        glfwGetMonitorContentScale(monitor, &xscale, &yscale);
+
+        return xscale;
     }
 }

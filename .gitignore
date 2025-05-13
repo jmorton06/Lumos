@@ -7,7 +7,6 @@
 .idea/
 
 # User-specific files
-*.code-workspace
 *.suo
 *.user
 *.userosscache
@@ -24,7 +23,6 @@
 [Rr]eleases/
 [Mm]inSizeRel/
 [Rr]elWithDebInfo/
-x64/
 bld/
 [Bb]in/
 [Oo]bj/
@@ -170,6 +168,7 @@ ExampleProject/Assets/Kenney Game Assets All-in-1 1.7.0
 DerivedData
 ClangBuildAnalyzerSession.txt
 compileData.*
-ExampleProject/Assets/Meshes/Sponza
-Scripts/Setup
-ExampleProject/Assets/Cache/
+ExampleProject/Assets/Scenes/Cache
+ExampleProject/Assets/Cache
+Editor.ini
+/ExampleProject/Assets/Meshes/Sponza

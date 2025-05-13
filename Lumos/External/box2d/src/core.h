@@ -3,9 +3,14 @@
 
 #pragma once
 
-#include "box2d/base.h"
+#include "box2d/math_functions.h"
+
+// clang-format off
 
 #define B2_NULL_INDEX ( -1 )
+
+// for performance comparisons
+#define B2_RESTRICT restrict
 
 #ifdef NDEBUG
 	#define B2_DEBUG 0
@@ -20,7 +25,7 @@
 #endif
 
 // Define platform
-#if defined( _WIN64 )
+#if defined(_WIN32) || defined(_WIN64)
 	#define B2_PLATFORM_WINDOWS
 #elif defined( __ANDROID__ )
 	#define B2_PLATFORM_ANDROID
@@ -36,18 +41,45 @@
 #elif defined( __EMSCRIPTEN__ )
 	#define B2_PLATFORM_WASM
 #else
-	#error Unsupported platform
+	#define B2_PLATFORM_UNKNOWN
 #endif
 
 // Define CPU
-#if defined( __x86_64__ ) || defined( _M_X64 )
-	#define B2_CPU_X64
-#elif defined( __aarch64__ ) || defined( _M_ARM64 )
+#if defined( __x86_64__ ) || defined( _M_X64 ) || defined( __i386__ ) || defined( _M_IX86 )
+	#define B2_CPU_X86_X64
+#elif defined( __aarch64__ ) || defined( _M_ARM64 ) || defined( __arm__ ) || defined( _M_ARM )
 	#define B2_CPU_ARM
 #elif defined( __EMSCRIPTEN__ )
 	#define B2_CPU_WASM
 #else
-	#error Unsupported CPU
+	#define B2_CPU_UNKNOWN
+#endif
+
+// Define SIMD
+#if defined( BOX2D_DISABLE_SIMD )
+	#define B2_SIMD_NONE
+	// note: I tried width of 1 and got no performance change
+	#define B2_SIMD_WIDTH 4
+#else
+	#if defined( B2_CPU_X86_X64 )
+		#if defined( BOX2D_AVX2 )
+			#define B2_SIMD_AVX2
+			#define B2_SIMD_WIDTH 8
+		#else
+			#define B2_SIMD_SSE2
+			#define B2_SIMD_WIDTH 4
+		#endif
+	#elif defined( B2_CPU_ARM )
+		#define B2_SIMD_NEON
+		#define B2_SIMD_WIDTH 4
+	#elif defined( B2_CPU_WASM )
+		#define B2_CPU_WASM
+		#define B2_SIMD_SSE2
+		#define B2_SIMD_WIDTH 4
+	#else
+		#define B2_SIMD_NONE
+		#define B2_SIMD_WIDTH 4
+	#endif
 #endif
 
 // Define compiler
@@ -59,99 +91,59 @@
 	#define B2_COMPILER_MSVC
 #endif
 
-#if defined( B2_COMPILER_MSVC )
-	#define B2_BREAKPOINT __debugbreak()
-#elif defined( B2_PLATFORM_WASM )
-	#define B2_BREAKPOINT                                                                                                        \
-		do                                                                                                                       \
-		{                                                                                                                        \
-		}                                                                                                                        \
-		while ( 0 )
-#elif defined( B2_COMPILER_GCC ) || defined( B2_COMPILER_CLANG )
-	#if defined( B2_CPU_X64 )
-		#define B2_BREAKPOINT __asm volatile( "int $0x3" )
-	#elif defined( B2_CPU_ARM )
-		#define B2_BREAKPOINT __builtin_trap()
-	#endif
-#else
-	#error Unknown platform
-#endif
-
-#if !defined( NDEBUG ) || defined( B2_ENABLE_ASSERT )
-extern b2AssertFcn* b2AssertHandler;
-	#define B2_ASSERT( condition )                                                                                               \
-		do                                                                                                                       \
-		{                                                                                                                        \
-			if ( !( condition ) && b2AssertHandler( #condition, __FILE__, (int)__LINE__ ) )                                      \
-				B2_BREAKPOINT;                                                                                                   \
-		}                                                                                                                        \
-		while ( 0 )
-#else
-	#define B2_ASSERT( ... ) ( (void)0 )
-#endif
-
 /// Tracy profiler instrumentation
-///	https://github.com/wolfpld/tracy
+/// https://github.com/wolfpld/tracy
 #ifdef BOX2D_PROFILE
-
 	#include <tracy/TracyC.h>
 	#define b2TracyCZoneC( ctx, color, active ) TracyCZoneC( ctx, color, active )
 	#define b2TracyCZoneNC( ctx, name, color, active ) TracyCZoneNC( ctx, name, color, active )
 	#define b2TracyCZoneEnd( ctx ) TracyCZoneEnd( ctx )
-
 #else
-
 	#define b2TracyCZoneC( ctx, color, active )
 	#define b2TracyCZoneNC( ctx, name, color, active )
 	#define b2TracyCZoneEnd( ctx )
-
 #endif
 
-extern float b2_lengthUnitsPerMeter;
-
-// Used to detect bad values. Positions greater than about 16km will have precision
-// problems, so 100km as a limit should be fine in all cases.
-#define b2_huge ( 100000.0f * b2_lengthUnitsPerMeter )
-
-// Maximum parallel workers. Used to size some static arrays.
-#define b2_maxWorkers 64
-
-// Maximum number of colors in the constraint graph. Constraints that cannot
-//	find a color are added to the overflow set which are solved single-threaded.
-#define b2_graphColorCount 12
-
-// A small length used as a collision and constraint tolerance. Usually it is
-// chosen to be numerically significant, but visually insignificant. In meters.
-// @warning modifying this can have a significant impact on stability
-#define b2_linearSlop ( 0.005f * b2_lengthUnitsPerMeter )
-
-// Maximum number of simultaneous worlds that can be allocated
-#define b2_maxWorlds 128
-
-// The maximum rotation of a body per time step. This limit is very large and is used
-// to prevent numerical problems. You shouldn't need to adjust this.
-// @warning increasing this to 0.5f * b2_pi or greater will break continuous collision.
-#define b2_maxRotation ( 0.25f * b2_pi )
-
-// @warning modifying this can have a significant impact on performance and stability
-#define b2_speculativeDistance ( 4.0f * b2_linearSlop )
-
-// This is used to fatten AABBs in the dynamic tree. This allows proxies
-// to move by a small amount without triggering a tree adjustment.
-// This is in meters.
-// @warning modifying this can have a significant impact on performance
-#define b2_aabbMargin ( 0.1f * b2_lengthUnitsPerMeter )
-
-// The time that a body must be still before it will go to sleep. In seconds.
-#define b2_timeToSleep 0.5f
+// clang-format on
 
 // Returns the number of elements of an array
 #define B2_ARRAY_COUNT( A ) (int)( sizeof( A ) / sizeof( A[0] ) )
 
 // Used to prevent the compiler from warning about unused variables
-#define B2_MAYBE_UNUSED( x ) ( (void)( x ) )
+#define B2_UNUSED( ... ) (void)sizeof( ( __VA_ARGS__, 0 ) )
 
 // Use to validate definitions. Do not take my cookie.
 #define B2_SECRET_COOKIE 1152023
 
-#define b2CheckDef( DEF ) B2_ASSERT( DEF->internalValue == B2_SECRET_COOKIE )
+// Snoop counters. These should be disabled in optimized builds because they are expensive.
+#if defined( box2d_EXPORTS )
+#define B2_SNOOP_TABLE_COUNTERS B2_DEBUG
+#define B2_SNOOP_PAIR_COUNTERS B2_DEBUG
+#define B2_SNOOP_TOI_COUNTERS B2_DEBUG
+#else
+#define B2_SNOOP_TABLE_COUNTERS 0
+#define B2_SNOOP_PAIR_COUNTERS 0
+#define B2_SNOOP_TOI_COUNTERS 0
+#endif
+
+#define B2_CHECK_DEF( DEF ) B2_ASSERT( DEF->internalValue == B2_SECRET_COOKIE )
+
+typedef struct b2AtomicInt
+{
+	int value;
+} b2AtomicInt;
+
+typedef struct b2AtomicU32
+{
+	uint32_t value;
+} b2AtomicU32;
+
+void* b2Alloc( int size );
+#define B2_ALLOC_STRUCT( type ) b2Alloc(sizeof(type))
+#define B2_ALLOC_ARRAY( count, type ) b2Alloc(count * sizeof(type))
+
+void b2Free( void* mem, int size );
+#define B2_FREE_STRUCT( mem, type ) b2Free( mem, sizeof(type));
+#define B2_FREE_ARRAY( mem, count, type ) b2Free(mem, count * sizeof(type))
+
+void* b2GrowAlloc( void* oldMem, int oldSize, int newSize );

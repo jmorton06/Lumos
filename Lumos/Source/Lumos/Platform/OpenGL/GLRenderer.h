@@ -29,7 +29,7 @@ namespace Lumos
                 return static_cast<GLRenderer*>(s_Instance);
             }
 
-            void Begin() override;
+            bool Begin() override;
             void InitInternal() override;
 
             void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount) override;

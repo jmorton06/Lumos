@@ -74,6 +74,7 @@ namespace Lumos
         }
 
         void SetIcon(const WindowDesc& desc) override;
+        float GetMonitorXScale();
 
         static void MakeDefault();
 
