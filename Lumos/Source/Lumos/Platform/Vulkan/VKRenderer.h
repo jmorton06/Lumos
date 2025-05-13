@@ -41,7 +41,7 @@ namespace Lumos
             }
 
             void InitInternal() override;
-            void Begin() override;
+            bool Begin() override;
             void OnResize(uint32_t width, uint32_t height) override;
 
             void PresentInternal() override;

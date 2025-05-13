@@ -76,7 +76,8 @@ namespace Lumos
                                            { vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), descriptorPool, nullptr); });
             }
             deletionQueue.PushFunction([]
-                                       { ImGui_ImplVulkan_Shutdown(); });
+                                       { ImGui_ImplVulkan_Shutdown();
+										 ImGui::DestroyContext(); });
         }
 
         void VKIMGUIRenderer::SetupVulkanWindowData(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height)

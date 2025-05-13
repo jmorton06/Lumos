@@ -129,7 +129,7 @@ namespace Lumos
             Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>()->OnResize(width, height, true);
         }
 
-        void VKRenderer::Begin()
+        bool VKRenderer::Begin()
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             s_DeletionQueueIndex++;
@@ -137,7 +137,7 @@ namespace Lumos
             s_DeletionQueue[s_DeletionQueueIndex].Flush();
 
             SharedPtr<VKSwapChain> swapChain = Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>();
-            swapChain->Begin();
+            return swapChain->Begin();
         }
 
         void VKRenderer::PresentInternal()
@@ -148,13 +148,12 @@ namespace Lumos
             swapChain->End();
             swapChain->QueueSubmit();
 
-            auto& frameData = swapChain->GetCurrentFrameData();
-            auto semaphore  = frameData.MainCommandBuffer->GetSemaphore();
+            FrameData& frameData  = swapChain->GetCurrentFrameData();
+            VkSemaphore semaphore = frameData.MainCommandBuffer->GetSemaphore();
 
             ArenaTemp scratch = ScratchBegin(nullptr, 0);
             TDArray<VkSemaphore> semaphores(scratch.arena);
             semaphores.EmplaceBack(semaphore);
-            semaphores.EmplaceBack(frameData.ImageAcquireSemaphore->GetHandle());
             swapChain->Present(semaphores);
             ScratchEnd(scratch);
         }

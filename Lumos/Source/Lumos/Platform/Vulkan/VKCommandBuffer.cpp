@@ -26,6 +26,12 @@ namespace Lumos
             , m_Primary(false)
             , m_State(CommandBufferState::Idle)
             , m_BoundRenderPass(nullptr)
+            , m_BoundFrameBuffer(nullptr)
+            , m_BoundPipeline(nullptr)
+            , m_BoundPipelineLayer(0)
+            , m_BoundRenderPassWidth(0)
+            , m_BoundRenderPassHeight(0)
+            , m_Fence(nullptr)
         {
         }
 
@@ -36,6 +42,12 @@ namespace Lumos
             , m_Primary(true)
             , m_State(CommandBufferState::Idle)
             , m_BoundRenderPass(nullptr)
+            , m_BoundFrameBuffer(nullptr)
+            , m_BoundPipeline(nullptr)
+            , m_BoundPipelineLayer(0)
+            , m_BoundRenderPassWidth(0)
+            , m_BoundRenderPassHeight(0)
+            , m_Fence(nullptr)
         {
         }
 
@@ -73,6 +85,7 @@ namespace Lumos
 
             m_Semaphore = CreateSharedPtr<VKSemaphore>(false);
             m_Fence     = CreateSharedPtr<VKFence>(true);
+            m_Fence->Reset();
 
             return true;
         }
@@ -148,9 +161,9 @@ namespace Lumos
 
             VkSemaphore semaphore           = m_Semaphore->GetHandle();
             VkSubmitInfo submitInfo         = VKInitialisers::SubmitInfo();
-            submitInfo.waitSemaphoreCount   = 0;       // waitSemaphoreCount;
-            submitInfo.pWaitSemaphores      = nullptr; // waitSemaphoreCount == 0 ? nullptr : &waitSemaphore;
-            submitInfo.pWaitDstStageMask    = &flags;
+            submitInfo.waitSemaphoreCount   = waitSemaphoreCount;
+            submitInfo.pWaitSemaphores      = waitSemaphoreCount == 0 ? nullptr : &waitSemaphore;
+            submitInfo.pWaitDstStageMask    = waitSemaphore ? &flags : nullptr;
             submitInfo.commandBufferCount   = 1;
             submitInfo.pCommandBuffers      = &m_CommandBuffer;
             submitInfo.signalSemaphoreCount = signalSemaphoreCount;
@@ -296,10 +309,10 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION_LOW();
             ASSERT(m_State == CommandBufferState::Submitted);
 
-            m_State = CommandBufferState::Idle;
-
             if(!m_Fence->WaitAndReset())
                 return false;
+
+            m_State = CommandBufferState::Idle;
 
             return true;
         }

@@ -53,7 +53,6 @@
 #include <cereal/types/vector.hpp>
 
 #include <imgui/imgui.h>
-#include <imgui/Plugins/implot/implot.h>
 
 namespace Lumos
 {
@@ -67,9 +66,6 @@ namespace Lumos
 
     Application::~Application()
     {
-        LUMOS_PROFILE_FUNCTION();
-        ImGui::DestroyContext();
-        ImPlot::DestroyContext();
     }
 
     static i32 EmbedShaderCount = 0;
@@ -98,7 +94,7 @@ namespace Lumos
         Deserialise();
 
 #ifdef LUMOS_PLATFORM_IOS
-		m_ProjectSettings.m_EngineAssetPath = OS::Get().GetAssetPath();
+        m_ProjectSettings.m_EngineAssetPath = OS::Get().GetAssetPath();
 #endif
 
         CommandLine* cmdline = Internal::CoreSystem::GetCmdLine();
@@ -137,10 +133,6 @@ namespace Lumos
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         m_EditorState = EditorState::Play;
-
-        ImGui::CreateContext();
-        ImPlot::CreateContext();
-        ImGui::StyleColorsDark();
 
         bool loadEmbeddedShaders = true;
         if(FileSystem::FolderExists(m_ProjectSettings.m_EngineAssetPath + "Shaders"))
@@ -247,7 +239,6 @@ namespace Lumos
         m_AssetManager.reset();
         m_SceneManager.reset();
         m_SceneRenderer.reset();
-        m_ImGuiManager.reset();
         LuaManager::Release();
         m_SystemManager.reset();
 
@@ -255,6 +246,7 @@ namespace Lumos
         Graphics::RenderPass::ClearCache();
         Graphics::Framebuffer::ClearCache();
 
+        m_ImGuiManager.reset();
         m_Window.reset();
 
         Graphics::Renderer::Release();
@@ -463,7 +455,11 @@ namespace Lumos
         System::JobSystem::Context context;
         if(!m_Minimized)
         {
-            Graphics::Renderer::GetRenderer()->Begin();
+            if(!Graphics::Renderer::GetRenderer()->Begin())
+            {
+                ImGui::Render();
+                return m_CurrentState != AppState::Closing;
+            }
         }
         m_ImGuiManager->OnNewFrame();
 
@@ -853,7 +849,7 @@ namespace Lumos
                         m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../Lumos/Assets/";
                     }
 #else
-					m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Get().GetAssetPath());
+                    m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Get().GetAssetPath());
 #endif
                     m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
                     m_SceneManager->SwitchScene(0);

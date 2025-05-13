@@ -20,7 +20,8 @@ namespace Lumos
         void DrawSegment(b2Vec2 p1, b2Vec2 p2, b2HexColor colour, void* context);
         void DrawTransform(b2Transform xf, void* context);
         void DrawPoint(b2Vec2 p, float size, b2HexColor colour, void* context);
-        void DrawString(b2Vec2 p, const char* s, void* context);
+        void DrawString(b2Vec2 p, const char* s, b2HexColor color, void* context);
+
     }
     //
     //        void DrawString(int x, int y, const char* string, ...);

@@ -85,8 +85,10 @@ namespace Lumos
             float w;
 #endif
 
-            float* GetPointer() { return &x; }
-
+            float* GetPointer()
+            {
+                return &x;
+            }
             Vector2 ToVector2() const;
             Vector3 ToVector3() const;
 
@@ -116,41 +118,40 @@ namespace Lumos
             inline void Normalise()
             {
 #ifdef LUMOS_SSE
-                // Calculate the dot product of m_Value with itself
-                __m128 dot = _mm_dp_ps(m_Value, m_Value, 0xFF);
+                __m128 dot = _mm_dp_ps(m_Value, m_Value, 0xF1);
 
-                // Check if the dot product is zero (i.e., m_Value is a zero vector)
                 if(_mm_cvtss_f32(dot) == 0.0f)
                 {
-                    // Handle the zero vector case, e.g., return a zero vector
                     m_Value = _mm_setzero_ps();
                 }
                 else
                 {
-                    // Calculate the reciprocal square root of the dot product
-                    __m128 rsqrt = _mm_rsqrt_ps(dot);
+                    __m128 dot_broadcasted = _mm_shuffle_ps(dot, dot, _MM_SHUFFLE(0, 0, 0, 0));
+
+                    __m128 rsqrt = _mm_rsqrt_ps(dot_broadcasted);
 
                     // One iteration of Newton-Raphson refinement
-                    __m128 half_dot     = _mm_mul_ps(dot, _mm_set1_ps(0.5f));
+                    __m128 half_dot     = _mm_mul_ps(dot_broadcasted, _mm_set1_ps(0.5f));
                     __m128 three_halves = _mm_set1_ps(1.5f);
-                    rsqrt               = _mm_mul_ps(rsqrt, _mm_sub_ps(three_halves, _mm_mul_ps(half_dot, _mm_mul_ps(rsqrt, rsqrt))));
+                    rsqrt               = _mm_mul_ps(
+                        rsqrt,
+                        _mm_sub_ps(three_halves, _mm_mul_ps(half_dot, _mm_mul_ps(rsqrt, rsqrt))));
 
-                    // Multiply m_Value by the refined reciprocal square root to normalize
-                    __m128 normalized = _mm_mul_ps(m_Value, rsqrt);
-
-                    m_Value = normalized;
+                    m_Value = _mm_mul_ps(m_Value, rsqrt);
                 }
-
 #else
-                float length = Length();
-
+                float length = sqrtf(x * x + y * y + z * z + w * w);
                 if(length != 0.0f)
                 {
-                    length = 1.0f / length;
-                    x      = x * length;
-                    y      = y * length;
-                    z      = z * length;
-                    w      = w * length;
+                    float inv = 1.0f / length;
+                    x *= inv;
+                    y *= inv;
+                    z *= inv;
+                    w *= inv;
+                }
+                else
+                {
+                    x = y = z = w = 0.0f;
                 }
 #endif
             }
@@ -194,8 +195,8 @@ namespace Lumos
             inline void operator/=(const Vector4& v) { m_Value = _mm_div_ps(m_Value, v.m_Value); }
 
             inline Vector4 operator-() const { return _mm_set_ps(-w, -z, -y, -x); }
-            inline bool operator==(const Vector4& v) const { return (_mm_movemask_ps(_mm_cmpneq_ps(m_Value, v.m_Value)) & 0x01) == 0; }
-            inline bool operator!=(const Vector4& v) const { return (_mm_movemask_ps(_mm_cmpneq_ps(m_Value, v.m_Value)) & 0x01) != 0; }
+            inline bool operator==(const Vector4& v) const { return _mm_movemask_ps(_mm_cmpneq_ps(m_Value, v.m_Value)) == 0; }
+            inline bool operator!=(const Vector4& v) const { return _mm_movemask_ps(_mm_cmpneq_ps(m_Value, v.m_Value)) != 0; }
 #else
             inline Vector4 operator+(float v) const { return Vector4(x + v, y + v, z + v, w + v); }
             inline Vector4 operator-(float v) const { return Vector4(x - v, y - v, z - v, w - v); }

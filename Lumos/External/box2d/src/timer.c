@@ -3,185 +3,183 @@
 
 #include "box2d/base.h"
 
-#if defined( _WIN32 )
+#include <stddef.h>
 
-	#ifndef WIN32_LEAN_AND_MEAN
-		#define WIN32_LEAN_AND_MEAN
-	#endif
+#if defined( _MSC_VER )
 
-	#include <windows.h>
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+
+#include <windows.h>
 
 static double s_invFrequency = 0.0;
 
-b2Timer b2CreateTimer( void )
+uint64_t b2GetTicks( void )
 {
-	LARGE_INTEGER largeInteger;
+	LARGE_INTEGER counter;
+	QueryPerformanceCounter( &counter );
+	return (uint64_t)counter.QuadPart;
+}
 
+float b2GetMilliseconds( uint64_t ticks )
+{
 	if ( s_invFrequency == 0.0 )
 	{
-		QueryPerformanceFrequency( &largeInteger );
+		LARGE_INTEGER frequency;
+		QueryPerformanceFrequency( &frequency );
 
-		s_invFrequency = (double)largeInteger.QuadPart;
+		s_invFrequency = (double)frequency.QuadPart;
 		if ( s_invFrequency > 0.0 )
 		{
 			s_invFrequency = 1000.0 / s_invFrequency;
 		}
 	}
 
-	QueryPerformanceCounter( &largeInteger );
-	b2Timer timer;
-	timer.start = largeInteger.QuadPart;
-	return timer;
+	uint64_t ticksNow = b2GetTicks();
+	return (float)( s_invFrequency * ( ticksNow - ticks ) );
 }
 
-int64_t b2GetTicks( b2Timer* timer )
+float b2GetMillisecondsAndReset( uint64_t* ticks )
 {
-	LARGE_INTEGER largeInteger;
-	QueryPerformanceCounter( &largeInteger );
-	int64_t ticks = largeInteger.QuadPart;
-	int64_t count = ticks - timer->start;
-	timer->start = ticks;
-	return count;
-}
+	if ( s_invFrequency == 0.0 )
+	{
+		LARGE_INTEGER frequency;
+		QueryPerformanceFrequency( &frequency );
 
-float b2GetMilliseconds( const b2Timer* timer )
-{
-	LARGE_INTEGER largeInteger;
-	QueryPerformanceCounter( &largeInteger );
-	int64_t count = largeInteger.QuadPart;
-	float ms = (float)( s_invFrequency * ( count - timer->start ) );
+		s_invFrequency = (double)frequency.QuadPart;
+		if ( s_invFrequency > 0.0 )
+		{
+			s_invFrequency = 1000.0 / s_invFrequency;
+		}
+	}
+
+	uint64_t ticksNow = b2GetTicks();
+	float ms = (float)( s_invFrequency * ( ticksNow - *ticks ) );
+	*ticks = ticksNow;
 	return ms;
 }
 
-float b2GetMillisecondsAndReset( b2Timer* timer )
-{
-	LARGE_INTEGER largeInteger;
-	QueryPerformanceCounter( &largeInteger );
-	int64_t count = largeInteger.QuadPart;
-	float ms = (float)( s_invFrequency * ( count - timer->start ) );
-	timer->start = count;
-	return ms;
-}
-
-void b2SleepMilliseconds( int milliseconds )
-{
-	// also SwitchToThread()
-	Sleep( (DWORD)milliseconds );
-}
-
-void b2Yield()
+void b2Yield( void )
 {
 	SwitchToThread();
 }
 
-#elif defined( __linux__ ) || defined( __APPLE__ )
+#elif defined( __linux__ ) || defined( __EMSCRIPTEN__ )
 
-	#include <sched.h>
-	#include <sys/time.h>
-	#include <time.h>
+#include <sched.h>
+#include <time.h>
 
-b2Timer b2CreateTimer( void )
-{
-	b2Timer timer;
-	struct timeval t;
-	gettimeofday( &t, 0 );
-	timer.start_sec = t.tv_sec;
-	timer.start_usec = t.tv_usec;
-	return timer;
-}
-
-float b2GetMilliseconds( const b2Timer* timer )
-{
-	struct timeval t;
-	gettimeofday( &t, 0 );
-	time_t start_sec = timer->start_sec;
-	suseconds_t start_usec = (suseconds_t)timer->start_usec;
-
-	// http://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html
-	if ( t.tv_usec < start_usec )
-	{
-		int nsec = ( start_usec - t.tv_usec ) / 1000000 + 1;
-		start_usec -= 1000000 * nsec;
-		start_sec += nsec;
-	}
-
-	if ( t.tv_usec - start_usec > 1000000 )
-	{
-		int nsec = ( t.tv_usec - start_usec ) / 1000000;
-		start_usec += 1000000 * nsec;
-		start_sec -= nsec;
-	}
-	return 1000.0f * ( t.tv_sec - start_sec ) + 0.001f * ( t.tv_usec - start_usec );
-}
-
-float b2GetMillisecondsAndReset( b2Timer* timer )
-{
-	struct timeval t;
-	gettimeofday( &t, 0 );
-	time_t start_sec = timer->start_sec;
-	suseconds_t start_usec = (suseconds_t)timer->start_usec;
-
-	// http://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html
-	if ( t.tv_usec < start_usec )
-	{
-		int nsec = ( start_usec - t.tv_usec ) / 1000000 + 1;
-		start_usec -= 1000000 * nsec;
-		start_sec += nsec;
-	}
-
-	if ( t.tv_usec - start_usec > 1000000 )
-	{
-		int nsec = ( t.tv_usec - start_usec ) / 1000000;
-		start_usec += 1000000 * nsec;
-		start_sec -= nsec;
-	}
-
-	timer->start_sec = t.tv_sec;
-	timer->start_usec = t.tv_usec;
-
-	return 1000.0f * ( t.tv_sec - start_sec ) + 0.001f * ( t.tv_usec - start_usec );
-}
-
-void b2SleepMilliseconds( int milliseconds )
+uint64_t b2GetTicks( void )
 {
 	struct timespec ts;
-	ts.tv_sec = milliseconds / 1000;
-	ts.tv_nsec = ( milliseconds % 1000 ) * 1000000;
-	nanosleep( &ts, NULL );
+	clock_gettime( CLOCK_MONOTONIC, &ts );
+	return ts.tv_sec * 1000000000LL + ts.tv_nsec;
 }
 
-void b2Yield()
+float b2GetMilliseconds( uint64_t ticks )
+{
+	uint64_t ticksNow = b2GetTicks();
+	return (float)( (ticksNow - ticks) / 1000000.0 );
+}
+
+float b2GetMillisecondsAndReset( uint64_t* ticks )
+{
+	uint64_t ticksNow = b2GetTicks();
+	float ms = (float)( (ticksNow - *ticks) / 1000000.0 );
+	*ticks = ticksNow;
+	return ms;
+}
+
+void b2Yield( void )
+{
+	sched_yield();
+}
+
+#elif defined( __APPLE__ )
+
+#include <mach/mach_time.h>
+#include <sched.h>
+#include <sys/time.h>
+
+static double s_invFrequency = 0.0;
+
+uint64_t b2GetTicks( void )
+{
+	return mach_absolute_time();
+}
+
+float b2GetMilliseconds( uint64_t ticks )
+{
+	if ( s_invFrequency == 0 )
+	{
+		mach_timebase_info_data_t timebase;
+		mach_timebase_info( &timebase );
+
+		// convert to ns then to ms
+		s_invFrequency = 1e-6 * (double)timebase.numer / (double)timebase.denom;
+	}
+
+	uint64_t ticksNow = b2GetTicks();
+	return (float)( s_invFrequency * (ticksNow - ticks) );
+}
+
+float b2GetMillisecondsAndReset( uint64_t* ticks )
+{
+	if ( s_invFrequency == 0 )
+	{
+		mach_timebase_info_data_t timebase;
+		mach_timebase_info( &timebase );
+
+		// convert to ns then to ms
+		s_invFrequency = 1e-6 * (double)timebase.numer / (double)timebase.denom;
+	}
+
+	uint64_t ticksNow = b2GetTicks();
+	float ms = (float)( s_invFrequency * ( ticksNow - *ticks ) );
+	*ticks = ticksNow;
+	return ms;
+}
+
+void b2Yield( void )
 {
 	sched_yield();
 }
 
 #else
 
-b2Timer b2CreateTimer( void )
+uint64_t b2GetTicks( void )
 {
-	b2Timer timer = { 0 };
-	return timer;
+	return 0;
 }
 
-float b2GetMilliseconds( const b2Timer* timer )
+float b2GetMilliseconds( uint64_t ticks )
 {
-	( (void)( timer ) );
+	( (void)( ticks ) );
 	return 0.0f;
 }
 
-float b2GetMillisecondsAndReset( b2Timer* timer )
+float b2GetMillisecondsAndReset( uint64_t* ticks )
 {
-	( (void)( timer ) );
+	( (void)( ticks ) );
 	return 0.0f;
 }
 
-void b2SleepMilliseconds( int milliseconds )
-{
-	( (void)( milliseconds ) );
-}
-
-void b2Yield()
+void b2Yield( void )
 {
 }
 
 #endif
+
+// djb2 hash
+// https://en.wikipedia.org/wiki/List_of_hash_functions
+uint32_t b2Hash( uint32_t hash, const uint8_t* data, int count )
+{
+	uint32_t result = hash;
+	for ( int i = 0; i < count; i++ )
+	{
+		result = ( result << 5 ) + result + data[i];
+	}
+
+	return result;
+}
