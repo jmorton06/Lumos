@@ -748,7 +748,7 @@ namespace Lumos
 
                             if(ImGui::Selectable("Open Location"))
                             {
-                                Lumos::OS::Instance()->OpenFileLocation(ToStdString(m_CurrentDir->AssetPath));
+                                Lumos::OS::Get().OpenFileLocation(ToStdString(m_CurrentDir->AssetPath));
                             }
 
                             ImGui::Separator();
@@ -987,7 +987,7 @@ namespace Lumos
                 {
                     ArenaTemp temp   = ScratchBegin(&m_Arena, 1);
                     String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->Children[dirIndex]->AssetPath, Str8Lit("//Assets"), m_BasePath);
-                    Lumos::OS::Instance()->OpenFileLocation(std::string((const char*)fullPath.str, fullPath.size));
+                    Lumos::OS::Get().OpenFileLocation(std::string((const char*)fullPath.str, fullPath.size));
                     ScratchEnd(temp);
                 }
 
@@ -995,7 +995,7 @@ namespace Lumos
                 {
                     ArenaTemp temp   = ScratchBegin(&m_Arena, 1);
                     String8 fullPath = StringUtilities::RelativeToAbsolutePath(temp.arena, m_CurrentDir->Children[dirIndex]->AssetPath, Str8Lit("//Assets"), m_BasePath);
-                    Lumos::OS::Instance()->OpenFileExternal(std::string((const char*)fullPath.str, fullPath.size));
+                    Lumos::OS::Get().OpenFileExternal(std::string((const char*)fullPath.str, fullPath.size));
                     ScratchEnd(temp);
                 }
 

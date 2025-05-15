@@ -19,6 +19,12 @@ namespace Lumos
             return *m_pInstance;
         }
 
+        static void SetInstance(T* instance)
+        {
+            Release();
+            m_pInstance = instance;
+        }
+
         // Provide global access to release/delete this class
         static void Release()
         {
@@ -43,6 +49,54 @@ namespace Lumos
     // Finally make sure that the instance is initialised to NULL at the start of the program
     template <class T>
     T* TSingleton<T>::m_pInstance = nullptr;
+
+    template <class T>
+    class TSingletonAbstract
+    {
+    public:
+        // Provide global access to the only instance of this class
+        static T& Get()
+        {
+            ASSERT(m_pInstance != nullptr, "Singleton hasn't been Created");
+            return *m_pInstance;
+        }
+
+        static T* GetPtr()
+        {
+            ASSERT(m_pInstance != nullptr, "Singleton hasn't been Created");
+            return m_pInstance;
+        }
+
+        static void SetInstance(T* instance)
+        {
+            Release();
+            m_pInstance = instance;
+        }
+
+        // Provide global access to release/delete this class
+        static void Release()
+        {
+            if(m_pInstance)
+            {
+                delete m_pInstance;
+                m_pInstance = nullptr;
+            }
+        }
+
+    protected:
+        // Only allow the class to be created and destroyed by itself
+        TSingletonAbstract() { }
+        ~TSingletonAbstract() { }
+
+        static T* m_pInstance;
+
+    private:
+        NONCOPYABLE(TSingletonAbstract);
+    };
+
+    // Finally make sure that the instance is initialised to NULL at the start of the program
+    template <class T>
+    T* TSingletonAbstract<T>::m_pInstance = nullptr;
 
     template <class T>
     class TSingletonInit
@@ -70,6 +124,12 @@ namespace Lumos
                 delete m_pInstance;
                 m_pInstance = nullptr;
             }
+        }
+
+        static void SetInstance(T* instance)
+        {
+            Release();
+            m_pInstance = instance;
         }
 
     protected:
@@ -114,6 +174,12 @@ namespace Lumos
                 delete m_pInstance;
                 m_pInstance = nullptr;
             }
+        }
+
+        static void SetInstance(T* instance)
+        {
+            Release();
+            m_pInstance = instance;
         }
 
     protected:

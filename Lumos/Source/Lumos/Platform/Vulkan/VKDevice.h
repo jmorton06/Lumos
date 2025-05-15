@@ -146,7 +146,7 @@ namespace Lumos
                 return m_PipelineCache;
             }
 
-#if LUMOS_PROFILE && defined(TRACY_ENABLE)
+#if LUMOS_PROFILE && defined(TRACY_ENABLE) && LUMOS_PROFILE_GPU_TIMINGS
             tracy::VkCtx* GetTracyContext(bool present = false);
 #endif
 
@@ -193,7 +193,7 @@ namespace Lumos
 
             static uint32_t s_GraphicsQueueFamilyIndex;
 
-#if LUMOS_PROFILE && defined(TRACY_ENABLE)
+#if LUMOS_PROFILE && defined(TRACY_ENABLE) && LUMOS_PROFILE_GPU_TIMINGS
             TDArray<tracy::VkCtx*> m_TracyContext;
             tracy::VkCtx* m_PresentTracyContext;
 #endif

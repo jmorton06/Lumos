@@ -22,8 +22,8 @@ namespace Lumos
             void BindPipeline(Pipeline* pipeline) override;
             void BindPipeline(Pipeline* pipeline, uint32_t layer) override;
             void UnBindPipeline() override;
-            void EndCurrentRenderPass() override {};
-            void UpdateViewport(uint32_t width, uint32_t height, bool flipViewport) override {};
+            void EndCurrentRenderPass() override { };
+            void UpdateViewport(uint32_t width, uint32_t height, bool flipViewport) override { };
             static void MakeDefault();
 
         protected:

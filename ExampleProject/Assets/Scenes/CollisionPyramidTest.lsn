@@ -1278,27 +1278,8 @@
             "value2": 1.0
         }
     },
-    "value192": 0,
+    "value192": 1,
     "value193": {
-        "Position": {
-            "value0": -62.4451789855957,
-            "value1": 37.44212341308594,
-            "value2": 26.386333465576173
-        },
-        "Rotation": {
-            "value0": -0.19666795432567597,
-            "value1": -0.5465598702430725,
-            "value2": -0.13387542963027955,
-            "value3": 0.8029143214225769
-        },
-        "Scale": {
-            "value0": 1.0000100135803223,
-            "value1": 1.0000016689300538,
-            "value2": 1.00001060962677
-        }
-    },
-    "value194": 1,
-    "value195": {
         "Position": {
             "value0": -5.864191055297852,
             "value1": 4.970639705657959,
@@ -1314,6 +1295,25 @@
             "value0": 1.0000009536743165,
             "value1": 1.000000238418579,
             "value2": 1.000001311302185
+        }
+    },
+    "value194": 0,
+    "value195": {
+        "Position": {
+            "value0": -62.4451789855957,
+            "value1": 37.44212341308594,
+            "value2": 26.386333465576173
+        },
+        "Rotation": {
+            "value0": -0.19666795432567597,
+            "value1": -0.5465598702430725,
+            "value2": -0.13387542963027955,
+            "value3": 0.8029143214225769
+        },
+        "Scale": {
+            "value0": 1.0000100135803223,
+            "value1": 1.0000016689300538,
+            "value2": 1.00001060962677
         }
     },
     "value196": 64,
@@ -1579,7 +1579,7 @@
     "value328": 1,
     "value329": {
         "Scale": 1.0,
-        "Aspect": 0.8345070481300354,
+        "Aspect": 0.7917808294296265,
         "FOV": 60.0,
         "Near": 0.10000000149011612,
         "Far": 100.0,
@@ -1611,9 +1611,9 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": -0.8250278830528259,
-            "value1": 0.46215835213661196,
-            "value2": 0.32517489790916445,
+            "value0": -0.8250242471694946,
+            "value1": 0.46215686202049258,
+            "value2": 0.325186163187027,
             "value3": 1.0
         },
         "value5": 120000.0,
@@ -1675,7 +1675,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 12765891224963149148
+            "UUID": 179182723597584396
         }
     },
     "value340": 15,
@@ -1715,7 +1715,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -1732,7 +1732,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 14124620850671517816
+            "UUID": 1818045409618000476
         }
     },
     "value342": 1048579,
@@ -1772,7 +1772,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -1789,7 +1789,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 1380821290874780425
+            "UUID": 6045465172091505932
         }
     },
     "value344": 5,
@@ -1829,7 +1829,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -1846,7 +1846,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 3248324608811708532
+            "UUID": 6828137227947396838
         }
     },
     "value346": 6,
@@ -1886,7 +1886,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -1903,7 +1903,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 6684469800302012934
+            "UUID": 2533255684707918324
         }
     },
     "value348": 7,
@@ -1943,7 +1943,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -1960,7 +1960,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 15073449979222112400
+            "UUID": 11930240693188244339
         }
     },
     "value350": 8,
@@ -2000,7 +2000,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2017,7 +2017,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 9281915264351173579
+            "UUID": 5121420269304102350
         }
     },
     "value352": 9,
@@ -2057,7 +2057,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2074,7 +2074,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 2069776245703872564
+            "UUID": 14349243405333937365
         }
     },
     "value354": 10,
@@ -2114,7 +2114,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2131,7 +2131,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 3916300973233201414
+            "UUID": 15194606780167736742
         }
     },
     "value356": 11,
@@ -2171,7 +2171,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2188,7 +2188,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 9209434808726851781
+            "UUID": 7671930669270942881
         }
     },
     "value358": 12,
@@ -2228,7 +2228,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2245,7 +2245,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 15927763354293157651
+            "UUID": 1661530569663573634
         }
     },
     "value360": 13,
@@ -2285,7 +2285,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2302,7 +2302,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 3549040201012728216
+            "UUID": 13077949273136509090
         }
     },
     "value362": 14,
@@ -2342,7 +2342,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2359,7 +2359,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 6073528338790435857
+            "UUID": 15106905067355283703
         }
     },
     "value364": 2097156,
@@ -2399,7 +2399,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2416,7 +2416,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 12724538206079671668
+            "UUID": 15477854326906404058
         }
     },
     "value366": 16,
@@ -2456,7 +2456,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2473,7 +2473,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 5702730866380331189
+            "UUID": 7260753250592374851
         }
     },
     "value368": 17,
@@ -2513,7 +2513,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2530,7 +2530,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 6879513321339947330
+            "UUID": 2189477769059498148
         }
     },
     "value370": 18,
@@ -2570,7 +2570,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2587,7 +2587,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 10633312526547410
+            "UUID": 752573146412109999
         }
     },
     "value372": 19,
@@ -2627,7 +2627,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2644,7 +2644,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 424568702641793878
+            "UUID": 9922643420853088265
         }
     },
     "value374": 20,
@@ -2684,7 +2684,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2701,7 +2701,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 11699665882880201439
+            "UUID": 10869462115132980274
         }
     },
     "value376": 21,
@@ -2741,7 +2741,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2758,7 +2758,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 12641160362773292545
+            "UUID": 12859764492534740704
         }
     },
     "value378": 22,
@@ -2798,7 +2798,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2815,7 +2815,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 2428159787742849398
+            "UUID": 11847191314866566833
         }
     },
     "value380": 23,
@@ -2855,7 +2855,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2872,7 +2872,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 17778560311173156369
+            "UUID": 14700503978037018245
         }
     },
     "value382": 24,
@@ -2912,7 +2912,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2929,7 +2929,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 9476386836145103300
+            "UUID": 8826653037772137916
         }
     },
     "value384": 25,
@@ -2969,7 +2969,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -2986,7 +2986,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 15989596112139022853
+            "UUID": 13405097037343651030
         }
     },
     "value386": 26,
@@ -3026,7 +3026,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3043,7 +3043,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 994319030523486187
+            "UUID": 3183649899231218030
         }
     },
     "value388": 27,
@@ -3083,7 +3083,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3100,7 +3100,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 12115965623484273656
+            "UUID": 1733503446949415728
         }
     },
     "value390": 28,
@@ -3140,7 +3140,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3157,7 +3157,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 4441128601702071229
+            "UUID": 8590402183589778554
         }
     },
     "value392": 29,
@@ -3197,7 +3197,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3214,7 +3214,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 3011590062345662049
+            "UUID": 8498315524525232432
         }
     },
     "value394": 30,
@@ -3254,7 +3254,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3271,7 +3271,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 7958226201624162227
+            "UUID": 14365814025472645403
         }
     },
     "value396": 31,
@@ -3311,7 +3311,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3328,7 +3328,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 14364822935462599121
+            "UUID": 13102685198304323990
         }
     },
     "value398": 32,
@@ -3368,7 +3368,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3385,7 +3385,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 10116647278128067124
+            "UUID": 13254255273246769406
         }
     },
     "value400": 33,
@@ -3425,7 +3425,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3442,7 +3442,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 4350360944147137390
+            "UUID": 13939230201604292627
         }
     },
     "value402": 34,
@@ -3482,7 +3482,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3499,7 +3499,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 17967561138144687667
+            "UUID": 968911713633529105
         }
     },
     "value404": 35,
@@ -3539,7 +3539,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3556,7 +3556,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 6648076573853182731
+            "UUID": 1441578788782020585
         }
     },
     "value406": 36,
@@ -3596,7 +3596,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3613,7 +3613,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 11346640541330593480
+            "UUID": 16718749401438774549
         }
     },
     "value408": 37,
@@ -3653,7 +3653,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3670,7 +3670,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 2135497860795676741
+            "UUID": 16546546366529625979
         }
     },
     "value410": 38,
@@ -3710,7 +3710,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3727,7 +3727,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 11586390797303232911
+            "UUID": 16044696873204338891
         }
     },
     "value412": 39,
@@ -3767,7 +3767,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3784,7 +3784,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 14212772810234838412
+            "UUID": 3093487887556497912
         }
     },
     "value414": 40,
@@ -3824,7 +3824,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3841,7 +3841,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 11594871595722117326
+            "UUID": 14238327317188437753
         }
     },
     "value416": 41,
@@ -3881,7 +3881,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3898,7 +3898,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 12224865755712903676
+            "UUID": 1292644875548548526
         }
     },
     "value418": 42,
@@ -3938,7 +3938,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -3955,7 +3955,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 4151978595224798290
+            "UUID": 7138516496525000751
         }
     },
     "value420": 43,
@@ -3995,7 +3995,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4012,7 +4012,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 4297293758746473244
+            "UUID": 154856918226496095
         }
     },
     "value422": 44,
@@ -4052,7 +4052,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4069,7 +4069,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 5149694027543575115
+            "UUID": 9198268907774561076
         }
     },
     "value424": 45,
@@ -4109,7 +4109,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4126,7 +4126,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 13288373671117375945
+            "UUID": 8232279480038863874
         }
     },
     "value426": 46,
@@ -4166,7 +4166,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4183,7 +4183,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 18036779982147106073
+            "UUID": 12964709596416169346
         }
     },
     "value428": 47,
@@ -4223,7 +4223,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4240,7 +4240,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 9293254586593893222
+            "UUID": 16121816344882625794
         }
     },
     "value430": 48,
@@ -4280,7 +4280,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4297,7 +4297,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 5175011279538699142
+            "UUID": 2442351546540665136
         }
     },
     "value432": 49,
@@ -4337,7 +4337,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4354,7 +4354,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 5073070895345712869
+            "UUID": 6653751586198337986
         }
     },
     "value434": 50,
@@ -4394,7 +4394,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4411,7 +4411,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 4842248677782477089
+            "UUID": 16659543140009721495
         }
     },
     "value436": 51,
@@ -4451,7 +4451,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4468,7 +4468,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 5503708230626557142
+            "UUID": 18096416314940791399
         }
     },
     "value438": 52,
@@ -4508,7 +4508,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4525,7 +4525,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 7730052640854699457
+            "UUID": 11210784465750760210
         }
     },
     "value440": 53,
@@ -4565,7 +4565,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4582,7 +4582,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 6607013305280990753
+            "UUID": 14042148476073189863
         }
     },
     "value442": 54,
@@ -4622,7 +4622,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4639,7 +4639,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 1281327391123014549
+            "UUID": 12552449471398053441
         }
     },
     "value444": 55,
@@ -4679,7 +4679,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4696,7 +4696,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 9027422283863313191
+            "UUID": 6210985305911137279
         }
     },
     "value446": 56,
@@ -4736,7 +4736,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4753,7 +4753,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 16320441224867957411
+            "UUID": 8779276643356106075
         }
     },
     "value448": 57,
@@ -4793,7 +4793,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4810,7 +4810,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 8039210053221457630
+            "UUID": 5651281166425344471
         }
     },
     "value450": 58,
@@ -4850,7 +4850,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4867,7 +4867,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 2181841838239292726
+            "UUID": 1897880355733938132
         }
     },
     "value452": 59,
@@ -4907,7 +4907,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4924,7 +4924,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 14598477269013623668
+            "UUID": 15098385944655115011
         }
     },
     "value454": 60,
@@ -4964,7 +4964,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -4981,7 +4981,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 6402239013415017164
+            "UUID": 13262777166327958682
         }
     },
     "value456": 61,
@@ -5021,7 +5021,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -5038,7 +5038,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 3209867867122034582
+            "UUID": 7845552626040083084
         }
     },
     "value458": 1048638,
@@ -5078,7 +5078,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 0.5,
+            "Friction": 0.8999999761581421,
             "Elasticity": 0.5,
             "CollisionShape": {
                 "polymorphic_id": 1,
@@ -5095,7 +5095,7 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 17572775997179209122
+            "UUID": 12300446513650994490
         }
     },
     "value460": 0,
@@ -5398,7 +5398,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "/Users/jmorton/Dev/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader",
+                    "shader": "Embedded",
                     "Reflectance": 0.30000001192092898
                 }
             }
@@ -6024,8 +6024,8 @@
                         "value2": 1.0,
                         "value3": 1.0
                     },
-                    "roughnessValue": 0.2150000035762787,
-                    "metallicValue": 0.953000009059906,
+                    "roughnessValue": 0.5527864098548889,
+                    "metallicValue": 0.699999988079071,
                     "emissiveValue": 0.0,
                     "albedoMapFactor": 1.0,
                     "metallicMapFactor": 0.0,
@@ -6035,8 +6035,8 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "/Users/jmorton/Dev/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader",
-                    "Reflectance": 0.5289999842643738
+                    "shader": "Embedded",
+                    "Reflectance": 0.30000001192092898
                 }
             }
         }

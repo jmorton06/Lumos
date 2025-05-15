@@ -89,6 +89,7 @@ project "Lumos"
 		conformancemode "on"
 		pchheader "Precompiled.h"
 		pchsource "Source/Precompiled.cpp"
+		buildoptions { "-msse4.1" }
 
 		defines
 		{
@@ -127,12 +128,9 @@ project "Lumos"
 			"glfw",
 			"Dwmapi.lib"
 		}
-
-		buildoptions
-		{
-			"/bigobj"
-		}
-
+		
+		filter "action:vs*"
+			buildoptions { "/bigobj" }
 		filter 'files:External/**.cpp'
 			flags  { 'NoPCH' }
 		filter 'files:External/**.c'

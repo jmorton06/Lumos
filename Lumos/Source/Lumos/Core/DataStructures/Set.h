@@ -64,8 +64,7 @@ namespace Lumos
     {                                \
         int i_next;                  \
         K* elem;                     \
-    }                                \
-    IT;                              \
+    } IT;                            \
     if((SET)->length > 0)            \
         for(IT = { 0 };              \
             HashMapIter((HashMapRaw*)(SET), &IT.i_next, (void**)&IT.elem, NULL, HashMapKOffset(SET), 0, HashMapElemSize(SET));)

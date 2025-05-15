@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2023 Erin Catto
 // SPDX-License-Identifier: MIT
 
+#if defined( _MSC_VER ) && !defined( _CRT_SECURE_NO_WARNINGS )
 #define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include "body.h"
 #include "core.h"
@@ -20,7 +22,7 @@ void b2DistanceJoint_SetLength( b2JointId jointId, float length )
 	b2JointSim* base = b2GetJointSimCheckType( jointId, b2_distanceJoint );
 	b2DistanceJoint* joint = &base->distanceJoint;
 
-	joint->length = b2ClampFloat( length, b2_linearSlop, b2_huge );
+	joint->length = b2ClampFloat( length, B2_LINEAR_SLOP, B2_HUGE );
 	joint->impulse = 0.0f;
 	joint->lowerImpulse = 0.0f;
 	joint->upperImpulse = 0.0f;
@@ -51,8 +53,8 @@ void b2DistanceJoint_SetLengthRange( b2JointId jointId, float minLength, float m
 	b2JointSim* base = b2GetJointSimCheckType( jointId, b2_distanceJoint );
 	b2DistanceJoint* joint = &base->distanceJoint;
 
-	minLength = b2ClampFloat( minLength, b2_linearSlop, b2_huge );
-	maxLength = b2ClampFloat( maxLength, b2_linearSlop, b2_huge );
+	minLength = b2ClampFloat( minLength, B2_LINEAR_SLOP, B2_HUGE );
+	maxLength = b2ClampFloat( maxLength, B2_LINEAR_SLOP, B2_HUGE );
 	joint->minLength = b2MinFloat( minLength, maxLength );
 	joint->maxLength = b2MaxFloat( minLength, maxLength );
 	joint->impulse = 0.0f;
@@ -119,14 +121,14 @@ void b2DistanceJoint_SetSpringDampingRatio( b2JointId jointId, float dampingRati
 	base->distanceJoint.dampingRatio = dampingRatio;
 }
 
-float b2DistanceJoint_GetHertz( b2JointId jointId )
+float b2DistanceJoint_GetSpringHertz( b2JointId jointId )
 {
 	b2JointSim* base = b2GetJointSimCheckType( jointId, b2_distanceJoint );
 	b2DistanceJoint* joint = &base->distanceJoint;
 	return joint->hertz;
 }
 
-float b2DistanceJoint_GetDampingRatio( b2JointId jointId )
+float b2DistanceJoint_GetSpringDampingRatio( b2JointId jointId )
 {
 	b2JointSim* base = b2GetJointSimCheckType( jointId, b2_distanceJoint );
 	b2DistanceJoint* joint = &base->distanceJoint;
@@ -219,26 +221,19 @@ void b2PrepareDistanceJoint( b2JointSim* base, b2StepContext* context )
 	int idB = base->bodyIdB;
 
 	b2World* world = context->world;
-	b2Body* bodies = world->bodyArray;
-
-	b2CheckIndex( bodies, idA );
-	b2CheckIndex( bodies, idB );
-
-	b2Body* bodyA = bodies + idA;
-	b2Body* bodyB = bodies + idB;
+	b2Body* bodyA = b2BodyArray_Get( &world->bodies, idA );
+	b2Body* bodyB = b2BodyArray_Get( &world->bodies, idB );
 
 	B2_ASSERT( bodyA->setIndex == b2_awakeSet || bodyB->setIndex == b2_awakeSet );
-	b2CheckIndex( world->solverSetArray, bodyA->setIndex );
-	b2CheckIndex( world->solverSetArray, bodyB->setIndex );
 
-	b2SolverSet* setA = world->solverSetArray + bodyA->setIndex;
-	b2SolverSet* setB = world->solverSetArray + bodyB->setIndex;
+	b2SolverSet* setA = b2SolverSetArray_Get( &world->solverSets, bodyA->setIndex );
+	b2SolverSet* setB = b2SolverSetArray_Get( &world->solverSets, bodyB->setIndex );
 
-	B2_ASSERT( 0 <= bodyA->localIndex && bodyA->localIndex <= setA->sims.count );
-	B2_ASSERT( 0 <= bodyB->localIndex && bodyB->localIndex <= setB->sims.count );
+	int localIndexA = bodyA->localIndex;
+	int localIndexB = bodyB->localIndex;
 
-	b2BodySim* bodySimA = setA->sims.data + bodyA->localIndex;
-	b2BodySim* bodySimB = setB->sims.data + bodyB->localIndex;
+	b2BodySim* bodySimA = b2BodySimArray_Get( &setA->bodySims, localIndexA );
+	b2BodySim* bodySimB = b2BodySimArray_Get( &setB->bodySims, localIndexB );
 
 	float mA = bodySimA->invMass;
 	float iA = bodySimA->invInertia;
@@ -252,8 +247,8 @@ void b2PrepareDistanceJoint( b2JointSim* base, b2StepContext* context )
 
 	b2DistanceJoint* joint = &base->distanceJoint;
 
-	joint->indexA = bodyA->setIndex == b2_awakeSet ? bodyA->localIndex : B2_NULL_INDEX;
-	joint->indexB = bodyB->setIndex == b2_awakeSet ? bodyB->localIndex : B2_NULL_INDEX;
+	joint->indexA = bodyA->setIndex == b2_awakeSet ? localIndexA : B2_NULL_INDEX;
+	joint->indexB = bodyB->setIndex == b2_awakeSet ? localIndexB : B2_NULL_INDEX;
 
 	// initial anchors in world space
 	joint->anchorA = b2RotateVector( bodySimA->transform.q, b2Sub( base->localOriginAnchorA, bodySimA->localCenter ) );
@@ -531,31 +526,31 @@ void b2DrawDistanceJoint( b2DebugDraw* draw, b2JointSim* base, b2Transform trans
 		b2Vec2 pMax = b2MulAdd( pA, joint->maxLength, axis );
 		b2Vec2 offset = b2MulSV( 0.05f * b2_lengthUnitsPerMeter, b2RightPerp( axis ) );
 
-		if ( joint->minLength > b2_linearSlop )
+		if ( joint->minLength > B2_LINEAR_SLOP )
 		{
 			// draw->DrawPoint(pMin, 4.0f, c2, draw->context);
-			draw->DrawSegment( b2Sub( pMin, offset ), b2Add( pMin, offset ), b2_colorLightGreen, draw->context );
+			draw->DrawSegmentFcn( b2Sub( pMin, offset ), b2Add( pMin, offset ), b2_colorLightGreen, draw->context );
 		}
 
-		if ( joint->maxLength < b2_huge )
+		if ( joint->maxLength < B2_HUGE )
 		{
 			// draw->DrawPoint(pMax, 4.0f, c3, draw->context);
-			draw->DrawSegment( b2Sub( pMax, offset ), b2Add( pMax, offset ), b2_colorRed, draw->context );
+			draw->DrawSegmentFcn( b2Sub( pMax, offset ), b2Add( pMax, offset ), b2_colorRed, draw->context );
 		}
 
-		if ( joint->minLength > b2_linearSlop && joint->maxLength < b2_huge )
+		if ( joint->minLength > B2_LINEAR_SLOP && joint->maxLength < B2_HUGE )
 		{
-			draw->DrawSegment( pMin, pMax, b2_colorGray, draw->context );
+			draw->DrawSegmentFcn( pMin, pMax, b2_colorGray, draw->context );
 		}
 	}
 
-	draw->DrawSegment( pA, pB, b2_colorWhite, draw->context );
-	draw->DrawPoint( pA, 4.0f, b2_colorWhite, draw->context );
-	draw->DrawPoint( pB, 4.0f, b2_colorWhite, draw->context );
+	draw->DrawSegmentFcn( pA, pB, b2_colorWhite, draw->context );
+	draw->DrawPointFcn( pA, 4.0f, b2_colorWhite, draw->context );
+	draw->DrawPointFcn( pB, 4.0f, b2_colorWhite, draw->context );
 
 	if ( joint->hertz > 0.0f && joint->enableSpring )
 	{
 		b2Vec2 pRest = b2MulAdd( pA, joint->length, axis );
-		draw->DrawPoint( pRest, 4.0f, b2_colorBlue, draw->context );
+		draw->DrawPointFcn( pRest, 4.0f, b2_colorBlue, draw->context );
 	}
 }

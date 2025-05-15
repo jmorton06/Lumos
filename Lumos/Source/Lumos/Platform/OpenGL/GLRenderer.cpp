@@ -65,12 +65,14 @@ namespace Lumos
 #endif
         }
 
-        void GLRenderer::Begin()
+        bool GLRenderer::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
             GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
             GLCall(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
             GLCall(glClear(GL_COLOR_BUFFER_BIT));
+
+            return true;
         }
 
         void GLRenderer::ClearInternal(uint32_t buffer)

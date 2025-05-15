@@ -32,11 +32,11 @@ namespace Lumos
         LINFO("--------------------");
 
         if(state != PowerState::POWERSTATE_NO_BATTERY)
-            LINFO("Battery Info - Percentage : %i , Time Left %i , State : %s", percentage, secondsLeft, PowerStateToString(state).c_str());
+			LINFO("Battery Info - %i%%, Time Left: %ih %im, State: %s", percentage, hours, minutes, PowerStateToString(state).c_str());
         else
             LINFO("Power - Outlet");
 
-        auto systemInfo = MemoryManager::Get()->GetSystemInfo();
+        auto systemInfo = MemoryManager::Get().GetSystemInfo();
         systemInfo.Log();
 
         auto& app = Lumos::Application::Get();

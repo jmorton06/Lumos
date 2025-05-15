@@ -184,6 +184,7 @@ project "LumosEditor"
 			"AudioToolbox.framework",
 			"Foundation.framework",
 			"SystemConfiguration.framework",
+			"IOSurface.framework"
 		}
 
 		linkoptions
@@ -197,12 +198,13 @@ project "LumosEditor"
 			"../Resources/AppIcons/Assets.xcassets",
 			"../Lumos/Assets/Shaders",
 			"../Lumos/Source/Lumos/Platform/iOS/Client/**",
-            "../ExampleProject/Assets/Scenes",
-			"../ExampleProject/Assets/Scripts",
-			"../ExampleProject/Assets/Meshes",
-			"../ExampleProject/Assets/Sounds",
-			"../ExampleProject/Assets/Textures",
-			"../ExampleProject/Example.lmproj"
+			"../ExampleProject/"
+            -- "../ExampleProject/Assets/Scenes",
+            -- "../ExampleProject/Assets/Scripts",
+            -- "../ExampleProject/Assets/Meshes",
+            -- "../ExampleProject/Assets/Sounds",
+            -- "../ExampleProject/Assets/Textures",
+            -- "../ExampleProject/Example.lmproj"
 		}
 
 		xcodebuildsettings
@@ -253,12 +255,13 @@ project "LumosEditor"
 			"../Lumos/Source/Platform/iOS/Client",
 			"Assets.xcassets",
             "Shaders",
-            "Meshes",
-            "Scenes",
-            "Scripts",
-            "Sounds",
-			"Textures",
-			"Example.lmproj"
+            "ExampleProject"
+            -- "Meshes",
+            -- "Scenes",
+            -- "Scripts",
+            -- "Sounds",
+            -- "Textures",
+			--"Example.lmproj"
 		}
 
 	filter "system:linux"

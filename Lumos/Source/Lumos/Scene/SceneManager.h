@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/DataStructures/TDArray.h"
 #include "Core/String.h"
-
+#include <typeinfo>
 namespace Lumos
 {
     class Scene;

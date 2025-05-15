@@ -26,23 +26,12 @@ namespace Lumos
             return CreateFunc(width, height, clearScreen);
         }
 
-        ImGuiTextureID* IMGUIRenderer::AddTexture(Texture* texture, TextureType type, uint32_t level, uint32_t mip)
+        ImTextureID IMGUIRenderer::AddTexture(Texture* texture, TextureType type, uint32_t level, uint32_t mip)
         {
             if(Graphics::GraphicsContext::GetRenderAPI() == RenderAPI::OPENGL)
-                return (ImGuiTextureID*)texture->GetHandle();
+                return (ImTextureID)texture->GetHandle();
 
-            if(m_CurrentTextureIDIndex >= MAX_IMGUI_TEXTURES)
-            {
-                LERROR("Exceeded max imgui textures");
-                return &m_TextureIDs[0];
-            }
-
-            m_TextureIDs[m_CurrentTextureIDIndex].texture = texture;
-            m_TextureIDs[m_CurrentTextureIDIndex].type    = type;
-            m_TextureIDs[m_CurrentTextureIDIndex].level   = level;
-            m_TextureIDs[m_CurrentTextureIDIndex].mip     = mip;
-
-            return &m_TextureIDs[m_CurrentTextureIDIndex++];
+            return nullptr;
         }
     }
 }

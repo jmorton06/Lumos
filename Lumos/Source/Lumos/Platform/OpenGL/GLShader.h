@@ -19,7 +19,7 @@ namespace Lumos
         struct GLShaderErrorInfo
         {
             GLShaderErrorInfo()
-                : shader(0) {};
+                : shader(0) { };
             uint32_t shader;
             std::string message[6];
             uint32_t line[6];

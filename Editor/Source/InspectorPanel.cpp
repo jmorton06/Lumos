@@ -718,6 +718,7 @@ end
         auto& phys = reg.get<Lumos::RigidBody2DComponent>(e);
 
         auto pos      = phys.GetRigidBody()->GetPosition();
+        auto scale    = phys.GetRigidBody()->GetScale();
         auto angle    = phys.GetRigidBody()->GetAngle();
         auto friction = phys.GetRigidBody()->GetFriction();
         auto isStatic = phys.GetRigidBody()->GetIsStatic();
@@ -735,6 +736,16 @@ end
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat2("##Position", &pos.x))
             phys.GetRigidBody()->SetPosition(pos);
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Scale");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if(ImGui::DragFloat2("##Scale", &scale.x))
+            phys.GetRigidBody()->SetScale(scale);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -817,6 +828,11 @@ end
         ImGui::Columns(1);
         ImGui::Separator();
         ImGui::PopStyleVar();
+
+        if(ImGui::Button("Rebuild"))
+        {
+            phys.GetRigidBody()->RebuildShape();
+        }
     }
 
     template <>
@@ -1038,7 +1054,8 @@ end
         ImGui::NextColumn();
 
         ImGuiUtilities::Property("Using Sprite Sheet", sprite.UsingSpriteSheet);
-        ImGuiUtilities::Property("Tile Size", sprite.SpriteSheetTileSize);
+        ImGuiUtilities::Property("Tile Size X", sprite.SpriteSheetTileSizeX);
+        ImGuiUtilities::Property("Tile Size Y", sprite.SpriteSheetTileSizeY);
 
         if(sprite.UsingSpriteSheet)
         {
@@ -1330,13 +1347,15 @@ end
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
-        static bool byTile = false;
-        uint32_t tileSize  = sprite.SpriteSheetTileSize;
+        static bool byTile = true;
+        uint32_t tileSizeX = sprite.SpriteSheetTileSizeX;
+        uint32_t tileSizeY = sprite.SpriteSheetTileSizeY;
 
         Lumos::ImGuiUtilities::Property("By Tile", byTile);
-        if(Lumos::ImGuiUtilities::Property("Tile Size", tileSize))
-            sprite.SpriteSheetTileSize = tileSize;
-
+        if(Lumos::ImGuiUtilities::Property("Tile Size X", tileSizeX))
+            sprite.SpriteSheetTileSizeX = tileSizeX;
+        if(Lumos::ImGuiUtilities::Property("Tile Size Y", tileSizeY))
+            sprite.SpriteSheetTileSizeY = tileSizeY;
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted("Current State");
         ImGui::NextColumn();
@@ -1379,6 +1398,50 @@ end
 
         ImGui::Columns(1);
         auto& animStates = sprite.GetAnimationStates();
+
+        if(ImGui::TreeNode("Helper"))
+        {
+            static std::string newStateName = "NewState";
+
+            ImGuiUtilities::InputText(newStateName, "##NewStateName");
+
+            static Vec2 StartFrame;
+            static Vec2 EndFrame;
+            static int Count = 0;
+
+            ImGui::DragFloat2("##Position", Maths::ValuePtr(StartFrame));
+            ImGui::DragFloat2("##EndFrame", Maths::ValuePtr(EndFrame));
+
+            if(ImGui::Button("Create State"))
+            {
+                Graphics::AnimatedSprite::AnimationState state;
+                state.Frames        = {};
+                state.FrameDuration = 1.0f;
+                state.Mode          = Graphics::AnimatedSprite::PlayMode::Loop;
+
+                Vec2 Current = StartFrame;
+                Current.x *= (float)tileSizeX;
+                Current.y *= (float)tileSizeY;
+                for(int i = 0; i < EndFrame.x; i++)
+                {
+                    Current.x = StartFrame.x + i * tileSizeX;
+                    state.Frames.push_back(Current);
+                }
+
+                if(EndFrame.y > StartFrame.y)
+                {
+                    for(int i = 0; i < EndFrame.y; i++)
+                    {
+                        Current.y = StartFrame.y + i * tileSizeY;
+                        state.Frames.push_back(Current);
+                    }
+                }
+                animStates[newStateName] = state;
+            }
+
+            ImGui::TreePop();
+        }
+
         if(ImGui::TreeNode("States"))
         {
             // ImGui::Indent(20.0f);
@@ -1513,12 +1576,18 @@ end
                             ImGui::PushItemWidth((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize() * 3.0f);
 
                             if(byTile)
-                                pos /= (float)tileSize;
+                            {
+                                pos.x /= (float)tileSizeX;
+                                pos.y /= (float)tileSizeY;
+                            }
 
                             ImGui::DragFloat2("##Position", Maths::ValuePtr(pos));
 
                             if(byTile)
-                                pos *= (float)tileSize;
+                            {
+                                pos.x *= (float)tileSizeX;
+                                pos.y *= (float)tileSizeY;
+                            }
 
                             ImGui::SameLine((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize());
 

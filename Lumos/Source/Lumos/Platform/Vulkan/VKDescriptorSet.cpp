@@ -18,21 +18,21 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_FramesInFlight = uint32_t(VKRenderer::GetMainSwapChain()->GetSwapChainBufferCount());
 
-            m_Shader = descriptorDesc.shader;
+            m_Shader                            = descriptorDesc.shader;
             DescriptorSetInfo descriptorSetInfo = m_Shader->GetDescriptorInfo(descriptorDesc.layoutIndex);
 
-            for (auto& descriptor : descriptorSetInfo.descriptors)
+            for(auto& descriptor : descriptorSetInfo.descriptors)
             {
                 DescriptorData info;
                 info.HasUpdated[0] = false;
                 info.HasUpdated[1] = false;
                 info.HasUpdated[2] = false;
-                info.Desc = descriptor;
-                info.Binding = descriptor.binding;
+                info.Desc          = descriptor;
+                info.Binding       = descriptor.binding;
 
-                if (descriptor.type == DescriptorType::UNIFORM_BUFFER)
+                if(descriptor.type == DescriptorType::UNIFORM_BUFFER)
                 {
-                    for (uint32_t frame = 0; frame < m_FramesInFlight; frame++)
+                    for(uint32_t frame = 0; frame < m_FramesInFlight; frame++)
                     {
                         // Uniform Buffer per frame in flight
                         auto buffer = SharedPtr<Graphics::UniformBuffer>(Graphics::UniformBuffer::Create());
@@ -44,18 +44,16 @@ namespace Lumos
                     localStorage.Allocate(descriptor.size);
                     localStorage.InitialiseEmpty();
                     info.LocalStorage = localStorage;
-                   
                 }
-                info.valid = true;
+                info.valid                           = true;
                 m_DescriptorData[descriptor.binding] = info;
-
             }
 
-            for (uint32_t frame = 0; frame < m_FramesInFlight; frame++)
+            for(uint32_t frame = 0; frame < m_FramesInFlight; frame++)
             {
-                m_DescriptorDirty[frame] = true;
+                m_DescriptorDirty[frame]   = true;
                 m_DescriptorUpdated[frame] = false;
-                m_DescriptorSet[frame] = nullptr;
+                m_DescriptorSet[frame]     = nullptr;
                 g_DescriptorSetCount++;
                 auto layout = static_cast<Graphics::VKShader*>(descriptorDesc.shader)->GetDescriptorLayout(descriptorDesc.layoutIndex);
                 VKRenderer::GetRenderer()->AllocateDescriptorSet(&m_DescriptorSet[frame], m_DescriptorPoolCreatedFrom[frame], *layout, descriptorDesc.count);
@@ -64,21 +62,21 @@ namespace Lumos
 
         VKDescriptorSet::~VKDescriptorSet()
         {
-            for (uint32_t frame = 0; frame < m_FramesInFlight; frame++)
+            for(uint32_t frame = 0; frame < m_FramesInFlight; frame++)
             {
-                if (!m_DescriptorSet[frame])
+                if(!m_DescriptorSet[frame])
                     continue;
 
                 auto descriptorSet = m_DescriptorSet[frame];
-                auto pool = m_DescriptorPoolCreatedFrom[frame];
-                auto device = VKDevice::GetHandle();
+                auto pool          = m_DescriptorPoolCreatedFrom[frame];
+                auto device        = VKDevice::GetHandle();
 
                 DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
                 deletionQueue.PushFunction([descriptorSet, pool, device]
-                    { vkFreeDescriptorSets(device, pool, 1, &descriptorSet); });
+                                           { vkFreeDescriptorSets(device, pool, 1, &descriptorSet); });
             }
 
-            for (auto bufferData : m_DescriptorData)
+            for(auto bufferData : m_DescriptorData)
             {
                 bufferData.LocalStorage.Release();
             }
@@ -98,29 +96,29 @@ namespace Lumos
 
         void TransitionImageToCorrectLayout(Texture* texture, CommandBuffer* cmdBuffer)
         {
-            if (!texture)
+            if(!texture)
                 return;
 
             auto commandBuffer = cmdBuffer ? cmdBuffer : Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
-            if (texture->GetType() == TextureType::COLOUR)
+            if(texture->GetType() == TextureType::COLOUR)
             {
-                if (((VKTexture2D*)texture)->GetImageLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+                if(((VKTexture2D*)texture)->GetImageLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
                 {
                     ((VKTexture2D*)texture)->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, (VKCommandBuffer*)commandBuffer);
                 }
             }
-            else if (texture->GetType() == TextureType::CUBE)
+            else if(texture->GetType() == TextureType::CUBE)
             {
-                if (((VKTextureCube*)texture)->GetImageLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+                if(((VKTextureCube*)texture)->GetImageLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
                 {
                     ((VKTextureCube*)texture)->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, (VKCommandBuffer*)commandBuffer);
                 }
             }
-            else if (texture->GetType() == TextureType::DEPTH)
+            else if(texture->GetType() == TextureType::DEPTH)
             {
                 ((VKTextureDepth*)texture)->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, (VKCommandBuffer*)commandBuffer);
             }
-            else if (texture->GetType() == TextureType::DEPTHARRAY)
+            else if(texture->GetType() == TextureType::DEPTHARRAY)
             {
                 ((VKTextureDepthArray*)texture)->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, (VKCommandBuffer*)commandBuffer);
             }
@@ -129,125 +127,125 @@ namespace Lumos
         void VKDescriptorSet::Update(CommandBuffer* cmdBuffer)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            m_Dynamic = false;
+            m_Dynamic                 = false;
             int descriptorWritesCount = 0;
-            uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+            uint32_t currentFrame     = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
-            for (auto& bufferInfo : m_DescriptorData)
+            for(auto& bufferInfo : m_DescriptorData)
             {
-                if (bufferInfo.valid && !bufferInfo.Desc.m_Members.Empty() && bufferInfo.HasUpdated[currentFrame])
+                if(bufferInfo.valid && !bufferInfo.Desc.m_Members.Empty() && bufferInfo.HasUpdated[currentFrame])
                 {
                     m_UniformBuffers[currentFrame][bufferInfo.Binding]->SetData(bufferInfo.LocalStorage.Data);
                     bufferInfo.HasUpdated[currentFrame] = false;
                 }
             }
 
-            if (m_DescriptorDirty[currentFrame] || !m_DescriptorUpdated[currentFrame])
+            if(m_DescriptorDirty[currentFrame] || !m_DescriptorUpdated[currentFrame])
             {
                 m_DescriptorDirty[currentFrame] = false;
-                uint32_t imageIndex = 0;
-                uint32_t index = 0;
+                uint32_t imageIndex             = 0;
+                uint32_t index                  = 0;
 
-                ArenaTemp scratch = ScratchBegin(nullptr, 0);
-                VkDescriptorBufferInfo* bufferInfos = PushArrayNoZero(scratch.arena, VkDescriptorBufferInfo, 32);
-                VkDescriptorImageInfo* imageInfos = PushArrayNoZero(scratch.arena, VkDescriptorImageInfo, 32);
+                ArenaTemp scratch                         = ScratchBegin(nullptr, 0);
+                VkDescriptorBufferInfo* bufferInfos       = PushArrayNoZero(scratch.arena, VkDescriptorBufferInfo, 32);
+                VkDescriptorImageInfo* imageInfos         = PushArrayNoZero(scratch.arena, VkDescriptorImageInfo, 32);
                 VkWriteDescriptorSet* writeDescriptorSets = PushArrayNoZero(scratch.arena, VkWriteDescriptorSet, 32);
 
-                for (auto& imageInfo : m_DescriptorData)
+                for(auto& imageInfo : m_DescriptorData)
                 {
-                    if (imageInfo.valid && imageInfo.Desc.type == DescriptorType::IMAGE_SAMPLER && (imageInfo.Desc.texture || imageInfo.Desc.textures))
+                    if(imageInfo.valid && imageInfo.Desc.type == DescriptorType::IMAGE_SAMPLER && (imageInfo.Desc.texture || imageInfo.Desc.textures))
                     {
-                        if (imageInfo.Desc.textureCount == 1)
+                        if(imageInfo.Desc.textureCount == 1)
                         {
-                            if (imageInfo.Desc.texture)
+                            if(imageInfo.Desc.texture)
                             {
                                 TransitionImageToCorrectLayout(imageInfo.Desc.texture, cmdBuffer);
 
-                                VkDescriptorImageInfo& des = *static_cast<VkDescriptorImageInfo*>(imageInfo.Desc.texture->GetDescriptorInfo());
+                                VkDescriptorImageInfo& des         = *static_cast<VkDescriptorImageInfo*>(imageInfo.Desc.texture->GetDescriptorInfo());
                                 imageInfos[imageIndex].imageLayout = des.imageLayout;
-                                imageInfos[imageIndex].imageView = des.imageView;
-                                imageInfos[imageIndex].sampler = des.sampler;
+                                imageInfos[imageIndex].imageView   = des.imageView;
+                                imageInfos[imageIndex].sampler     = des.sampler;
                             }
                         }
                         else
                         {
-                            if (imageInfo.Desc.textures)
+                            if(imageInfo.Desc.textures)
                             {
-                                for (uint32_t i = 0; i < imageInfo.Desc.textureCount; i++)
+                                for(uint32_t i = 0; i < imageInfo.Desc.textureCount; i++)
                                 {
                                     TransitionImageToCorrectLayout(imageInfo.Desc.textures[i], cmdBuffer);
 
-                                    VkDescriptorImageInfo& des = *static_cast<VkDescriptorImageInfo*>(imageInfo.Desc.textures[i]->GetDescriptorInfo());
+                                    VkDescriptorImageInfo& des             = *static_cast<VkDescriptorImageInfo*>(imageInfo.Desc.textures[i]->GetDescriptorInfo());
                                     imageInfos[i + imageIndex].imageLayout = des.imageLayout;
-                                    imageInfos[i + imageIndex].imageView = des.imageView;
-                                    imageInfos[i + imageIndex].sampler = des.sampler;
+                                    imageInfos[i + imageIndex].imageView   = des.imageView;
+                                    imageInfos[i + imageIndex].sampler     = des.sampler;
                                 }
                             }
                         }
 
                         VkWriteDescriptorSet writeDescriptorSet = {};
-                        writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                        writeDescriptorSet.dstSet = m_DescriptorSet[currentFrame];
-                        writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                        writeDescriptorSet.dstBinding = imageInfo.Desc.binding;
-                        writeDescriptorSet.pImageInfo = &imageInfos[imageIndex];
-                        writeDescriptorSet.descriptorCount = imageInfo.Desc.textureCount;
+                        writeDescriptorSet.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                        writeDescriptorSet.dstSet               = m_DescriptorSet[currentFrame];
+                        writeDescriptorSet.descriptorType       = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                        writeDescriptorSet.dstBinding           = imageInfo.Desc.binding;
+                        writeDescriptorSet.pImageInfo           = &imageInfos[imageIndex];
+                        writeDescriptorSet.descriptorCount      = imageInfo.Desc.textureCount;
 
                         writeDescriptorSets[descriptorWritesCount] = writeDescriptorSet;
                         imageIndex++;
                         descriptorWritesCount++;
                     }
-                    else if (imageInfo.Desc.type == DescriptorType::IMAGE_STORAGE && imageInfo.Desc.texture)
+                    else if(imageInfo.Desc.type == DescriptorType::IMAGE_STORAGE && imageInfo.Desc.texture)
                     {
-                        if (imageInfo.Desc.texture)
+                        if(imageInfo.Desc.texture)
                         {
                             ((VKTexture2D*)imageInfo.Desc.texture)->TransitionImage(VK_IMAGE_LAYOUT_GENERAL);
 
-                            VkDescriptorImageInfo& des = *static_cast<VkDescriptorImageInfo*>(imageInfo.Desc.texture->GetDescriptorInfo());
+                            VkDescriptorImageInfo& des         = *static_cast<VkDescriptorImageInfo*>(imageInfo.Desc.texture->GetDescriptorInfo());
                             imageInfos[imageIndex].imageLayout = des.imageLayout;
-                            imageInfos[imageIndex].imageView = imageInfo.Desc.mipLevel > 0 ? ((VKTexture2D*)imageInfo.Desc.texture)->GetMipImageView(imageInfo.Desc.mipLevel) : des.imageView;
-                            imageInfos[imageIndex].sampler = des.sampler;
+                            imageInfos[imageIndex].imageView   = imageInfo.Desc.mipLevel > 0 ? ((VKTexture2D*)imageInfo.Desc.texture)->GetMipImageView(imageInfo.Desc.mipLevel) : des.imageView;
+                            imageInfos[imageIndex].sampler     = des.sampler;
                         }
 
                         VkWriteDescriptorSet writeDescriptorSet = {};
-                        writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                        writeDescriptorSet.dstSet = m_DescriptorSet[currentFrame];
-                        writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-                        writeDescriptorSet.dstBinding = imageInfo.Desc.binding;
-                        writeDescriptorSet.pImageInfo = &imageInfos[imageIndex];
-                        writeDescriptorSet.descriptorCount = imageInfo.Desc.textureCount;
+                        writeDescriptorSet.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                        writeDescriptorSet.dstSet               = m_DescriptorSet[currentFrame];
+                        writeDescriptorSet.descriptorType       = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+                        writeDescriptorSet.dstBinding           = imageInfo.Desc.binding;
+                        writeDescriptorSet.pImageInfo           = &imageInfos[imageIndex];
+                        writeDescriptorSet.descriptorCount      = imageInfo.Desc.textureCount;
 
                         writeDescriptorSets[descriptorWritesCount] = writeDescriptorSet;
                         imageIndex++;
                         descriptorWritesCount++;
                     }
 
-                    else if (imageInfo.Desc.type == DescriptorType::UNIFORM_BUFFER)
+                    else if(imageInfo.Desc.type == DescriptorType::UNIFORM_BUFFER)
                     {
                         VKUniformBuffer* vkUniformBuffer = m_UniformBuffers[currentFrame][imageInfo.Desc.binding].As<VKUniformBuffer>().get();
-                        bufferInfos[index].buffer = *vkUniformBuffer->GetBuffer();
-                        bufferInfos[index].offset = imageInfo.Desc.offset;
-                        bufferInfos[index].range = imageInfo.Desc.size;
+                        bufferInfos[index].buffer        = *vkUniformBuffer->GetBuffer();
+                        bufferInfos[index].offset        = imageInfo.Desc.offset;
+                        bufferInfos[index].range         = imageInfo.Desc.size;
 
                         VkWriteDescriptorSet writeDescriptorSet = {};
-                        writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                        writeDescriptorSet.dstSet = m_DescriptorSet[currentFrame];
-                        writeDescriptorSet.descriptorType = VKUtilities::DescriptorTypeToVK(imageInfo.Desc.type);
-                        writeDescriptorSet.dstBinding = imageInfo.Desc.binding;
-                        writeDescriptorSet.pBufferInfo = &bufferInfos[index];
-                        writeDescriptorSet.descriptorCount = 1;
+                        writeDescriptorSet.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                        writeDescriptorSet.dstSet               = m_DescriptorSet[currentFrame];
+                        writeDescriptorSet.descriptorType       = VKUtilities::DescriptorTypeToVK(imageInfo.Desc.type);
+                        writeDescriptorSet.dstBinding           = imageInfo.Desc.binding;
+                        writeDescriptorSet.pBufferInfo          = &bufferInfos[index];
+                        writeDescriptorSet.descriptorCount      = 1;
 
                         writeDescriptorSets[descriptorWritesCount] = writeDescriptorSet;
                         index++;
                         descriptorWritesCount++;
 
-                        if (imageInfo.Desc.type == DescriptorType::UNIFORM_BUFFER_DYNAMIC)
+                        if(imageInfo.Desc.type == DescriptorType::UNIFORM_BUFFER_DYNAMIC)
                             m_Dynamic = true;
                     }
                 }
 
                 vkUpdateDescriptorSets(VKDevice::Get().GetDevice(), descriptorWritesCount,
-                    writeDescriptorSets, 0, nullptr);
+                                       writeDescriptorSets, 0, nullptr);
 
                 ScratchEnd(scratch);
                 m_DescriptorUpdated[currentFrame] = true;
@@ -256,15 +254,15 @@ namespace Lumos
 
         void VKDescriptorSet::TransitionImages(CommandBuffer* commandBuffer)
         {
-            for (auto& imageInfo : m_DescriptorData)
+            for(auto& imageInfo : m_DescriptorData)
             {
-                if (imageInfo.valid && (imageInfo.Desc.type == DescriptorType::IMAGE_SAMPLER || imageInfo.Desc.type == DescriptorType::IMAGE_STORAGE) && (imageInfo.Desc.texture || imageInfo.Desc.textures))
+                if(imageInfo.valid && (imageInfo.Desc.type == DescriptorType::IMAGE_SAMPLER || imageInfo.Desc.type == DescriptorType::IMAGE_STORAGE) && (imageInfo.Desc.texture || imageInfo.Desc.textures))
                 {
-                    if (imageInfo.Desc.textureCount == 1)
+                    if(imageInfo.Desc.textureCount == 1)
                     {
-                        if (imageInfo.Desc.texture)
+                        if(imageInfo.Desc.texture)
                         {
-                            if (imageInfo.Desc.type == DescriptorType::IMAGE_STORAGE)
+                            if(imageInfo.Desc.type == DescriptorType::IMAGE_STORAGE)
                                 ((VKTexture2D*)imageInfo.Desc.texture)->TransitionImage(VK_IMAGE_LAYOUT_GENERAL, (VKCommandBuffer*)commandBuffer);
                             else
                                 TransitionImageToCorrectLayout(imageInfo.Desc.texture, commandBuffer);
@@ -278,14 +276,14 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
-            for (auto& descriptor : m_DescriptorData)
+            for(auto& descriptor : m_DescriptorData)
             {
-                if (descriptor.valid && (descriptor.Desc.type == DescriptorType::IMAGE_SAMPLER || descriptor.Desc.type == DescriptorType::IMAGE_STORAGE) && descriptor.Desc.name == name)
+                if(descriptor.valid && (descriptor.Desc.type == DescriptorType::IMAGE_SAMPLER || descriptor.Desc.type == DescriptorType::IMAGE_STORAGE) && descriptor.Desc.name == name)
                 {
-                    descriptor.Desc.texture = texture;
-                    descriptor.Desc.textureType = textureType;
+                    descriptor.Desc.texture      = texture;
+                    descriptor.Desc.textureType  = textureType;
                     descriptor.Desc.textureCount = texture ? 1 : 0;
-                    descriptor.Desc.mipLevel = mipIndex;
+                    descriptor.Desc.mipLevel     = mipIndex;
 
                     m_DescriptorDirty[0] = true;
                     m_DescriptorDirty[1] = true;
@@ -298,13 +296,13 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
-            for (auto& descriptor : m_DescriptorData)
+            for(auto& descriptor : m_DescriptorData)
             {
-                if (descriptor.valid && (descriptor.Desc.type == DescriptorType::IMAGE_SAMPLER || descriptor.Desc.type == DescriptorType::IMAGE_STORAGE) && descriptor.Desc.name == name)
+                if(descriptor.valid && (descriptor.Desc.type == DescriptorType::IMAGE_SAMPLER || descriptor.Desc.type == DescriptorType::IMAGE_STORAGE) && descriptor.Desc.name == name)
                 {
                     descriptor.Desc.textureCount = textureCount;
-                    descriptor.Desc.textures = texture;
-                    descriptor.Desc.textureType = textureType;
+                    descriptor.Desc.textures     = texture;
+                    descriptor.Desc.textureType  = textureType;
 
                     m_DescriptorDirty[0] = true;
                     m_DescriptorDirty[1] = true;
@@ -333,14 +331,14 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
 
             DescriptorData* lBufferInfo = nullptr;
-            for (u8 i = 0; i < DESCRIPTOR_MAX_DESCRIPTORS; i++)
+            for(u8 i = 0; i < DESCRIPTOR_MAX_DESCRIPTORS; i++)
             {
-                if (!m_DescriptorData[i].Desc.m_Members.Empty() && m_DescriptorData[i].Desc.name == name)
+                if(!m_DescriptorData[i].Desc.m_Members.Empty() && m_DescriptorData[i].Desc.name == name)
                 {
                     lBufferInfo = &m_DescriptorData[i];
                 }
             }
-            if (lBufferInfo)
+            if(lBufferInfo)
             {
                 lBufferInfo->HasUpdated[0] = true;
                 lBufferInfo->HasUpdated[1] = true;
@@ -373,18 +371,18 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             DescriptorData* lBufferInfo = nullptr;
-            for (u8 i = 0; i < DESCRIPTOR_MAX_DESCRIPTORS; i++)
+            for(u8 i = 0; i < DESCRIPTOR_MAX_DESCRIPTORS; i++)
             {
-                if (!m_DescriptorData[i].Desc.m_Members.Empty() && m_DescriptorData[i].Desc.name == bufferName)
+                if(!m_DescriptorData[i].Desc.m_Members.Empty() && m_DescriptorData[i].Desc.name == bufferName)
                 {
                     lBufferInfo = &m_DescriptorData[i];
                 }
             }
-            if (lBufferInfo)
+            if(lBufferInfo)
             {
-                for (auto& member : lBufferInfo->Desc.m_Members)
+                for(auto& member : lBufferInfo->Desc.m_Members)
                 {
-                    if (member.name == uniformName)
+                    if(member.name == uniformName)
                     {
                         lBufferInfo->LocalStorage.Write(data, member.size, member.offset);
                         lBufferInfo->HasUpdated[0] = true;
@@ -403,18 +401,18 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
 
             DescriptorData* lBufferInfo = nullptr;
-            for (u8 i = 0; i < DESCRIPTOR_MAX_DESCRIPTORS; i++)
+            for(u8 i = 0; i < DESCRIPTOR_MAX_DESCRIPTORS; i++)
             {
-                if (!m_DescriptorData[i].Desc.m_Members.Empty() && m_DescriptorData[i].Desc.name == bufferName)
+                if(!m_DescriptorData[i].Desc.m_Members.Empty() && m_DescriptorData[i].Desc.name == bufferName)
                 {
                     lBufferInfo = &m_DescriptorData[i];
                 }
             }
-            if (lBufferInfo)
+            if(lBufferInfo)
             {
-                for (auto& member : lBufferInfo->Desc.m_Members)
+                for(auto& member : lBufferInfo->Desc.m_Members)
                 {
-                    if (member.name == uniformName)
+                    if(member.name == uniformName)
                     {
                         lBufferInfo->LocalStorage.Write(data, size, member.offset);
                         lBufferInfo->HasUpdated[0] = true;
@@ -433,14 +431,14 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
 
             DescriptorData* lBufferInfo = nullptr;
-            for (u8 i = 0; i < DESCRIPTOR_MAX_DESCRIPTORS; i++)
+            for(u8 i = 0; i < DESCRIPTOR_MAX_DESCRIPTORS; i++)
             {
-                if (!m_DescriptorData[i].Desc.m_Members.Empty() && m_DescriptorData[i].Desc.name == bufferName)
+                if(!m_DescriptorData[i].Desc.m_Members.Empty() && m_DescriptorData[i].Desc.name == bufferName)
                 {
                     lBufferInfo = &m_DescriptorData[i];
                 }
             }
-            if (lBufferInfo)
+            if(lBufferInfo)
             {
                 lBufferInfo->LocalStorage.Write(data, lBufferInfo->LocalStorage.GetSize(), 0);
                 lBufferInfo->HasUpdated[0] = true;
@@ -455,18 +453,18 @@ namespace Lumos
         void VKDescriptorSet::SetUniformDynamic(const std::string& bufferName, uint32_t size)
         {
             DescriptorData* lBufferInfo = nullptr;
-            for (u8 i = 0; i < DESCRIPTOR_MAX_DESCRIPTORS; i++)
+            for(u8 i = 0; i < DESCRIPTOR_MAX_DESCRIPTORS; i++)
             {
-                if (!m_DescriptorData[i].Desc.m_Members.Empty() && m_DescriptorData[i].Desc.name == bufferName)
+                if(!m_DescriptorData[i].Desc.m_Members.Empty() && m_DescriptorData[i].Desc.name == bufferName)
                 {
                     lBufferInfo = &m_DescriptorData[i];
                 }
             }
 
-            if (lBufferInfo)
+            if(lBufferInfo)
             {
                 lBufferInfo->LocalStorage.Allocate(size);
-                for (auto& member : lBufferInfo->Desc.m_Members)
+                for(auto& member : lBufferInfo->Desc.m_Members)
                 {
                     member.size = size;
                 }
@@ -477,29 +475,28 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             auto& descriptor = m_DescriptorData[binding];
-            if ((descriptor.Desc.type == DescriptorType::IMAGE_SAMPLER || descriptor.Desc.type == DescriptorType::IMAGE_STORAGE) && texture)
+            if((descriptor.Desc.type == DescriptorType::IMAGE_SAMPLER || descriptor.Desc.type == DescriptorType::IMAGE_STORAGE) && texture)
             {
-                descriptor.Desc.texture = texture;
-                descriptor.Desc.textureType = textureType;
+                descriptor.Desc.texture      = texture;
+                descriptor.Desc.textureType  = textureType;
                 descriptor.Desc.textureCount = texture ? 1 : 0;
-                descriptor.Desc.mipLevel = mipIndex;
+                descriptor.Desc.mipLevel     = mipIndex;
 
                 m_DescriptorDirty[0] = true;
                 m_DescriptorDirty[1] = true;
                 m_DescriptorDirty[2] = true;
             }
-
         }
 
         void VKDescriptorSet::SetTexture(u8 binding, Texture** texture, uint32_t textureCount, TextureType textureType)
         {
             LUMOS_PROFILE_FUNCTION();
             auto& descriptor = m_DescriptorData[binding];
-            if ((descriptor.Desc.type == DescriptorType::IMAGE_SAMPLER || descriptor.Desc.type == DescriptorType::IMAGE_STORAGE) && texture)
+            if((descriptor.Desc.type == DescriptorType::IMAGE_SAMPLER || descriptor.Desc.type == DescriptorType::IMAGE_STORAGE) && texture)
             {
                 descriptor.Desc.textureCount = textureCount;
-                descriptor.Desc.textures = texture;
-                descriptor.Desc.textureType = textureType;
+                descriptor.Desc.textures     = texture;
+                descriptor.Desc.textureType  = textureType;
 
                 m_DescriptorDirty[0] = true;
                 m_DescriptorDirty[1] = true;
@@ -510,7 +507,7 @@ namespace Lumos
         void VKDescriptorSet::SetBuffer(u8 binding, UniformBuffer* buffer)
         {
             LUMOS_PROFILE_FUNCTION();
-            uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+            uint32_t currentFrame                 = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
             m_DescriptorData[binding].Desc.buffer = buffer;
             LWARN("Check");
         }
@@ -519,7 +516,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             DescriptorData* lBufferInfo = &m_DescriptorData[binding];
-            if (lBufferInfo)
+            if(lBufferInfo)
             {
                 lBufferInfo->HasUpdated[0] = true;
                 lBufferInfo->HasUpdated[1] = true;
@@ -552,11 +549,11 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             DescriptorData* lBufferInfo = &m_DescriptorData[binding];
-            if (lBufferInfo)
+            if(lBufferInfo)
             {
-                for (auto& member : lBufferInfo->Desc.m_Members)
+                for(auto& member : lBufferInfo->Desc.m_Members)
                 {
-                    if (member.name == uniformName)
+                    if(member.name == uniformName)
                     {
                         lBufferInfo->LocalStorage.Write(data, member.size, member.offset);
                         lBufferInfo->HasUpdated[0] = true;
@@ -575,11 +572,11 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
 
             DescriptorData* lBufferInfo = &m_DescriptorData[binding];
-            if (lBufferInfo)
+            if(lBufferInfo)
             {
-                for (auto& member : lBufferInfo->Desc.m_Members)
+                for(auto& member : lBufferInfo->Desc.m_Members)
                 {
-                    if (member.name == uniformName)
+                    if(member.name == uniformName)
                     {
                         lBufferInfo->LocalStorage.Write(data, size, member.offset);
                         lBufferInfo->HasUpdated[0] = true;
@@ -590,7 +587,7 @@ namespace Lumos
                 }
             }
 
-            LWARN("Uniform not found %d.%s",int(binding), uniformName.c_str());
+            LWARN("Uniform not found %d.%s", int(binding), uniformName.c_str());
         }
 
         void VKDescriptorSet::SetUniformBufferData(u8 binding, void* data)
@@ -598,7 +595,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
 
             DescriptorData* lBufferInfo = &m_DescriptorData[binding];
-            if (lBufferInfo)
+            if(lBufferInfo)
             {
                 lBufferInfo->LocalStorage.Write(data, lBufferInfo->LocalStorage.GetSize(), 0);
                 lBufferInfo->HasUpdated[0] = true;
@@ -615,7 +612,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
 
             DescriptorData* lBufferInfo = &m_DescriptorData[binding];
-            if (lBufferInfo)
+            if(lBufferInfo)
             {
                 ASSERT(size <= lBufferInfo->LocalStorage.GetSize());
                 lBufferInfo->LocalStorage.Write(data, size, 0);

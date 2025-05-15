@@ -6,6 +6,7 @@
 #include "RHI/Texture.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/Application.h"
+#include "Core/OS/OS.h"
 #include "Maths/MathsUtilities.h"
 #include "Maths/Vector3.h"
 
@@ -33,6 +34,10 @@ using namespace msdf_atlas;
 
 #else
 
+#endif
+
+#ifdef LUMOS_PLATFORM_IOS
+#include "Platform/iOS/iOSOS.h"
 #endif
 
 namespace Lumos
@@ -75,7 +80,12 @@ namespace Lumos
 
         static std::filesystem::path GetCacheDirectory()
         {
+#if LUMOS_PLATFORM_IOS
+            Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
+            return os->GetCurrentWorkingDirectory() + "/FontAtlases";
+#else
             return "Resources/Cache/FontAtlases";
+#endif
         }
 
         static void CreateCacheDirectoryIfNeeded()

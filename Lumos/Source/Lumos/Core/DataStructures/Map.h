@@ -55,8 +55,8 @@ namespace Lumos
 #define HashMapKSize(MAP) sizeof((MAP)->data->key)
 #define HashMapVSize(MAP) sizeof((MAP)->data->value)
 #define HashMapElemSize(MAP) sizeof(*(MAP)->data)
-#define HashMapKOffset(MAP) (int)((uintptr_t) & (MAP)->data->key - (uintptr_t)(MAP)->data)
-#define HashMapVOffset(MAP) (int)((uintptr_t) & (MAP)->data->value - (uintptr_t)(MAP)->data)
+#define HashMapKOffset(MAP) (int)((uintptr_t)&(MAP)->data->key - (uintptr_t)(MAP)->data)
+#define HashMapVOffset(MAP) (int)((uintptr_t)&(MAP)->data->value - (uintptr_t)(MAP)->data)
 
 #define HashMap(K, V)      \
     struct                 \
