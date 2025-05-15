@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "array.h"
 #include "core.h"
 
 #include "box2d/collision.h"
@@ -19,18 +20,8 @@ enum b2ContactFlags
 	// Contact has a hit event
 	b2_contactHitEventFlag = 0x00000002,
 
-	// One of the shapes is a sensor
-	b2_contactSensorFlag = 0x0000004,
-
-	// Set when a sensor is touching
-	// todo this is not used, perhaps have b2Body_GetSensorContactData()
-	b2_contactSensorTouchingFlag = 0x00000008,
-
-	// This contact wants sensor events
-	b2_contactEnableSensorEvents = 0x00000010,
-
 	// This contact wants contact events
-	b2_contactEnableContactEvents = 0x00000020,
+	b2_contactEnableContactEvents = 0x00000004,
 };
 
 // A contact edge is used to connect bodies and contacts together
@@ -82,7 +73,7 @@ typedef struct b2Contact
 // Shifted to be distinct from b2ContactFlags
 enum b2ContactSimFlags
 {
-	// Set when the shapes are touching, including sensors
+	// Set when the shapes are touching
 	b2_simTouchingFlag = 0x00010000,
 
 	// This contact no longer has overlapping AABBs
@@ -130,14 +121,13 @@ typedef struct b2ContactSim
 	// Mixed friction and restitution
 	float friction;
 	float restitution;
-
-	// todo for conveyor belts
+	float rollingResistance;
 	float tangentSpeed;
 
 	// b2ContactSimFlags
 	uint32_t simFlags;
 
-	b2DistanceCache cache;
+	b2SimplexCache cache;
 } b2ContactSim;
 
 void b2InitializeContactRegisters( void );
@@ -151,3 +141,8 @@ bool b2ShouldShapesCollide( b2Filter filterA, b2Filter filterB );
 
 bool b2UpdateContact( b2World* world, b2ContactSim* contactSim, b2Shape* shapeA, b2Transform transformA, b2Vec2 centerOffsetA,
 					  b2Shape* shapeB, b2Transform transformB, b2Vec2 centerOffsetB );
+
+b2Manifold b2ComputeManifold( b2Shape* shapeA, b2Transform transformA, b2Shape* shapeB, b2Transform transformB );
+
+B2_ARRAY_INLINE( b2Contact, b2Contact )
+B2_ARRAY_INLINE( b2ContactSim, b2ContactSim )

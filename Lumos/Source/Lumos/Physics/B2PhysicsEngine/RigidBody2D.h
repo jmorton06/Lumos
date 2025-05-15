@@ -27,6 +27,7 @@ namespace Lumos
             position = Vec3(0.0f);
             scale    = Vec3(1.0f);
             isStatic = false;
+            friction = 0.7f;
         }
 
         float mass;
@@ -35,6 +36,7 @@ namespace Lumos
         bool isStatic;
         Shape shape;
         std::vector<Vec2> customShapePositions;
+        float friction;
     };
 
     class LUMOS_EXPORT RigidBody2D
@@ -62,6 +64,7 @@ namespace Lumos
         void Init(const RigidBodyParameters& params);
 
         Vec2 GetPosition() const;
+        Vec3 GetScale() const { return m_Scale; }
         float GetAngle() const;
         Shape GetShapeType() const { return m_ShapeType; }
 
@@ -70,14 +73,17 @@ namespace Lumos
         bool GetIsStatic() const { return m_Static; }
         bool GetIsAtRest() const { return m_AtRest; }
         float GetElasticity() const { return m_Elasticity; }
-        float GetFriction() const { return m_Friction; }
+        float GetFriction() const;
         bool IsAwake() const { return !m_AtRest; }
         void SetElasticity(const float elasticity) { m_Elasticity = elasticity; }
         void SetFriction(const float friction) { m_Friction = friction; }
         void SetIsAtRest(const bool isAtRest) { m_AtRest = isAtRest; }
         void SetLinearDamping(float dampening);
+        void SetScale(const Vec3& scale) { m_Scale = scale; }
 
         UUID GetUUID() const { return m_UUID; }
+
+        void RebuildShape();
 
         template <typename Archive>
         void save(Archive& archive) const
@@ -95,6 +101,9 @@ namespace Lumos
             archive(cereal::make_nvp("Position", pos), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Angle", angle), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Mass", m_Mass), cereal::make_nvp("Scale", params.scale), cereal::make_nvp("Shape", m_ShapeType), cereal::make_nvp("CustomShapePos", params.customShapePositions));
             params.shape    = m_ShapeType;
             params.position = Vec3(pos, 1.0f);
+            params.isStatic = m_Static;
+            params.mass     = m_Mass;
+            params.friction = m_Friction;
             Init(params);
             SetOrientation(angle);
         }

@@ -29,7 +29,7 @@ namespace Lumos
         }
 
     private:
-        BinAllocator(const BinAllocator& other) {};
+        BinAllocator(const BinAllocator& other) { };
         BinAllocator operator=(const BinAllocator& other)
         {
             return *this;

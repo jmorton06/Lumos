@@ -14,22 +14,21 @@ namespace Lumos
     class LUMOS_EXPORT WindowsWindow : public Window
     {
     public:
-        WindowsWindow(const WindowDesc& properties);
+        WindowsWindow();
         ~WindowsWindow();
 
+        bool Init(const WindowDesc& properties) override;
         void ToggleVSync() override;
         void SetWindowTitle(const std::string& title) override;
         void SetBorderlessWindow(bool borderless) override;
         void OnUpdate() override;
         void ProcessInput() override;
 
-        void SetVSync(bool set) override {};
-        void HideMouse(bool hide) override {};
-        void SetMousePosition(const Vec2& pos) override {};
+        void SetVSync(bool set) override { };
+        void HideMouse(bool hide) override { };
+        void SetMousePosition(const Vec2& pos) override { };
         void UpdateCursorImGui() override;
         void SetIcon(const WindowDesc& desc) override;
-
-        bool Init(const WindowDesc& properties);
 
         inline std::string GetTitle() const override
         {
@@ -90,7 +89,7 @@ namespace Lumos
         static void MakeDefault();
 
     protected:
-        static Window* CreateFuncWindows(const WindowDesc& properties);
+        static Window* CreateFuncWindows();
 
         HINSTANCE hInstance {};
         HDC hDc {};

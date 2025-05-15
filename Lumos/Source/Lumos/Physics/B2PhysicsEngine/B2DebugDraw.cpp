@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "B2DebugDraw.h"
-
+#include "Maths/MathsUtilities.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
 namespace Lumos
@@ -8,7 +8,7 @@ namespace Lumos
 
     static inline Vec4 MakeRGBA8(b2HexColor c, float alpha)
     {
-        return { static_cast<float>(uint8_t((c >> 16) & 0xFF)), static_cast<float>(uint8_t((c >> 8) & 0xFF)), static_cast<float>(uint8_t(c & 0xFF)), static_cast<float>(uint8_t(0xFF * alpha)) };
+        return { static_cast<float>(uint8_t((c >> 16) & 0xFF)) / 255.0f, static_cast<float>(uint8_t((c >> 8) & 0xFF)) / 255.0f, static_cast<float>(uint8_t(c & 0xFF)) / 255.0f, alpha };
     }
 
     void B2DebugDraw::DrawPolygon(const b2Vec2* vertices, int vertexCount, b2HexColor hexColour, void* context)
@@ -53,7 +53,7 @@ namespace Lumos
     {
         Vec4 colour             = MakeRGBA8(hexColour, 0.8f);
         const float k_segments  = 16.0f;
-        const float k_increment = 2.0f * b2_pi / k_segments;
+        const float k_increment = 2.0f * Maths::M_PI / k_segments;
         float sinInc            = sinf(k_increment);
         float cosInc            = cosf(k_increment);
         b2Vec2 r1               = { 1.0f, 0.0f };
@@ -76,7 +76,7 @@ namespace Lumos
     {
         Vec4 colour             = MakeRGBA8(hexColour, 0.8f);
         const float k_segments  = 16.0f;
-        const float k_increment = 2.0f * b2_pi / k_segments;
+        const float k_increment = 2.0f * Maths::M_PI / k_segments;
         float sinInc            = sinf(k_increment);
         float cosInc            = cosf(k_increment);
         b2Vec2 v0               = b2TransformPoint(xf, { 0.0f, 0.0f });
@@ -143,7 +143,7 @@ namespace Lumos
         DebugRenderer::DrawPoint({ p.x, p.y, 0.0f }, size * 0.1f, false, { colour.x, colour.y, colour.z, colour.w });
     }
 
-    void B2DebugDraw::DrawString(b2Vec2 p, const char* s, void* context)
+    void B2DebugDraw::DrawString(b2Vec2 p, const char* s, b2HexColor color, void* context)
     {
         DebugRenderer::DrawTextCs({ p.x, p.y, 0.0f, 0.0f }, 12.0f, s);
     }

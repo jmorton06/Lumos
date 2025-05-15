@@ -24,8 +24,8 @@ namespace Lumos
 
             void DeleteResources();
 
-            void Bind(uint32_t slot = 0) const override {};
-            void Unbind(uint32_t slot = 0) const override {};
+            void Bind(uint32_t slot = 0) const override { };
+            void Unbind(uint32_t slot = 0) const override { };
             void Load(uint32_t width, uint32_t height, void* data, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions()) override;
 
             virtual void SetData(const void* pixels) override;
@@ -194,8 +194,8 @@ namespace Lumos
 
             void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer);
 
-            void Bind(uint32_t slot = 0) const override {};
-            void Unbind(uint32_t slot = 0) const override {};
+            void Bind(uint32_t slot = 0) const override { };
+            void Unbind(uint32_t slot = 0) const override { };
 
             inline uint32_t GetSize() const override
             {
@@ -344,8 +344,8 @@ namespace Lumos
             VKTextureDepth(uint32_t width, uint32_t height, RHIFormat format, uint8_t samples);
             ~VKTextureDepth();
 
-            void Bind(uint32_t slot = 0) const override {};
-            void Unbind(uint32_t slot = 0) const override {};
+            void Bind(uint32_t slot = 0) const override { };
+            void Unbind(uint32_t slot = 0) const override { };
             void Resize(uint32_t width, uint32_t height) override;
 
             inline uint32_t GetWidth(uint32_t mip) const override
@@ -458,8 +458,8 @@ namespace Lumos
             VKTextureDepthArray(uint32_t width, uint32_t height, uint32_t count, RHIFormat format);
             ~VKTextureDepthArray();
 
-            void Bind(uint32_t slot = 0) const override {};
-            void Unbind(uint32_t slot = 0) const override {};
+            void Bind(uint32_t slot = 0) const override { };
+            void Unbind(uint32_t slot = 0) const override { };
             void Resize(uint32_t width, uint32_t height, uint32_t count) override;
 
             inline uint32_t GetWidth(uint32_t mip) const override

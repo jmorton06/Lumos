@@ -327,6 +327,14 @@ namespace Lumos
             // |M| = |A|*|D| + |B|*|C| - tr((A#B)(D#C)
             detM = _mm_sub_ps(detM, tr);
 
+            float detScalar = _mm_cvtss_f32(detM);
+            if(Maths::Equals(detScalar, 0.0f))
+            {
+                Matrix4 identity;
+                identity.ToIdentity();
+                return identity;
+            }
+
             const __m128 adjSignMask = _mm_setr_ps(1.f, -1.f, -1.f, 1.f);
             // (1/|M|, -1/|M|, -1/|M|, 1/|M|)
             __m128 rDetM = _mm_div_ps(adjSignMask, detM);
@@ -436,7 +444,7 @@ namespace Lumos
 
         Matrix4 PerspectiveLH_ZO(float znear, float zfar, float aspect, float fov)
         {
-            Matrix4 m;
+            Matrix4 m(0.0f);
             const float h     = 1.0f / tan(fov * Lumos::Maths::M_DEGTORAD_2);
             float neg_depth_r = 1.0f / (znear - zfar);
 
@@ -452,7 +460,7 @@ namespace Lumos
 
         Matrix4 PerspectiveLH_NO(float znear, float zfar, float aspect, float fov)
         {
-            Matrix4 m;
+            Matrix4 m(0.0f);
             const float h     = 1.0f / tan(fov * Lumos::Maths::M_DEGTORAD_2);
             float neg_depth_r = 1.0f / (znear - zfar);
 

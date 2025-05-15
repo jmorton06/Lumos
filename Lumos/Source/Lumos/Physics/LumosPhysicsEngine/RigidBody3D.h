@@ -102,29 +102,15 @@ namespace Lumos
             m_Position               = v;
             m_WSTransformInvalidated = true;
             m_WSAabbInvalidated      = true;
-            // m_AtRest = false;
         }
 
-        void SetLinearVelocity(const Vec3& v)
-        {
-            if(m_Static)
-                return;
-            m_LinearVelocity = v;
-            m_AtRest         = false;
-        }
-        void SetForce(const Vec3& v)
-        {
-            if(m_Static)
-                return;
-            m_Force  = v;
-            m_AtRest = false;
-        }
+        void SetLinearVelocity(const Vec3& v);
+        void SetForce(const Vec3& v);
 
         void SetOrientation(const Quat& v)
         {
             m_Orientation            = v;
             m_WSTransformInvalidated = true;
-            m_AtRest                 = false;
         }
 
         void SetAngularVelocity(const Vec3& v);

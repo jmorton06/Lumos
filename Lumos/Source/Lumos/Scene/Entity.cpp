@@ -40,7 +40,7 @@ namespace Lumos
     uint64_t Entity::GetID()
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        return m_Scene->GetRegistry().get<IDComponent>(m_EntityHandle).ID;
+        return m_Scene->GetRegistry().get_or_emplace<IDComponent>(m_EntityHandle).ID;
     }
 
     const std::string& Entity::GetName()

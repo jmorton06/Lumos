@@ -1,6 +1,10 @@
 #include "Precompiled.h"
 
 #pragma warning(push, 0)
+
+#include <ModelLoaders/OpenFBX/miniz.c>
+#include <ModelLoaders/OpenFBX/ofbx.cpp>
+
 #if LUMOS_PROFILE
 #include <Tracy/public/TracyClient.cpp>
 #endif
@@ -42,7 +46,4 @@
 
 #define STB_SPRINTF_IMPLEMENTATION
 #include <stb/stb_sprintf.h>
-
-#include <ModelLoaders/OpenFBX/miniz.c>
-#include <ModelLoaders/OpenFBX/ofbx.cpp>
 #pragma warning(pop)

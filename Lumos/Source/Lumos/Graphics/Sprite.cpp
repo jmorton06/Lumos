@@ -45,8 +45,8 @@ namespace Lumos
             if(!m_Texture)
                 return;
 
-            Vec2 min = { static_cast<float>((x * (SpriteSheetTileSize)) / m_Texture->GetWidth()), static_cast<float>((y * (SpriteSheetTileSize)) / m_Texture->GetHeight()) };
-            Vec2 max = { static_cast<float>(((x * (SpriteSheetTileSize)) + SpriteSheetTileSize) / m_Texture->GetWidth()), static_cast<float>(((y * SpriteSheetTileSize) + SpriteSheetTileSize) / m_Texture->GetHeight()) };
+            Vec2 min = { static_cast<float>((x * (SpriteSheetTileSizeX)) / m_Texture->GetWidth()), static_cast<float>((y * (SpriteSheetTileSizeY)) / m_Texture->GetHeight()) };
+            Vec2 max = { static_cast<float>(((x * (SpriteSheetTileSizeX)) + SpriteSheetTileSizeX) / m_Texture->GetWidth()), static_cast<float>(((y * SpriteSheetTileSizeY) + SpriteSheetTileSizeY) / m_Texture->GetHeight()) };
 
             m_UVs = GetUVs(min, max);
         }
