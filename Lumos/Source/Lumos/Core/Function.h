@@ -129,7 +129,7 @@ namespace Lumos
                 else if(operation == FunctionErasedOperation::MoveConstruct)
                     new(other) Lambda(Move(lambda));
                 else
-#if LUMOS_PLATFORM_WINDOWS
+#if defined(_MSC_VER)
                     __assume(false);
 #else
                     __builtin_unreachable();

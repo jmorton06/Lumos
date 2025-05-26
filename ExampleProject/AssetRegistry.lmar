@@ -1,7 +1,7 @@
 {
     "value0": {
         "Version": 2,
-        "Count": 163,
+        "Count": 164,
         "Name": "//Assets/Meshes/greenhouse/skPlantsFlowerYellowTex0.png",
         "UUID": 22592664930542702,
         "AssetType": 1,
@@ -157,6 +157,9 @@
         "AssetType": 1,
         "Name": "//Assets/Meshes/greenhouse/Dfurnace.png",
         "UUID": 5953217185310301223,
+        "AssetType": 1,
+        "Name": "//Assets/Textures/GoldenSpriteSheet.png",
+        "UUID": 6095041949610707363,
         "AssetType": 1,
         "Name": "//Assets/Meshes/greenhouse/DefaultTexture.png",
         "UUID": 6225984050555498579,

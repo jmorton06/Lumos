@@ -55,11 +55,8 @@ namespace Lumos
         //   - Called once per frame and should contain all time-sensitive update logic
         //	   Note: This is time relative to seconds not milliseconds! (e.g. msec / 1000)
         virtual void OnUpdate(const TimeStep& timeStep);
-        virtual void OnImGui() {};
+        virtual void OnImGui() { };
         virtual void OnEvent(Event& e);
-        // Delete all contained Objects
-        //    - This is the default action upon firing OnCleanupScene()
-        void DeleteAllGameObjects();
 
         // The friendly name associated with this scene instance
         const std::string& GetSceneName() const

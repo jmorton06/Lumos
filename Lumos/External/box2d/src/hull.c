@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2023 Erin Catto
 // SPDX-License-Identifier: MIT
 
+#include "constants.h"
 #include "core.h"
 
 #include "box2d/collision.h"
@@ -23,7 +24,7 @@ static b2Hull b2RecurseHull( b2Vec2 p1, b2Vec2 p2, b2Vec2* ps, int count )
 	b2Vec2 e = b2Normalize( b2Sub( p2, p1 ) );
 
 	// discard points left of e and find point furthest to the right of e
-	b2Vec2 rightPoints[b2_maxPolygonVertices];
+	b2Vec2 rightPoints[B2_MAX_POLYGON_VERTICES];
 	int rightCount = 0;
 
 	int bestIndex = 0;
@@ -48,7 +49,7 @@ static b2Hull b2RecurseHull( b2Vec2 p1, b2Vec2 p2, b2Vec2* ps, int count )
 		}
 	}
 
-	if ( bestDistance < 2.0f * b2_linearSlop )
+	if ( bestDistance < 2.0f * B2_LINEAR_SLOP )
 	{
 		return hull;
 	}
@@ -74,35 +75,35 @@ static b2Hull b2RecurseHull( b2Vec2 p1, b2Vec2 p2, b2Vec2* ps, int count )
 		hull.points[hull.count++] = hull2.points[i];
 	}
 
-	B2_ASSERT( hull.count < b2_maxPolygonVertices );
+	B2_ASSERT( hull.count < B2_MAX_POLYGON_VERTICES );
 
 	return hull;
 }
 
 // quickhull algorithm
-// - merges vertices based on b2_linearSlop
-// - removes collinear points using b2_linearSlop
+// - merges vertices based on B2_LINEAR_SLOP
+// - removes collinear points using B2_LINEAR_SLOP
 // - returns an empty hull if it fails
 b2Hull b2ComputeHull( const b2Vec2* points, int count )
 {
 	b2Hull hull;
 	hull.count = 0;
 
-	if ( count < 3 || count > b2_maxPolygonVertices )
+	if ( count < 3 || count > B2_MAX_POLYGON_VERTICES )
 	{
 		// check your data
 		return hull;
 	}
 
-	count = b2MinFloat( count, b2_maxPolygonVertices );
+	count = b2MinInt( count, B2_MAX_POLYGON_VERTICES );
 
 	b2AABB aabb = { { FLT_MAX, FLT_MAX }, { -FLT_MAX, -FLT_MAX } };
 
 	// Perform aggressive point welding. First point always remains.
 	// Also compute the bounding box for later.
-	b2Vec2 ps[b2_maxPolygonVertices];
+	b2Vec2 ps[B2_MAX_POLYGON_VERTICES];
 	int n = 0;
-	const float linearSlop = b2_linearSlop;
+	const float linearSlop = B2_LINEAR_SLOP;
 	const float tolSqr = 16.0f * linearSlop * linearSlop;
 	for ( int i = 0; i < count; ++i )
 	{
@@ -173,10 +174,10 @@ b2Hull b2ComputeHull( const b2Vec2* points, int count )
 	n = n - 1;
 
 	// split the points into points that are left and right of the line p1-p2.
-	b2Vec2 rightPoints[b2_maxPolygonVertices - 2];
+	b2Vec2 rightPoints[B2_MAX_POLYGON_VERTICES - 2];
 	int rightCount = 0;
 
-	b2Vec2 leftPoints[b2_maxPolygonVertices - 2];
+	b2Vec2 leftPoints[B2_MAX_POLYGON_VERTICES - 2];
 	int leftCount = 0;
 
 	b2Vec2 e = b2Normalize( b2Sub( p2, p1 ) );
@@ -221,7 +222,7 @@ b2Hull b2ComputeHull( const b2Vec2* points, int count )
 		hull.points[hull.count++] = hull2.points[i];
 	}
 
-	B2_ASSERT( hull.count <= b2_maxPolygonVertices );
+	B2_ASSERT( hull.count <= B2_MAX_POLYGON_VERTICES );
 
 	// merge collinear
 	bool searching = true;
@@ -271,7 +272,7 @@ b2Hull b2ComputeHull( const b2Vec2* points, int count )
 
 bool b2ValidateHull( const b2Hull* hull )
 {
-	if ( hull->count < 3 || b2_maxPolygonVertices < hull->count )
+	if ( hull->count < 3 || B2_MAX_POLYGON_VERTICES < hull->count )
 	{
 		return false;
 	}
@@ -302,7 +303,7 @@ bool b2ValidateHull( const b2Hull* hull )
 	}
 
 	// test for collinear points
-	const float linearSlop = b2_linearSlop;
+	const float linearSlop = B2_LINEAR_SLOP;
 	for ( int i = 0; i < hull->count; ++i )
 	{
 		int i1 = i;

@@ -8,7 +8,7 @@
 // Ray cast an AABB
 b2CastOutput b2AABB_RayCast( b2AABB a, b2Vec2 p1, b2Vec2 p2 );
 
-// Get the perimeter length
+// Get surface area of an AABB (the perimeter length)
 static inline float b2Perimeter( b2AABB a )
 {
 	float wx = a.upperBound.x - a.lowerBound.x;
@@ -48,24 +48,9 @@ static inline bool b2EnlargeAABB( b2AABB* a, b2AABB b )
 	return changed;
 }
 
-static inline bool b2AABB_ContainsWithMargin( b2AABB a, b2AABB b, float margin )
-{
-	bool s = ( a.lowerBound.x <= b.lowerBound.x - margin ) & ( a.lowerBound.y <= b.lowerBound.y - margin ) &
-			 ( b.upperBound.x + margin <= a.upperBound.x ) & ( b.upperBound.y + margin <= a.upperBound.y );
-	return s;
-}
-
 /// Do a and b overlap
 static inline bool b2AABB_Overlaps( b2AABB a, b2AABB b )
 {
-	b2Vec2 d1 = { b.lowerBound.x - a.upperBound.x, b.lowerBound.y - a.upperBound.y };
-	b2Vec2 d2 = { a.lowerBound.x - b.upperBound.x, a.lowerBound.y - b.upperBound.y };
-
-	if ( d1.x > 0.0f || d1.y > 0.0f )
-		return false;
-
-	if ( d2.x > 0.0f || d2.y > 0.0f )
-		return false;
-
-	return true;
+	return !( b.lowerBound.x > a.upperBound.x || b.lowerBound.y > a.upperBound.y || a.lowerBound.x > b.upperBound.x ||
+			  a.lowerBound.y > b.upperBound.y );
 }

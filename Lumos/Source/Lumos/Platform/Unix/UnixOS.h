@@ -17,9 +17,6 @@ namespace Lumos
         void OpenFileExternal(const std::string& path) override;
         void OpenURL(const std::string& url) override;
 
-        std::string GetExecutablePath() override
-        {
-            return "";
-        }
+        std::string GetExecutablePath() override;
     };
 }

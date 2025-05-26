@@ -30,6 +30,7 @@ namespace Lumos
             void SetupVulkanWindowData(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height);
             bool Implemented() const override { return true; }
             void RebuildFontTexture() override;
+            ImTextureID AddTexture(Texture* texture, TextureType type, uint32_t level, uint32_t mip) override;
 
             static void MakeDefault();
 
@@ -43,8 +44,10 @@ namespace Lumos
             VKFramebuffer* m_Framebuffers[3];
             VKRenderPass* m_Renderpass;
             VKTexture2D* m_FontTexture;
-            ImGuiTextureID m_FontTextureID;
+            ImTextureID m_FontTextureID;
             bool m_ClearScreen;
+
+            TDArray<Texture*> m_CurrentFrameTextures;
         };
     }
 }

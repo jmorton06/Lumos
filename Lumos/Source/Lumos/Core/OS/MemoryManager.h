@@ -1,4 +1,5 @@
 #pragma once
+#include "Utilities/TSingleton.h"
 
 namespace Lumos
 {
@@ -29,10 +30,9 @@ namespace Lumos
         }
     };
 
-    class MemoryManager
+    class MemoryManager : public TSingleton<MemoryManager>
     {
-    public:
-        static MemoryManager* s_Instance;
+        friend class TSingleton<MemoryManager>;
 
     public:
         MemoryStats m_MemoryStats;
@@ -40,10 +40,7 @@ namespace Lumos
     public:
         MemoryManager();
 
-        static void OnInit();
-        static void OnShutdown();
-
-        static MemoryManager* Get();
+        void OnInit();
         inline MemoryStats GetMemoryStats() const
         {
             return m_MemoryStats;

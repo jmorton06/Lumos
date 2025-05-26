@@ -1,14 +1,14 @@
 # Collision
 Box2D provides geometric types and functions. These include:
-- raw geometry: circles, capsules, segments, and convex polygons
+- primitives: circles, capsules, segments, and convex polygons
 - convex hull and related helper functions
 - mass and bounding box computation
 - local ray and shape casts
 - contact manifolds
 - shape distance
-- generic shape cast
 - time of impact
 - dynamic bounding volume tree
+- character movement solver
 
 The collision interface is designed to be usable outside of rigid body simulation.
 For example, you can use the dynamic tree for other aspects of your game besides physics.
@@ -25,7 +25,7 @@ primitives that can be later attached to rigid bodies.
 Box2D shape primitives support several operations:
 - Test a point for overlap with the primitive
 - Perform a ray cast against the primitive
-- Compute the primitive's AABB
+- Compute the primitive's bounding box
 - Compute the mass properties of the primitive
 
 ### Circles
@@ -54,7 +54,7 @@ semicircles that are connected by a rectangle.
 ```c
 b2Capsule capsule;
 capsule.center1 = (b2Vec2){1.0f, 1.0f};
-capsule.center1 = (b2Vec2){2.0f, 3.0f};
+capsule.center2 = (b2Vec2){2.0f, 3.0f};
 capsule.radius = 0.25f;
 ```
 
@@ -78,7 +78,7 @@ The polygon members are public, but you should use initialization
 functions to create a polygon. The initialization functions create
 normal vectors and perform validation.
 
-Polygons in Box2D have a maximum of 8 vertices, as controlled by #b2_maxPolygonVertices.
+Polygons in Box2D have a maximum of 8 vertices, as controlled by #B2_MAX_POLYGON_VERTICES.
 If you have more complex shapes, I recommend to use multiple polygons.
 
 There are a few ways to create polygons. You can attempt to create them manually,
@@ -97,7 +97,8 @@ This corresponds with circles and capsules using radii instead of diameters.
 Box2D also supports rounded polygons. These are convex polygons with a thick rounded skin.
 
 ```c
-b2Polygon roundedBox = b2MakeRoundedBox(0.5f, 1.0f, 0.25f);
+float radius = 0.25f;
+b2Polygon roundedBox = b2MakeRoundedBox(0.5f, 1.0f, radius);
 ```
 
 If you want a box that is not centered on the body origin, you can use an offset box.
@@ -105,11 +106,12 @@ If you want a box that is not centered on the body origin, you can use an offset
 ```c
 b2Vec2 center = {1.0f, 0.0f};
 float angle = b2_pi / 4.0f;
-b2Polygon offsetBox = b2MakeOffsetBox(0.5f, 1.0f, center, angle);
+b2Rot rotation = b2MakeRot(angle);
+b2Polygon offsetBox = b2MakeOffsetBox(0.5f, 1.0f, center, rotation);
 ```
 
 If you want a more general convex polygon, you can compute the hull using `b2ComputeHull()`. Then you can
-create a polygon from the hull. You can make this rounded or not.
+create a polygon from the hull. You can make this rounded as well.
 
 ```c
 b2Vec2 points[] = {{-1.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 1.0f}};
@@ -160,7 +162,7 @@ If edge1 did not exist this collision would seem fine. With edge1
 present, the internal collision seems like a bug. But normally when
 Box2D collides two shapes, it views them in isolation.
 
-`b2SmoothSegment` provides a mechanism for eliminating ghost
+`b2ChainSegment` provides a mechanism for eliminating ghost
 collisions by storing the adjacent *ghost* vertices. Box2D uses these
 ghost vertices to prevent internal collisions.
 
@@ -171,21 +173,21 @@ one-sided collision. The front face is to the right when looking from the first
 vertex towards the second vertex. This matches the counter-clockwise winding order
 used by polygons.
 
-### Smooth segment
-Smooth segments use a concept called *ghost vertices* that Box2D can use to eliminate ghost
+### Chain segment
+Chain segments use a concept called *ghost vertices* that Box2D can use to eliminate ghost
 collisions.
 
 ```c
-b2SmoothSegment smoothSegment = {0};
-smoothSegment.ghost1 = (b2Vec2){1.7f, 0.0f};
-smoothSegment.segment = (b2Segment){{1.0f, 0.25f}, {0.0f, 0.0f}};
-smoothSegment.ghost2 = (b2Vec2){-1.7f, 0.4f};
+b2ChainSegment chainSegment = {0};
+chainSegment.ghost1 = (b2Vec2){1.7f, 0.0f};
+chainSegment.segment = (b2Segment){{1.0f, 0.25f}, {0.0f, 0.0f}};
+chainSegment.ghost2 = (b2Vec2){-1.7f, 0.4f};
 ```
 
-These ghost vertices must align with vertices of neighboring smooth segments, making them
+These ghost vertices must align with vertices of neighboring chain segments, making them
 tedious and error-prone to setup.
 
-Smooth segments are not created directly. Instead, you can create chains of smooth
+Chain segments are not created directly. Instead, you can create chains of line
 segments. See `b2ChainDef` and `b2CreateChain()`.
 
 ## Geometric Queries
@@ -210,7 +212,7 @@ You can cast a ray at a shape to get the point of first intersection and normal 
 > consistent with Box2D treating convex shapes as solid. 
 
 ```c
-b2RayCastInput input;
+b2RayCastInput input = {0};
 input.origin = (b2Vec2){0.0f, 0.0f};
 input.translation = (b2Vec2){1.0f, 0.0f};
 input.maxFraction = 1.0f;
@@ -226,7 +228,7 @@ if (output.hit == true)
 You can also cast a shape at another shape. This uses an abstract way of describing the moving shape. It is represented as a point cloud with a radius. This implies a convex shape even if the input data is not convex. The internal algorithm (GJK) will essentially only use the convex portion.
 
 ```c
-b2ShapeCastInput input;
+b2ShapeCastInput input = {0};
 input.points[0] = (b2Vec2){1.0f, 0.0f};
 input.points[1] = (b2Vec2){2.0f, -3.0f};
 input.radius = 0.2f;

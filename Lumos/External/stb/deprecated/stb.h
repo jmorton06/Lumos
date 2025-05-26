@@ -5610,7 +5610,8 @@ static FILE *stb__open_temp_file(char *temp_name, char *src_name, const char *mo
    {
       stb_p_strcpy_s(temp_name+p, 65536, "stmpXXXXXX");
       #ifdef __MINGW32__
-         int fd = open(stb_p_mktemp(temp_name), O_RDWR);
+         //int fd = open(stb_p_mktemp(temp_name), O_RDWR);
+         int fd = mkstemp(temp_name);
       #else
          int fd = mkstemp(temp_name);
       #endif

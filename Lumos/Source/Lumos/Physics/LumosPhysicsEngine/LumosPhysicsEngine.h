@@ -177,5 +177,10 @@ namespace Lumos
         PhysicsStats3D m_Stats;
 
         static float s_UpdateTimestep;
+
+        static constexpr int kRollingBufferSize    = 60;
+        float m_OverrunHistory[kRollingBufferSize] = { 0.0f };
+        int m_OverrunIndex                         = 0;
+        float m_AvgOverrun                         = 0.0f;
     };
 }

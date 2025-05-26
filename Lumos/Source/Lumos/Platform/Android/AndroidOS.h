@@ -46,11 +46,6 @@ namespace Lumos
             return m_Y;
         }
 
-        static AndroidOS* Get()
-        {
-            return (AndroidOS*)s_Instance;
-        }
-
     private:
         float m_X, m_Y;
     };

@@ -13,10 +13,11 @@ project 'box2d'
 
 	filter "system:windows"
 		systemversion "latest"
-		buildoptions {"/experimental:c11atomics"}
 		flags{}
+	filter "action:vs*"
+		buildoptions {"/experimental:c11atomics"}
 	filter "system:linux"
-		buildoptions { "-fPIC" }
+		buildoptions { "-fPIC", "-D_POSIX_C_SOURCE=199309L" }
 
     filter "configurations:Debug"
 		symbols "On"

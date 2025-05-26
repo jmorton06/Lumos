@@ -1,6 +1,10 @@
 # Migration Guide
 
+> **Caution**:
+> This guide only covers the transition from 2.4 to 3.0. Please see the release notes for future version changes.
+
 ## Version 2.4 to Version 3.0
+
 Box2D version 3.0 is a full rewrite. You can read some background information [here](https://box2d.org/posts/2023/01/starting-box2d-3.0/).
 
 Here are the highlights that affect the API:
@@ -162,9 +166,9 @@ chainDef.loop = true;
 b2ChainId chainId = b2CreateChain(bodyId, &chainDef);
 ```
 
-Since chains are their own concept now, they get their own identifier, `b2ChainId`. You can view chains as macro objects, they create many `b2SmoothSegment` shapes internally. Normally you don't interact with these. However they are returned from queries. You can use `b2Shape_GetParentChain()` to get the `b2ChainId` for a smooth segment that you get from a query.
+Since chains are their own concept now, they get their own identifier, `b2ChainId`. You can view chains as macro objects, they create many `b2ChainSegment` shapes internally. Normally you don't interact with these. However they are returned from queries. You can use `b2Shape_GetParentChain()` to get the `b2ChainId` for a chain segment that you get from a query.
 
-> DO NOT destroy or modify a `b2SmoothSegment` that belongs to a chain shape directly
+> DO NOT destroy or modify a `b2ChainSegment` that belongs to a chain shape directly
 
 ### Creating a joint
 Joints are very similar in v3.0. The lack of C member functions changes initialization.

@@ -29,7 +29,7 @@ namespace Lumos
                 return static_cast<GLRenderer*>(s_Instance);
             }
 
-            void Begin() override;
+            bool Begin() override;
             void InitInternal() override;
 
             void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount) override;
@@ -67,7 +67,7 @@ namespace Lumos
 
         protected:
             static Renderer* CreateFuncGL();
-             const char* m_RendererTitle;
+            const char* m_RendererTitle;
             int32_t m_BoundVertexBuffer = -1;
             int32_t m_BoundIndexBuffer  = -1;
             GLPipeline* m_BoundPipeline = nullptr;

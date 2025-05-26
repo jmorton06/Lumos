@@ -23,7 +23,7 @@ namespace Lumos
         LINFO(" System Information ");
         LINFO("--------------------");
 
-        auto systemInfo = MemoryManager::Get()->GetSystemInfo();
+        auto systemInfo = MemoryManager::Get().GetSystemInfo();
         systemInfo.Log();
 
         app.Init();
@@ -111,6 +111,24 @@ namespace Lumos
 #ifndef LUMOS_PLATFORM_MOBILE
         std::string command = "open " + url;
         system(command.c_str());
+#endif
+    }
+
+    std::string UnixOS::GetExecutablePath()
+    {
+#ifdef LUMOS_PLATFORM_LINUX
+        char result[PATH_MAX];
+        ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+        if(count != -1)
+        {
+            return std::string(result, count);
+        }
+        else
+        {
+            return std::string();
+        }
+#else
+        return std::string();
 #endif
     }
 }

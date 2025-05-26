@@ -53,20 +53,10 @@ namespace Lumos
 #define HID_USAGE_GENERIC_KEYBOARD ((USHORT)0x06)
 #endif
 
-    WindowsWindow::WindowsWindow(const WindowDesc& properties)
+    WindowsWindow::WindowsWindow()
         : hWnd(nullptr)
     {
-        m_Init  = false;
-        m_VSync = properties.VSync;
-        SetHasResized(true);
-        m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
-
-        m_Init            = Init(properties);
-        m_GraphicsContext = SharedPtr<Graphics::GraphicsContext>(Graphics::GraphicsContext::Create());
-        m_GraphicsContext->Init();
-
-        m_SwapChain = SharedPtr<Graphics::SwapChain>(Graphics::SwapChain::Create(m_Data.Width, m_Data.Height));
-        m_SwapChain->Init(m_VSync, this);
+        m_Init = false;
     }
 
     WindowsWindow::~WindowsWindow()
@@ -173,6 +163,10 @@ namespace Lumos
 
     bool WindowsWindow::Init(const WindowDesc& properties)
     {
+        m_VSync = properties.VSync;
+        SetHasResized(true);
+        m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
+
         m_Data.Title  = (const char*)properties.Title.str;
         m_Data.Width  = properties.Width;
         m_Data.Height = properties.Height;
@@ -312,20 +306,20 @@ namespace Lumos
 		if(properties.RenderAPI == RenderAPI::OpenGL)
 		{
             HDC hDc = GetDC(static_cast<HWND>(GetHandle()));
-
+            
             HGLRC tempContext = wglCreateContext(hDc);
             wglMakeCurrent(hDc, tempContext);
-
+            
             if(!wglMakeCurrent(hDc, tempContext))
             {
                 LERROR("Failed to initialise OpenGL context");
             }
-
+            
             if(!gladLoadWGL(hDc))
                 LERROR("glad failed to load WGL!");
             if(!gladLoadGL())
                 LERROR("glad failed to load OpenGL!");
-
+            
             const int contextAttribsList[] = {
                 WGL_CONTEXT_MAJOR_VERSION_ARB,
                 4,
@@ -342,7 +336,7 @@ namespace Lumos
 #endif
                 0,
             };
-
+            
             HGLRC hrc = wglCreateContextAttribsARB(hDc, nullptr, contextAttribsList);
             if(hrc == nullptr)
             {
@@ -364,6 +358,14 @@ namespace Lumos
         rid.dwFlags     = RIDEV_INPUTSINK;
         rid.hwndTarget  = hWnd;
         RegisterRawInputDevices(&rid, 1, sizeof(rid));
+
+        m_GraphicsContext = SharedPtr<Graphics::GraphicsContext>(Graphics::GraphicsContext::Create());
+        m_GraphicsContext->Init();
+
+        m_SwapChain = SharedPtr<Graphics::SwapChain>(Graphics::SwapChain::Create(m_Data.Width, m_Data.Height));
+        m_SwapChain->Init(m_VSync, this);
+
+        m_Init = true;
 
         return true;
     }
@@ -723,8 +725,8 @@ namespace Lumos
         CreateFunc = CreateFuncWindows;
     }
 
-    Window* WindowsWindow::CreateFuncWindows(const WindowDesc& properties)
+    Window* WindowsWindow::CreateFuncWindows()
     {
-        return new WindowsWindow(properties);
+        return new WindowsWindow();
     }
 }
