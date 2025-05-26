@@ -75,14 +75,26 @@ namespace Lumos
 
         static std::filesystem::path GetCacheDirectory()
         {
-            return "Resources/Cache/FontAtlases";
+            const char* home = std::getenv("HOME");
+            if (!home) {
+                throw std::runtime_error("Can't obtain HOME");
+            }
+            
+            return std::filesystem::path(home) / "Documents/Lumos/Resources/Cache/FontAtlases";
         }
 
         static void CreateCacheDirectoryIfNeeded()
         {
-            std::filesystem::path cacheDirectory = GetCacheDirectory();
-            if(!std::filesystem::exists(cacheDirectory))
-                std::filesystem::create_directories(cacheDirectory);
+            try {
+                std::filesystem::path cacheDirectory = GetCacheDirectory();
+                if (!std::filesystem::exists(cacheDirectory)) {
+                    std::filesystem::create_directories(cacheDirectory);
+                    std::cout << "Directorio creado en: " << cacheDirectory << std::endl;
+                }
+            }
+            catch (const std::filesystem::filesystem_error& e) {
+                std::cerr << "Error al crear el directorio: " << e.what() << std::endl;
+            }
         }
 
         struct AtlasHeader

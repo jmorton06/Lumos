@@ -209,24 +209,38 @@ namespace Lumos
         LINFO("Initialised ImGui Manager");
 
         m_SceneRenderer = CreateUniquePtr<Graphics::SceneRenderer>(screenWidth, screenHeight);
+        
+        LINFO("Initialised SceneRenderer");
 
+        LINFO("Waiting for Context...");
         System::JobSystem::Wait(context);
 
+        LINFO("App is Running");
         m_CurrentState = AppState::Running;
 
         Graphics::Material::InitDefaultTexture();
+        LINFO("Init Default Texture");
+        
         Graphics::Font::InitDefaultFont();
+        LINFO("Init Default Font");
+        
         m_SceneRenderer->EnableDebugRenderer(true);
+        LINFO("Debug Renderer Enabled");
 
 #ifdef LUMOS_SSE
         LINFO("SSE Maths Enabled");
 #endif
 
+        LINFO("UI Arena Alloc");
         m_UIArena = ArenaAlloc(Megabytes(8));
+        
+        LINFO("Initializing Arena...");
         InitialiseUI(m_UIArena);
+        
+        LINFO("Getting DPI Scale");
         GetUIState()->DPIScale = Application::Get().GetWindow()->GetDPIScale();
+        
         LINFO("Initalised UI");
-
         Maths::TestMaths();
     }
 
