@@ -1,7 +1,7 @@
 <h1 align="center" style="border-bottom: none;">
   <a href="https://github.com/jmorton06/Lumos/">Lumos Engine</a>
 </h1>
-<h3 align="center">Cross-platform 2D and 3D Game Engine written in C++ that supports both OpenGL and Vulkan.</h3>
+<h3 align="center">Cross-platform 2D and 3D Game Engine written in C++.</h3>
 <p align="center">
   <a href="#screenshots">Screenshots</a> |
   <a href="#building-🔨">Building</a> |
@@ -77,11 +77,11 @@ To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation h
 ## Features
 
 * Support for Windows, Linux, macOS.
-* Support for OpenGL/Vulkan.
+* Vulkan
 * 3D audio using OpenAL.
 * Rendering 3D models with PBR shading.
 * Debug gui using ImGui
-* 3D collision detection - cuboid/sphere/pyramid.
+* Custom 3D collision detection - cuboid/sphere/pyramid.
 * 2D collision detection - Box2D.
 * Basic lua scripting support.
 #
@@ -98,7 +98,6 @@ To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation h
  * [tinygltf](https://github.com/syoyo/tinygltf) : Header only C++11 tiny glTF 2.0 library
  * [tinyobjloader](https://github.com/syoyo/tinyobjloader) : Tiny but powerful single file wavefront obj loader
  * [volk](https://github.com/zeux/volk) : Meta loader for Vulkan API.
- * [glad](https://github.com/Dav1dde/glad) : Meta loader for OpenGL API.
  * [Box2D](https://github.com/erincatto/Box2D) : 2D physics engine.
  * [sol2](https://github.com/ThePhD/sol2) : C++ <-> Lua API wrapper
  * [cereal](https://github.com/USCiLab/cereal) : A C++11 library for serialization

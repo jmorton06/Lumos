@@ -119,18 +119,33 @@ namespace Lumos
 
             {
                 LUMOS_PROFILE_SCOPE("Physics::UpdatePhysics");
+
                 m_UpdateAccum += (float)timeStep.GetSeconds();
-                for(uint32_t i = 0; (m_UpdateAccum >= s_UpdateTimestep) && i < m_MaxUpdatesPerFrame; ++i)
+                for(uint32_t i = 0; (m_UpdateAccum + Maths::M_EPSILON >= s_UpdateTimestep) && i < m_MaxUpdatesPerFrame; ++i)
                 {
                     m_UpdateAccum -= s_UpdateTimestep;
                     UpdatePhysics();
                 }
 
-                if(m_UpdateAccum >= s_UpdateTimestep)
+                float overrun = 0.0f;
+                if(m_UpdateAccum + Maths::M_EPSILON >= s_UpdateTimestep)
                 {
-                    LWARN("Physics too slow to run in real time!");
-                    // Drop Time in the hope that it can continue to run in real-time
-                    m_UpdateAccum = 0.0f;
+                    overrun       = m_UpdateAccum;
+                    m_UpdateAccum = Maths::Mod(overrun, s_UpdateTimestep);
+                }
+
+                m_OverrunHistory[m_OverrunIndex] = overrun;
+                m_OverrunIndex                   = (m_OverrunIndex + 1) % kRollingBufferSize;
+
+                float sum = 0.0f;
+                for(int i = 0; i < kRollingBufferSize; ++i)
+                    sum += m_OverrunHistory[i];
+                m_AvgOverrun = sum / kRollingBufferSize;
+
+                // Only log if 25% behind
+                if(m_AvgOverrun > s_UpdateTimestep * 0.25f)
+                {
+                    LWARN("Physics running behind: avg overrun = %.4f", m_AvgOverrun);
                 }
             }
         }
@@ -673,6 +688,10 @@ namespace Lumos
         ImGui::NextColumn();
 
         ImGui::Columns(1);
+
+        ImGui::Text("Avg Physics Overrun: %.4f", m_AvgOverrun);
+        ImGui::ProgressBar(Maths::Clamp(m_AvgOverrun / s_UpdateTimestep, 0.0f, 1.0f));
+
         ImGui::Separator();
         ImGui::PopStyleVar();
     }

@@ -14,15 +14,15 @@ namespace Lumos
 {
     namespace Graphics
     {
-        VKBuffer::VKBuffer(VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperyFlags, uint32_t size, const void* data)
+        VKBuffer::VKBuffer(VkBufferUsageFlags usage, VkMemoryPropertyFlags MemoryPropertyFlags, uint32_t size, const void* data)
             : m_Size(size)
         {
-            Init(usage, memoryProperyFlags, size, data);
+            Init(usage, MemoryPropertyFlags, size, data);
         }
 
         VKBuffer::VKBuffer()
             : m_Size(0)
-            , m_MemoryProperyFlags(0)
+            , m_MemoryPropertyFlags(0)
             , m_UsageFlags(0)
         {
         }
@@ -70,13 +70,13 @@ namespace Lumos
             m_Buffer = VK_NULL_HANDLE;
         }
 
-        void VKBuffer::Init(VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperyFlags, uint32_t size, const void* data)
+        void VKBuffer::Init(VkBufferUsageFlags usage, VkMemoryPropertyFlags MemoryPropertyFlags, uint32_t size, const void* data)
         {
             LUMOS_PROFILE_FUNCTION();
 
-            m_UsageFlags         = usage;
-            m_MemoryProperyFlags = memoryProperyFlags;
-            m_Size               = size;
+            m_UsageFlags          = usage;
+            m_MemoryPropertyFlags = MemoryPropertyFlags;
+            m_Size                = size;
 
             VkBufferCreateInfo bufferInfo = {};
             bufferInfo.sType              = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -84,7 +84,7 @@ namespace Lumos
             bufferInfo.usage              = usage;
             bufferInfo.sharingMode        = VK_SHARING_MODE_EXCLUSIVE;
 
-            bool isMappable = (memoryProperyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0;
+            bool isMappable = (MemoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0;
 
             m_GPUOnlyMemory = !isMappable;
 
@@ -93,7 +93,7 @@ namespace Lumos
                 VmaAllocationCreateInfo vmaAllocInfo = {};
                 vmaAllocInfo.usage                   = VMA_MEMORY_USAGE_AUTO;
                 vmaAllocInfo.flags                   = isMappable ? VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT : 0;
-                vmaAllocInfo.preferredFlags          = memoryProperyFlags;
+                vmaAllocInfo.preferredFlags          = MemoryPropertyFlags;
 
 #if USE_SMALL_VMA_POOL
                 if(bufferInfo.size <= SMALL_ALLOCATION_MAX_SIZE)
@@ -112,7 +112,7 @@ namespace Lumos
 #if USE_STAGING
             VmaAllocationCreateInfo vmaAllocInfo = {};
             vmaAllocInfo.usage                   = VMA_MEMORY_USAGE_CPU_TO_GPU;
-            vmaAllocInfo.preferredFlags          = memoryProperyFlags;
+            vmaAllocInfo.preferredFlags          = MemoryPropertyFlags;
             vmaAllocInfo.flags                   = 0;
 
             VkBufferCreateInfo bufferCreateInfo {};
@@ -178,7 +178,7 @@ namespace Lumos
             VmaAllocationCreateInfo vmaAllocInfo = {};
             vmaAllocInfo.usage                   = VMA_MEMORY_USAGE_AUTO;
             vmaAllocInfo.flags                   = isMappable ? VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT : 0;
-            vmaAllocInfo.preferredFlags          = memoryProperyFlags;
+            vmaAllocInfo.preferredFlags          = MemoryPropertyFlags;
 
             vmaCreateBuffer(VKDevice::Get().GetAllocator(), &bufferInfo, &vmaAllocInfo, &m_Buffer, &m_Allocation, nullptr);
 
@@ -233,7 +233,7 @@ namespace Lumos
             auto usage = m_UsageFlags;
 
             Destroy(!m_DeleteWithoutQueue);
-            Init(usage, m_MemoryProperyFlags, size, data);
+            Init(usage, m_MemoryPropertyFlags, size, data);
         }
 
         void VKBuffer::Map(VkDeviceSize size, VkDeviceSize offset)

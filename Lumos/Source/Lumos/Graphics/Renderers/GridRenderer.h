@@ -21,11 +21,11 @@ namespace Lumos
             void UpdateUniformBuffer();
 
             void Begin() override;
-            void Submit(const RenderCommand& command) override {};
-            void SubmitMesh(Mesh* mesh, Material* material, const Mat4& transform, const Mat4& textureMatrix) override {};
-            void EndScene() override {};
+            void Submit(const RenderCommand& command) override { };
+            void SubmitMesh(Mesh* mesh, Material* material, const Mat4& transform, const Mat4& textureMatrix) override { };
+            void EndScene() override { };
             void End() override;
-            void Present() override {};
+            void Present() override { };
             void RenderScene() override;
             void PresentToScreen() override { }
 

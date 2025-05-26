@@ -9,12 +9,17 @@
 #include "Maths/MathsUtilities.h"
 #include "IconsMaterialDesignIcons.h"
 
+#ifdef LUMOS_PLATFORM_LINUX
+#include "Lumos/Platform/GLFW/GLFWWindow.h"
+#endif
+
 #include <imgui/imgui.h>
 #include <imgui/Plugins/ImGuizmo.h>
 #include <imgui/Plugins/ImGuiAl/fonts/MaterialDesign.inl>
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoMedium.inl>
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoRegular.inl>
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoBold.inl>
+#include <imgui/Plugins/implot/implot.h>
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
 #define USING_GLFW
@@ -29,7 +34,7 @@ namespace Lumos
     ImGuiManager::ImGuiManager(bool clearScreen)
     {
         m_ClearScreen = clearScreen;
-        m_FontSize    = 14.0f;
+        m_FontSize    = 16.0f;
 
 #ifdef LUMOS_PLATFORM_IOS
         m_FontSize *= 2.0f;
@@ -38,6 +43,12 @@ namespace Lumos
 
     ImGuiManager::~ImGuiManager()
     {
+
+        // Moved this call to ImGui Renderer
+        // ImGui::DestroyContext();
+
+        m_IMGUIRenderer.reset();
+        ImPlot::DestroyContext();
     }
 
 #ifdef USING_GLFW
@@ -60,6 +71,10 @@ namespace Lumos
 #ifdef IMGUI_USER_CONFIG
         LINFO("ImConfig File : %s", IMGUI_USER_CONFIG);
 #endif
+        ImGui::CreateContext();
+        ImPlot::CreateContext();
+        ImGui::StyleColorsDark();
+
         Application& app = Application::Get();
         ImGuiIO& io      = ImGui::GetIO();
         io.DisplaySize   = ImVec2(static_cast<float>(app.GetWindow()->GetWidth()), static_cast<float>(app.GetWindow()->GetHeight()));
@@ -67,6 +82,7 @@ namespace Lumos
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
         m_DPIScale = app.GetWindow()->GetDPIScale();
+
 #ifdef LUMOS_PLATFORM_IOS
         io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
 #endif
@@ -77,7 +93,12 @@ namespace Lumos
         io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
         io.ConfigWindowsMoveFromTitleBarOnly = true;
 
-        m_FontSize *= app.GetWindow()->GetDPIScale();
+#ifdef LUMOS_PLATFORM_LINUX
+        m_FontSize *= ((GLFWWindow*)app.GetWindow())->GetMonitorXScale();
+#else
+        m_FontSize *= m_DPIScale;
+#endif
+
 
         SetImGuiKeyCodes();
         SetImGuiStyle();

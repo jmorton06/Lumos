@@ -41,7 +41,7 @@ namespace Lumos
             }
 
             void InitInternal() override;
-            void Begin() override;
+            bool Begin() override;
             void OnResize(uint32_t width, uint32_t height) override;
 
             void PresentInternal() override;
@@ -63,7 +63,7 @@ namespace Lumos
             void Dispatch(CommandBuffer* commandBuffer, uint32_t workGroupSizeX, uint32_t workGroupSizeY, uint32_t workGroupSizeZ) override;
 
             bool AllocateDescriptorSet(VkDescriptorSet* set, VkDescriptorPool& pool, VkDescriptorSetLayout layout, uint32_t descriptorCount);
-			bool DeallocateDescriptorSet(VkDescriptorSet* set, VkDescriptorPool& pool);
+            bool DeallocateDescriptorSet(VkDescriptorSet* set, VkDescriptorPool& pool);
             void ReleaseDescriptorPools();
 
             static DeletionQueue& GetDeletionQueue(int frameIndex)
@@ -105,8 +105,8 @@ namespace Lumos
             const char* m_RendererTitle;
 
             VkDescriptorPool m_CurrentPool;
-			
-			TDArray<u32> m_UsedDescriptorPoolsCapacity;
+
+            TDArray<u32> m_UsedDescriptorPoolsCapacity;
             TDArray<VkDescriptorPool> m_UsedDescriptorPools;
             TDArray<VkDescriptorPool> m_FreeDescriptorPools;
 

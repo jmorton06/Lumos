@@ -885,7 +885,7 @@ namespace Lumos
 
         imgui["pushID"] = sol::overload((void (*)(const char*))ImGui::PushID, (void (*)(int))ImGui::PushID);
         imgui["popID"]  = ImGui::PopID;
-        imgui["getID"]  = (ImGuiID(*)(const char*))ImGui::GetID;
+        imgui["getID"]  = (ImGuiID (*)(const char*))ImGui::GetID;
 
         imgui["text"] = [](const char* _text)
         {

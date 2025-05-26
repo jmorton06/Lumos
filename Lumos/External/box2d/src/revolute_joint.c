@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2023 Erin Catto
 // SPDX-License-Identifier: MIT
 
+#if defined( _MSC_VER ) && !defined( _CRT_SECURE_NO_WARNINGS )
 #define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include "body.h"
 #include "core.h"
@@ -98,6 +100,10 @@ float b2RevoluteJoint_GetUpperLimit( b2JointId jointId )
 
 void b2RevoluteJoint_SetLimits( b2JointId jointId, float lower, float upper )
 {
+	B2_ASSERT( lower <= upper );
+	B2_ASSERT( lower >= -0.95f * B2_PI );
+	B2_ASSERT( upper <= 0.95f * B2_PI );
+
 	b2JointSim* joint = b2GetJointSimCheckType( jointId, b2_revoluteJoint );
 	if ( lower != joint->revoluteJoint.lowerAngle || upper != joint->revoluteJoint.upperAngle )
 	{
@@ -181,23 +187,6 @@ float b2GetRevoluteJointTorque( b2World* world, b2JointSim* base )
 // J = [0 0 -1 0 0 1]
 // K = invI1 + invI2
 
-// Body State
-// The solver operates on the body state. The body state array does not hold static bodies. Static bodies are shared
-// across worker threads. It would be okay to read their states, but writing to them would cause cache thrashing across
-// workers, even if the values don't change.
-// This causes some trouble when computing anchors. I rotate the anchors using the body rotation every sub-step. For static
-// bodies the anchor doesn't rotate. Body A or B could be static and this can lead to lots of branching. This branching
-// should be minimized.
-//
-// Solution 1:
-// Use delta rotations. This means anchors need to be prepared in world space. The delta rotation for static bodies will be
-// identity. Base separation and angles need to be computed. Manifolds will be behind a frame, but that is probably best if bodies
-// move fast.
-//
-// Solution 2:
-// Use full rotation. The anchors for static bodies will be in world space while the anchors for dynamic bodies will be in local
-// space. Potentially confusing and bug prone.
-
 void b2PrepareRevoluteJoint( b2JointSim* base, b2StepContext* context )
 {
 	B2_ASSERT( base->type == b2_revoluteJoint );
@@ -207,29 +196,19 @@ void b2PrepareRevoluteJoint( b2JointSim* base, b2StepContext* context )
 	int idB = base->bodyIdB;
 
 	b2World* world = context->world;
-	b2Body* bodies = world->bodyArray;
 
-	b2CheckIndex( bodies, idA );
-	b2CheckIndex( bodies, idB );
-
-	b2Body* bodyA = bodies + idA;
-	b2Body* bodyB = bodies + idB;
+	b2Body* bodyA = b2BodyArray_Get( &world->bodies, idA );
+	b2Body* bodyB = b2BodyArray_Get( &world->bodies, idB );
 
 	B2_ASSERT( bodyA->setIndex == b2_awakeSet || bodyB->setIndex == b2_awakeSet );
-	b2CheckIndex( world->solverSetArray, bodyA->setIndex );
-	b2CheckIndex( world->solverSetArray, bodyB->setIndex );
-
-	b2SolverSet* setA = world->solverSetArray + bodyA->setIndex;
-	b2SolverSet* setB = world->solverSetArray + bodyB->setIndex;
+	b2SolverSet* setA = b2SolverSetArray_Get( &world->solverSets, bodyA->setIndex );
+	b2SolverSet* setB = b2SolverSetArray_Get( &world->solverSets, bodyB->setIndex );
 
 	int localIndexA = bodyA->localIndex;
 	int localIndexB = bodyB->localIndex;
 
-	B2_ASSERT( 0 <= localIndexA && localIndexA <= setA->sims.count );
-	B2_ASSERT( 0 <= localIndexB && localIndexB <= setB->sims.count );
-
-	b2BodySim* bodySimA = setA->sims.data + bodyA->localIndex;
-	b2BodySim* bodySimB = setB->sims.data + bodyB->localIndex;
+	b2BodySim* bodySimA = b2BodySimArray_Get( &setA->bodySims, localIndexA );
+	b2BodySim* bodySimB = b2BodySimArray_Get( &setB->bodySims, localIndexB );
 
 	float mA = bodySimA->invMass;
 	float iA = bodySimA->invInertia;
@@ -375,9 +354,9 @@ void b2SolveRevoluteJoint( b2JointSim* base, b2StepContext* context, bool useBia
 			}
 
 			float Cdot = wB - wA;
-			float impulse = -massScale * joint->axialMass * ( Cdot + bias ) - impulseScale * joint->lowerImpulse;
 			float oldImpulse = joint->lowerImpulse;
-			joint->lowerImpulse = b2MaxFloat( joint->lowerImpulse + impulse, 0.0f );
+			float impulse = -massScale * joint->axialMass * ( Cdot + bias ) - impulseScale * oldImpulse;
+			joint->lowerImpulse = b2MaxFloat( oldImpulse + impulse, 0.0f );
 			impulse = joint->lowerImpulse - oldImpulse;
 
 			wA -= iA * impulse;
@@ -406,9 +385,9 @@ void b2SolveRevoluteJoint( b2JointSim* base, b2StepContext* context, bool useBia
 
 			// sign flipped on Cdot
 			float Cdot = wA - wB;
-			float impulse = -massScale * joint->axialMass * ( Cdot + bias ) - impulseScale * joint->lowerImpulse;
 			float oldImpulse = joint->upperImpulse;
-			joint->upperImpulse = b2MaxFloat( joint->upperImpulse + impulse, 0.0f );
+			float impulse = -massScale * joint->axialMass * ( Cdot + bias ) - impulseScale * oldImpulse;
+			joint->upperImpulse = b2MaxFloat( oldImpulse + impulse, 0.0f );
 			impulse = joint->upperImpulse - oldImpulse;
 
 			// sign flipped on applied impulse
@@ -501,27 +480,28 @@ void b2DrawRevoluteJoint( b2DebugDraw* draw, b2JointSim* base, b2Transform trans
 	b2Vec2 pA = b2TransformPoint( transformA, base->localOriginAnchorA );
 	b2Vec2 pB = b2TransformPoint( transformB, base->localOriginAnchorB );
 
-	b2HexColor c1 = b2_colorGray7;
+	b2HexColor c1 = b2_colorGray;
 	b2HexColor c2 = b2_colorGreen;
 	b2HexColor c3 = b2_colorRed;
 
 	const float L = drawSize;
-	// draw->DrawPoint(pA, 3.0f, b2_colorGray40, draw->context);
-	// draw->DrawPoint(pB, 3.0f, b2_colorLightBlue, draw->context);
-	draw->DrawCircle( pB, L, c1, draw->context );
+	// draw->drawPoint(pA, 3.0f, b2_colorGray40, draw->context);
+	// draw->drawPoint(pB, 3.0f, b2_colorLightBlue, draw->context);
+	draw->DrawCircleFcn( pB, L, c1, draw->context );
 
 	float angle = b2RelativeAngle( transformB.q, transformA.q );
 
-	b2Vec2 r = { L * cosf( angle ), L * sinf( angle ) };
+	b2Rot rot = b2MakeRot( angle );
+	b2Vec2 r = { L * rot.c, L * rot.s };
 	b2Vec2 pC = b2Add( pB, r );
-	draw->DrawSegment( pB, pC, c1, draw->context );
+	draw->DrawSegmentFcn( pB, pC, c1, draw->context );
 
 	if ( draw->drawJointExtras )
 	{
 		float jointAngle = b2UnwindAngle( angle - joint->referenceAngle );
 		char buffer[32];
-		snprintf( buffer, 32, " %.1f deg", 180.0f * jointAngle / b2_pi );
-		draw->DrawString( pC, buffer, draw->context );
+		snprintf( buffer, 32, " %.1f deg", 180.0f * jointAngle / B2_PI );
+		draw->DrawStringFcn( pC, buffer, b2_colorWhite, draw->context );
 	}
 
 	float lowerAngle = joint->lowerAngle + joint->referenceAngle;
@@ -529,20 +509,24 @@ void b2DrawRevoluteJoint( b2DebugDraw* draw, b2JointSim* base, b2Transform trans
 
 	if ( joint->enableLimit )
 	{
-		b2Vec2 rlo = { L * cosf( lowerAngle ), L * sinf( lowerAngle ) };
-		b2Vec2 rhi = { L * cosf( upperAngle ), L * sinf( upperAngle ) };
+		b2Rot rotLo = b2MakeRot( lowerAngle );
+		b2Vec2 rlo = { L * rotLo.c, L * rotLo.s };
 
-		draw->DrawSegment( pB, b2Add( pB, rlo ), c2, draw->context );
-		draw->DrawSegment( pB, b2Add( pB, rhi ), c3, draw->context );
+		b2Rot rotHi = b2MakeRot( upperAngle );
+		b2Vec2 rhi = { L * rotHi.c, L * rotHi.s };
 
-		b2Vec2 ref = ( b2Vec2 ){ L * cosf( joint->referenceAngle ), L * sinf( joint->referenceAngle ) };
-		draw->DrawSegment( pB, b2Add( pB, ref ), b2_colorBlue, draw->context );
+		draw->DrawSegmentFcn( pB, b2Add( pB, rlo ), c2, draw->context );
+		draw->DrawSegmentFcn( pB, b2Add( pB, rhi ), c3, draw->context );
+
+		b2Rot rotRef = b2MakeRot( joint->referenceAngle );
+		b2Vec2 ref = (b2Vec2){ L * rotRef.c, L * rotRef.s };
+		draw->DrawSegmentFcn( pB, b2Add( pB, ref ), b2_colorBlue, draw->context );
 	}
 
 	b2HexColor color = b2_colorGold;
-	draw->DrawSegment( transformA.p, pA, color, draw->context );
-	draw->DrawSegment( pA, pB, color, draw->context );
-	draw->DrawSegment( transformB.p, pB, color, draw->context );
+	draw->DrawSegmentFcn( transformA.p, pA, color, draw->context );
+	draw->DrawSegmentFcn( pA, pB, color, draw->context );
+	draw->DrawSegmentFcn( transformB.p, pB, color, draw->context );
 
 	// char buffer[32];
 	// sprintf(buffer, "%.1f", b2Length(joint->impulse));

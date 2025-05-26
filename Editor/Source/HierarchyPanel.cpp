@@ -60,12 +60,18 @@ namespace Lumos
 
         if(!node.Valid())
             return;
+        bool visible = ImGui::IsRectVisible(ImVec2(ImGui::GetContentRegionMax().x, ImGui::GetTextLineHeightWithSpacing()));
+        if(!visible)
+        {
+            ImGui::NewLine();
+            return;
+        }
 
         Entity nodeEntity = { node, Application::Get().GetSceneManager()->GetCurrentScene() };
 
-        String8 name = PushStr8Copy(m_StringArena, node.GetName().c_str()); // StringUtilities::ToString(entt::to_integral(node));
+        String8 name = PushStr8Copy(m_StringArena, node.GetName().c_str());
 
-        if(m_HierarchyFilter.IsActive())
+        if(visible && m_HierarchyFilter.IsActive())
         {
             if(!m_HierarchyFilter.PassFilter((const char*)name.str))
             {
@@ -92,8 +98,7 @@ namespace Lumos
                 nodeFlags |= ImGuiTreeNodeFlags_Leaf;
             }
 
-            // auto activeComponent = registry.try_get<ActiveComponent>(node);
-            bool active = Entity(node, m_Editor->GetCurrentScene()).Active(); // activeComponent ? activeComponent->active : true;
+            bool active = visible && Entity(node, m_Editor->GetCurrentScene()).Active();
 
             if(!active)
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
@@ -117,12 +122,16 @@ namespace Lumos
             String8 icon  = Str8C((char*)ICON_MDI_CUBE_OUTLINE);
             auto& iconMap = m_Editor->GetComponentIconMap();
 
-            if(node.HasComponent<Camera>())
+            if(!visible)
+            {
+                icon = Str8C((char*)ICON_MDI_CUBE_OUTLINE);
+            }
+            else if(node.HasComponent<Camera>())
             {
                 if(iconMap.find(typeid(Camera).hash_code()) != iconMap.end())
                     icon = Str8C((char*)iconMap[typeid(Camera).hash_code()]);
             }
-            if(node.HasComponent<LuaScriptComponent>())
+            else if(node.HasComponent<LuaScriptComponent>())
             {
                 if(iconMap.find(typeid(LuaScriptComponent).hash_code()) != iconMap.end())
                     icon = Str8C((char*)iconMap[typeid(LuaScriptComponent).hash_code()]);
@@ -159,7 +168,7 @@ namespace Lumos
             }
 
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetIconColour());
-            // ImGui::BeginGroup();
+
             bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)node.GetID(), nodeFlags, "%s", (const char*)icon.str);
             {
                 if(ImGui::BeginDragDropSource())
@@ -204,7 +213,7 @@ namespace Lumos
                     m_DoubleClicked = {};
             }
 
-            if(ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered(ImGuiHoveredFlags_None))
+            if(visible && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered(ImGuiHoveredFlags_None))
             {
                 m_DoubleClicked = node;
                 if(Application::Get().GetEditorState() == EditorState::Preview)
@@ -247,7 +256,6 @@ namespace Lumos
                 if(isPrefab)
                     ImGui::PopStyleColor();
             }
-            // ImGui::EndGroup();
 
             if(doubleClicked)
             {
@@ -457,7 +465,7 @@ namespace Lumos
             verticalLineStart.x += SmallOffsetX; // to nicely line up with the arrow symbol
             ImVec2 verticalLineEnd = verticalLineStart;
 
-            if(!noChildren)
+            if(visible && !noChildren)
             {
                 entt::entity child = hierarchyComponent->First();
                 while(child != entt::null && registry.valid(child))

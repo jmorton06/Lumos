@@ -35,7 +35,7 @@ namespace Lumos
             static void Release();
             void LoadEngineShaders(bool loadEmbeddedShaders, const std::string& engineShaderPath);
             virtual void InitInternal()                            = 0;
-            virtual void Begin()                                   = 0;
+            virtual bool Begin()                                   = 0;
             virtual void OnResize(uint32_t width, uint32_t height) = 0;
             virtual void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Vec4 clearColour = Vec4(0.1f, 0.1f, 0.1f, 1.0f)) { }
             inline static Renderer* GetRenderer()
@@ -47,14 +47,14 @@ namespace Lumos
             virtual void PresentInternal(Graphics::CommandBuffer* commandBuffer)                                                                                                                                      = 0;
             virtual void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount) = 0;
 
-            virtual const char* GetTitleInternal() const                                                                             = 0;
+            virtual const char* GetTitleInternal() const                                                                                    = 0;
             virtual void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const             = 0;
             virtual void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const = 0;
             virtual void Dispatch(CommandBuffer* commandBuffer, uint32_t workGroupSizeX, uint32_t workGroupSizeY, uint32_t workGroupSizeZ) { }
             virtual void DrawSplashScreen(Texture* texture) { }
             virtual uint32_t GetGPUCount() const { return 1; }
             virtual bool SupportsCompute() { return false; }
-            virtual void SaveScreenshot(const std::string& path, Graphics::Texture* texture = nullptr) {};
+            virtual void SaveScreenshot(const std::string& path, Graphics::Texture* texture = nullptr) { };
             virtual RHIFormat GetDepthFormat() { return RHIFormat::D32_Float; };
 
             inline static void Present()

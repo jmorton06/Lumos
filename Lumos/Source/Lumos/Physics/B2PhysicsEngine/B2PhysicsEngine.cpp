@@ -36,7 +36,6 @@ namespace Lumos
                         B2DebugDraw::DrawCircle,
                         B2DebugDraw::DrawSolidCircle,
                         0, // capsule
-                        0, // solid capsule
                         B2DebugDraw::DrawSegment,
                         B2DebugDraw::DrawTransform,
                         B2DebugDraw::DrawPoint,
@@ -48,11 +47,14 @@ namespace Lumos
                         false, // joint extras
                         false, // aabbs
                         false, // mass
+                        true,  // draw names
                         false, // contacts
                         false, // colors
                         false, // normals
                         false, // impulse
+                        false, // features
                         false, // friction
+                        false, // islands
                         this };
     }
 
@@ -160,7 +162,7 @@ namespace Lumos
         // m_DebugDraw.drawShapes = true;
         m_DebugDraw.drawJoints           = m_DebugDrawFlags & PhysicsDebugFlags2D::CONSTRAINT2D;
         m_DebugDraw.drawJointExtras      = m_DebugDrawFlags & PhysicsDebugFlags2D::CONSTRAINT2D;
-        m_DebugDraw.drawAABBs            = m_DebugDrawFlags & PhysicsDebugFlags2D::AABB2D;
+        m_DebugDraw.drawBounds           = m_DebugDrawFlags & PhysicsDebugFlags2D::AABB2D;
         m_DebugDraw.drawMass             = m_DebugDrawFlags & PhysicsDebugFlags2D::AABB2D;
         m_DebugDraw.drawContacts         = m_DebugDrawFlags & PhysicsDebugFlags2D::AABB2D;
         m_DebugDraw.drawContactNormals   = m_DebugDrawFlags & PhysicsDebugFlags2D::COLLISIONNORMALS2D;
@@ -180,9 +182,6 @@ namespace Lumos
 
     void B2PhysicsEngine::SyncTransforms(Scene* scene)
     {
-        if(m_Paused)
-            return;
-
         if(!scene)
             return;
 
@@ -199,7 +198,7 @@ namespace Lumos
 
             trans.SetLocalPosition(Vec3(phys.GetRigidBody()->GetPosition(), trans.GetLocalPosition().z));
             trans.SetLocalOrientation(Quat(Vec3(0.0f, 0.0f, Maths::ToDegrees(phys.GetRigidBody()->GetAngle()))));
-            trans.SetWorldMatrix(Mat4(1.0f)); // TODO: temp
+            // trans.SetWorldMatrix(Mat4(1.0f)); // TODO: temp
         };
     }
 }

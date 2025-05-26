@@ -12,7 +12,7 @@
 typedef struct b2Shape b2Shape;
 typedef struct b2MovePair b2MovePair;
 typedef struct b2MoveResult b2MoveResult;
-typedef struct b2StackAllocator b2StackAllocator;
+typedef struct b2ArenaAllocator b2ArenaAllocator;
 typedef struct b2World b2World;
 
 // Store the proxy type in the lower 2 bits of the proxy key. This leaves 30 bits for the id.
@@ -34,7 +34,7 @@ typedef struct b2BroadPhase
 	// todo implement a 32bit hash set for faster lookup
 	// todo moveSet can grow quite large on the first time step and remain large
 	b2HashSet moveSet;
-	int* moveArray;
+	b2IntArray moveArray;
 
 	// These are the results from the pair query and are used to create new contacts
 	// in deterministic order.
@@ -42,7 +42,7 @@ typedef struct b2BroadPhase
 	b2MoveResult* moveResults;
 	b2MovePair* movePairs;
 	int movePairCapacity;
-	_Atomic int movePairIndex;
+	b2AtomicInt movePairIndex;
 
 	// Tracks shape pairs that have a b2Contact
 	// todo pairSet can grow quite large on the first time step and remain large
@@ -53,7 +53,7 @@ typedef struct b2BroadPhase
 void b2CreateBroadPhase( b2BroadPhase* bp );
 void b2DestroyBroadPhase( b2BroadPhase* bp );
 
-int b2BroadPhase_CreateProxy( b2BroadPhase* bp, b2BodyType proxyType, b2AABB aabb, uint32_t categoryBits, int shapeIndex,
+int b2BroadPhase_CreateProxy( b2BroadPhase* bp, b2BodyType proxyType, b2AABB aabb, uint64_t categoryBits, int shapeIndex,
 							  bool forcePairCreation );
 void b2BroadPhase_DestroyProxy( b2BroadPhase* bp, int proxyKey );
 
@@ -78,6 +78,6 @@ static inline void b2BufferMove( b2BroadPhase* bp, int queryProxy )
 	bool alreadyAdded = b2AddKey( &bp->moveSet, queryProxy + 1 );
 	if ( alreadyAdded == false )
 	{
-		b2Array_Push( bp->moveArray, queryProxy );
+		b2IntArray_Push( &bp->moveArray, queryProxy );
 	}
 }

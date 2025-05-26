@@ -16,7 +16,7 @@ namespace Lumos
 
             virtual ~Framebuffer();
 
-            virtual void Validate() {};
+            virtual void Validate() { };
 
             virtual uint32_t GetWidth() const               = 0;
             virtual uint32_t GetHeight() const              = 0;

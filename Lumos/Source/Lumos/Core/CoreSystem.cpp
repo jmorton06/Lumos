@@ -62,7 +62,7 @@ namespace Lumos
 
             ArenaClear(s_Arena);
 
-            MemoryManager::OnShutdown();
+            MemoryManager::Release();
             ThreadContextRelease(GetThreadContext());
         }
 

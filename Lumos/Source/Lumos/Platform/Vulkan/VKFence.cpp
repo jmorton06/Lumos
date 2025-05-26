@@ -77,12 +77,14 @@ namespace Lumos
 
         bool VKFence::WaitAndReset()
         {
-             LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION();
             bool succeeded = true;
             if(!IsSignaled())
                 succeeded = Wait();
 
-            Reset();
+            if(succeeded)
+                Reset();
+
             return succeeded;
         }
     }

@@ -59,28 +59,11 @@ namespace Lumos
 #if defined(CUSTOM_MEMORY_ALLOCATOR) && defined(LUMOS_ENGINE)
 
 #ifdef LUMOS_PLATFORM_WINDOWS
-_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(size)
-_VCRT_ALLOCATOR
 void* __CRTDECL operator new(size_t size);
-
-_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(size)
-_VCRT_ALLOCATOR
 void* __CRTDECL operator new[](size_t size);
-
-_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(size)
-_VCRT_ALLOCATOR
 void* __CRTDECL operator new(size_t size, const char* desc);
-
-_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(size)
-_VCRT_ALLOCATOR
 void* __CRTDECL operator new[](size_t size, const char* desc);
-
-_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(size)
-_VCRT_ALLOCATOR
 void* __CRTDECL operator new(size_t size, const char* file, int line);
-
-_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(size)
-_VCRT_ALLOCATOR
 void* __CRTDECL operator new[](size_t size, const char* file, int line);
 
 void __CRTDECL operator delete(void* memory);
