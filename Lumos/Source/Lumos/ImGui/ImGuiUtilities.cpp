@@ -1550,7 +1550,7 @@ bool ImGuiUtilities::InputText(std::string& currentText, const char* ID)
     ImGuiUtilities::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
     ImGuiUtilities::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
 
-    // Registrar el callback una sola vez
+#ifdef LUMOS_PLATFORM_IOS
     static auto RegisterCallback = []() {
         static bool registered = false;
         if (!registered) {
@@ -1564,6 +1564,7 @@ bool ImGuiUtilities::InputText(std::string& currentText, const char* ID)
         }
     };
     RegisterCallback();
+#endif
 
     // Preparar buffer con el texto actual
     memset(buffer, 0, sizeof(buffer));
@@ -1583,7 +1584,7 @@ bool ImGuiUtilities::InputText(std::string& currentText, const char* ID)
     if (ImGui::IsItemActivated() && !keyboardActive) {
         keyboardActive = true;
 
-        #if __APPLE__
+        #if LUMOS_PLATFORM_IOS
             #if defined(VIRTUAL_KEYBOARD)
                 ImGuiUtilities::VirtualKeyboard(currentText);
             #else
