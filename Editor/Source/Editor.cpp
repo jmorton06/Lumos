@@ -1238,7 +1238,7 @@ namespace Lumos
             ImGui::Separator();
             ImGui::TextUnformatted("Create New Project?\n");
 
-            static std::string newProjectName = "New Project";
+            static std::string newProjectName = "New Project Name";
             ImGuiUtilities::InputText(newProjectName, "##ProjectNameChange");
 
             if(ImGui::Button(ICON_MDI_FOLDER))
@@ -2868,12 +2868,14 @@ namespace Lumos
         m_Settings.m_RecentProjects.erase(std::unique(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end()), m_Settings.m_RecentProjects.end());
         m_IniFile.SetOrAdd("RecentProjectCount", int(m_Settings.m_RecentProjects.size()));
 
-        for(int i = 0; i < int(m_Settings.m_RecentProjects.size()); i++)
-        {
-            m_IniFile.SetOrAdd("RecentProject" + std::to_string(i), m_Settings.m_RecentProjects[i]);
-        }
+        if (m_Settings.m_RecentProjects.size() > 0) {
+            for(int i = 0; i < int(m_Settings.m_RecentProjects.size()); i++)
+            {
+                m_IniFile.SetOrAdd("RecentProject" + std::to_string(i), m_Settings.m_RecentProjects[i]);
+            }
 
-        m_IniFile.Rewrite();
+            m_IniFile.Rewrite();
+        }
     }
 
     void Editor::AddDefaultEditorSettings()
@@ -2915,6 +2917,7 @@ namespace Lumos
         m_IniFile.Add("CameraSpeed", m_Settings.m_CameraSpeed);
         m_IniFile.Add("CameraNear", m_Settings.m_CameraNear);
         m_IniFile.Add("CameraFar", m_Settings.m_CameraFar);
+        
         m_IniFile.Rewrite();
     }
 
