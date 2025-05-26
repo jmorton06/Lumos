@@ -14,9 +14,9 @@ layout (set = 0, binding = 0) uniform UniformBuffer
 	int pad;
 } ubo;
 
-layout (set = 0,binding = 1) uniform sampler2D in_Depth;
-layout (set = 0,binding = 2) uniform sampler2D in_SSAO;
-layout (set = 0,binding = 3) uniform sampler2D in_Normal;
+layout (set = 0,binding = 1) uniform sampler2D in_SSAO;
+layout (set = 0,binding = 2) uniform sampler2D in_Normal;
+layout (set = 0,binding = 3) uniform sampler2D in_Depth;
 
 void main()
 {
@@ -25,7 +25,7 @@ void main()
 
 	int sampleCount = 0;
 	float sum = 0.0f;
-	for (int i = -ubo.ssaoBlurRadius; i <= ubo.ssaoBlurRadius; i++) 
+	for (int i = -ubo.ssaoBlurRadius; i <= ubo.ssaoBlurRadius; i++)
 	{
 		vec2 offset = ubo.ssaoTexelOffset * float(i);
 		float depth = texture(in_Depth, outTexCoord + offset).r;

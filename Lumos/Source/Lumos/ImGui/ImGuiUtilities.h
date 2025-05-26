@@ -95,6 +95,12 @@ namespace Lumos
         Vec4 GetIconColour();
 
         void DrawItemActivityOutline(float rounding = 0.0f, bool drawWhenInactive = false, ImColor colourWhenActive = ImColor(80, 80, 80));
+    
+        bool VirtualKeyboard(std::string& currentText);
+    
+        extern "C" void RegisterTextChangedCallback(void (*callback)(void));
+        extern "C" void OpeniOSKeyboard(std::string* cppString);
+    
         bool InputText(std::string& currentText, const char* ID);
         void ClippedText(const ImVec2& pos_min, const ImVec2& pos_max, const char* text, const char* text_end, const ImVec2* text_size_if_known, const ImVec2& align, const ImRect* clip_rect, float wrap_width);
         void ClippedText(ImDrawList* draw_list, const ImVec2& pos_min, const ImVec2& pos_max, const char* text, const char* text_display_end, const ImVec2* text_size_if_known, const ImVec2& align, const ImRect* clip_rect, float wrap_width);

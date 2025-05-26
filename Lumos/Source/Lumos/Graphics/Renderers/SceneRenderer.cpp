@@ -1192,7 +1192,6 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_GPU("Render Passes");
 
         auto& sceneRenderSettings       = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
-        sceneRenderSettings.SSAOEnabled = false;
         {
             LUMOS_PROFILE_GPU("Clear Main Texture Pass");
             Renderer::GetRenderer()->ClearRenderTarget(m_MainTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
@@ -1228,10 +1227,10 @@ namespace Lumos::Graphics
         if(sceneRenderSettings.DepthPrePass)
             DepthPrePass();
 
-        if(m_MainTextureSamples > 1)
-        {
-            sceneRenderSettings.SSAOEnabled = false;
-        }
+        // if(m_MainTextureSamples > 1)
+        // {
+        //     sceneRenderSettings.SSAOEnabled = false;
+        // }
 
         if(sceneRenderSettings.SSAOEnabled && !m_DisablePostProcess)
         {
@@ -1784,9 +1783,9 @@ namespace Lumos::Graphics
         data.strength                              = renderSettings.SSAOStrength;
 
         m_SSAOPassDescriptorSet->SetUniformBufferData(0, &data);
-        m_SSAOPassDescriptorSet->SetTexture(1, m_ForwardData.m_DepthTexture);
-        m_SSAOPassDescriptorSet->SetTexture(3, m_NoiseTexture);
-        m_SSAOPassDescriptorSet->SetTexture(2, m_NormalTexture);
+        m_SSAOPassDescriptorSet->SetTexture(3, m_ForwardData.m_DepthTexture);
+        m_SSAOPassDescriptorSet->SetTexture(2, m_NoiseTexture);
+        m_SSAOPassDescriptorSet->SetTexture(1, m_NormalTexture);
         m_SSAOPassDescriptorSet->Update();
 
         auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
@@ -1833,9 +1832,9 @@ namespace Lumos::Graphics
         data.blurRadius = renderSettings.SSAOBlurRadius;
 
         m_SSAOBlurPassDescriptorSet->SetUniformBufferData(0, &data);
-        m_SSAOBlurPassDescriptorSet->SetTexture(1, m_ForwardData.m_DepthTexture);
-        m_SSAOBlurPassDescriptorSet->SetTexture(2, m_SSAOTexture);
-        m_SSAOBlurPassDescriptorSet->SetTexture(3, m_NormalTexture);
+        m_SSAOBlurPassDescriptorSet->SetTexture(3, m_ForwardData.m_DepthTexture);
+        m_SSAOBlurPassDescriptorSet->SetTexture(1, m_SSAOTexture);
+        m_SSAOBlurPassDescriptorSet->SetTexture(2, m_NormalTexture);
         m_SSAOBlurPassDescriptorSet->TransitionImages(commandBuffer);
         m_SSAOBlurPassDescriptorSet->Update();
 
@@ -1843,9 +1842,9 @@ namespace Lumos::Graphics
         data.texelOffset[0] = 0.0f;
 
         m_SSAOBlurPassDescriptorSet2->SetUniformBufferData(0, &data);
-        m_SSAOBlurPassDescriptorSet2->SetTexture(1, m_ForwardData.m_DepthTexture);
-        m_SSAOBlurPassDescriptorSet2->SetTexture(2, m_SSAOTexture1);
-        m_SSAOBlurPassDescriptorSet2->SetTexture(3, m_NormalTexture);
+        m_SSAOBlurPassDescriptorSet2->SetTexture(3, m_ForwardData.m_DepthTexture);
+        m_SSAOBlurPassDescriptorSet2->SetTexture(1, m_SSAOTexture1);
+        m_SSAOBlurPassDescriptorSet2->SetTexture(2, m_NormalTexture);
 
         auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
         commandBuffer->BindPipeline(pipeline);
