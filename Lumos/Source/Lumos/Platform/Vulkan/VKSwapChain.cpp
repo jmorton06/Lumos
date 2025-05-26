@@ -285,6 +285,8 @@ namespace Lumos
                         return false;
 #endif
                     }
+                    
+                    return true;
 
                 }
                 else if(result != VK_SUCCESS)

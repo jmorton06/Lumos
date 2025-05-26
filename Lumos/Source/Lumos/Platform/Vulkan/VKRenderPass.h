@@ -30,6 +30,7 @@ namespace Lumos
             VkClearValue* m_ClearValue;
             int m_ClearCount;
             int m_ColourAttachmentCount;
+            int m_DepthAttachmentIndex;
             bool m_DepthOnly;
             bool m_ClearDepth;
             bool m_SwapchainTarget;

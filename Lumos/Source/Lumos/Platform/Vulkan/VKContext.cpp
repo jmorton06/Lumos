@@ -229,7 +229,7 @@ namespace Lumos
             // Warnings may hint at unexpected / non-spec API usage
             if(flags & VK_DEBUG_REPORT_WARNING_BIT_EXT)
             {
-                LWARN("[VULKAN] - WARNING : [%s] Code %i  : {2}", pLayerPrefix, msgCode, pMsg);
+                LWARN("[VULKAN] - WARNING : [%s] Code %i  : %s", pLayerPrefix, msgCode, pMsg);
             }
             // May indicate sub-optimal usage of the API
             if(flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)

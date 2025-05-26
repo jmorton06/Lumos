@@ -167,7 +167,7 @@ namespace Lumos
         std::filesystem::path getDocumentsDirectory() {
             const char* home = std::getenv("HOME");  // Obtiene el sandbox de la app
             if (!home) {
-                std::cerr << "Can't obtain HOME" << std::endl;
+                LERROR("Can't obtain HOME");
                 return "";
             }
             return std::filesystem::path(home) / "Documents";  // Carpeta segura en iOS
@@ -367,13 +367,13 @@ file << "P6\n"
             uint32_t height = texture->GetHeight();
 
             // Create directory if needed
-            std::cout << "Creating Directories: " << path << std::endl;
+            LINFO("Creating Directories: %s", path.c_str());
             if (std::filesystem::path(getDocumentsDirectory() / path).has_parent_path()) {
                 try {
                     std::filesystem::create_directories(std::filesystem::path(getDocumentsDirectory() / path));
-                    std::cout << "Directorio creado en: " << path << std::endl;
+                    LINFO("Created Directory : %s", path.c_str());
                 } catch (const std::filesystem::filesystem_error& e) {
-                    std::cerr << "Error al crear el directorio: " << e.what() << std::endl;
+                    LERROR("Error creating directory : %s", e.what());
                 }
             }
 

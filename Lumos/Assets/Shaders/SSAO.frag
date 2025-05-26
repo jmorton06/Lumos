@@ -6,9 +6,9 @@
 
 layout(location = 0) in vec2 outTexCoord;
 
-layout (set = 0, binding = 1) uniform sampler2D in_Depth;
-layout (set = 0, binding = 2) uniform sampler2D in_Normal;
-layout (set = 0, binding = 3) uniform sampler2D in_Noise;
+layout (set = 0, binding = 1) uniform sampler2D in_Normal;
+layout (set = 0, binding = 2) uniform sampler2D in_Noise;
+layout (set = 0, binding = 3) uniform sampler2D in_Depth;
 
 layout(location = 0) out vec4 fragColour;
 
@@ -28,19 +28,16 @@ layout(set = 0, binding = 0) uniform UniformBuffer
 float LinearizeDepth(float depth)
 {
     float z = depth * 2.0 - 1.0; // back to NDC
-    return z;//(2.0 * ubo.near * ubo.far) / (ubo.far + ubo.near - z * (ubo.far - ubo.near));
+    return (2.0 * ubo.near * ubo.far) / (ubo.far + ubo.near - z * (ubo.far - ubo.near));
 }
 
-    // TODO:  Crytek's view frustum ray method
 vec3 reconstructVSPosFromDepth(vec2 uv)
 {
-	float depth = texture(in_Depth, uv).r;
-	depth = LinearizeDepth(depth); // Remap depth from [0, 1] to [-1, 1]
-	float x = uv.x * 2.0 - 1.0;
-	float y = (uv.y) * 2.0 - 1.0;
-  	vec4 pos = vec4(x, y, depth, 1.0);
-  	vec4 posVS = ubo.invProj * pos;
-  	return posVS.xyz / posVS.w;
+    float depth = texture(in_Depth, uv).r;
+    float z = depth * 2.0 - 1.0;
+    vec4 clipPos = vec4(uv * 2.0 - 1.0, z, 1.0);
+    vec4 viewPos = ubo.invProj * clipPos;
+    return viewPos.xyz / viewPos.w;
 }
 
 const int MAX_KERNEL_SIZE = 32;
@@ -51,7 +48,7 @@ const vec2 HALF_2 = vec2(0.5);
 
 vec3 GetNormal(vec2 uv)
 {
-	return normalize(mat3(ubo.view) * (texture(in_Normal, uv).xyz * 2.0f - 1.0f));
+    return normalize(texture(in_Normal, uv).xyz * 2.0f - 1.0f);
 }
 
 void main()
@@ -97,28 +94,23 @@ void main()
 		vec3 sampledNormal = GetNormal(offset.xy);
 		vec3 reconstructedPos = reconstructVSPosFromDepth(offset.xy);
 
-		if (dot(sampledNormal, normal) > 0.99)
-		{
-			++sampleCount;
-		}
-		else
-		{
-			//float rangeCheck = smoothstep(0.0f, 1.0f, ubo.ssaoRadius / abs(reconstructedPos.z - samplePos.z - bias));
-			//occlusion += (reconstructedPos.z <= samplePos.z - bias ? 1.0f : 0.0f) * rangeCheck;
+		if (dot(sampledNormal, normal) > 0.7)
+        {
+            ++sampleCount;
+        }
+        else
+        {
+            float rangeCheck = smoothstep(0.0f, 1.0f, ubo.ssaoRadius / abs(-reconstructedPos.z + samplePos.z - bias));
+            occlusion += (reconstructedPos.z > samplePos.z - bias ? 1.0f : 0.0f) * rangeCheck;
+            ++sampleCount;
+        }
 
-			//vec3 diff = posVS - reconstructedPos;
-			//float l = length(diff);
-			//float rangeCheck = smoothstep(0.0f, 1.0f, ubo.ssaoRadius / abs(reconstructedPos.z - samplePos.z - bias));//abs(diff.z - bias));
-            //occlusion += (reconstructedPos.z <= samplePos.z - bias ? 1.0f : 0.0f) * rangeCheck;
-			//++sampleCount;
-
-			float rangeCheck = smoothstep(0.0f, 1.0f, ubo.ssaoRadius / abs(-reconstructedPos.z + samplePos.z - bias));
-			occlusion += (reconstructedPos.z > samplePos.z - bias ? 1.0f : 0.0f) * rangeCheck;
-			++sampleCount;
-		}
 	}
-	occlusion = 1.0f - (occlusion * INV_MAX_KERNEL_SIZE_F);
+	//occlusion = 1.0f - (occlusion * INV_MAX_KERNEL_SIZE_F);
+	//occlusion = pow(occlusion, ubo.strength);
+
+	occlusion = clamp(1.0 - occlusion * INV_MAX_KERNEL_SIZE_F, 0.0, 1.0);
 	occlusion = pow(occlusion, ubo.strength);
-	//fragColour = vec4(posVS,1.0);
+
 	fragColour = occlusion.xxxx;
 }
