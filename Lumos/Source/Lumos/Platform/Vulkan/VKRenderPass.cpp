@@ -11,6 +11,7 @@
 #include "Core/Application.h"
 #include "Core/OS/Window.h"
 #include "Core/Engine.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
@@ -21,6 +22,7 @@ namespace Lumos
         VKRenderPass::VKRenderPass(const RenderPassDesc& renderPassDesc)
             : m_ClearCount(0)
             , m_DepthOnly(false)
+            , m_DepthAttachmentIndex(0)
         {
             m_ClearValue      = NULL;
             m_ClearDepth      = false;
@@ -90,7 +92,7 @@ namespace Lumos
             }
 
             attachment.samples        = samples > 1 ? (VkSampleCountFlagBits)samples : VK_SAMPLE_COUNT_1_BIT;
-            attachment.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+
             attachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
             attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             attachment.flags          = 0;
@@ -156,6 +158,7 @@ namespace Lumos
 
                 if(renderPassDesc.attachmentTypes[i] == TextureType::DEPTH || renderPassDesc.attachmentTypes[i] == TextureType::DEPTHARRAY)
                 {
+                    m_DepthAttachmentIndex = i;
                     {
                         VkSubpassDependency& depedency = dependencies.EmplaceBack();
                         depedency.srcSubpass           = VK_SUBPASS_EXTERNAL;
@@ -233,8 +236,8 @@ namespace Lumos
             renderPassCreateInfo.pAttachments           = attachments.Data();
             renderPassCreateInfo.subpassCount           = 1;
             renderPassCreateInfo.pSubpasses             = &subpass;
-            renderPassCreateInfo.dependencyCount        = 0;       // static_cast<uint32_t>(dependencies.Size());
-            renderPassCreateInfo.pDependencies          = nullptr; // dependencies.Data();
+            renderPassCreateInfo.dependencyCount        = 0;//static_cast<uint32_t>(dependencies.Size());
+            renderPassCreateInfo.pDependencies          = nullptr;// dependencies.Data();
 
             VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Get().GetDevice(), &renderPassCreateInfo, VK_NULL_HANDLE, &m_RenderPass));
 
@@ -278,8 +281,11 @@ namespace Lumos
 
             if(m_ClearDepth)
             {
-                m_ClearValue[m_ClearCount - 1].depthStencil = VkClearDepthStencilValue { 1.0f, 0 };
+                m_ClearValue[m_DepthAttachmentIndex].depthStencil = VkClearDepthStencilValue { 1.0f, 0 };
             }
+
+			float RenderPassWidth = Maths::Max(width, 1.0f);
+			float RenderPassHeight = Maths::Max(height, 1.0f);
 
             VkRenderPassBeginInfo rpBegin    = {};
             rpBegin.sType                    = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -288,8 +294,8 @@ namespace Lumos
             rpBegin.framebuffer              = static_cast<VKFramebuffer*>(frame)->GetFramebuffer();
             rpBegin.renderArea.offset.x      = 0;
             rpBegin.renderArea.offset.y      = 0;
-            rpBegin.renderArea.extent.width  = width;
-            rpBegin.renderArea.extent.height = height;
+            rpBegin.renderArea.extent.width  = RenderPassWidth;
+            rpBegin.renderArea.extent.height = RenderPassHeight;
             rpBegin.clearValueCount          = uint32_t(m_ClearCount);
             rpBegin.pClearValues             = m_ClearValue;
 
@@ -302,7 +308,7 @@ namespace Lumos
             }
 
             vkCmdBeginRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), &rpBegin, SubPassContentsToVK(contents));
-            commandBuffer->UpdateViewport(width, height, m_SwapchainTarget);
+            commandBuffer->UpdateViewport(RenderPassWidth, RenderPassHeight, m_SwapchainTarget);
 
             s_ActiveCount++;
             Engine::Get().Statistics().BoundSceneRenderer++;
