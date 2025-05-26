@@ -162,6 +162,16 @@ namespace Lumos
         {
             return m_RendererTitle;
         }
+    
+        // Extract iOS User Documents Folder
+        std::filesystem::path getDocumentsDirectory() {
+            const char* home = std::getenv("HOME");  // Obtiene el sandbox de la app
+            if (!home) {
+                std::cerr << "Can't obtain HOME" << std::endl;
+                return "";
+            }
+            return std::filesystem::path(home) / "Documents";  // Carpeta segura en iOS
+        }
 
         void VKRenderer::SaveScreenshot(const std::string& path, Graphics::Texture* texture)
         {
@@ -357,7 +367,15 @@ file << "P6\n"
             uint32_t height = texture->GetHeight();
 
             // Create directory if needed
-            std::filesystem::create_directories(std::filesystem::path(path).parent_path()); // TODO: move this away from vkrenderer
+            std::cout << "Creating Directories: " << path << std::endl;
+            if (std::filesystem::path(getDocumentsDirectory() / path).has_parent_path()) {
+                try {
+                    std::filesystem::create_directories(std::filesystem::path(getDocumentsDirectory() / path));
+                    std::cout << "Directorio creado en: " << path << std::endl;
+                } catch (const std::filesystem::filesystem_error& e) {
+                    std::cerr << "Error al crear el directorio: " << e.what() << std::endl;
+                }
+            }
 
             int32_t resWrite = stbi_write_png(
                 path.c_str(),
