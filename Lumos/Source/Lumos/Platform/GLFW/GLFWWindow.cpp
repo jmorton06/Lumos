@@ -127,7 +127,7 @@ namespace Lumos
         }
 #endif
         SetBorderlessWindow(properties.Borderless);
-        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+        GLFWmonitor* monitor    = glfwGetPrimaryMonitor();
         const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
         uint32_t ScreenWidth  = 0;

@@ -658,8 +658,6 @@ namespace Lumos::Graphics
                     delete m_DebugDrawData.m_LineVertexBuffers[0][i];
                 }
         }
-
-        DebugRenderer::Release();
     }
 
     void SceneRenderer::OnResize(uint32_t width, uint32_t height)
@@ -777,7 +775,7 @@ namespace Lumos::Graphics
         const auto& proj = m_Camera->GetProjectionMatrix();
         auto projView    = proj * view;
 
-        if(m_DebugRenderEnabled)
+        if(m_DebugRenderEnabled && DebugRenderer::GetInstance())
         {
             DebugRenderer::GetInstance()->SetDimensions(m_MainTexture->GetWidth(), m_MainTexture->GetHeight());
             DebugRenderer::GetInstance()->SetProjView(projView);
@@ -1191,7 +1189,7 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Render Passes");
 
-        auto& sceneRenderSettings       = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
+        auto& sceneRenderSettings = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
         {
             LUMOS_PROFILE_GPU("Clear Main Texture Pass");
             Renderer::GetRenderer()->ClearRenderTarget(m_MainTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
@@ -3679,7 +3677,7 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Debug Pass");
 
-        if(!m_Camera || !m_CameraTransform)
+        if(!m_Camera || !m_CameraTransform || !DebugRenderer::GetInstance())
             return;
 
         if(!m_DebugRenderDataInitialised)

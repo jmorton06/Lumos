@@ -99,7 +99,6 @@ namespace Lumos
         m_FontSize *= m_DPIScale;
 #endif
 
-
         SetImGuiKeyCodes();
         SetImGuiStyle();
 

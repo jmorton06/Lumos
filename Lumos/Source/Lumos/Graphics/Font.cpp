@@ -81,23 +81,27 @@ namespace Lumos
         static std::filesystem::path GetCacheDirectory()
         {
             const char* home = std::getenv("HOME");
-            if (!home) {
+            if(!home)
+            {
                 throw std::runtime_error("Can't obtain HOME");
             }
-            
+
             return std::filesystem::path(home) / "Documents/Lumos/Resources/Cache/FontAtlases";
         }
 
         static void CreateCacheDirectoryIfNeeded()
         {
-            try {
+            try
+            {
                 std::filesystem::path cacheDirectory = GetCacheDirectory();
-                if (!std::filesystem::exists(cacheDirectory)) {
+                if(!std::filesystem::exists(cacheDirectory))
+                {
                     std::filesystem::create_directories(cacheDirectory);
                     LINFO("Created Directory : %s", cacheDirectory.c_str());
                 }
             }
-            catch (const std::filesystem::filesystem_error& e) {
+            catch(const std::filesystem::filesystem_error& e)
+            {
                 LERROR("Failed Creating Directory : ", e.what());
             }
         }

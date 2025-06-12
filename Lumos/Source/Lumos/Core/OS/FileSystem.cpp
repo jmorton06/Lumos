@@ -147,10 +147,11 @@ namespace Lumos
         if(!FileSystem::FolderExists(path))
         {
             const char* home = std::getenv("HOME");
-            if (!home) {
+            if(!home)
+            {
                 throw std::runtime_error("Can't obtain HOME");
             }
-            
+
             std::filesystem::create_directory(std::filesystem::path(home) / "Documents/Lumos" / path);
             LINFO("Creating folder &s", path.c_str());
         }

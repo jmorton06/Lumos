@@ -7,6 +7,7 @@
 #include "VKTexture.h"
 #include "Core/Application.h"
 #include "Core/Thread.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
@@ -285,11 +286,11 @@ namespace Lumos
                         return false;
 #endif
                     }
-                    
-                    return true;
 
+                    return true;
                 }
-                else if(result != VK_SUCCESS)
+
+                if(result == VK_NOT_READY)
                 {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     FailedCount++;
@@ -311,8 +312,8 @@ namespace Lumos
 
             VKRenderer::GetGraphicsContext()->WaitIdle();
 
-            m_Width  = width;
-            m_Height = height;
+            m_Width  = Maths::Max(width, 1.0f);
+            m_Height = Maths::Max(height, 1.0f);
 
             m_OldSwapChain = m_SwapChain;
             m_SwapChain    = VK_NULL_HANDLE;

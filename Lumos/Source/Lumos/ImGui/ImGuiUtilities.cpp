@@ -1437,7 +1437,7 @@ namespace Lumos
 
     bool ImGuiUtilities::VirtualKeyboard(std::string& currentText)
     {
-        static bool shift = false;
+        static bool shift          = false;
         static bool keyboardActive = true;
 
         ImVec2 screenSize = ImGui::GetIO().DisplaySize;
@@ -1445,20 +1445,22 @@ namespace Lumos
         ImVec2 initialPos((screenSize.x - keyboardSize.x) / 2, screenSize.y - keyboardSize.y);
 
         // Si el teclado ha sido "ocultado" manualmente arrastrándolo fuera
-        if (initialPos.y > screenSize.y + 50) {
+        if(initialPos.y > screenSize.y + 50)
+        {
             keyboardActive = false;
         }
 
-        if (!keyboardActive) return false;
+        if(!keyboardActive)
+            return false;
 
         ImGui::SetNextWindowSize(keyboardSize, ImGuiCond_Once);
         ImGui::SetNextWindowPos(initialPos, ImGuiCond_Once);
 
-        ImGuiStyle& style = ImGui::GetStyle();
+        ImGuiStyle& style   = ImGui::GetStyle();
         style.WindowPadding = ImVec2(64, 16); // ←→ 32, ↓ 16
-        style.ItemSpacing = ImVec2(6, 2);     // Espaciado más compacto
+        style.ItemSpacing   = ImVec2(6, 2);   // Espaciado más compacto
 
-        if (!ImGui::Begin("Virtual Keyboard", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings))
+        if(!ImGui::Begin("Virtual Keyboard", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings))
         {
             ImGui::End();
             return true;
@@ -1466,53 +1468,71 @@ namespace Lumos
 
         // Detectar si el teclado fue arrastrado completamente fuera de la pantalla
         ImVec2 windowPos = ImGui::GetWindowPos();
-        if (windowPos.y > screenSize.y) {
+        if(windowPos.y > screenSize.y)
+        {
             keyboardActive = false;
             ImGui::End();
             return true;
         }
 
-        float spacing = style.ItemSpacing.x;
+        float spacing        = style.ItemSpacing.x;
         float availableWidth = keyboardSize.x - style.WindowPadding.x * 2 - spacing * 10.0f;
-        float baseKeyWidth = availableWidth / 11.0f;
-        float baseKeyHeight = keyboardSize.y / 8.0f;
+        float baseKeyWidth   = availableWidth / 11.0f;
+        float baseKeyHeight  = keyboardSize.y / 8.0f;
 
-        struct Key {
+        struct Key
+        {
             const char* label;
             float widthFactor;
         };
 
         std::vector<std::vector<Key>> layout = {
-            { {"1",1},{"2",1},{"3",1},{"4",1},{"5",1},{"6",1},{"7",1},{"8",1},{"9",1},{"0",1},{"Delete",1.5f} },
-            { {"q",1},{"w",1},{"e",1},{"r",1},{"t",1},{"y",1},{"u",1},{"i",1},{"o",1},{"p",1},{"Enter",1.5f} },
-            { {"a",1},{"s",1},{"d",1},{"f",1},{"g",1},{"h",1},{"j",1},{"k",1},{"l",1},{"'",1} },
-            { {"Shift",1.3f},{"z",1},{"x",1},{"c",1},{"v",1},{"b",1},{"n",1},{"m",1},{",",1},{"." ,1} }
+            { { "1", 1 }, { "2", 1 }, { "3", 1 }, { "4", 1 }, { "5", 1 }, { "6", 1 }, { "7", 1 }, { "8", 1 }, { "9", 1 }, { "0", 1 }, { "Delete", 1.5f } },
+            { { "q", 1 }, { "w", 1 }, { "e", 1 }, { "r", 1 }, { "t", 1 }, { "y", 1 }, { "u", 1 }, { "i", 1 }, { "o", 1 }, { "p", 1 }, { "Enter", 1.5f } },
+            { { "a", 1 }, { "s", 1 }, { "d", 1 }, { "f", 1 }, { "g", 1 }, { "h", 1 }, { "j", 1 }, { "k", 1 }, { "l", 1 }, { "'", 1 } },
+            { { "Shift", 1.3f }, { "z", 1 }, { "x", 1 }, { "c", 1 }, { "v", 1 }, { "b", 1 }, { "n", 1 }, { "m", 1 }, { ",", 1 }, { ".", 1 } }
         };
 
-        for (auto& row : layout) {
-            for (size_t i = 0; i < row.size(); ++i) {
-                Key& key = row[i];
+        for(auto& row : layout)
+        {
+            for(size_t i = 0; i < row.size(); ++i)
+            {
+                Key& key          = row[i];
                 std::string label = key.label;
 
-                if (shift && label != "Shift" && label != "Delete" && label != "Clear" && label != "Enter" && label != "Del") {
+                if(shift && label != "Shift" && label != "Delete" && label != "Clear" && label != "Enter" && label != "Del")
+                {
                     label[0] = toupper(label[0]);
                 }
 
                 ImVec2 keySize(baseKeyWidth * key.widthFactor, baseKeyHeight);
-                if (i > 0) ImGui::SameLine();
+                if(i > 0)
+                    ImGui::SameLine();
 
-                if (ImGui::Button(label.c_str(), keySize)) {
-                    if ((label == "Delete") && !currentText.empty()) {
+                if(ImGui::Button(label.c_str(), keySize))
+                {
+                    if((label == "Delete") && !currentText.empty())
+                    {
                         currentText.pop_back();
-                    } else if ((label == "Delete") && currentText.empty()) {
+                    }
+                    else if((label == "Delete") && currentText.empty())
+                    {
                         currentText = "";
-                    } else if (label == "Clear") {
+                    }
+                    else if(label == "Clear")
+                    {
                         currentText = "";
-                    } else if (label == "Shift") {
+                    }
+                    else if(label == "Shift")
+                    {
                         shift = !shift;
-                    } else if (label == "Enter" || label == "Done") {
+                    }
+                    else if(label == "Enter" || label == "Done")
+                    {
                         keyboardActive = false;
-                    } else {
+                    }
+                    else
+                    {
                         currentText += label;
                     }
                 }
@@ -1522,17 +1542,21 @@ namespace Lumos
 
         // Barra inferior: espacio y done
         ImGui::SetCursorPosX((keyboardSize.x - style.WindowPadding.x * 2 - baseKeyWidth * 7 - spacing) / 2);
-        if (ImGui::Button("Space", ImVec2(baseKeyWidth * 5, baseKeyHeight))) {
+        if(ImGui::Button("Space", ImVec2(baseKeyWidth * 5, baseKeyHeight)))
+        {
             currentText += " ";
         }
         ImGui::SameLine();
-        if (ImGui::Button("Clear", ImVec2(baseKeyWidth * 2, baseKeyHeight))) {
-            if (!currentText.empty()) {
+        if(ImGui::Button("Clear", ImVec2(baseKeyWidth * 2, baseKeyHeight)))
+        {
+            if(!currentText.empty())
+            {
                 currentText.pop_back();
             }
         }
         ImGui::SameLine();
-        if (ImGui::Button("Done", ImVec2(baseKeyWidth * 2, baseKeyHeight))) {
+        if(ImGui::Button("Done", ImVec2(baseKeyWidth * 2, baseKeyHeight)))
+        {
             keyboardActive = false;
         }
 
@@ -1540,61 +1564,65 @@ namespace Lumos
         return true;
     }
 
-bool ImGuiUtilities::InputText(std::string& currentText, const char* ID)
-{
-    static bool keyboardActive = false;
-    static bool updatedExternally = false;
-    static char buffer[256] = {0};
-    static std::string* currentTarget = nullptr;
+    bool ImGuiUtilities::InputText(std::string& currentText, const char* ID)
+    {
+        static bool keyboardActive        = false;
+        static bool updatedExternally     = false;
+        static char buffer[256]           = { 0 };
+        static std::string* currentTarget = nullptr;
 
-    ImGuiUtilities::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
-    ImGuiUtilities::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
+        ImGuiUtilities::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
+        ImGuiUtilities::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
 
 #ifdef LUMOS_PLATFORM_IOS
-    static auto RegisterCallback = []() {
-        static bool registered = false;
-        if (!registered) {
-            registered = true;
-            RegisterTextChangedCallback([]() {
+        static auto RegisterCallback = []()
+        {
+            static bool registered = false;
+            if(!registered)
+            {
+                registered = true;
+                RegisterTextChangedCallback([]()
+                                            {
                 if (currentTarget) {
                     strncpy(buffer, currentTarget->c_str(), sizeof(buffer) - 1);
                     updatedExternally = true;
-                }
-            });
-        }
-    };
-    RegisterCallback();
+                } });
+            }
+        };
+        RegisterCallback();
 #endif
 
-    // Preparar buffer con el texto actual
-    memset(buffer, 0, sizeof(buffer));
-    strncpy(buffer, currentText.c_str(), sizeof(buffer) - 1);
-    currentTarget = &currentText;
+        // Preparar buffer con el texto actual
+        memset(buffer, 0, sizeof(buffer));
+        strncpy(buffer, currentText.c_str(), sizeof(buffer) - 1);
+        currentTarget = &currentText;
 
-    ImGuiUtilities::DrawItemActivityOutline(2.0f, false);
-    ImGui::PushID(ID);
+        ImGuiUtilities::DrawItemActivityOutline(2.0f, false);
+        ImGui::PushID(ID);
 
-    bool edited = ImGui::InputText("##InputText", buffer, sizeof(buffer));
-    ImGui::PopID();
+        bool edited = ImGui::InputText("##InputText", buffer, sizeof(buffer));
+        ImGui::PopID();
 
-    if (edited) {
-        currentText = std::string(buffer);
+        if(edited)
+        {
+            currentText = std::string(buffer);
+        }
+
+        if(ImGui::IsItemActivated() && !keyboardActive)
+        {
+            keyboardActive = true;
+
+#if LUMOS_PLATFORM_IOS
+#if defined(VIRTUAL_KEYBOARD)
+            ImGuiUtilities::VirtualKeyboard(currentText);
+#else
+            OpeniOSKeyboard(&currentText);
+#endif
+#endif
+        }
+
+        return edited || updatedExternally;
     }
-
-    if (ImGui::IsItemActivated() && !keyboardActive) {
-        keyboardActive = true;
-
-        #if LUMOS_PLATFORM_IOS
-            #if defined(VIRTUAL_KEYBOARD)
-                ImGuiUtilities::VirtualKeyboard(currentText);
-            #else
-                OpeniOSKeyboard(&currentText);
-            #endif
-        #endif
-    }
-
-    return edited || updatedExternally;
-}
 
     void ImGuiUtilities::ClippedText(const ImVec2& pos_min, const ImVec2& pos_max, const char* text, const char* text_end, const ImVec2* text_size_if_known, const ImVec2& align, const ImRect* clip_rect, float wrap_width)
     {
