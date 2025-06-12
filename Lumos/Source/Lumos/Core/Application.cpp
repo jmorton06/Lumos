@@ -158,12 +158,14 @@ namespace Lumos
             auto desc          = Graphics::TextureDesc(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::REPEAT);
             desc.flags         = Graphics::TextureFlags::Texture_Sampled;
             auto splashTexture = Graphics::Texture2D::CreateFromSource(splashWidth, splashHeight, (void*)splash, desc);
-            Graphics::Renderer::GetRenderer()->Begin();
-            Graphics::Renderer::GetRenderer()->DrawSplashScreen(splashTexture);
-            Graphics::Renderer::GetRenderer()->Present();
-            // To Display the window
-            m_Window->ProcessInput();
-            m_Window->OnUpdate();
+            if(Graphics::Renderer::GetRenderer()->Begin())
+            {
+                Graphics::Renderer::GetRenderer()->DrawSplashScreen(splashTexture);
+                Graphics::Renderer::GetRenderer()->Present();
+                // To Display the window
+                m_Window->ProcessInput();
+                m_Window->OnUpdate();
+            }
 
             delete splashTexture;
         }
@@ -199,21 +201,19 @@ namespace Lumos
         LINFO("Initialised ImGui Manager");
 
         m_SceneRenderer = CreateUniquePtr<Graphics::SceneRenderer>(screenWidth, screenHeight);
-        
         LINFO("Initialised SceneRenderer");
 
-        LINFO("Waiting for Context...");
+        LINFO("Waiting for JobSystem");
         System::JobSystem::Wait(context);
 
-        LINFO("App is Running");
         m_CurrentState = AppState::Running;
 
         Graphics::Material::InitDefaultTexture();
-        LINFO("Init Default Texture");
-        
+        LINFO("Initialised Default Texture");
+
         Graphics::Font::InitDefaultFont();
-        LINFO("Init Default Font");
-        
+        LINFO("Initialised Default Font");
+
         m_SceneRenderer->EnableDebugRenderer(true);
         LINFO("Debug Renderer Enabled");
 
@@ -221,16 +221,12 @@ namespace Lumos
         LINFO("SSE Maths Enabled");
 #endif
 
-        LINFO("UI Arena Alloc");
         m_UIArena = ArenaAlloc(Megabytes(8));
-        
-        LINFO("Initializing Arena...");
+
         InitialiseUI(m_UIArena);
-        
-        LINFO("Getting DPI Scale");
+
         GetUIState()->DPIScale = Application::Get().GetWindow()->GetDPIScale();
-        
-        LINFO("Initalised UI");
+
         Maths::TestMaths();
     }
 
@@ -262,6 +258,8 @@ namespace Lumos
 
         m_ImGuiManager.reset();
         m_Window.reset();
+
+        DebugRenderer::Release();
 
         Graphics::Renderer::Release();
     }

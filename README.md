@@ -88,6 +88,7 @@ To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation h
 ## Contributing
 
 * Contributions are welcome. Both new features and bug fixes. Just open a pull request.
+* Some ideas for things that need added/fixed are in Todo.txt
 #
 ## Dependencies
  * [imgui](https://github.com/ocornut/imgui) : Dear ImGui: Bloat-free Immediate Mode Graphical User interface for C++ with minimal dependencies.

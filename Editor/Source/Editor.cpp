@@ -2683,7 +2683,7 @@ namespace Lumos
             String8 assetCachePath    = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_FrameArena, texturePath, Str8Lit("//Assets"), Str8Lit("//Assets/Cache"));
             String8 cacheAbsolutePath = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_FrameArena, assetCachePath, Str8Lit("//Assets"), basePath);
 
-            m_PreviewDraw->SaveTexture(cacheAbsolutePath);
+            m_PreviewDraw->SaveTexture(cacheAbsolutePath, false, 0.0f);
             m_SavePreviewTexture = false;
         }
 
@@ -2874,7 +2874,8 @@ namespace Lumos
         m_Settings.m_RecentProjects.erase(std::unique(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end()), m_Settings.m_RecentProjects.end());
         m_IniFile.SetOrAdd("RecentProjectCount", int(m_Settings.m_RecentProjects.size()));
 
-        if (m_Settings.m_RecentProjects.size() > 0) {
+        if(m_Settings.m_RecentProjects.size() > 0)
+        {
             for(int i = 0; i < int(m_Settings.m_RecentProjects.size()); i++)
             {
                 m_IniFile.SetOrAdd("RecentProject" + std::to_string(i), m_Settings.m_RecentProjects[i]);
@@ -2925,7 +2926,7 @@ namespace Lumos
         m_IniFile.Add("CameraSpeed", m_Settings.m_CameraSpeed);
         m_IniFile.Add("CameraNear", m_Settings.m_CameraNear);
         m_IniFile.Add("CameraFar", m_Settings.m_CameraFar);
-        
+
         m_IniFile.Rewrite();
     }
 

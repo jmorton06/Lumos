@@ -32,7 +32,7 @@ namespace Lumos
         void LoadMaterial(String8 path);
         void SetDimensions(u32 width, u32 height);
         void CreateDefaultScene();
-        void SaveTexture(String8 savePath);
+        void SaveTexture(String8 savePath, bool Blur, float BlurRadius);
         void DeletePreviewModel();
 
         void ReleaseResources();

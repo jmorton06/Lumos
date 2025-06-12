@@ -5,6 +5,7 @@
 #include "Maths/Matrix3.h"
 #include "Maths/Matrix4.h"
 #include "Maths/Quaternion.h"
+#include "Core/DataStructures/TDArray.h"
 
 namespace Lumos::Maths
 {
@@ -1075,6 +1076,86 @@ namespace Lumos::Maths
         }
 
         return false;
+    }
+
+    TDArray<float> GenerateGaussianKernel(int radius, float sigma)
+    {
+        int size = 2 * radius + 1;
+        TDArray<float> kernel(size);
+        float sum = 0.0f;
+
+        for(int i = -radius; i <= radius; ++i)
+        {
+            float value        = std::exp(-(i * i) / (2.0f * sigma * sigma));
+            kernel[i + radius] = value;
+            sum += value;
+        }
+
+        // Normalize
+        for(float& val : kernel)
+            val /= sum;
+
+        return kernel;
+    }
+
+    void ApplyGaussianBlur(
+        const uint8_t* input,
+        uint8_t* output,
+        int width,
+        int height,
+        int radius,
+        float sigma)
+    {
+        TDArray<float> kernel = GenerateGaussianKernel(radius, sigma);
+        TDArray<uint8_t> temp(width * height * 4); // Intermediate buffer
+
+        for(int y = 0; y < height; ++y)
+        {
+            for(int x = 0; x < width; ++x)
+            {
+                float r = 0, g = 0, b = 0, a = 0;
+                for(int i = -radius; i <= radius; ++i)
+                {
+                    int xx       = Clamp(x + i, 0, width - 1);
+                    int idx      = (y * width + xx) * 4;
+                    float weight = kernel[i + radius];
+
+                    r += input[idx + 0] * weight;
+                    g += input[idx + 1] * weight;
+                    b += input[idx + 2] * weight;
+                    a += input[idx + 3] * weight;
+                }
+                int outIdx       = (y * width + x) * 4;
+                temp[outIdx + 0] = uint8_t(Clamp(r, 0.0f, 255.0f));
+                temp[outIdx + 1] = uint8_t(Clamp(g, 0.0f, 255.0f));
+                temp[outIdx + 2] = uint8_t(Clamp(b, 0.0f, 255.0f));
+                temp[outIdx + 3] = uint8_t(Clamp(a, 0.0f, 255.0f));
+            }
+        }
+
+        for(int y = 0; y < height; ++y)
+        {
+            for(int x = 0; x < width; ++x)
+            {
+                float r = 0, g = 0, b = 0, a = 0;
+                for(int i = -radius; i <= radius; ++i)
+                {
+                    int yy       = Clamp(y + i, 0, height - 1);
+                    int idx      = (yy * width + x) * 4;
+                    float weight = kernel[i + radius];
+
+                    r += temp[idx + 0] * weight;
+                    g += temp[idx + 1] * weight;
+                    b += temp[idx + 2] * weight;
+                    a += temp[idx + 3] * weight;
+                }
+                int outIdx         = (y * width + x) * 4;
+                output[outIdx + 0] = uint8_t(Clamp(r, 0.0f, 255.0f));
+                output[outIdx + 1] = uint8_t(Clamp(g, 0.0f, 255.0f));
+                output[outIdx + 2] = uint8_t(Clamp(b, 0.0f, 255.0f));
+                output[outIdx + 3] = uint8_t(Clamp(a, 0.0f, 255.0f));
+            }
+        }
     }
 
     void Print(const Vector3& vec)
