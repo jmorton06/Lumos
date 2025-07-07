@@ -309,14 +309,19 @@ namespace Lumos
 
         void Mesh::SetAndLoadMaterial(const std::string& filePath)
         {
-            std::string Data = FileSystem::Get().ReadTextFileVFS(filePath);
+			ArenaTemp Scratch = ScratchBegin(0,0);
+
+            String8 Data = FileSystem::Get().ReadTextFileVFS(Scratch.arena, Str8StdS(filePath));
             std::istringstream istr;
-            istr.str(Data);
+            istr.str((const char*)Data.str);
             cereal::JSONInputArchive input(istr);
             auto material = std::make_unique<Graphics::Material>();
             Lumos::Graphics::load(input, *material.get());
             m_Material = SharedPtr<Material>(material.get());
             material.release();
+
+			ScratchEnd(Scratch);
+
         }
     }
 }

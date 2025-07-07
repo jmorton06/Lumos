@@ -74,6 +74,12 @@ namespace Lumos
         uint64_t max;
     };
 
+    struct UnicodeDecode
+    {
+        u32 inc;
+        u32 codepoint;
+    };
+
     bool CharIsAlpha(uint8_t c);
     bool CharIsAlphaUpper(uint8_t c);
     bool CharIsAlphaLower(uint8_t c);
@@ -126,6 +132,18 @@ namespace Lumos
     double DoubleFromStr8(String8 str);
     String8 HexStringFromU64(Arena* arena, uint64_t x, bool caps);
 
+    UnicodeDecode Utf8Decode(u8* str, u64 max);
+    UnicodeDecode Utf16Decode(u16* str, u64 max);
+    u32 Utf8Encode(u8* str, u32 codepoint);
+    u32 Utf16Encode(u16* str, u32 codepoint);
+    u32 Utf8FromUtf32Single(u8* buffer, u32 character);
+
+    String8 Str8From16(Arena* arena, String16 in);
+    String16 Str16From8(Arena* arena, String8 in);
+    String8 Str8From32(Arena* arena, String32 in);
+    String32 Str32From8(Arena* arena, String8 in);
+
+
     bool operator==(const String8& lhs, const String8& rhs);
 
 #define Str8Struct(ptr) Str8((uint8_t*)(ptr), sizeof(*(ptr)))
@@ -136,4 +154,5 @@ namespace Lumos
 #define Str8ListFirst(list) ((list)->first != 0 ? (list)->first->string : Str8Lit(""))
 #define ToStdString(s) std::string((const char*)s.str, s.size)
 #define ToCChar(s) (const char*)s.str
+#define NullTerminate(s) s.str[s.size] = 0
 }

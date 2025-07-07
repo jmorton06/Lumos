@@ -2,9 +2,8 @@
 
 #include "Core/Application.h"
 #include "Core/UUID.h"
-
+#include "Core/DataStructures/Map.h"
 #include <sol/forward.hpp>
-#include <cereal/cereal.hpp>
 #include <unordered_map>
 
 namespace Lumos
@@ -14,6 +13,11 @@ namespace Lumos
 
     class LUMOS_EXPORT LuaScriptComponent
     {
+		template <typename Archive>
+		friend void save(Archive& archive, const LuaScriptComponent& luaComponent);
+		template <typename Archive>
+		friend void load(Archive& archive, LuaScriptComponent& luaComponent);
+
     public:
         LuaScriptComponent();
         LuaScriptComponent(const std::string& fileName, Scene* scene);
@@ -60,27 +64,6 @@ namespace Lumos
         {
             return m_Env.get() != nullptr;
         }
-
-        template <typename Archive>
-        void save(Archive& archive) const
-        {
-            std::string newPath;
-            FileSystem::Get().AbsolutePathToFileSystem(m_FileName, newPath);
-            archive(cereal::make_nvp("FilePath", newPath));
-        }
-
-        template <typename Archive>
-        void load(Archive& archive)
-        {
-            m_Scene = Application::Get().GetCurrentScene();
-            archive(cereal::make_nvp("FilePath", m_FileName));
-            Init();
-        }
-        //
-        //        UUID GetUUID() const
-        //        {
-        //            return m_UUID;
-        //        }
 
     private:
         Scene* m_Scene = nullptr;

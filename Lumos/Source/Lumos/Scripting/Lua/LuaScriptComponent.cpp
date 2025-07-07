@@ -46,23 +46,13 @@ namespace Lumos
     void LuaScriptComponent::LoadScript(const std::string& fileName)
     {
         m_FileName = fileName;
-        std::string physicalPath;
-        if(!FileSystem::Get().ResolvePhysicalPath(fileName, physicalPath))
-        {
-            LERROR("Failed to Load Lua script %s", fileName.c_str());
-            m_Env = nullptr;
-            return;
-        }
-
-        FileSystem::Get().AbsolutePathToFileSystem(m_FileName, m_FileName);
-
         m_Env = CreateSharedPtr<sol::environment>(LuaManager::Get().GetState(), sol::create, LuaManager::Get().GetState().globals());
 
-        auto loadFileResult = LuaManager::Get().GetState().script_file(physicalPath, *m_Env, sol::script_pass_on_error);
+        auto loadFileResult = LuaManager::Get().GetState().script_file(m_FileName, *m_Env, sol::script_pass_on_error);
         if(!loadFileResult.valid())
         {
             sol::error err = loadFileResult;
-            LERROR("Failed to Execute Lua script %s", physicalPath.c_str());
+            LERROR("Failed to Execute Lua script %s", m_FileName.c_str());
             LERROR("Error : %s", err.what());
             std::string filename = StringUtilities::GetFileName(m_FileName);
             std::string error    = std::string(err.what());

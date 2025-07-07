@@ -110,10 +110,11 @@ namespace Lumos
         app.GetSystem<B2PhysicsEngine>()->SetDefaults();
         app.GetSystem<LumosPhysicsEngine>()->SetPaused(false);
 
-        std::string physicalPath;
-        if(Lumos::FileSystem::Get().ResolvePhysicalPath("//Assets/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn", physicalPath))
+        String8 physicalPath;
+		std::string path = "//Assets/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn";
+		if(Lumos::FileSystem::Get().ResolvePhysicalPath(Application::Get().GetFrameArena(), Str8StdS(path), &physicalPath))
         {
-            auto newPath = StringUtilities::RemoveName(physicalPath);
+            auto newPath = StringUtilities::RemoveName(ToStdString(physicalPath));
             m_CurrentScene->Deserialise(newPath, false);
         }
 
@@ -187,9 +188,9 @@ namespace Lumos
     {
         for(auto& filePath : m_SceneFilePathsToLoad)
         {
-            std::string newPath;
-            FileSystem::Get().AbsolutePathToFileSystem(ToStdString(filePath), newPath);
-            EnqueueSceneFromFile(newPath.c_str());
+            String8 newPath;
+            FileSystem::Get().AbsolutePathToFileSystem(Application::Get().GetFrameArena(), filePath, newPath);
+            EnqueueSceneFromFile((const char*)newPath.str);
         }
 
         m_SceneFilePathsToLoad.Clear();
@@ -198,7 +199,7 @@ namespace Lumos
     const TDArray<String8>& SceneManager::GetSceneFilePaths()
     {
         m_SceneFilePaths.Clear();
-        for(auto scene : m_vpAllScenes)
+        for(Scene* scene : m_vpAllScenes)
             m_SceneFilePaths.PushBack(PushStr8F(m_Arena, "//Assets/Scenes/%s", scene->GetSceneName().c_str()));
         return m_SceneFilePaths;
     }

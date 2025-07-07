@@ -18,41 +18,43 @@ namespace Lumos
         friend class ThreadSafeSingleton<FileSystem>;
 
     public:
-        bool ResolvePhysicalPath(const std::string& path, std::string& outPhysicalPath, bool folder = false);
-        bool AbsolutePathToFileSystem(const std::string& path, std::string& outFileSystemPath, bool folder = false);
-        std::string AbsolutePathToFileSystem(const std::string& path, bool folder = false);
+        bool ResolvePhysicalPath(Arena* arena, const String8& path, String8* outPhysicalPath, bool folder = false);
+        bool AbsolutePathToFileSystem(Arena* arena, const String8& path, String8& outFileSystemPath, bool folder = false);
+		String8 AbsolutePathToFileSystem(Arena* arena, const String8& path, bool folder = false);
 
-        uint8_t* ReadFileVFS(const std::string& path);
-        std::string ReadTextFileVFS(const std::string& path);
+        uint8_t* ReadFileVFS(Arena* arena, const String8& path);
+		String8 ReadTextFileVFS(Arena* arena, const String8& path);
 
-        bool WriteFileVFS(const std::string& path, uint8_t* buffer, uint32_t size);
-        bool WriteTextFileVFS(const std::string& path, const std::string& text);
+        bool WriteFileVFS(const String8& path, uint8_t* buffer, uint32_t size);
+        bool WriteTextFileVFS(const String8& path, const String8& text);
 
-        void SetAssetRoot(String8 root) { m_AssetRootPath = root; };
+		void SetAssetPath(const String8& Path)
+		{
+			m_AssetsPath = Path;
+		}
 
-    private:
-        String8 m_AssetRootPath;
-
-    public:
         // Static Helpers. Implemented in OS specific Files
-        static bool FileExists(const std::string& path);
-        static bool FolderExists(const std::string& path);
-        static void CreateFolderIfDoesntExist(const std::string& path);
-        static int64_t GetFileSize(const std::string& path);
+        static bool FileExists(const String8& path);
+        static bool FolderExists(const String8& path);
+        static void CreateFolderIfDoesntExist(const String8& path);
+        static int64_t GetFileSize(const String8& path);
 
-        static uint8_t* ReadFile(const std::string& path);
-        static bool ReadFile(const std::string& path, void* buffer, int64_t size = -1);
-        static std::string ReadTextFile(const std::string& path);
+        static uint8_t* ReadFile(Arena* arena, const String8& path);
+        static bool ReadFile(Arena* arena, const String8& path, void* buffer, int64_t size = -1);
+        static String8 ReadTextFile(Arena* arena, const String8& path);
 
-        static bool WriteFile(const std::string& path, uint8_t* buffer, uint32_t size);
-        static bool WriteTextFile(const std::string& path, const std::string& text);
+        static bool WriteFile(const String8& path, uint8_t* buffer, uint32_t size);
+        static bool WriteTextFile(const String8& path, const String8& text);
 
-        static std::string GetWorkingDirectory();
+        static String8 GetWorkingDirectory(Arena* arena);
 
         static bool IsRelativePath(const char* path);
         static bool IsAbsolutePath(const char* path);
         static const char* GetFileOpenModeString(FileOpenFlags flag);
 
         static void IterateFolder(const char* path, void (*f)(const char*));
+
+	private:
+		String8 m_AssetsPath;
     };
 }

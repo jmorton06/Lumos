@@ -9,10 +9,12 @@
 #include "Utilities/CombineHash.h"
 #include "Asset.h"
 #include "AssetMetaData.h"
+#include "AssetRegistry.h"
 
 namespace Lumos
 {
-    class AssetRegistry;
+	class StringPool;
+	
     namespace Graphics
     {
         class Model;
@@ -24,29 +26,32 @@ namespace Lumos
         AssetManager();
         ~AssetManager();
 
-        SharedPtr<Asset> GetAsset(UUID ID);
-        AssetMetaData& AddAsset(const std::string& name, SharedPtr<Asset> data, bool keepUnreferenced = true);
-        AssetMetaData& AddAsset(UUID name, SharedPtr<Asset> data, bool keepUnreferenced = true);
-        AssetMetaData GetAsset(const std::string& name);
+        NONCOPYABLEANDMOVE(AssetManager);
 
-        SharedPtr<Asset> GetAssetData(const std::string& name);
+        SharedPtr<Asset> GetAsset(UUID ID);
+        AssetMetaData& AddAsset(const String8& name, SharedPtr<Asset> data, bool keepUnreferenced = true);
+        AssetMetaData& AddAsset(UUID name, SharedPtr<Asset> data, bool keepUnreferenced = true);
+        AssetMetaData GetAsset(const String8& name);
+
+        SharedPtr<Asset> GetAssetData(const String8& name);
 
         void Destroy();
         void Update(float elapsedSeconds);
-        bool AssetExists(const std::string& name);
+        bool AssetExists(const String8& name);
         bool AssetExists(UUID name);
-        bool LoadShader(const std::string& filePath, SharedPtr<Graphics::Shader>& shader, bool keepUnreferenced = true);
-        bool LoadAsset(const std::string& filePath, SharedPtr<Graphics::Shader>& shader, bool keepUnreferenced = true);
+        bool LoadShader(const String8& filePath, SharedPtr<Graphics::Shader>& shader, bool keepUnreferenced = true);
+        bool LoadAsset(const String8& filePath, SharedPtr<Graphics::Shader>& shader, bool keepUnreferenced = true);
 
         SharedPtr<Asset> operator[](UUID name) { return GetAsset(name); }
-        SharedPtr<Graphics::Texture2D> LoadTextureAsset(const std::string& filePath, bool thread);
+        SharedPtr<Graphics::Texture2D> LoadTextureAsset(const String8& filePath, bool thread);
 
-        AssetRegistry* GetAssetRegistry() { return m_AssetRegistry; }
+		SharedPtr<AssetRegistry> GetAssetRegistry() { return m_AssetRegistry; }
 
     protected:
-        bool LoadTexture(const std::string& filePath, SharedPtr<Graphics::Texture2D>& texture, bool thread);
+        bool LoadTexture(const String8& filePath, SharedPtr<Graphics::Texture2D>& texture, bool thread);
 
         Arena* m_Arena;
-        AssetRegistry* m_AssetRegistry;
+        SharedPtr<AssetRegistry> m_AssetRegistry;
+		SharedPtr<StringPool> m_StringPool;
     };
 }

@@ -68,7 +68,7 @@ namespace Lumos
     {
 #define LoadShaderEmbedded(name, vertName, fragName) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_##vertName##vertspv.data(), spirv_##vertName##vertspv_size, spirv_##fragName##fragspv.data(), spirv_##fragName##fragspv_size)), true);
 #define LoadComputeShaderEmbedded(name, compName) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateCompFromEmbeddedArray(spirv_##compName##compspv.data(), spirv_##compName##compspv_size)), true);
-#define LoadShaderFromFile(name, path) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + path)), true);
+#define LoadShaderFromFile(name, path) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile((engineShaderPath + path).c_str())), true);
 
         Renderer* (*Renderer::CreateFunc)() = nullptr;
 
@@ -96,85 +96,85 @@ namespace Lumos
             if(loadEmbeddedShaders)
             {
                 LINFO("Loading shaders - embedded");
-                LoadShaderEmbedded("Skybox", Skybox, Skybox);
-                LoadShaderEmbedded("ForwardPBR", ForwardPBR, ForwardPBR);
-                LoadShaderEmbedded("ForwardPBRAnim", ForwardPBRAnim, ForwardPBR);
-                LoadShaderEmbedded("Shadow", Shadow, Shadow);
-                LoadShaderEmbedded("ShadowAlpha", Shadow, ShadowAlpha);
-                LoadShaderEmbedded("ShadowAnim", ShadowAnim, Shadow);
-                LoadShaderEmbedded("ShadowAnimAlpha", ShadowAnim, ShadowAlpha);
-                LoadShaderEmbedded("Batch2DPoint", Batch2DPoint, Batch2DPoint);
-                LoadShaderEmbedded("Batch2DLine", Batch2DLine, Batch2DLine);
-                LoadShaderEmbedded("Batch2D", Batch2D, Batch2D);
-                LoadShaderEmbedded("FinalPass", ScreenPass, ScreenPass);
-                LoadShaderEmbedded("Grid", Grid, Grid);
-                LoadShaderEmbedded("CreateEnvironmentMap", ScreenPass, CreateEnvironmentMap);
-                LoadShaderEmbedded("EnvironmentIrradiance", ScreenPass, EnvironmentIrradiance);
-                LoadShaderEmbedded("EnvironmentMipFilter", ScreenPass, EnvironmentMipFilter);
-                LoadShaderEmbedded("FXAA", ScreenPass, FXAA);
-                LoadShaderEmbedded("FilmicGrain", ScreenPass, FilmicGrain);
-                LoadShaderEmbedded("ChromaticAberation", ScreenPass, ChromaticAberation);
-                LoadShaderEmbedded("DepthPrePass", ForwardPBR, DepthPrePass);
-                LoadShaderEmbedded("DepthPrePassAlpha", ForwardPBR, DepthPrePassAlpha);
-                LoadShaderEmbedded("DepthPrePassAnim", ForwardPBRAnim, DepthPrePassAlpha);
-                LoadShaderEmbedded("DepthPrePassAlphaAnim", ForwardPBRAnim, DepthPrePassAlpha);
-                LoadShaderEmbedded("ToneMapping", ScreenPass, ToneMapping);
-                LoadShaderEmbedded("Bloom", ScreenPass, Bloom);
-                LoadShaderEmbedded("BRDFLUT", ScreenPass, BRDFLUT);
-                LoadShaderEmbedded("Debanding", ScreenPass, Debanding);
-                LoadShaderEmbedded("Text", Text, Text);
-                LoadShaderEmbedded("DepthOfField", ScreenPass, DepthOfField);
-                LoadShaderEmbedded("Sharpen", ScreenPass, Sharpen);
-                LoadShaderEmbedded("SSAO", ScreenPass, SSAO);
-                LoadShaderEmbedded("SSAOBlur", ScreenPass, SSAOBlur);
-                LoadShaderEmbedded("Particle", Particle, Particle);
+                LoadShaderEmbedded(Str8Lit("Skybox"), Skybox, Skybox);
+                LoadShaderEmbedded(Str8Lit("ForwardPBR"), ForwardPBR, ForwardPBR);
+                LoadShaderEmbedded(Str8Lit("ForwardPBRAnim"), ForwardPBRAnim, ForwardPBR);
+                LoadShaderEmbedded(Str8Lit("Shadow"), Shadow, Shadow);
+                LoadShaderEmbedded(Str8Lit("ShadowAlpha"), Shadow, ShadowAlpha);
+                LoadShaderEmbedded(Str8Lit("ShadowAnim"), ShadowAnim, Shadow);
+                LoadShaderEmbedded(Str8Lit("ShadowAnimAlpha"), ShadowAnim, ShadowAlpha);
+                LoadShaderEmbedded(Str8Lit("Batch2DPoint"), Batch2DPoint, Batch2DPoint);
+                LoadShaderEmbedded(Str8Lit("Batch2DLine"), Batch2DLine, Batch2DLine);
+                LoadShaderEmbedded(Str8Lit("Batch2D"), Batch2D, Batch2D);
+                LoadShaderEmbedded(Str8Lit("FinalPass"), ScreenPass, ScreenPass);
+                LoadShaderEmbedded(Str8Lit("Grid"), Grid, Grid);
+                LoadShaderEmbedded(Str8Lit("CreateEnvironmentMap"), ScreenPass, CreateEnvironmentMap);
+                LoadShaderEmbedded(Str8Lit("EnvironmentIrradiance"), ScreenPass, EnvironmentIrradiance);
+                LoadShaderEmbedded(Str8Lit("EnvironmentMipFilter"), ScreenPass, EnvironmentMipFilter);
+                LoadShaderEmbedded(Str8Lit("FXAA"), ScreenPass, FXAA);
+                LoadShaderEmbedded(Str8Lit("FilmicGrain"), ScreenPass, FilmicGrain);
+                LoadShaderEmbedded(Str8Lit("ChromaticAberation"), ScreenPass, ChromaticAberation);
+                LoadShaderEmbedded(Str8Lit("DepthPrePass"), ForwardPBR, DepthPrePass);
+                LoadShaderEmbedded(Str8Lit("DepthPrePassAlpha"), ForwardPBR, DepthPrePassAlpha);
+                LoadShaderEmbedded(Str8Lit("DepthPrePassAnim"), ForwardPBRAnim, DepthPrePassAlpha);
+                LoadShaderEmbedded(Str8Lit("DepthPrePassAlphaAnim"), ForwardPBRAnim, DepthPrePassAlpha);
+                LoadShaderEmbedded(Str8Lit("ToneMapping"), ScreenPass, ToneMapping);
+                LoadShaderEmbedded(Str8Lit("Bloom"), ScreenPass, Bloom);
+                LoadShaderEmbedded(Str8Lit("BRDFLUT"), ScreenPass, BRDFLUT);
+                LoadShaderEmbedded(Str8Lit("Debanding"), ScreenPass, Debanding);
+                LoadShaderEmbedded(Str8Lit("Text"), Text, Text);
+                LoadShaderEmbedded(Str8Lit("DepthOfField"), ScreenPass, DepthOfField);
+                LoadShaderEmbedded(Str8Lit("Sharpen"), ScreenPass, Sharpen);
+                LoadShaderEmbedded(Str8Lit("SSAO"), ScreenPass, SSAO);
+                LoadShaderEmbedded(Str8Lit("SSAOBlur"), ScreenPass, SSAOBlur);
+                LoadShaderEmbedded(Str8Lit("Particle"), Particle, Particle);
 
                 if(Renderer::GetCapabilities().SupportCompute)
                 {
-                    LoadComputeShaderEmbedded("BloomComp", Bloom);
-                    LoadComputeShaderEmbedded("FXAAComp", FXAACompute);
+                    LoadComputeShaderEmbedded(Str8Lit("BloomComp"), Bloom);
+                    LoadComputeShaderEmbedded(Str8Lit("FXAAComp"), FXAACompute);
                 }
             }
             else
             {
                 LINFO("Loading shaders - files");
-                LoadShaderFromFile("Skybox", "Shaders/Skybox.shader");
-                LoadShaderFromFile("Shadow", "Shaders/Shadow.shader");
-                LoadShaderFromFile("ShadowAnim", "Shaders/ShadowAnim.shader");
-                LoadShaderFromFile("ShadowAlpha", "Shaders/ShadowAlpha.shader");
-                LoadShaderFromFile("ShadowAnimAlpha", "Shaders/ShadowAnimAlpha.shader");
-                LoadShaderFromFile("Batch2DPoint", "Shaders/Batch2DPoint.shader");
-                LoadShaderFromFile("Batch2DLine", "Shaders/Batch2DLine.shader");
-                LoadShaderFromFile("Batch2D", "Shaders/Batch2D.shader");
-                LoadShaderFromFile("FinalPass", "Shaders/ScreenPass.shader");
-                LoadShaderFromFile("Grid", "Shaders/Grid.shader");
-                LoadShaderFromFile("CreateEnvironmentMap", "Shaders/CreateEnvironmentMap.shader");
-                LoadShaderFromFile("EnvironmentIrradiance", "Shaders/EnvironmentIrradiance.shader");
-                LoadShaderFromFile("EnvironmentMipFilter", "Shaders/EnvironmentMipFilter.shader");
-                LoadShaderFromFile("FXAA", "Shaders/FXAA.shader");
-                LoadShaderFromFile("Debanding", "Shaders/Debanding.shader");
-                LoadShaderFromFile("FilmicGrain", "Shaders/FilmicGrain.shader");
-                LoadShaderFromFile("ChromaticAberation", "Shaders/ChromaticAberation.shader");
-                LoadShaderFromFile("DepthPrePass", "Shaders/DepthPrePass.shader");
-                LoadShaderFromFile("DepthPrePassAlpha", "Shaders/DepthPrePassAlpha.shader");
-                LoadShaderFromFile("ToneMapping", "Shaders/ToneMapping.shader");
-                LoadShaderFromFile("Bloom", "Shaders/Bloom.shader");
-                LoadShaderFromFile("DepthOfField", "Shaders/DepthOfField.shader");
-                LoadShaderFromFile("BRDFLUT", "Shaders/BRDFLUT.shader");
-                LoadShaderFromFile("Text", "Shaders/Text.shader");
-                LoadShaderFromFile("SSAO", "Shaders/SSAO.shader");
-                LoadShaderFromFile("SSAOBlur", "Shaders/SSAOBlur.shader");
-                LoadShaderFromFile("Sharpen", "Shaders/Sharpen.shader");
-                LoadShaderFromFile("ForwardPBR", "Shaders/ForwardPBR.shader");
-                LoadShaderFromFile("ForwardPBRAnim", "Shaders/ForwardPBRAnim.shader");
-                LoadShaderFromFile("Particle", "Shaders/Particle.shader");
-                LoadShaderFromFile("DepthPrePassAnim", "Shaders/DepthPrePassAnim.shader");
-                LoadShaderFromFile("DepthPrePassAlphaAnim", "Shaders/DepthPrePassAlphaAnim.shader")
+                LoadShaderFromFile(Str8Lit("Skybox"), "Shaders/Skybox.shader");
+                LoadShaderFromFile(Str8Lit("Shadow"), "Shaders/Shadow.shader");
+                LoadShaderFromFile(Str8Lit("ShadowAnim"), "Shaders/ShadowAnim.shader");
+                LoadShaderFromFile(Str8Lit("ShadowAlpha"), "Shaders/ShadowAlpha.shader");
+                LoadShaderFromFile(Str8Lit("ShadowAnimAlpha"), "Shaders/ShadowAnimAlpha.shader");
+                LoadShaderFromFile(Str8Lit("Batch2DPoint"), "Shaders/Batch2DPoint.shader");
+                LoadShaderFromFile(Str8Lit("Batch2DLine"), "Shaders/Batch2DLine.shader");
+                LoadShaderFromFile(Str8Lit("Batch2D"), "Shaders/Batch2D.shader");
+                LoadShaderFromFile(Str8Lit("FinalPass"), "Shaders/ScreenPass.shader");
+                LoadShaderFromFile(Str8Lit("Grid"), "Shaders/Grid.shader");
+                LoadShaderFromFile(Str8Lit("CreateEnvironmentMap"), "Shaders/CreateEnvironmentMap.shader");
+                LoadShaderFromFile(Str8Lit("EnvironmentIrradiance"), "Shaders/EnvironmentIrradiance.shader");
+                LoadShaderFromFile(Str8Lit("EnvironmentMipFilter"), "Shaders/EnvironmentMipFilter.shader");
+                LoadShaderFromFile(Str8Lit("FXAA"), "Shaders/FXAA.shader");
+                LoadShaderFromFile(Str8Lit("Debanding"), "Shaders/Debanding.shader");
+                LoadShaderFromFile(Str8Lit("FilmicGrain"), "Shaders/FilmicGrain.shader");
+                LoadShaderFromFile(Str8Lit("ChromaticAberation"), "Shaders/ChromaticAberation.shader");
+                LoadShaderFromFile(Str8Lit("DepthPrePass"), "Shaders/DepthPrePass.shader");
+                LoadShaderFromFile(Str8Lit("DepthPrePassAlpha"), "Shaders/DepthPrePassAlpha.shader");
+                LoadShaderFromFile(Str8Lit("ToneMapping"), "Shaders/ToneMapping.shader");
+                LoadShaderFromFile(Str8Lit("Bloom"), "Shaders/Bloom.shader");
+                LoadShaderFromFile(Str8Lit("DepthOfField"), "Shaders/DepthOfField.shader");
+                LoadShaderFromFile(Str8Lit("BRDFLUT"), "Shaders/BRDFLUT.shader");
+                LoadShaderFromFile(Str8Lit("Text"), "Shaders/Text.shader");
+                LoadShaderFromFile(Str8Lit("SSAO"), "Shaders/SSAO.shader");
+                LoadShaderFromFile(Str8Lit("SSAOBlur"), "Shaders/SSAOBlur.shader");
+                LoadShaderFromFile(Str8Lit("Sharpen"), "Shaders/Sharpen.shader");
+                LoadShaderFromFile(Str8Lit("ForwardPBR"), "Shaders/ForwardPBR.shader");
+                LoadShaderFromFile(Str8Lit("ForwardPBRAnim"), "Shaders/ForwardPBRAnim.shader");
+                LoadShaderFromFile(Str8Lit("Particle"), "Shaders/Particle.shader");
+                LoadShaderFromFile(Str8Lit("DepthPrePassAnim"), "Shaders/DepthPrePassAnim.shader");
+                LoadShaderFromFile(Str8Lit("DepthPrePassAlphaAnim"), "Shaders/DepthPrePassAlphaAnim.shader")
 
-                    if(Renderer::GetCapabilities().SupportCompute)
+                if(Renderer::GetCapabilities().SupportCompute)
                 {
-                    LoadShaderFromFile("FXAAComp", "Shaders/FXAACompute.shader");
-                    LoadShaderFromFile("BloomComp", "Shaders/BloomComp.shader");
+                    LoadShaderFromFile(Str8Lit("FXAAComp"), "Shaders/FXAACompute.shader");
+                    LoadShaderFromFile(Str8Lit("BloomComp"), "Shaders/BloomComp.shader");
                 }
             }
         }

@@ -171,20 +171,20 @@ namespace Lumos::Graphics
 
             bool fileFound = false;
 
-            fileFound = FileSystem::FileExists(stringFilepath);
+            fileFound = FileSystem::FileExists(Str8StdS(stringFilepath));
 
             if(!fileFound)
             {
                 stringFilepath = StringUtilities::GetFileName(stringFilepath);
                 stringFilepath = m_FBXModelDirectory + "/" + stringFilepath;
-                fileFound      = FileSystem::FileExists(stringFilepath);
+                fileFound      = FileSystem::FileExists(Str8StdS(stringFilepath));
             }
 
             if(!fileFound)
             {
                 stringFilepath = StringUtilities::GetFileName(stringFilepath);
                 stringFilepath = m_FBXModelDirectory + "/textures/" + stringFilepath;
-                fileFound      = FileSystem::FileExists(stringFilepath);
+                fileFound      = FileSystem::FileExists(Str8StdS(stringFilepath));
             }
 
             if(fileFound)
@@ -199,7 +199,7 @@ namespace Lumos::Graphics
     SharedPtr<Material> LoadMaterial(const ofbx::Material* material, bool animated)
     {
         // auto shader = animated ? Application::Get().GetShaderLibrary()->GetAsset("//CoreShaders/ForwardPBR.shader") : Application::Get().GetShaderLibrary()->GetAsset("//CoreShaders/ForwardPBR.shader");
-        auto shader = Application::Get().GetAssetManager()->GetAssetData("ForwardPBR").As<Graphics::Shader>();
+        auto shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBR")).As<Graphics::Shader>();
 
         SharedPtr<Material> pbrMaterial = CreateSharedPtr<Material>(shader);
 
@@ -384,8 +384,10 @@ namespace Lumos::Graphics
         std::string name = m_FBXModelDirectory.substr(m_FBXModelDirectory.find_last_of('/') + 1);
 
         std::string ext = StringUtilities::GetFilePathExtension(path);
-        int64_t size    = FileSystem::GetFileSize(path);
-        auto data       = FileSystem::ReadFile(path);
+        int64_t size    = FileSystem::GetFileSize(Str8StdS(path));
+
+		ArenaTemp scratch = ScratchBegin(0,0);
+        auto data       = FileSystem::ReadFile(scratch.arena, Str8StdS(path));
 
         if(data == nullptr)
         {
@@ -472,6 +474,8 @@ namespace Lumos::Graphics
         );
         System::JobSystem::Wait(ctx);
 #endif
+
+		ScratchEnd(scratch);
     }
 
 }

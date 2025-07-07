@@ -598,8 +598,23 @@ namespace Lumos
         if(ImGui::IsItemHovered())
         {
             ImGui::BeginTooltip();
-            bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-            ImGui::Image(texture ? Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture) : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+			ImVec2 avail = ImGui::GetContentRegionAvail();
+			
+			ImVec2 offset = ImVec2(
+									   (avail.x - size.x) * 0.5f,
+								   0.0f
+								   );
+			offset.x = ImMax(offset.x, 0.0f);
+			
+			ImGui::SetCursorPos(ImGui::GetCursorPos() + offset);
+			
+			bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
+			ImGui::Image(
+						 Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture),
+						 ImVec2(size.x, size.y),
+						 ImVec2(0.0f, flipImage ? 1.0f : 0.0f),
+						 ImVec2(1.0f, flipImage ? 0.0f : 1.0f)
+						 );
             ImGui::EndTooltip();
         }
 
@@ -614,8 +629,21 @@ namespace Lumos
         if(ImGui::IsItemHovered())
         {
             ImGui::BeginTooltip();
-            bool flipImage = false; // Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-            ImGui::Image(texture ? Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture) : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+            ImVec2 avail = ImGui::GetContentRegionAvail();
+			
+			ImVec2 offset = ImVec2(
+									   (avail.x - size.x) * 0.5f,
+								   0.0f);
+			offset.x = ImMax(offset.x, 0.0f);
+			ImGui::SetCursorPos(ImGui::GetCursorPos() + offset);
+			
+			bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
+			ImGui::Image(
+						 Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture),
+						 ImVec2(size.x, size.y),
+						 ImVec2(0.0f, flipImage ? 1.0f : 0.0f),
+						 ImVec2(1.0f, flipImage ? 0.0f : 1.0f)
+						 );
             ImGui::TextUnformatted(text);
             ImGui::EndTooltip();
         }
@@ -1600,7 +1628,7 @@ namespace Lumos
         ImGuiUtilities::DrawItemActivityOutline(2.0f, false);
         ImGui::PushID(ID);
 
-        bool edited = ImGui::InputText("##InputText", buffer, sizeof(buffer));
+        bool edited = ImGui::InputText(ID, buffer, sizeof(buffer));
         ImGui::PopID();
 
         if(edited)

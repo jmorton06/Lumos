@@ -75,6 +75,7 @@ namespace Lumos
                 }
                 else
                 {
+					ArenaTemp Scratch = ScratchBegin(0,0);
                     for(uint32_t i = 0; i < m_NumMips; i++)
                     {
                         envFiles[i] = m_FilePath + "_Env_" + StringUtilities::ToString(i) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType;
@@ -85,8 +86,8 @@ namespace Lumos
                         if(currHeight < 1 || currWidth < 1)
                             break;
 
-                        std::string newPath;
-                        if(!FileSystem::Get().ResolvePhysicalPath(envFiles[i], newPath))
+                        String8 newPath;
+                        if(!FileSystem::Get().ResolvePhysicalPath(Scratch.arena,  Str8StdS(envFiles[i]), &newPath))
                         {
                             LERROR("Failed to load %s", envFiles[i].c_str());
                             failed = true;
@@ -109,8 +110,8 @@ namespace Lumos
                         if(currHeight < 1 || currWidth < 1)
                             break;
 
-                        std::string newPath;
-                        if(!FileSystem::Get().ResolvePhysicalPath(irrFiles[i], newPath))
+                        String8 newPath;
+                        if(!FileSystem::Get().ResolvePhysicalPath(Scratch.arena, Str8StdS(irrFiles[i]), &newPath))
                         {
                             LERROR("Failed to load %s", irrFiles[i].c_str());
                             failed = true;
@@ -132,6 +133,8 @@ namespace Lumos
                     {
                         LERROR("Failed to load environment");
                     }
+
+					ScratchEnd(Scratch);
                 }
             }
             else // if (m_Mode == 1)
