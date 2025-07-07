@@ -11,7 +11,7 @@ namespace Lumos
         class VKShader : public Shader
         {
         public:
-            VKShader(const std::string& filePath);
+            VKShader(const char* filePath);
             VKShader(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize);
             VKShader(const uint32_t* compData, uint32_t compDataSize);
             ~VKShader();
@@ -30,13 +30,14 @@ namespace Lumos
                 return TDArray<ShaderType>();
             };
 
-            const std::string& GetName() const override
+			const char* GetName() const override
             {
-                return m_Name;
+                return m_Name.c_str();
             }
-            const std::string& GetFilePath() const override
+
+			const char* GetFilePath() const override
             {
-                return m_FilePath;
+                return m_FilePath.c_str();
             };
 
             bool IsCompiled() const override
@@ -62,6 +63,7 @@ namespace Lumos
             {
                 return m_PushConstants;
             }
+			
             VkDescriptorSetLayout* GetDescriptorLayout(int id)
             {
                 return &m_DescriptorSetLayouts[id];
@@ -100,7 +102,7 @@ namespace Lumos
             uint64_t GetHash() const override { return m_Hash; }
 
         protected:
-            static Shader* CreateFuncVulkan(const std::string&);
+            static Shader* CreateFuncVulkan(const char*);
             static Shader* CreateFromEmbeddedFuncVulkan(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize);
             static Shader* CreateCompFromEmbeddedFuncVulkan(const uint32_t* compData, uint32_t compDataSize);
             void LoadFromData(const uint32_t* data, uint32_t size, ShaderType type, int currentShaderStage);
@@ -111,9 +113,9 @@ namespace Lumos
 
             VkPipelineShaderStageCreateInfo* m_ShaderStages;
             uint32_t m_StageCount = 0;
-            std::string m_Name;
-            std::string m_FilePath;
-            std::string m_Source;
+			std::string m_Name;
+			std::string m_FilePath;
+			std::string m_Source;
             TDArray<ShaderType> m_ShaderTypes;
             bool m_Compiled = false;
 

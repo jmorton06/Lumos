@@ -95,9 +95,9 @@ namespace Lumos
 
         m_PreviewObjectEntity = m_PreviewScene->GetEntityManager()->Create("Model");
 
-        if(Application::Get().GetAssetManager()->AssetExists(ToStdString(path)))
+        if(Application::Get().GetAssetManager()->AssetExists(path))
         {
-            m_PreviewObjectEntity.AddComponent<Graphics::ModelComponent>(Application::Get().GetAssetManager()->GetAssetData(ToStdString(path)).As<Graphics::Model>());
+            m_PreviewObjectEntity.AddComponent<Graphics::ModelComponent>(Application::Get().GetAssetManager()->GetAssetData(path).As<Graphics::Model>());
         }
         else
         {

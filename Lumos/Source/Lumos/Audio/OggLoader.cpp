@@ -12,24 +12,27 @@ namespace Lumos
     {
         AudioData data = AudioData();
 
-        std::string physicalPath;
-        if(!Lumos::FileSystem::Get().ResolvePhysicalPath(fileName, physicalPath))
+		ArenaTemp Scratch = ScratchBegin(0, 0);
+
+        String8 physicalPath;
+        if(!Lumos::FileSystem::Get().ResolvePhysicalPath(Scratch.arena, Str8StdS(fileName), &physicalPath))
         {
             LINFO("Failed to load Ogg file : File Not Found");
         }
 
-        const auto m_FileHandle = fopen(physicalPath.c_str(), "rb");
+		//TODO: Replace with filesystem call
+        const auto m_FileHandle = fopen((const char*)physicalPath.str, "rb");
 
         if(!m_FileHandle)
         {
-            LFATAL("Failed to load OGG file '{0}'!", physicalPath.c_str());
+            LFATAL("Failed to load OGG file '%s'!", (const char*)physicalPath.str);
         }
         int error;
-        auto m_StreamHandle = stb_vorbis_open_filename(physicalPath.c_str(), &error, nullptr);
+        auto m_StreamHandle = stb_vorbis_open_filename((const char*)physicalPath.str, &error, nullptr);
 
         if(!m_StreamHandle)
         {
-            LFATAL("Failed to load OGG file '{0}'! , Error {1}", physicalPath.c_str(), error);
+            LFATAL("Failed to load OGG file '%s'! , Error %s", (const char*)physicalPath.str, error);
             return data;
         }
 

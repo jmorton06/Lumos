@@ -333,7 +333,7 @@ namespace Lumos
     {
         if(m_Size == m_Capacity)
             Reserve(m_Capacity == 0 ? 1 : m_Capacity * 2);
-        m_Data[m_Size++] = value;
+        m_Data[m_Size++] = Move(value);
     }
 
     template <class T>

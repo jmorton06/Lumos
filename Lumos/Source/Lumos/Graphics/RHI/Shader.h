@@ -23,8 +23,8 @@ namespace Lumos
             virtual ~Shader() = default;
 
             virtual const TDArray<ShaderType> GetShaderTypes() const = 0;
-            virtual const std::string& GetName() const               = 0;
-            virtual const std::string& GetFilePath() const           = 0;
+            virtual const char* GetName() const               = 0;
+            virtual const char* GetFilePath() const           = 0;
 
             virtual void* GetHandle() const = 0;
             virtual bool IsCompiled() const { return true; }
@@ -40,12 +40,12 @@ namespace Lumos
             SET_ASSET_TYPE(AssetType::Shader);
 
         public:
-            static Shader* CreateFromFile(const std::string& filepath);
+            static Shader* CreateFromFile(const char* filepath);
             static Shader* CreateFromEmbeddedArray(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize);
             static Shader* CreateCompFromEmbeddedArray(const uint32_t* compData, uint32_t compDataSize);
 
         protected:
-            static Shader* (*CreateFunc)(const std::string&);
+            static Shader* (*CreateFunc)(const char*);
             static Shader* (*CreateFuncFromEmbedded)(const uint32_t*, uint32_t, const uint32_t*, uint32_t);
             static Shader* (*CreateCompFuncFromEmbedded)(const uint32_t*, uint32_t);
         };

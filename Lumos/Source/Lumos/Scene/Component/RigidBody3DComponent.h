@@ -12,15 +12,6 @@
 namespace Lumos
 {
     class Entity;
-    struct RigidBody3DInstance
-    {
-        RigidBody3DInstance();
-        RigidBody3DInstance(RigidBody3D* physics);
-        RigidBody3DInstance(const RigidBody3DProperties& params);
-
-        ~RigidBody3DInstance();
-        RigidBody3D* Body;
-    };
 
     class AxisConstraintComponent
     {
@@ -174,11 +165,11 @@ namespace Lumos
 
         ~RigidBody3DComponent();
 
-        inline RigidBody3DComponent& operator=(RigidBody3DComponent& moving)
+        inline RigidBody3DComponent& operator=(RigidBody3DComponent& rhs)
         {
-            m_OwnRigidBody        = moving.m_OwnRigidBody;
-            moving.m_OwnRigidBody = false;
-            m_RigidBody           = moving.m_RigidBody;
+            m_OwnRigidBody        = rhs.m_OwnRigidBody;
+            rhs.m_OwnRigidBody = false;
+            m_RigidBody           = rhs.m_RigidBody;
 
             return *this;
         }
@@ -198,25 +189,24 @@ namespace Lumos
 
         RigidBody3D* GetRigidBody() const
         {
-            return m_RigidBody->Body;
+            return m_RigidBody;
         }
 
         template <typename Archive>
         void save(Archive& archive) const
         {
-            archive(*(m_RigidBody->Body));
+            archive(*m_RigidBody);
         }
 
         template <typename Archive>
         void load(Archive& archive)
         {
             // m_RigidBody = CreateSharedPtr<RigidBody3D>();
-            m_RigidBody = CreateSharedPtr<RigidBody3DInstance>();
-            archive(*(m_RigidBody->Body));
+            archive(*m_RigidBody);
         }
 
     private:
-        SharedPtr<RigidBody3DInstance> m_RigidBody;
+        RigidBody3D* m_RigidBody;
         bool m_OwnRigidBody = false;
     };
 }

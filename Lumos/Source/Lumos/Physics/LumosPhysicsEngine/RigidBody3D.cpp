@@ -32,6 +32,7 @@ namespace Lumos
         m_InvMass = 1.0f / properties.Mass;
 
         m_LocalBoundingBox.Set(Vec3(-0.5f), Vec3(0.5f));
+        m_CollisionShape = nullptr;
 
         if(properties.Shape)
             SetCollisionShape(properties.Shape);
@@ -188,8 +189,12 @@ namespace Lumos
     void RigidBody3D::SetCollisionShape(const SharedPtr<CollisionShape>& shape)
     {
         m_CollisionShape = shape;
-        m_InvInertia     = m_CollisionShape->BuildInverseInertia(m_InvMass);
-        AutoResizeBoundingBox();
+
+        if (m_CollisionShape)
+        {
+            m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
+            AutoResizeBoundingBox();
+        }
     }
 
     void RigidBody3D::SetAngularVelocity(const Vec3& v)

@@ -14,14 +14,15 @@ namespace Lumos
         }
 
         LINFO("Serialising Asset Registry %s", (const char*)path.str);
-        FileSystem::WriteTextFile((const char*)path.str, storage.str());
+        FileSystem::WriteTextFile(path, Str8StdS(storage.str()));
     }
 
     void DeserialiseAssetRegistry(const String8& path, AssetRegistry& registry)
     {
-        std::string data = FileSystem::ReadTextFile((const char*)path.str);
+		ArenaTemp temp = ScratchBegin(nullptr, 0);
+        String8 data = FileSystem::ReadTextFile(temp.arena, path);
         std::istringstream istr;
-        istr.str(data);
+        istr.str((const char*)data.str);
         try
         {
             cereal::JSONInputArchive input(istr);
@@ -31,5 +32,6 @@ namespace Lumos
         {
             LWARN("Failed to load asset registry %s", (const char*)path.str);
         }
+		ScratchEnd(temp);
     }
 }

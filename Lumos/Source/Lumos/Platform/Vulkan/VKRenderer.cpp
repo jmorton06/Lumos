@@ -386,13 +386,13 @@ file << "P6\n"
    */
 
             uint8_t* outputImage = (uint8_t*)data;
-            
+
             if(Blur)
             {
-                        outputImage = new uint8_t[width * height * 4];
-                        int radius           = (int)BlurRadius;
-                        float sigma          = 2.0f;
-                        Maths::ApplyGaussianBlur((const uint8_t*)data, outputImage, width, height, radius, sigma);
+                outputImage = new uint8_t[width * height * 4];
+                int radius  = (int)BlurRadius;
+                float sigma = 2.0f;
+                Maths::ApplyGaussianBlur((const uint8_t*)data, outputImage, width, height, radius, sigma);
             }
 
             int32_t resWrite = stbi_write_png(
@@ -404,7 +404,7 @@ file << "P6\n"
                 (int)subResourceLayout.rowPitch);
 
             if(Blur)
-                        delete[] outputImage;
+                delete[] outputImage;
             /*
 
 for(uint32_t y = 0; y < texture->GetHeight(); y++)

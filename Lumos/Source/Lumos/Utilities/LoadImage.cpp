@@ -25,27 +25,33 @@ namespace Lumos
     uint8_t* LoadImageFromFile(const char* filename, uint32_t* width, uint32_t* height, uint32_t* bits, bool* isHDR, bool flipY, bool srgb)
     {
         LUMOS_PROFILE_FUNCTION();
-        std::string filePath = std::string(filename);
-        std::string physicalPath;
-        if(!FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath))
-            return nullptr;
-
-        filename = physicalPath.c_str();
-
         int texWidth = 0, texHeight = 0, texChannels = 0;
         stbi_uc* pixels   = nullptr;
         int sizeOfChannel = 8;
-        if(stbi_is_hdr(filename))
+
+		ArenaTemp Scratch = ScratchBegin(0,0);
+
+		String8 filePath = Str8C((char*)filename);
+		String8 physicalPath;
+
+		if(!FileSystem::Get().ResolvePhysicalPath(Scratch.arena, filePath, &physicalPath))
+		{
+			ScratchEnd(Scratch);
+			return nullptr;
+		}
+
+
+        if(stbi_is_hdr((const char*)physicalPath.str))
         {
             sizeOfChannel = 32;
-            pixels        = (uint8_t*)stbi_loadf(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+            pixels        = (uint8_t*)stbi_loadf((const char*)physicalPath.str, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
             if(isHDR)
                 *isHDR = true;
         }
         else
         {
-            pixels = stbi_load(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+            pixels = stbi_load((const char*)physicalPath.str, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
             if(isHDR)
                 *isHDR = false;
@@ -110,6 +116,7 @@ namespace Lumos
 
             memcpy(data, datatwo, size);
 
+			ScratchEnd(Scratch);
             return data;
         }
 
@@ -129,6 +136,7 @@ namespace Lumos
         memcpy(result, pixels, size);
 
         stbi_image_free(pixels);
+		ScratchEnd(Scratch);
         return result;
     }
 
@@ -140,66 +148,71 @@ namespace Lumos
     bool LoadImageFromFile(ImageLoadDesc& desc)
     {
         LUMOS_PROFILE_FUNCTION();
-        std::string filePath = std::string(desc.filePath);
-        std::string physicalPath;
         stbi_uc* pixels = nullptr;
         int texWidth = 0, texHeight = 0, texChannels = 0;
-
         int sizeOfChannel = 8;
-        if(FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath))
-        {
-            desc.filePath = physicalPath.c_str();
 
-            if(stbi_is_hdr(desc.filePath))
-            {
-                sizeOfChannel = 32;
-                pixels        = (uint8_t*)stbi_loadf(desc.filePath, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+		ArenaTemp Scratch = ScratchBegin(0,0);
 
-                desc.isHDR = true;
-            }
-            else
-            {
-                pixels = stbi_load(desc.filePath, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+		String8 filePath = Str8C((char*)desc.filePath);
+		String8 physicalPath;
 
-                desc.isHDR = false;
-            }
+		if(!FileSystem::Get().ResolvePhysicalPath(Scratch.arena, filePath, &physicalPath))
+		{
+			ScratchEnd(Scratch);
+			return false;
+		}
+		desc.filePath = (const char*)physicalPath.str;
 
-            // Resize the image if it exceeds the maximum width or height
-            if(!desc.isHDR && desc.maxWidth > 0 && desc.maxHeight > 0 && ((uint32_t)texWidth > desc.maxWidth || (uint32_t)texHeight > desc.maxHeight))
-            {
-                uint32_t texWidthOld = texWidth, texHeightOld = texHeight;
-                float aspectRatio = static_cast<float>(texWidth) / static_cast<float>(texHeight);
-                if((uint32_t)texWidth > desc.maxWidth)
-                {
-                    texWidth  = desc.maxWidth;
-                    texHeight = static_cast<uint32_t>(desc.maxWidth / aspectRatio);
-                }
-                if((uint32_t)texHeight > desc.maxHeight)
-                {
-                    texHeight = desc.maxHeight;
-                    texWidth  = static_cast<uint32_t>(desc.maxHeight * aspectRatio);
-                }
+		if(stbi_is_hdr(desc.filePath))
+		{
+			sizeOfChannel = 32;
+			pixels        = (uint8_t*)stbi_loadf(desc.filePath, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
-                if(texChannels != 4)
-                    texChannels = 4;
+			desc.isHDR = true;
+		}
+		else
+		{
+			pixels = stbi_load(desc.filePath, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
-                // Resize the image using stbir
-                int resizedChannels    = texChannels;
-                uint8_t* resizedPixels = (stbi_uc*)malloc(texWidth * texHeight * resizedChannels);
+			desc.isHDR = false;
+		}
 
-                if(desc.isHDR)
-                {
-                    stbir_resize_float_linear((float*)pixels, texWidthOld, texHeightOld, 0, (float*)resizedPixels, texWidth, texHeight, 0, STBIR_RGBA);
-                }
-                else
-                {
-                    stbir_resize_uint8_linear(pixels, texWidthOld, texHeightOld, 0, resizedPixels, texWidth, texHeight, 0, texChannels == 4 ? STBIR_RGBA : STBIR_RGB);
-                }
+		// Resize the image if it exceeds the maximum width or height
+		if(!desc.isHDR && desc.maxWidth > 0 && desc.maxHeight > 0 && ((uint32_t)texWidth > desc.maxWidth || (uint32_t)texHeight > desc.maxHeight))
+		{
+			uint32_t texWidthOld = texWidth, texHeightOld = texHeight;
+			float aspectRatio = static_cast<float>(texWidth) / static_cast<float>(texHeight);
+			if((uint32_t)texWidth > desc.maxWidth)
+			{
+				texWidth  = desc.maxWidth;
+				texHeight = static_cast<uint32_t>(desc.maxWidth / aspectRatio);
+			}
+			if((uint32_t)texHeight > desc.maxHeight)
+			{
+				texHeight = desc.maxHeight;
+				texWidth  = static_cast<uint32_t>(desc.maxHeight * aspectRatio);
+			}
 
-                stbi_image_free(pixels); // Free the original image
-                pixels = resizedPixels;
-            }
-        }
+			if(texChannels != 4)
+				texChannels = 4;
+
+			// Resize the image using stbir
+			int resizedChannels    = texChannels;
+			uint8_t* resizedPixels = (stbi_uc*)malloc(texWidth * texHeight * resizedChannels);
+
+			if(desc.isHDR)
+			{
+				stbir_resize_float_linear((float*)pixels, texWidthOld, texHeightOld, 0, (float*)resizedPixels, texWidth, texHeight, 0, STBIR_RGBA);
+			}
+			else
+			{
+				stbir_resize_uint8_linear(pixels, texWidthOld, texHeightOld, 0, resizedPixels, texWidth, texHeight, 0, texChannels == 4 ? STBIR_RGBA : STBIR_RGB);
+			}
+
+			stbi_image_free(pixels); // Free the original image
+			pixels = resizedPixels;
+		}
 
         if(!pixels)
         {
@@ -225,6 +238,7 @@ namespace Lumos
             memcpy(data, datatwo, size);
 
             desc.outPixels = data;
+			ScratchEnd(Scratch);
             return false;
         }
 
@@ -242,6 +256,8 @@ namespace Lumos
 
         stbi_image_free(pixels);
         desc.outPixels = result;
+
+		ScratchEnd(Scratch);
         return true;
     }
 

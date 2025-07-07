@@ -2,10 +2,8 @@
 #include "Maths/Vector2.h"
 #include "Maths/Vector3.h"
 #include "Maths/Vector4.h"
-#include "Scene/Serialisation/Serialisation.h"
 #include "Graphics/RHI/RHIDefinitions.h"
 #include "Graphics/RHI/Texture.h"
-#include "Core/OS/FileSystem.h"
 
 namespace Lumos
 {
@@ -28,6 +26,12 @@ namespace Lumos
 
     class ParticleEmitter
     {
+		template <typename Archive>
+		friend void save(Archive& archive, const ParticleEmitter& particleManager);
+
+		template <typename Archive>
+		friend void load(Archive& archive, ParticleEmitter& particleManager);
+
     public:
         ParticleEmitter();
         ParticleEmitter(uint32_t amount);
@@ -47,87 +51,6 @@ namespace Lumos
         };
 
         void Update(float dt, Vec3 emitterPosition = Vec3(0.0f));
-        template <typename Archive>
-        void save(Archive& archive) const
-        {
-            archive(m_ParticleCount);
-            archive(m_ParticleLife);
-            archive(m_ParticleSize);
-            archive(m_InitialVelocity);
-            archive(m_InitialColour);
-            archive(m_Spread);
-            archive(m_VelocitySpread);
-            archive(m_FadeIn);
-            archive(m_FadeOut);
-            archive(m_NextParticleTime);
-            archive(m_ParticleRate);
-            archive(m_NumLaunchParticles);
-            archive(m_IsAnimated);
-            archive(m_Gravity);
-            archive(m_AnimatedTextureRows);
-
-            std::string newPath = "";
-            if(m_Texture)
-            {
-                FileSystem::Get().AbsolutePathToFileSystem(m_Texture->GetFilepath(), newPath);
-            }
-            archive(newPath);
-
-            archive(m_LifeSpread);
-            archive(m_SortParticles);
-            archive(m_DepthWrite);
-            archive((uint8_t)m_BlendType);
-            archive((uint8_t)m_AlignedType);
-        }
-
-        template <typename Archive>
-        void load(Archive& archive)
-        {
-            archive(m_ParticleCount);
-            archive(m_ParticleLife);
-            archive(m_ParticleSize);
-            archive(m_InitialVelocity);
-            archive(m_InitialColour);
-            archive(m_Spread);
-            archive(m_VelocitySpread);
-            archive(m_FadeIn);
-            archive(m_FadeOut);
-            archive(m_NextParticleTime);
-            archive(m_ParticleRate);
-            archive(m_NumLaunchParticles);
-            archive(m_IsAnimated);
-            archive(m_Gravity);
-            archive(m_AnimatedTextureRows);
-
-            std::string textureFilePath;
-            archive(textureFilePath);
-
-            if(!textureFilePath.empty())
-            {
-                Graphics::TextureDesc desc;
-                desc.minFilter = Graphics::TextureFilter::LINEAR;
-                desc.magFilter = Graphics::TextureFilter::LINEAR;
-                desc.wrap      = Graphics::TextureWrap::CLAMP;
-                m_Texture      = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("particle", textureFilePath, desc));
-            }
-            else
-                m_Texture = nullptr;
-
-            if(SceneSerialisationVersion > 23)
-            {
-                archive(m_LifeSpread);
-                archive(m_SortParticles);
-                archive(m_DepthWrite);
-                uint8_t value;
-                archive(value);
-                m_BlendType = (BlendType)value;
-                archive(value);
-                m_AlignedType = (AlignedType)value;
-            }
-
-            Init();
-        }
-
         void SetTextureFromFile(const std::string& path);
 
         Particle* GetParticles() { return m_Particles; }

@@ -50,8 +50,8 @@ namespace Lumos
             editor.SetLanguageDefinition(lang);
         }
 
-        auto string = FileSystem::ReadTextFile(m_FilePath);
-        editor.SetText(string);
+        String8 string = FileSystem::ReadTextFile(m_Editor->GetFrameArena(), Str8StdS(m_FilePath));
+        editor.SetText((const char*)string.str);
         editor.SetShowWhitespaces(false);
         JustOpenedFile = true;
     }
@@ -75,7 +75,7 @@ namespace Lumos
                     if(ImGui::MenuItem("Save", "CTRL+S"))
                     {
                         auto textToSave = editor.GetText();
-                        FileSystem::WriteTextFile(m_FilePath, textToSave);
+                        FileSystem::WriteTextFile(Str8StdS(m_FilePath), Str8StdS(textToSave));
                         if(m_OnSaveCallback)
                             m_OnSaveCallback();
 
@@ -148,7 +148,7 @@ namespace Lumos
                 if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || Input::Get().GetKeyHeld(InputCode::Key::LeftControl)) && Input::Get().GetKeyPressed(InputCode::Key::S))
                 {
                     auto textToSave = editor.GetText();
-                    FileSystem::WriteTextFile(m_FilePath, textToSave);
+					FileSystem::WriteTextFile(Str8StdS(m_FilePath), Str8StdS(textToSave));
                     if(m_OnSaveCallback)
                         m_OnSaveCallback();
 

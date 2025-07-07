@@ -190,7 +190,7 @@ namespace Lumos
         }
 
         m_TempSceneSaveFilePath += "/Lumos/";
-        if(!FileSystem::FolderExists(m_TempSceneSaveFilePath))
+        if(!FileSystem::FolderExists(Str8StdS(m_TempSceneSaveFilePath)))
             std::filesystem::create_directory(m_TempSceneSaveFilePath);
 
         std::vector<std::string> iniLocation = {
@@ -206,7 +206,7 @@ namespace Lumos
         std::string filePath;
         for(auto& path : iniLocation)
         {
-            if(FileSystem::FileExists(path))
+            if(FileSystem::FileExists(Str8StdS(path)))
             {
                 filePath = path;
 
@@ -1171,7 +1171,7 @@ namespace Lumos
                 int sameNameCount = 0;
 
                 String8 Path = PushStr8F(scratch.arena, "//Assets/Scenes/%s.lsn", (char*)sceneName.str);
-                while(FileSystem::FileExists((const char*)Path.str) || m_SceneManager->ContainsScene((const char*)sceneName.str))
+                while(FileSystem::FileExists(Path) || m_SceneManager->ContainsScene((const char*)sceneName.str))
                 {
                     sameNameCount++;
                     sceneName = PushStr8F(scratch.arena, "%s%i", (char*)newSceneName.c_str(), sameNameCount);
@@ -2588,8 +2588,8 @@ namespace Lumos
     void Editor::OpenTextFile(const std::string& filePath, const std::function<void()>& callback)
     {
         LUMOS_PROFILE_FUNCTION();
-        std::string physicalPath;
-        if(!FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath))
+        String8 physicalPath;
+        if(!FileSystem::Get().ResolvePhysicalPath(m_FrameArena, Str8StdS(filePath), &physicalPath))
         {
             LERROR("Failed to Load Lua script %s", filePath.c_str());
             return;
@@ -2605,7 +2605,7 @@ namespace Lumos
             }
         }
 
-        m_Panels.emplace_back(CreateSharedPtr<TextEditPanel>(physicalPath));
+        m_Panels.emplace_back(CreateSharedPtr<TextEditPanel>(ToStdString(physicalPath)));
         m_Panels.back().As<TextEditPanel>()->SetOnSaveCallback(callback);
         m_Panels.back()->SetEditor(this);
 
@@ -2761,9 +2761,9 @@ namespace Lumos
         }
         else if(IsAudioFile(path))
         {
-            std::string physicalPath;
-            Lumos::FileSystem::Get().ResolvePhysicalPath(path, physicalPath);
-            auto sound = Sound::Create(physicalPath, StringUtilities::GetFilePathExtension(path));
+            String8 physicalPath;
+            Lumos::FileSystem::Get().ResolvePhysicalPath(m_FrameArena, Str8StdS(path),  &physicalPath);
+            auto sound = Sound::Create(ToStdString(physicalPath), StringUtilities::GetFilePathExtension(path));
 
             auto soundNode = SharedPtr<SoundNode>(SoundNode::Create());
             soundNode->SetSound(sound);
@@ -2823,7 +2823,7 @@ namespace Lumos
         locationPopupOpened   = false;
         m_FileBrowserPanel->ClearFileTypeFilters();
 
-        if(FileSystem::FileExists(filePath))
+        if(FileSystem::FileExists(Str8StdS(filePath)))
         {
             auto it = std::find(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end(), filePath);
             if(it == m_Settings.m_RecentProjects.end())
@@ -2894,16 +2894,17 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_MACOS
         // Assuming working directory in /bin/Debug-macosx-x86_64/LumosEditor.app/Contents/MacOS
         m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../../../../ExampleProject/";
-        if(!Lumos::FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot))
+        if(!Lumos::FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)))
         {
             m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "/ExampleProject/";
-            if(!Lumos::FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot))
+            if(!Lumos::FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)))
             {
                 m_ProjectSettings.m_ProjectRoot = "../../ExampleProject/";
             }
         }
 #elif defined(LUMOS_PLATFORM_IOS)
-        m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
+		// TODO: StringRefactr
+       // m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
 #endif
 
         m_ProjectSettings.m_ProjectName = "Example";
@@ -2964,7 +2965,7 @@ namespace Lumos
         int recentProjectCount  = 0;
         std::string projectPath = m_ProjectSettings.m_ProjectRoot + m_ProjectSettings.m_ProjectName + std::string(".lmproj");
 
-        if(FileSystem::FileExists(projectPath))
+        if(FileSystem::FileExists(Str8StdS(projectPath)))
         {
             auto it = std::find(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end(), projectPath);
             if(it == m_Settings.m_RecentProjects.end())
@@ -2976,7 +2977,7 @@ namespace Lumos
         {
             projectPath = m_IniFile.GetOrDefault("RecentProject" + std::to_string(i), std::string());
 
-            if(FileSystem::FileExists(projectPath))
+            if(FileSystem::FileExists(Str8StdS(projectPath)))
             {
                 auto it = std::find(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end(), projectPath);
                 if(it == m_Settings.m_RecentProjects.end())
@@ -3041,16 +3042,16 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        if(FileSystem::FileExists(m_TempSceneSaveFilePath + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn"))
+        if(FileSystem::FileExists(Str8StdS(std::string(m_TempSceneSaveFilePath + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn"))))
         {
             Application::Get().GetCurrentScene()->Deserialise(m_TempSceneSaveFilePath, false);
         }
         else
         {
-            std::string physicalPath;
-            if(Lumos::FileSystem::Get().ResolvePhysicalPath("//Assets/Scenes/" + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn", physicalPath))
+            String8 physicalPath;
+            if(Lumos::FileSystem::Get().ResolvePhysicalPath(m_FrameArena, Str8StdS(std::string("//Assets/Scenes/" + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn")), &physicalPath))
             {
-                auto newPath = StringUtilities::RemoveName(physicalPath);
+                auto newPath = StringUtilities::RemoveName(ToStdString(physicalPath));
                 Application::Get().GetCurrentScene()->Deserialise(newPath, false);
             }
         }

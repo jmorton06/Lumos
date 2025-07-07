@@ -35,15 +35,18 @@ namespace Lumos
         , m_DampingFactor(config.DampingFactor)
         , m_BroadphaseDetection(nullptr)
         , m_IntegrationType(config.IntegrType)
-        , m_RootBody(nullptr)
         , m_BaumgarteScalar(config.BaumgarteScalar)
         , m_BaumgarteSlop(config.BaumgarteSlop)
+        , m_MaxRigidBodyCount(config.MaxRigidBodyCount)
     {
         m_DebugName = "Lumos3DPhysicsEngine";
         m_BroadphaseCollisionPairs.Reserve(1000);
 
-        m_Allocator = new PoolAllocator<RigidBody3D>();
-        m_Arena     = ArenaAlloc(Megabytes(4));
+        m_FrameArena  = ArenaAlloc(Megabytes(4));
+        m_Arena       = ArenaAlloc(m_MaxRigidBodyCount * sizeof(RigidBody3D) * 2);
+        m_RigidBodies = PushArray(m_Arena, RigidBody3D, m_MaxRigidBodyCount);
+        m_RigidBodyFreeList = TDArray<RigidBody3D*>(m_Arena);
+        m_RigidBodyFreeList.Reserve(m_MaxRigidBodyCount);
     }
 
     void LumosPhysicsEngine::SetDefaults()
@@ -60,6 +63,9 @@ namespace Lumos
 
     LumosPhysicsEngine::~LumosPhysicsEngine()
     {
+        ArenaRelease(m_Arena);
+        ArenaRelease(m_FrameArena);
+
         CollisionDetection::Release();
     }
 
@@ -70,7 +76,7 @@ namespace Lumos
         {
             auto& registry    = scene->GetRegistry();
             m_ConstraintCount = 0;
-            ArenaClear(m_Arena);
+            ArenaClear(m_FrameArena);
 
             {
                 LUMOS_PROFILE_SCOPE("Physics::Get Spring Constraints");
@@ -80,7 +86,7 @@ namespace Lumos
                 auto viewWeld   = registry.view<WeldConstraintComponent>();
 
                 m_ConstraintCount = (uint32_t)viewSpring.size() + (uint32_t)viewAxis.size() + (uint32_t)viewDis.size() + (uint32_t)viewWeld.size();
-                m_Constraints     = PushArray(m_Arena, SharedPtr<Constraint>, m_ConstraintCount);
+                m_Constraints     = PushArray(m_FrameArena, SharedPtr<Constraint>, m_ConstraintCount);
 
                 uint32_t constraintIndex = 0;
                 for(auto entity : viewSpring)
@@ -154,7 +160,7 @@ namespace Lumos
     void LumosPhysicsEngine::UpdatePhysics()
     {
         m_ManifoldCount = 0;
-        m_Manifolds     = PushArrayNoZero(m_Arena, Manifold, 1000);
+        m_Manifolds     = PushArrayNoZero(m_FrameArena, Manifold, 1000);
 
         // Check for collisions
         BroadPhaseCollisions();
@@ -164,17 +170,17 @@ namespace Lumos
         SolveConstraints();
         // Update movement
         for(uint32_t i = 0; i < m_PositionIterations; i++)
-            UpdateRigidBodys();
+            UpdateRigidBodies();
 
-        RigidBody3D* current = m_RootBody;
-        while(current)
+        for(u32 i = 0; i < m_RigidBodyCount; i++)
         {
-            current->RestTest();
-            current = current->m_Next;
+            RigidBody3D& current = m_RigidBodies[i];
+            if(current.m_IsValid)
+                current.RestTest();
         }
     }
 
-    void LumosPhysicsEngine::UpdateRigidBodys()
+    void LumosPhysicsEngine::UpdateRigidBodies()
     {
         LUMOS_PROFILE_SCOPE("Update Rigid Body");
 
@@ -182,62 +188,60 @@ namespace Lumos
         m_Stats.RestCount      = 0;
         m_Stats.RigidBodyCount = 0;
 
-        RigidBody3D* current = m_RootBody;
-        while(current)
+        for (u32 i = 0; i < m_RigidBodyCount; i++)
         {
-            if(current->m_AtRest)
+            RigidBody3D& current = m_RigidBodies[i];
+            if (!current.m_IsValid)
+                continue;
+
+            if(current.m_AtRest)
                 m_Stats.RestCount++;
-            if(current->m_Static)
+            if(current.m_Static)
                 m_Stats.StaticCount++;
 
             m_Stats.RigidBodyCount++;
 
-            UpdateRigidBody(current);
-            current = current->m_Next;
+            UpdateRigidBody(&current);
         }
     }
 
     RigidBody3D* LumosPhysicsEngine::CreateBody(const RigidBody3DProperties& properties)
     {
-        m_RigidBodyCount++;
-
-        void* mem = m_Allocator->Allocate();
-
-        RigidBody3D* body = new(mem) RigidBody3D();
-        // Add to world doubly linked list.
-        body->m_Prev = nullptr;
-        body->m_Next = m_RootBody;
-        if(m_RootBody)
+        if (!m_RigidBodyFreeList.Empty())
         {
-            m_RootBody->m_Prev = body;
-        }
-        m_RootBody = body;
+            RigidBody3D* body = m_RigidBodyFreeList.Back();
+            *body = RigidBody3D(properties);
+            body->m_IsValid = true;
+            m_RigidBodyFreeList.PopBack();
 
-        return body;
+            return body;
+        }
+        else
+        {
+            if (m_RigidBodyCount < m_MaxRigidBodyCount)
+            {
+                RigidBody3D* body = &m_RigidBodies[m_RigidBodyCount];
+                *body = RigidBody3D(properties);
+                body->m_IsValid = true;
+                m_RigidBodyCount++;
+
+                return body;
+            }
+            else
+            {
+                LERROR("Exceeded Max RigidBody Count %i", m_RigidBodyCount);
+                return nullptr;
+            }
+        }
     }
 
     void LumosPhysicsEngine::DestroyBody(RigidBody3D* body)
     {
-        m_RigidBodyCount--;
-
-        // Remove world body list.
-        if(body->m_Prev)
+        if (body && body->m_IsValid)
         {
-            body->m_Prev->m_Next = body->m_Next;
+            body->m_IsValid = false;
+            m_RigidBodyFreeList.PushBack(body);
         }
-
-        if(body->m_Next)
-        {
-            body->m_Next->m_Prev = body->m_Prev;
-        }
-
-        if(body == m_RootBody)
-        {
-            m_RootBody = body->m_Next;
-        }
-
-        body->~RigidBody3D();
-        m_Allocator->Deallocate(body);
     }
 
     void LumosPhysicsEngine::SyncTransforms(Scene* scene)
@@ -426,7 +430,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         m_BroadphaseCollisionPairs.Clear();
         if(m_BroadphaseDetection)
-            m_BroadphaseDetection->FindPotentialCollisionPairs(m_RootBody, m_BroadphaseCollisionPairs, m_RigidBodyCount);
+            m_BroadphaseDetection->FindPotentialCollisionPairs(m_RigidBodies, m_BroadphaseCollisionPairs, m_RigidBodyCount);
 
 #ifdef CHECK_COLLISION_PAIR_DUPLICATES
 
@@ -718,13 +722,15 @@ namespace Lumos
         if(!m_IsPaused && m_BroadphaseDetection && (m_DebugDrawFlags & PhysicsDebugFlags::BROADPHASE))
             m_BroadphaseDetection->DebugDraw();
 
-        RigidBody3D* current = m_RootBody;
-        while(current)
+        for (u32 i = 0; i < m_RigidBodyCount; i++)
         {
-            current->DebugDraw(m_DebugDrawFlags);
-            if(current->GetCollisionShape() && (m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONVOLUMES))
-                current->GetCollisionShape()->DebugDraw(current);
-            current = current->m_Next;
+            RigidBody3D& current = m_RigidBodies[i];
+            if (current.m_IsValid)
+            {
+                current.DebugDraw(m_DebugDrawFlags);
+                if (current.GetCollisionShape() && (m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONVOLUMES))
+                    current.GetCollisionShape()->DebugDraw(&current);
+            }
         }
     }
 }

@@ -71,10 +71,13 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
 
-        std::string physicalPath;
+        String8 physicalPath;
 
-        FileSystem::Get().ResolvePhysicalPath(path, physicalPath);
-        return FileSystem::FileExists(physicalPath);
+        ArenaTemp scratch = ScratchBegin(0, 0);
+        FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(path), &physicalPath);
+        bool exists = FileSystem::FileExists(physicalPath);
+        ScratchEnd(scratch);
+        return exists;
     }
 
     void Material::LoadPBRMaterial(const std::string& name, const std::string& path, const std::string& extension)
@@ -231,7 +234,7 @@ namespace Lumos::Graphics
         {
             // If no shader then set it to the default pbr shader
             // TODO default to forward
-            m_Shader = Application::Get().GetAssetManager()->GetAssetData("ForwardPBR").As<Graphics::Shader>();
+            m_Shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBR")).As<Graphics::Shader>();
         }
 
         Graphics::DescriptorDesc descriptorDesc;
@@ -260,7 +263,7 @@ namespace Lumos::Graphics
 
     void Material::SetShader(const std::string& filePath)
     {
-        m_Shader = Application::Get().GetAssetManager()->GetAssetData("ForwardPBR").As<Graphics::Shader>();
+        m_Shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBR")).As<Graphics::Shader>();
     }
 
     void Material::InitDefaultTexture()
