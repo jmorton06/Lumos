@@ -284,8 +284,8 @@ namespace Lumos
                 m_ClearValue[m_DepthAttachmentIndex].depthStencil = VkClearDepthStencilValue { 1.0f, 0 };
             }
 
-            float RenderPassWidth  = Maths::Max(width, 1.0f);
-            float RenderPassHeight = Maths::Max(height, 1.0f);
+            u32 RenderPassWidth  = Maths::Max((u32)width, 1);
+            u32 RenderPassHeight = Maths::Max((u32)height, 1);
 
             VkRenderPassBeginInfo rpBegin    = {};
             rpBegin.sType                    = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;

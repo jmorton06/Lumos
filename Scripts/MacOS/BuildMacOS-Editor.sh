@@ -23,3 +23,4 @@ xcodebuild \
   CODE_SIGNING_REQUIRED=NO \
   CODE_SIGNING_ALLOWED=NO
 
+echo "MacOS Editor Build Finished"

@@ -55,7 +55,7 @@ vec2 integrateBRDF(float roughness, float NoV)
     
     float A = 0.0;
     float B = 0.0;
-    const uint numSamples = 1024u;
+    const uint numSamples = 256u;
     
     for (uint i = 0u; i < numSamples; i++) {
         vec2 Xi = hammersley(i, numSamples);

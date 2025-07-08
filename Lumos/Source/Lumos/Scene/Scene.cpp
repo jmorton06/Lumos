@@ -418,7 +418,7 @@ namespace Lumos
 
         ArenaTemp scratch = ScratchBegin(0, 0);
 
-        String8 path = PushStr8F(scratch.arena, "%s%s%s", filePath.c_str(), m_SceneName.c_str(), binary ? Str8Lit(".bin") : Str8Lit(".lsn"));
+        String8 path = PushStr8F(scratch.arena, "%s%s%s", filePath.c_str(), m_SceneName.c_str(), binary ? (const char*)Str8Lit(".bin").str : (const char*)Str8Lit(".lsn").str);
 
         if(binary)
         {

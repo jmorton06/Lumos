@@ -94,6 +94,12 @@ namespace Lumos
 		MutexInit(m_EventQueueMutex);
 		MutexInit(m_MainThreadQueueMutex);
 
+#ifdef LUMOS_PLATFORM_MACOS
+		m_RenderConfig.EnvironmentMapSize = 256;
+		m_RenderConfig.IrradianceMapSize  = 32;
+		m_RenderConfig.EnvironmentSamples = 128;
+#endif
+
         m_EventQueue.Reserve(16);
 
         SetMaxImageDimensions(2048, 2048);

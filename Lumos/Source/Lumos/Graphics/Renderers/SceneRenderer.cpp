@@ -4708,7 +4708,7 @@ namespace Lumos::Graphics
 
             descriptorSet->SetTexture(0, environmentMapFiltered);
 
-            uint32_t samples = 512;
+            uint32_t samples = Application::Get().GetRenderConfigSettings().EnvironmentSamples;
             descriptorSet->SetUniformBufferData(1, (void*)&samples);
             descriptorSet->Update(commandBuffer);
 
