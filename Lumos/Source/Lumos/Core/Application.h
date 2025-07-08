@@ -186,8 +186,10 @@ namespace Lumos
 
         struct RenderConfig
         {
-            uint32_t IrradianceMapSize  = 64;
-            uint32_t EnvironmentMapSize = 512;
+             u32 IrradianceMapSize  = 64;
+			u32 EnvironmentMapSize = 512;
+			u32 EnvironmentSamples  = 512;
+			
         };
 
         ProjectSettings& GetProjectSettings() { return m_ProjectSettings; }

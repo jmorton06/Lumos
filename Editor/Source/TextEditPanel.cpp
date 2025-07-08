@@ -50,7 +50,7 @@ namespace Lumos
             editor.SetLanguageDefinition(lang);
         }
 
-        String8 string = FileSystem::ReadTextFile(m_Editor->GetFrameArena(), Str8StdS(m_FilePath));
+        String8 string = FileSystem::ReadTextFile(Application::Get().GetFrameArena(), Str8StdS(m_FilePath));
         editor.SetText((const char*)string.str);
         editor.SetShowWhitespaces(false);
         JustOpenedFile = true;
@@ -162,6 +162,6 @@ namespace Lumos
 
     void TextEditPanel::OnClose()
     {
-        m_Editor->RemovePanel(this);
+		((Editor*)(&Application::Get()))->RemovePanel(this);
     }
 }

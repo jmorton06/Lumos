@@ -99,26 +99,31 @@ namespace Lumos
 
     String8 FileSystem::ReadTextFile(Arena* arena, const String8& path)
     {
-        if(!FileExists(path))
+        if (!FileExists(path))
             return String8();
 
         std::ifstream stream((const char*)path.str, std::ios::in | std::ios::ate);
         if (!stream.is_open())
             return String8();
 
-        std::streamsize size = stream.tellg();
+        auto end = stream.tellg();
         stream.seekg(0, std::ios::beg);
+        const int64_t size = end - stream.tellg();
 
         String8 result = PushStr8FillByte(arena, size, 0);
-        if (stream.read((char*)(result.str), size))
-        {
-            stream.close();
-            return result;
-        }
+        stream.read((char*)result.str, size);
 
-        stream.close();
-        return String8();
+#if 0
+        if (!stream)
+        {
+            if (stream.eof())   LINFO("Reached EOF early.");
+            if (stream.fail())  LINFO("Logical error on i/o operation.");
+            if (stream.bad())   LINFO("Read/writing error on i/o operation.");
+        }
+#endif
+        return result;
     }
+
 
     bool FileSystem::WriteFile(const String8& path, uint8_t* buffer, uint32_t size)
     {

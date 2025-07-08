@@ -189,7 +189,11 @@ namespace Lumos
             deleteIniFile = true;
         }
 
+#ifdef LUMOS_PLATFORM_WINDOWS
+        m_TempSceneSaveFilePath += "Lumos\\";
+#else
         m_TempSceneSaveFilePath += "/Lumos/";
+#endif
         if(!FileSystem::FolderExists(Str8StdS(m_TempSceneSaveFilePath)))
             std::filesystem::create_directory(m_TempSceneSaveFilePath);
 
@@ -1663,15 +1667,16 @@ namespace Lumos
             if(newLayout)
             {
                 ImGuiID dock_main_id = DockspaceID;
-                ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.3f, nullptr, &dock_main_id);
-                ImGuiID DockLeft     = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.66f, nullptr, &dock_main_id);
-                ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.33f, nullptr, &dock_main_id);
+                ImGuiID DockLeft     = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.75f, nullptr, &dock_main_id);
+                ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.25f, nullptr, &dock_main_id);
+				ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.3f, nullptr, &DockLeft);
 
                 ImGuiID DockLeftSplitLeft  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Left, 0.5f, nullptr, &DockLeft);
                 ImGuiID DockLeftSplitRight = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Right, 0.5f, nullptr, &DockLeft);
 
-                ImGuiID DockRightSplitLeft  = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Left, 0.5f, nullptr, &DockRight);
+                /*ImGuiID DockRightSplitLeft  = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Left, 0.5f, nullptr, &DockRight);
                 ImGuiID DockRightSplitRight = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Right, 0.5f, nullptr, &DockRight);
+*/
 
                 ImGuiID DockLeftChild         = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.875f, nullptr, &DockLeft);
                 ImGuiID DockRightChild        = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.875f, nullptr, &DockRight);
@@ -1687,26 +1692,26 @@ namespace Lumos
                 ImGuiID DockMiddleLeft   = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Left, 0.5f, nullptr, &DockMiddle);
                 ImGuiID DockMiddleRight  = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Right, 0.5f, nullptr, &DockMiddle);
 
-                ImGuiID DockingBottomRight           = ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Right, 0.33f, nullptr, &DockBottom);
+                ImGuiID DockingBottomRight           = ImGui::DockBuilderSplitNode(DockRightChild, ImGuiDir_Down, 0.5f, nullptr, &DockRightChild);
                 ImGuiID DockingBottomRightSplitLeft  = ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Left, 0.5f, nullptr, &DockingBottomRight);
                 ImGuiID DockingBottomRightSplitRight = ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Right, 0.5f, nullptr, &DockingBottomRight);
 
-                ImGui::DockBuilderDockWindow("###game", DockLeftSplitRight);
-                ImGui::DockBuilderDockWindow("###scene", DockLeftSplitLeft);
-                ImGui::DockBuilderDockWindow("###inspector", DockRightSplitRight);
+                ImGui::DockBuilderDockWindow("###game", DockLeft);
+                ImGui::DockBuilderDockWindow("###scene", DockLeft);
+                ImGui::DockBuilderDockWindow("###inspector", DockRight);
                 ImGui::DockBuilderDockWindow("###console", DockBottom);
 
-                ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
+                ImGui::DockBuilderDockWindow("###profiler", DockingBottomRight);
                 ImGui::DockBuilderDockWindow("###resources", DockBottom);
-                ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockRightSplitRight);
-                ImGui::DockBuilderDockWindow("###GraphicsInfo", DockingBottomRightSplitLeft);
-                ImGui::DockBuilderDockWindow("###appinfo", DockingBottomRightSplitRight);
-                ImGui::DockBuilderDockWindow("###AssetManagerPanel", DockRightSplitRight);
-                ImGui::DockBuilderDockWindow("###hierarchy", DockRightSplitLeft);
-                ImGui::DockBuilderDockWindow("###textEdit", DockLeftSplitLeft);
-                ImGui::DockBuilderDockWindow("###scenesettings", DockingBottomRightSplitLeft);
-                ImGui::DockBuilderDockWindow("###editorsettings", DockingBottomRightSplitRight);
-                ImGui::DockBuilderDockWindow("###projectsettings", DockingBottomRightSplitRight);
+                ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockRight);
+                ImGui::DockBuilderDockWindow("###GraphicsInfo", DockingBottomRight);
+                ImGui::DockBuilderDockWindow("###appinfo", DockingBottomRight);
+                ImGui::DockBuilderDockWindow("###AssetManagerPanel", DockRight);
+                ImGui::DockBuilderDockWindow("###hierarchy", DockingBottomRight);
+                ImGui::DockBuilderDockWindow("###textEdit", DockLeft);
+                ImGui::DockBuilderDockWindow("###scenesettings", DockingBottomRight);
+                ImGui::DockBuilderDockWindow("###editorsettings", DockingBottomRight);
+                ImGui::DockBuilderDockWindow("###projectsettings", DockingBottomRight);
             }
             else
             {

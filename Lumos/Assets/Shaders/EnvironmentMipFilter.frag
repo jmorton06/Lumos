@@ -70,7 +70,7 @@ void main()
     {
         float EnvMapSize = float(textureSize(u_Texture, 0).s);
         
-        const uint SAMPLE_COUNT = (PARAM_ROUGHNESS < 0.2) ? 256u : 64u;
+        const uint SAMPLE_COUNT = (PARAM_ROUGHNESS < 0.2) ? 64u : 32u;
     
         for(uint i = 0u; i < SAMPLE_COUNT; ++i)
         {

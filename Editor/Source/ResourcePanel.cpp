@@ -20,11 +20,10 @@
 #include <Lumos/Core/Asset/AssetManager.h>
 
 #ifdef LUMOS_PLATFORM_WINDOWS
-#include <Windows.h>
-#undef RemoveDirectory
-#undef MoveFile
 #include <Shellapi.h>
 #endif
+
+#include "Core/OS/FileSystem.h"
 
 namespace Lumos
 {

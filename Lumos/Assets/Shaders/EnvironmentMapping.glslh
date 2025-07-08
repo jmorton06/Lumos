@@ -1,7 +1,4 @@
 #include "Common.glslh"
-const uint NumSamples = 1024;
-const float InvNumSamples = 1.0 / float(NumSamples);
-
 
 float D_GGX(float NoH, float a) 
 {
@@ -49,12 +46,6 @@ float RadicalInverse_VdC(uint bits)
 	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
 	return float(bits) * 2.3283064365386963e-10; // / 0x100000000
 }
-
-vec2 SampleHammersley(uint i)
-{
-	return vec2(i * InvNumSamples, RadicalInverse_VdC(i));
-}
-
 
 void ComputeBasisVectors(const vec3 N, out vec3 S, out vec3 T)
 {
