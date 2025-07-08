@@ -767,7 +767,7 @@ namespace Lumos
         return result;
     }
 
-    String16 str16_from_8(Arena* arena, String8 in)
+    String16 Str16From8(Arena* arena, String8 in)
     {
         String16 result = { 0 };
         if (in.size)
@@ -790,7 +790,7 @@ namespace Lumos
         return result;
     }
 
-    String8 str8_from_32(Arena* arena, String32 in)
+    String8 Str8From32(Arena* arena, String32 in)
     {
         String8 result = { 0 };
         if (in.size)

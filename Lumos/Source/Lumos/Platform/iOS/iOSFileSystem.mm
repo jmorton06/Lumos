@@ -105,26 +105,27 @@ namespace Lumos
             return true;
     }
 
-    bool FileSystem::FileExists(const std::string& path)
+    bool FileSystem::FileExists(const String8& path)
     {
         struct stat buffer;
-        return (stat (path.c_str(), &buffer) == 0);
+        return (stat(ToCChar(path), &buffer) == 0);
     }
-
-	 bool FileSystem::FolderExists(const std::string& path)
+	
+    bool FileSystem::FolderExists(const String8& path)
     {
         struct stat buffer;
-        return (stat (path.c_str(), &buffer) == 0);
+        return (stat(ToCChar(path), &buffer) == 0);
     }
 
-    int64_t FileSystem::GetFileSize(const std::string& path)
+    int64_t FileSystem::GetFileSize(const String8& path)
     {
-        if (!FileExists(path))
+        if(!FileExists(path))
             return -1;
         struct stat buffer;
-        stat(path.c_str(), &buffer);
+        stat(ToCChar(path), &buffer);
         return buffer.st_size;
     }
+	
 
     bool FileSystem::ReadFile(Arena* arena, const String8& path, void* buffer, int64_t size)
     {
