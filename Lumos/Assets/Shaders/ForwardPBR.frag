@@ -1,7 +1,6 @@
 #version 450
 #include "Buffers.glslh"
 #include "PBR.glslh"
-#include "PBRResources.glslh"
 
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
@@ -210,10 +209,10 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 {
 	float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
 	float sum = 0.0;
-	float noise = Noise(wsPos.xy);
+	//float noise = Noise(wsPos.xy);
 	float invSquareRootSamplesCount = INV_SQRT_PCF_SAMPLES;;
     vec3 flooredPos = floor(wsPos.xyz*1000.0);
-    int index = int(16.0*Random(flooredPos.xyz, 1))%16;
+    //int index = int(16.0*Random(flooredPos.xyz, 1))%16;
 
 	for (int i = 0; i < NUM_PCF_SAMPLES; i++)
 	{
@@ -339,7 +338,7 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 			L = normalize(L);
 
 			// Attenuation
-			float atten = light.radius / (pow(dist, 2.0) + 1.0);
+			//float atten = light.radius / (pow(dist, 2.0) + 1.0);
 			float attenuation = clamp(1.0 - (dist * dist) / (light.radius * light.radius), 0.0, 1.0);
 
 			value = attenuation;
@@ -376,11 +375,11 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 				value = 1.0;
 		}
 
-		vec3 Li = light.direction.xyz;
-		vec3 Lradiance = light.colour.xyz * light.intensity;
-		vec3 Lh = normalize(Li + material.View);
 
+		vec3 Lradiance = light.colour.xyz * light.intensity;
+		vec3 Li = light.direction.xyz;
 #if NEW_LIGHTING == 0
+		vec3 Lh = normalize(Li + material.View);
 
 		// Calculate angles between surface normal and various light vectors.
 		float cosLi = max(0.0, dot(material.Normal, Li));
@@ -510,24 +509,27 @@ void main()
 	float ssao = texture(uSSAOMap, uv).r;
 	material.Albedo *= ssao;
 
-    material.PerceptualRoughness = clamp(material.PerceptualRoughness, MIN_PERCEPTUAL_ROUGHNESS, 1.0);
-	material.Roughness = perceptualRoughnessToRoughness(material.Roughness);
-
-    // Specular anti-aliasing
-    {
-        const float strength          	= 1.0f;
-        const float maxRoughnessGain  	= 0.02f;
-        float roughness2         		= roughness * roughness;
-        vec3 dndu                		= dFdx(material.Normal);
-	    vec3 dndv 				 		= dFdy(material.Normal);
-        float variance           		= (dot(dndu, dndu) + dot(dndv, dndv));
-        float kernelRoughness2   		= min(variance * strength, maxRoughnessGain);
-        float filteredRoughness2 		= saturate(roughness2 + kernelRoughness2);
-        material.Roughness       		= sqrt(filteredRoughness2);
-    }
-
-	material.Roughness = clamp(material.Roughness, MIN_ROUGHNESS, 1.0);
-
+    // Start from clamped perceptual
+	material.PerceptualRoughness = clamp(material.PerceptualRoughness, MIN_PERCEPTUAL_ROUGHNESS, 1.0);
+	float roughness2 = material.PerceptualRoughness * material.PerceptualRoughness;
+	
+	// Specular anti-aliasing
+	{
+		const float strength = 1.0;
+		const float maxRoughnessGain = 0.02;
+		
+		vec3 dndu = dFdx(material.Normal);
+		vec3 dndv = dFdy(material.Normal);
+		float variance = dot(dndu, dndu) + dot(dndv, dndv);
+		
+		float kernelRoughness2 = min(variance * strength, maxRoughnessGain);
+		
+		float filteredRoughness2 = roughness2 + kernelRoughness2;
+		filteredRoughness2 = clamp(filteredRoughness2, MIN_ROUGHNESS, 1.0);
+		
+		material.Roughness = sqrt(filteredRoughness2);
+	}
+	
 	vec3 wsPos     = VertexOutput.Position.xyz;
 	material.View  = normalize(u_SceneData.cameraPosition.xyz - wsPos);
 	material.NDotV = max(dot(material.Normal, material.View), 1e-4);

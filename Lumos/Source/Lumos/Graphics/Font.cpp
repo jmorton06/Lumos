@@ -80,24 +80,32 @@ namespace Lumos
 
         static std::filesystem::path GetCacheDirectory()
         {
+#ifdef LUMOS_PLATFORM_WINDOWS
+            return OS::Get().GetCurrentWorkingDirectory();
+#else
             const char* home = std::getenv("HOME");
-            if (!home) {
+            if (!home)
+            {
                 throw std::runtime_error("Can't obtain HOME");
             }
-            
+
             return std::filesystem::path(home) / "Documents/Lumos/Resources/Cache/FontAtlases";
+#endif
         }
 
         static void CreateCacheDirectoryIfNeeded()
         {
-            try {
+            try
+            {
                 std::filesystem::path cacheDirectory = GetCacheDirectory();
-                if (!std::filesystem::exists(cacheDirectory)) {
+                if(!std::filesystem::exists(cacheDirectory))
+                {
                     std::filesystem::create_directories(cacheDirectory);
                     LINFO("Created Directory : %s", cacheDirectory.c_str());
                 }
             }
-            catch (const std::filesystem::filesystem_error& e) {
+            catch(const std::filesystem::filesystem_error& e)
+            {
                 LERROR("Failed Creating Directory : ", e.what());
             }
         }
@@ -120,15 +128,21 @@ namespace Lumos
 
             if(std::filesystem::exists(filepath))
             {
-                storageBuffer.Allocate(uint32_t(FileSystem::GetFileSize(filepath.string())));
-                auto data = FileSystem::ReadFile(filepath.string());
+                storageBuffer.Allocate(uint32_t(FileSystem::GetFileSize(Str8StdS(filepath.string()))));
+
+				Lumos::Arena* arena = Lumos::ArenaAlloc(storageBuffer.GetSize() + 128);
+
+                auto data = FileSystem::ReadFile(arena, Str8StdS(filepath.string()));
                 storageBuffer.Write(data, storageBuffer.Size);
-                delete[] data;
 
                 header = *storageBuffer.As<AtlasHeader>();
                 pixels = (uint8_t*)storageBuffer.Data + sizeof(AtlasHeader);
+				ArenaRelease(arena);
+
+				ScratchEnd(scratch);
                 return true;
             }
+			ScratchEnd(scratch);
             return false;
         }
 
@@ -309,13 +323,19 @@ namespace Lumos
 
             if(m_FontDataSize == 0)
             {
-                std::string outPath;
-                if(!FileSystem::Get().ResolvePhysicalPath(m_FilePath, outPath))
-                    return;
+                String8 outPath;
+				Arena* temp = ArenaAlloc(260);
+                if(!FileSystem::Get().ResolvePhysicalPath(temp, Str8StdS(m_FilePath), &outPath))
+				{
+					ArenaRelease(temp);
+					return;
+				}
 
                 FONT_LOG("Font: Loading Font %s", m_FilePath);
-                fontInput.fontFilename = outPath.c_str();
-                m_FilePath             = outPath;
+                fontInput.fontFilename = (const char*)outPath.str;
+                m_FilePath             = ToStdString(outPath);
+
+				ArenaRelease(temp);
 
                 if(!font.load(fontInput.fontFilename))
                 {

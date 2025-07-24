@@ -104,17 +104,19 @@ namespace MM
 
         bool hasReloaded = false;
 
+		Lumos::ArenaTemp Scratch = Lumos::ScratchBegin(0, 0);
+
         if(ImGui::Button("New File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
         {
-            std::string newFilePath = "//Assets/Scripts";
-            std::string physicalPath;
-            if(!Lumos::FileSystem::Get().ResolvePhysicalPath(newFilePath, physicalPath, true))
+			Lumos::String8 newFilePath = Lumos::Str8Lit("//Assets/Scripts");
+			Lumos::String8 physicalPath;
+            if(!Lumos::FileSystem::Get().ResolvePhysicalPath(Scratch.arena, newFilePath, &physicalPath, true))
             {
-                LERROR("Failed to Create Lua script %s", physicalPath.c_str());
+                LERROR("Failed to Create Lua script %s", (const char*)physicalPath.str);
             }
             else
             {
-                std::string defaultScript =
+                Lumos::String8 defaultScript = Lumos::Str8Lit(
                     R"(--Default Lua Script
 
 function OnInit()
@@ -125,19 +127,22 @@ end
 
 function OnCleanUp()
 end
-)";
+)");
                 Lumos::ArenaTemp scratch         = Lumos::ScratchBegin(nullptr, 0);
                 Lumos::String8 newScriptFileName = Lumos::Str8Lit("Script");
                 int fileIndex                    = 0;
 
-                while(Lumos::FileSystem::FileExists(physicalPath + "/" + ((const char*)newScriptFileName.str) + ".lua"))
+				Lumos::String8 Path = Lumos::PushStr8FillByte(scratch.arena, 260, 0);
+				Path = Lumos::Str8F(Path, "%s/%s.lua", (const char*)physicalPath.str, ((const char*)newScriptFileName.str));
+
+                while(Lumos::FileSystem::FileExists(Path))
                 {
                     fileIndex++;
-                    newScriptFileName = Lumos::PushStr8F(scratch.arena, "Script(%i)", fileIndex);
+					Path = Lumos::Str8F(Path, "%s/%s(%i).lua", (const char*)physicalPath.str, ((const char*)newScriptFileName.str), fileIndex);
                 }
 
-                Lumos::FileSystem::WriteTextFile(physicalPath + "/" + ((const char*)newScriptFileName.str) + ".lua", defaultScript);
-                script.SetFilePath(newFilePath + "/" + ((const char*)newScriptFileName.str) + ".lua");
+                Lumos::FileSystem::WriteTextFile(Path, defaultScript);
+                script.SetFilePath(ToStdString(Path));
                 script.Reload();
                 hasReloaded = true;
 
@@ -183,6 +188,8 @@ end
                 hasReloaded = true;
             }
         }
+
+		ScratchEnd(Scratch);
 
         if(!script.Loaded() || hasReloaded || !loaded)
         {
@@ -919,10 +926,11 @@ end
                     // Drop directly on to node and append to the end of it's children list.
                     if(ImGui::AcceptDragDropPayload("AssetFile"))
                     {
-                        std::string physicalPath;
-                        Lumos::FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath);
-                        auto newSound = Lumos::Sound::Create(physicalPath, Lumos::StringUtilities::GetFilePathExtension(filePath));
-
+                        Lumos::String8 physicalPath;
+						Lumos::ArenaTemp scratch         = Lumos::ScratchBegin(nullptr, 0);
+                        Lumos::FileSystem::Get().ResolvePhysicalPath(scratch.arena, Lumos::Str8StdS(filePath), &physicalPath);
+                        auto newSound = Lumos::Sound::Create(std::string((const char*)physicalPath.str, physicalPath.size), Lumos::StringUtilities::GetFilePathExtension(std::string((const char*)physicalPath.str, physicalPath.size)));
+						Lumos::ArenaTempEnd(scratch);
                         soundNode->SetSound(newSound);
                     }
 
@@ -1262,7 +1270,7 @@ end
                         // Drop directly on to node and append to the end of it's children list.
                         if(ImGui::AcceptDragDropPayload("Font"))
                         {
-                            Application::Get().GetAssetManager()->AddAsset(filePath, text.FontHandle);
+                            Application::Get().GetAssetManager()->AddAsset(Str8StdS(filePath), text.FontHandle);
                             ImGui::EndDragDropTarget();
 
                             ImGui::Columns(1);
@@ -2287,19 +2295,22 @@ end
                     ImGui::PushID((int)(uintptr_t)material.get());
                     if(ImGui::Button("Save to file"))
                     {
-                        std::string filePath = "//Assets/Materials/"; // +matName + ".lmat";
-                        std::string physicalPath;
-                        if(FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath, true))
+
+						Lumos::ArenaTemp scratch         = Lumos::ScratchBegin(nullptr, 0);
+                        Lumos::String8 filePath = Lumos::Str8Lit("//Assets/Materials/"); // +matName + ".lmat";
+                        Lumos::String8 physicalPath;
+                        if(FileSystem::Get().ResolvePhysicalPath(scratch.arena, filePath, &physicalPath, true))
                         {
-                            physicalPath += matName + ".lmat";
+                            Lumos::String8 fullPath = Lumos::PushStr8F(scratch.arena, "%s%s.lmat", (char*)physicalPath.str, matName.c_str());
                             std::stringstream storage;
                             {
                                 cereal::JSONOutputArchive output { storage };
                                 Lumos::Graphics::save(output, *material.get());
                             }
 
-                            FileSystem::WriteTextFile(physicalPath, storage.str());
+                            FileSystem::WriteTextFile(fullPath, Str8StdS(storage.str()));
                         }
+						Lumos::ArenaTempEnd(scratch);
                     }
 
                     if(Lumos::ImGuiUtilities::InputText(matName, "##materialName"))
@@ -3030,11 +3041,13 @@ namespace Lumos
 
                 if(ImGui::Button("OK", ImVec2(120, 0)))
                 {
-                    std::string physicalPath;
-                    FileSystem::Get().ResolvePhysicalPath(prefabNamePath, physicalPath, true);
-                    std::string FullPath = physicalPath + prefabName + std::string(".lprefab");
+					Lumos::ArenaTemp scratch         = Lumos::ScratchBegin(nullptr, 0);
+                    Lumos::String8 physicalPath;
+                    FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(prefabNamePath), &physicalPath, true);
+                    std::string FullPath = std::string((const char*)physicalPath.str, physicalPath.size) + prefabName + std::string(".lprefab");
                     Application::Get().GetSceneManager()->GetCurrentScene()->SavePrefab({ selected, Application::Get().GetSceneManager()->GetCurrentScene() }, FullPath);
                     ImGui::CloseCurrentPopup();
+					ArenaTempEnd(scratch);
                 }
                 ImGui::SetItemDefaultFocus();
                 ImGui::SameLine();

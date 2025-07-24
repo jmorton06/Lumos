@@ -14,9 +14,9 @@ namespace Lumos
         {
         }*/
 
-    static HANDLE OpenFileForReading(const std::string& path)
+    static HANDLE OpenFileForReading(const String8& path)
     {
-        return CreateFile(WindowsUtilities::StringToWString(path).c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
+        return CreateFile(WindowsUtilities::StringToWString(ToStdString(path)).c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
     }
 
     static int64_t GetFileSizeInternal(const HANDLE file)
@@ -32,19 +32,30 @@ namespace Lumos
         return ReadFileEx(file, buffer, static_cast<DWORD>(size), &ol, nullptr) != 0;
     }
 
-    bool FileSystem::FileExists(const std::string& path)
+    bool FileSystem::FileExists(const String8& path)
     {
-        DWORD dwAttrib = GetFileAttributes(WindowsUtilities::StringToWString(path).c_str());
-        return (dwAttrib != INVALID_FILE_ATTRIBUTES) && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY) == 0;
+        ArenaTemp scratch = ScratchBegin(0, 0);
+        String16 path16 = Str16From8(scratch.arena, path);
+        DWORD attributes = GetFileAttributesW((WCHAR*)path16.str);
+        bool exists = (attributes != INVALID_FILE_ATTRIBUTES) && !!(~attributes & FILE_ATTRIBUTE_DIRECTORY);
+        ScratchEnd(scratch);
+        return exists;
     }
 
-    bool FileSystem::FolderExists(const std::string& path)
+    bool FileSystem::FolderExists(const String8& path)
     {
-        DWORD dwAttrib = GetFileAttributes(WindowsUtilities::StringToWString(path).c_str());
+        ArenaTemp scratch = ScratchBegin(0, 0);
+        String16 path16 = Str16From8(scratch.arena, path);
+        DWORD attributes = GetFileAttributesW((WCHAR*)path16.str);
+        bool      exists = (attributes != INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_DIRECTORY);
+        ScratchEnd(scratch);
+        return exists;
+
+        DWORD dwAttrib = GetFileAttributes(WindowsUtilities::StringToWString(ToStdString(path)).c_str());
         return dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY) != 0;
     }
 
-    int64_t FileSystem::GetFileSize(const std::string& path)
+    int64_t FileSystem::GetFileSize(const String8& path)
     {
         const HANDLE file = OpenFileForReading(path);
         if(file == INVALID_HANDLE_VALUE)
@@ -55,9 +66,9 @@ namespace Lumos
         return result;
     }
 
-    bool FileSystem::ReadFile(const std::string& path, void* buffer, int64_t size)
+    bool FileSystem::ReadFile(Arena* arena, const String8& path, void* buffer, int64_t size)
     {
-        std::ifstream stream(path, std::ios::binary | std::ios::ate);
+        std::ifstream stream((const char*)path.str, std::ios::binary | std::ios::ate);
 
         auto end = stream.tellg();
         stream.seekg(0, std::ios::beg);
@@ -69,12 +80,12 @@ namespace Lumos
         return buffer;
     }
 
-    uint8_t* FileSystem::ReadFile(const std::string& path)
+    uint8_t* FileSystem::ReadFile(Arena* arena, const String8& path)
     {
         if(!FileExists(path))
             return nullptr;
 
-        std::ifstream stream(path, std::ios::binary | std::ios::ate);
+        std::ifstream stream((const char*)path.str, std::ios::binary | std::ios::ate);
 
         auto end = stream.tellg();
         stream.seekg(0, std::ios::beg);
@@ -86,28 +97,37 @@ namespace Lumos
         return (uint8_t*)buffer;
     }
 
-    std::string FileSystem::ReadTextFile(const std::string& path)
+    String8 FileSystem::ReadTextFile(Arena* arena, const String8& path)
     {
-        if(!FileExists(path))
-            return std::string();
+        if (!FileExists(path))
+            return String8();
 
-        std::ifstream stream(path);
+        std::ifstream stream((const char*)path.str, std::ios::in | std::ios::ate);
+        if (!stream.is_open())
+            return String8();
 
-        std::string fileContent;
-        std::string line;
-        while(std::getline(stream, line))
-        {                               // Read file line by line
-            fileContent += line + "\n"; // Append each line to fileContent
+        auto end = stream.tellg();
+        stream.seekg(0, std::ios::beg);
+        const int64_t size = end - stream.tellg();
+
+        String8 result = PushStr8FillByte(arena, size, 0);
+        stream.read((char*)result.str, size);
+
+#if 0
+        if (!stream)
+        {
+            if (stream.eof())   LINFO("Reached EOF early.");
+            if (stream.fail())  LINFO("Logical error on i/o operation.");
+            if (stream.bad())   LINFO("Read/writing error on i/o operation.");
         }
-
-        stream.close();
-
-        return fileContent;
+#endif
+        return result;
     }
 
-    bool FileSystem::WriteFile(const std::string& path, uint8_t* buffer, uint32_t size)
+
+    bool FileSystem::WriteFile(const String8& path, uint8_t* buffer, uint32_t size)
     {
-        std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+        std::ofstream stream((const char*)path.str, std::ios::binary | std::ios::trunc);
 
         if(!stream)
         {
@@ -121,9 +141,9 @@ namespace Lumos
         return true;
     }
 
-    bool FileSystem::WriteTextFile(const std::string& path, const std::string& text)
+    bool FileSystem::WriteTextFile(const String8& path, const String8& text)
     {
-        return WriteFile(path, (uint8_t*)&text[0], (uint32_t)text.size());
+        return WriteFile(path, text.str, (uint32_t)text.size);
     }
 }
 

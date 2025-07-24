@@ -328,5 +328,7 @@ namespace Lumos
         String8 m_RequestedThumbnailPath;
 
         IniFile m_IniFile;
+
+        bool m_PreviewScreenshot = false;
     };
 }

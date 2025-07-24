@@ -49,7 +49,7 @@ public:
     {
         TDArray<std::string> projectLocations = {
             OS::Get().GetExecutablePath() + "../../../../../ExampleProject/",
-            "/Users/jmorton/dev/Lumos/ExampleProject/Example.lmproj",
+            "/Users/jmorton/Dev/Lumos/ExampleProject/Example.lmproj",
             "ExampleProject/Example.lmproj",
             "../ExampleProject/Example.lmproj",
             OS::Get().GetExecutablePath() + "/ExampleProject/Example.lmproj",
@@ -59,14 +59,15 @@ public:
 
 #if defined(LUMOS_PLATFORM_IOS)
         projectLocations.Clear();
-        projectLocations.PushBack(OS::Get().GetAssetPath() + "/ExampleProject/");
+		//TODO: StringRefactor
+       // projectLocations.PushBack(OS::Get().GetAssetPath() + "/ExampleProject/");
 #endif
 
         bool fileFound = false;
         std::string filePath;
         for(auto& path : projectLocations)
         {
-            if(FileSystem::FileExists(path))
+            if(FileSystem::FileExists(Str8StdS(path)))
             {
                 LINFO("Loaded Project %s", path.c_str());
                 m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(path);

@@ -10,6 +10,9 @@
 #include <imgui/imgui.h>
 #include <entt/entity/registry.hpp>
 
+#include <AL/al.h>
+#include <AL/alc.h>
+
 namespace Lumos
 {
     namespace Audio

@@ -102,10 +102,10 @@ namespace Lumos::Graphics
 
         m_ShadowData.m_ShadowMapsInvalidated = true;
         m_ShadowData.m_CascadeSplitLambda    = 0.92f;
-        m_ShadowData.m_Shader                = Application::Get().GetAssetManager()->GetAssetData("Shadow").As<Graphics::Shader>();
-        m_ShadowData.m_ShaderAlpha           = Application::Get().GetAssetManager()->GetAssetData("ShadowAlpha").As<Graphics::Shader>();
-        m_ShadowData.m_ShaderAnim            = Application::Get().GetAssetManager()->GetAssetData("ShadowAnim").As<Graphics::Shader>();
-        m_ShadowData.m_ShaderAnimAlpha       = Application::Get().GetAssetManager()->GetAssetData("ShadowAnimAlpha").As<Graphics::Shader>();
+        m_ShadowData.m_Shader                = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("Shadow")).As<Graphics::Shader>();
+        m_ShadowData.m_ShaderAlpha           = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ShadowAlpha")).As<Graphics::Shader>();
+        m_ShadowData.m_ShaderAnim            = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ShadowAnim")).As<Graphics::Shader>();
+        m_ShadowData.m_ShaderAnimAlpha       = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ShadowAnimAlpha")).As<Graphics::Shader>();
         m_ShadowData.m_ShadowTex             = TextureDepthArray::Create(m_ShadowData.m_ShadowMapSize, m_ShadowData.m_ShadowMapSize, m_ShadowData.m_ShadowMapNum, Renderer::GetRenderer()->GetDepthFormat());
         m_ShadowData.m_LightSize             = 1.5f;
         m_ShadowData.m_MaxShadowDistance     = 500.0f;
@@ -128,8 +128,8 @@ namespace Lumos::Graphics
 
         // Setup forward pass data
         m_ForwardData.m_DepthTest    = true;
-        m_ForwardData.m_Shader       = Application::Get().GetAssetManager()->GetAssetData("ForwardPBR").As<Graphics::Shader>();
-        m_ForwardData.m_AnimShader   = Application::Get().GetAssetManager()->GetAssetData("ForwardPBRAnim").As<Graphics::Shader>();
+        m_ForwardData.m_Shader       = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBR")).As<Graphics::Shader>();
+        m_ForwardData.m_AnimShader   = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBRAnim")).As<Graphics::Shader>();
         m_ForwardData.m_DepthTexture = TextureDepth::Create(width, height, Renderer::GetRenderer()->GetDepthFormat(), m_MainTextureSamples);
         m_ForwardData.m_CommandQueue.Reserve(1000);
 
@@ -251,35 +251,35 @@ namespace Lumos::Graphics
 
         // Set up skybox pass data
         m_ScreenQuad               = Graphics::CreateQuad();
-        m_SkyboxShader             = Application::Get().GetAssetManager()->GetAssetData("Skybox").As<Graphics::Shader>();
+        m_SkyboxShader             = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("Skybox")).As<Graphics::Shader>();
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_SkyboxShader.get();
         m_SkyboxDescriptorSet      = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
         // Set up final pass data
-        m_FinalPassShader          = Application::Get().GetAssetManager()->GetAssetData("FinalPass").As<Graphics::Shader>();
+        m_FinalPassShader          = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("FinalPass")).As<Graphics::Shader>();
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_FinalPassShader.get();
         m_FinalPassDescriptorSet   = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
         // PostProcesses
 
-        m_ToneMappingPassShader        = Application::Get().GetAssetManager()->GetAssetData("ToneMapping").As<Graphics::Shader>();
+        m_ToneMappingPassShader        = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ToneMapping")).As<Graphics::Shader>();
         descriptorDesc.layoutIndex     = 0;
         descriptorDesc.shader          = m_ToneMappingPassShader.get();
         m_ToneMappingPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_DepthOfFieldShader            = Application::Get().GetAssetManager()->GetAssetData("DepthOfField").As<Graphics::Shader>();
+        m_DepthOfFieldShader            = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("DepthOfField")).As<Graphics::Shader>();
         descriptorDesc.layoutIndex      = 0;
         descriptorDesc.shader           = m_DepthOfFieldShader.get();
         m_DepthOfFieldPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_SharpenShader            = Application::Get().GetAssetManager()->GetAssetData("Sharpen").As<Graphics::Shader>();
+        m_SharpenShader            = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("Sharpen")).As<Graphics::Shader>();
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_SharpenShader.get();
         m_SharpenPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_BloomPassShader          = Application::Get().GetAssetManager()->GetAssetData(m_SupportCompute ? "BloomComp" : "Bloom").As<Graphics::Shader>();
+        m_BloomPassShader          = Application::Get().GetAssetManager()->GetAssetData(m_SupportCompute ? Str8Lit("BloomComp") : Str8Lit("Bloom")).As<Graphics::Shader>();
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_BloomPassShader.get();
 
@@ -294,46 +294,46 @@ namespace Lumos::Graphics
         m_BloomTexture1            = Texture2D::Create(mainRenderTargetDesc, width, height);
         m_BloomTexture2            = Texture2D::Create(mainRenderTargetDesc, width, height);
 
-        m_FXAAShader               = Application::Get().GetAssetManager()->GetAssetData(m_SupportCompute ? "FXAAComp" : "FXAA").As<Graphics::Shader>();
+        m_FXAAShader               = Application::Get().GetAssetManager()->GetAssetData(m_SupportCompute ? Str8Lit("FXAAComp") : Str8Lit("FXAA")).As<Graphics::Shader>();
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_FXAAShader.get();
         m_FXAAPassDescriptorSet    = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_DebandingShader            = Application::Get().GetAssetManager()->GetAssetData("Debanding").As<Graphics::Shader>();
+        m_DebandingShader            = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("Debanding")).As<Graphics::Shader>();
         descriptorDesc.layoutIndex   = 0;
         descriptorDesc.shader        = m_DebandingShader.get();
         m_DebandingPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_ChromaticAberationShader            = Application::Get().GetAssetManager()->GetAssetData("ChromaticAberation").As<Graphics::Shader>();
+        m_ChromaticAberationShader            = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ChromaticAberation")).As<Graphics::Shader>();
         descriptorDesc.layoutIndex            = 0;
         descriptorDesc.shader                 = m_ChromaticAberationShader.get();
         m_ChromaticAberationPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_DepthPrePassShader        = Application::Get().GetAssetManager()->GetAssetData("DepthPrePass").As<Graphics::Shader>();
+        m_DepthPrePassShader        = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("DepthPrePass")).As<Graphics::Shader>();
         descriptorDesc.layoutIndex  = 0;
         descriptorDesc.shader       = m_DepthPrePassShader.get();
         m_DepthPrePassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_DepthPrePassAlphaShader        = Application::Get().GetAssetManager()->GetAssetData("DepthPrePassAlpha").As<Graphics::Shader>();
+        m_DepthPrePassAlphaShader        = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("DepthPrePassAlpha")).As<Graphics::Shader>();
         descriptorDesc.shader            = m_DepthPrePassAlphaShader.get();
         m_DepthPrePassAlphaDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_DepthPrePassAlphaAnimShader = Application::Get().GetAssetManager()->GetAssetData("DepthPrePassAlphaAnim").As<Graphics::Shader>();
+        m_DepthPrePassAlphaAnimShader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("DepthPrePassAlphaAnim")).As<Graphics::Shader>();
 
-        m_DepthPrePassAnimShader       = Application::Get().GetAssetManager()->GetAssetData("DepthPrePassAnim").As<Graphics::Shader>();
-        m_FilmicGrainShader            = Application::Get().GetAssetManager()->GetAssetData("FilmicGrain").As<Graphics::Shader>();
+        m_DepthPrePassAnimShader       = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("DepthPrePassAnim")).As<Graphics::Shader>();
+        m_FilmicGrainShader            = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("FilmicGrain")).As<Graphics::Shader>();
         descriptorDesc.layoutIndex     = 0;
         descriptorDesc.shader          = m_FilmicGrainShader.get();
         m_FilmicGrainPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_SSAOShader               = Application::Get().GetAssetManager()->GetAssetData("SSAO").As<Graphics::Shader>();
+        m_SSAOShader               = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("SSAO")).As<Graphics::Shader>();
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_SSAOShader.get();
 
         if(m_SSAOShader->IsCompiled())
             m_SSAOPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_SSAOBlurShader           = Application::Get().GetAssetManager()->GetAssetData("SSAOBlur").As<Graphics::Shader>();
+        m_SSAOBlurShader           = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("SSAOBlur")).As<Graphics::Shader>();
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_SSAOBlurShader.get();
         if(m_SSAOBlurShader->IsCompiled())
@@ -355,7 +355,7 @@ namespace Lumos::Graphics
         m_Renderer2DData.m_Limits.SetMaxQuads(10000);
         m_Renderer2DData.m_Limits.MaxTextures = 16; // Renderer::GetCapabilities().MaxTextureUnits;
 
-        m_Renderer2DData.m_Shader = Application::Get().GetAssetManager()->GetAssetData("Batch2D").As<Graphics::Shader>();
+        m_Renderer2DData.m_Shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("Batch2D")).As<Graphics::Shader>();
 
         m_Renderer2DData.m_TransformationStack.EmplaceBack(Mat4(1.0f));
         m_Renderer2DData.m_TransformationBack = &m_Renderer2DData.m_TransformationStack.Back();
@@ -431,7 +431,7 @@ namespace Lumos::Graphics
             m_ParticleData.m_Limits.SetMaxQuads(10000);
             m_ParticleData.m_Limits.MaxTextures = 16; // Renderer::GetCapabilities().MaxTextureUnits;
 
-            m_ParticleData.m_Shader = Application::Get().GetAssetManager()->GetAssetData("Particle").As<Graphics::Shader>();
+            m_ParticleData.m_Shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("Particle")).As<Graphics::Shader>();
 
             m_ParticleData.m_TransformationStack.EmplaceBack(Mat4(1.0f));
             m_ParticleData.m_TransformationBack = &m_ParticleData.m_TransformationStack.Back();
@@ -504,7 +504,7 @@ namespace Lumos::Graphics
 
         TextVertexBufferPtr = TextVertexBufferBase[0];
 
-        m_TextRendererData.m_Shader = Application::Get().GetAssetManager()->GetAssetData("Text").As<Graphics::Shader>();
+        m_TextRendererData.m_Shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("Text")).As<Graphics::Shader>();
 
         m_TextRendererData.m_TransformationStack.EmplaceBack(Mat4(1.0f));
         m_TextRendererData.m_TransformationBack = &m_Renderer2DData.m_TransformationStack.Back();
@@ -658,8 +658,6 @@ namespace Lumos::Graphics
                     delete m_DebugDrawData.m_LineVertexBuffers[0][i];
                 }
         }
-
-        DebugRenderer::Release();
     }
 
     void SceneRenderer::OnResize(uint32_t width, uint32_t height)
@@ -777,7 +775,7 @@ namespace Lumos::Graphics
         const auto& proj = m_Camera->GetProjectionMatrix();
         auto projView    = proj * view;
 
-        if(m_DebugRenderEnabled)
+        if(m_DebugRenderEnabled && DebugRenderer::GetInstance())
         {
             DebugRenderer::GetInstance()->SetDimensions(m_MainTexture->GetWidth(), m_MainTexture->GetHeight());
             DebugRenderer::GetInstance()->SetProjView(projView);
@@ -1191,7 +1189,7 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Render Passes");
 
-        auto& sceneRenderSettings       = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
+        auto& sceneRenderSettings = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
         {
             LUMOS_PROFILE_GPU("Clear Main Texture Pass");
             Renderer::GetRenderer()->ClearRenderTarget(m_MainTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
@@ -1240,7 +1238,7 @@ namespace Lumos::Graphics
                 SSAOBlurPass();
         }
 
-        if(sceneRenderSettings.ShadowsEnabled)
+        if(sceneRenderSettings.ShadowsEnabled && sceneRenderSettings.Renderer3DEnabled)
             ShadowPass();
         if(sceneRenderSettings.Renderer3DEnabled)
             ForwardPass();
@@ -1577,7 +1575,7 @@ namespace Lumos::Graphics
         m_GenerateBRDFLUT = false;
 
         Graphics::PipelineDesc pipelineDesc {};
-        pipelineDesc.shader = Application::Get().GetAssetManager()->GetAssetData("BRDFLUT").As<Graphics::Shader>();
+        pipelineDesc.shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("BRDFLUT")).As<Graphics::Shader>();
 
         pipelineDesc.polygonMode         = Graphics::PolygonMode::FILL;
         pipelineDesc.cullMode            = Graphics::CullMode::BACK;
@@ -2519,6 +2517,7 @@ namespace Lumos::Graphics
             break;
         }
 #endif
+        
         m_FinalPassDescriptorSet->SetTexture(1, finalPassTexture);
         m_FinalPassDescriptorSet->Update();
 
@@ -3679,7 +3678,7 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Debug Pass");
 
-        if(!m_Camera || !m_CameraTransform)
+        if(!m_Camera || !m_CameraTransform || !DebugRenderer::GetInstance())
             return;
 
         if(!m_DebugRenderDataInitialised)
@@ -4590,7 +4589,7 @@ namespace Lumos::Graphics
         commandBuffer->Init(true);
         commandBuffer->BeginRecording();
         {
-            auto shader = Application::Get().GetAssetManager()->GetAssetData("CreateEnvironmentMap").As<Graphics::Shader>();
+            auto shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("CreateEnvironmentMap")).As<Graphics::Shader>();
             if(!shader)
                 return;
             Graphics::DescriptorDesc descriptorDesc {};
@@ -4649,7 +4648,7 @@ namespace Lumos::Graphics
             commandBuffer->UnBindPipeline();
             commandBuffer->EndCurrentRenderPass();
             environmentMap->GenerateMipMaps(commandBuffer);
-            auto shader = Application::Get().GetAssetManager()->GetAssetData("EnvironmentMipFilter").As<Graphics::Shader>();
+            auto shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("EnvironmentMipFilter")).As<Graphics::Shader>();
 
             Graphics::DescriptorDesc descriptorDesc {};
             descriptorDesc.layoutIndex = 0;
@@ -4700,7 +4699,7 @@ namespace Lumos::Graphics
             commandBuffer->UnBindPipeline();
             commandBuffer->EndCurrentRenderPass();
 
-            auto shader = Application::Get().GetAssetManager()->GetAssetData("EnvironmentIrradiance").As<Graphics::Shader>();
+            auto shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("EnvironmentIrradiance")).As<Graphics::Shader>();
 
             Graphics::DescriptorDesc descriptorDesc {};
             descriptorDesc.layoutIndex = 0;
@@ -4709,7 +4708,7 @@ namespace Lumos::Graphics
 
             descriptorSet->SetTexture(0, environmentMapFiltered);
 
-            uint32_t samples = 512;
+            uint32_t samples = Application::Get().GetRenderConfigSettings().EnvironmentSamples;
             descriptorSet->SetUniformBufferData(1, (void*)&samples);
             descriptorSet->Update(commandBuffer);
 
@@ -4774,7 +4773,7 @@ namespace Lumos::Graphics
             }
         }
         // Points
-        m_DebugDrawData.m_PointShader           = Application::Get().GetAssetManager()->GetAssetData("Batch2DPoint").As<Graphics::Shader>();
+        m_DebugDrawData.m_PointShader           = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("Batch2DPoint")).As<Graphics::Shader>();
         Graphics::DescriptorDesc descriptorDesc = {};
         descriptorDesc.layoutIndex              = 0;
         descriptorDesc.shader                   = m_DebugDrawData.m_PointShader.get();
@@ -4802,7 +4801,7 @@ namespace Lumos::Graphics
         delete[] indices;
 
         // Lines
-        m_DebugDrawData.m_LineShader = Application::Get().GetAssetManager()->GetAssetData("Batch2DLine").As<Graphics::Shader>();
+        m_DebugDrawData.m_LineShader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("Batch2DLine")).As<Graphics::Shader>();
         descriptorDesc.layoutIndex   = 0;
         descriptorDesc.shader        = m_DebugDrawData.m_LineShader.get();
         m_DebugDrawData.m_LineDescriptorSet.Resize(1);
@@ -4824,7 +4823,7 @@ namespace Lumos::Graphics
         m_DebugDrawData.m_Renderer2DData.m_RenderToDepthTexture = true;
         m_DebugDrawData.m_Renderer2DData.m_TriangleIndicies     = false;
         m_DebugDrawData.m_Renderer2DData.m_Limits.SetMaxQuads(10000);
-        m_DebugDrawData.m_Renderer2DData.m_Shader = Application::Get().GetAssetManager()->GetAssetData("Batch2D").As<Graphics::Shader>();
+        m_DebugDrawData.m_Renderer2DData.m_Shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("Batch2D")).As<Graphics::Shader>();
 
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_DebugDrawData.m_Renderer2DData.m_Shader.get();
@@ -4859,7 +4858,7 @@ namespace Lumos::Graphics
 
         DebugTextVertexBufferPtr = DebugTextVertexBufferBase[0];
 
-        m_DebugTextRendererData.m_Shader = Application::Get().GetAssetManager()->GetAssetData("Text").As<Graphics::Shader>();
+        m_DebugTextRendererData.m_Shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("Text")).As<Graphics::Shader>();
 
         m_DebugTextRendererData.m_TransformationStack.EmplaceBack(Mat4(1.0f));
         m_DebugTextRendererData.m_TransformationBack = &m_DebugTextRendererData.m_TransformationStack.Back();

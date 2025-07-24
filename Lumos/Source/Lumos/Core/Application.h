@@ -7,8 +7,7 @@
 #include "Maths/MathsFwd.h"
 #include "Maths/Vector2.h"
 #include "Core/Function.h"
-
-#include <thread>
+#include "Core/Mutex.h"
 
 namespace Lumos
 {
@@ -24,6 +23,7 @@ namespace Lumos
     class WindowResizeEvent;
     class ImGuiManager;
     class AssetManager;
+    class StringPool;
 
     namespace Graphics
     {
@@ -133,7 +133,7 @@ namespace Lumos
             }
             else
             {
-                std::scoped_lock<std::mutex> lock(m_EventQueueMutex);
+                ScopedMutex lock(m_EventQueueMutex);
                 m_EventQueue.PushBack([event]()
                                       { Application::Get().OnEvent(*event); });
             }
@@ -162,6 +162,8 @@ namespace Lumos
         virtual void Deserialise();
 
         void MountFileSystemPaths();
+		void CreateAssetFolders();
+		void SetEngineAssetPath();
 
         struct ProjectSettings
         {
@@ -173,9 +175,9 @@ namespace Lumos
             bool VSync       = true;
             bool Borderless  = false;
             bool ShowConsole = true;
-            std::string Title;
-            int RenderAPI;
-            int ProjectVersion;
+            std::string Title = "App";
+            int RenderAPI = 1;
+            int ProjectVersion = 1;
             int8_t DesiredGPUIndex = -1;
             std::string IconPath;
             bool DefaultIcon  = true;
@@ -184,8 +186,10 @@ namespace Lumos
 
         struct RenderConfig
         {
-            uint32_t IrradianceMapSize  = 64;
-            uint32_t EnvironmentMapSize = 512;
+             u32 IrradianceMapSize  = 64;
+			u32 EnvironmentMapSize = 512;
+			u32 EnvironmentSamples  = 512;
+			
         };
 
         ProjectSettings& GetProjectSettings() { return m_ProjectSettings; }
@@ -195,6 +199,8 @@ namespace Lumos
         static void UpdateSystems();
 
         Vec2 m_SceneViewPosition; // For Editor
+		const String8& GetAssetPath() const { return m_AssetPath; };
+
     protected:
         ProjectSettings m_ProjectSettings;
         RenderConfig m_RenderConfig;
@@ -219,7 +225,7 @@ namespace Lumos
         bool m_SceneViewSizeUpdated = false;
         bool m_RenderDocEnabled     = false;
 
-        std::mutex m_EventQueueMutex;
+        Mutex* m_EventQueueMutex;
         TDArray<Function<void()>> m_EventQueue;
 
         UniquePtr<Window> m_Window;
@@ -234,16 +240,17 @@ namespace Lumos
         EditorState m_EditorState = EditorState::Preview;
         AppType m_AppType         = AppType::Editor;
 
-        std::thread m_UpdateThread;
-
         TDArray<Function<void()>> m_MainThreadQueue;
-        std::mutex m_MainThreadQueueMutex;
+		Mutex* m_MainThreadQueueMutex;
 
         Arena* m_FrameArena;
         Arena* m_Arena;
         Arena* m_UIArena;
 
         QualitySettings m_QualitySettings;
+        StringPool* m_StringPool;
+
+		String8 m_AssetPath;
 
         NONCOPYABLE(Application)
     };

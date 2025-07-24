@@ -81,7 +81,7 @@ namespace Lumos
         void GridRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Shader = Application::Get().GetAssetManager()->GetAssetData("Grid").As<Graphics::Shader>();
+            m_Shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("Grid")).As<Graphics::Shader>();
 
             m_Quad = Graphics::CreateQuad(); // Graphics::CreatePlane(5000.0f, 5000.f, Vec3(0.0f, 1.0f, 0.0f));
 

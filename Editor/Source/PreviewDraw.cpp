@@ -30,18 +30,18 @@ namespace Lumos
         if(m_PreviewScene)
             return;
 
-        if(!m_PreviewTexture)
+        if(!m_PreviewTexture || m_Width != m_PreviewTexture->GetWidth() || m_Height != m_PreviewTexture->GetHeight())
         {
             Graphics::TextureDesc desc;
             desc.format = Graphics::RHIFormat::R8G8B8A8_Unorm;
             desc.flags  = Graphics::TextureFlags::Texture_RenderTarget;
 
-            m_PreviewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(desc, 256, 256));
+            m_PreviewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(desc, m_Width, m_Height));
         }
 
         if(!m_PreviewRenderer)
         {
-            m_PreviewRenderer                       = CreateSharedPtr<Graphics::SceneRenderer>(256, 256);
+            m_PreviewRenderer                       = CreateSharedPtr<Graphics::SceneRenderer>(m_Width, m_Height);
             m_PreviewRenderer->m_DebugRenderEnabled = false;
         }
 
@@ -82,9 +82,10 @@ namespace Lumos
         m_PreviewRenderer->OnRender();
     }
 
-    void PreviewDraw::SaveTexture(String8 savePath)
+    void PreviewDraw::SaveTexture(String8 savePath, bool Blur, float BlurRadius)
     {
-        Graphics::Renderer::GetRenderer()->SaveScreenshot(ToStdString(savePath), m_PreviewTexture.get());
+        LINFO("Saving Screenshot, %s", (char*)savePath.str);
+        Graphics::Renderer::GetRenderer()->SaveScreenshot(ToStdString(savePath), m_PreviewTexture.get(), Blur, BlurRadius);
     }
 
     void PreviewDraw::LoadMesh(String8 path)
@@ -94,9 +95,9 @@ namespace Lumos
 
         m_PreviewObjectEntity = m_PreviewScene->GetEntityManager()->Create("Model");
 
-        if(Application::Get().GetAssetManager()->AssetExists(ToStdString(path)))
+        if(Application::Get().GetAssetManager()->AssetExists(path))
         {
-            m_PreviewObjectEntity.AddComponent<Graphics::ModelComponent>(Application::Get().GetAssetManager()->GetAssetData(ToStdString(path)).As<Graphics::Model>());
+            m_PreviewObjectEntity.AddComponent<Graphics::ModelComponent>(Application::Get().GetAssetManager()->GetAssetData(path).As<Graphics::Model>());
         }
         else
         {
@@ -137,6 +138,8 @@ namespace Lumos
 
     void PreviewDraw::SetDimensions(u32 width, u32 height)
     {
+        m_Width  = width;
+        m_Height = height;
     }
 
     void PreviewDraw::ReleaseResources()

@@ -16,6 +16,7 @@
 #include "Core/Algorithms/Find.h"
 #include "Core/DataStructures/TArray.h"
 #include "stb_image_write.h"
+#include "Maths/MathsUtilities.h"
 #include <filesystem>
 
 #define DELETION_QUEUE_CAPACITY 3 // 12
@@ -162,18 +163,20 @@ namespace Lumos
         {
             return m_RendererTitle;
         }
-    
+
         // Extract iOS User Documents Folder
-        std::filesystem::path getDocumentsDirectory() {
-            const char* home = std::getenv("HOME");  // Obtiene el sandbox de la app
-            if (!home) {
+        std::filesystem::path getDocumentsDirectory()
+        {
+            const char* home = std::getenv("HOME"); // Obtiene el sandbox de la app
+            if(!home)
+            {
                 LERROR("Can't obtain HOME");
                 return "";
             }
-            return std::filesystem::path(home) / "Documents";  // Carpeta segura en iOS
+            return std::filesystem::path(home) / "Documents"; // Carpeta segura en iOS
         }
 
-        void VKRenderer::SaveScreenshot(const std::string& path, Graphics::Texture* texture)
+        void VKRenderer::SaveScreenshot(const std::string& path, Graphics::Texture* texture, bool Blur, float BlurRadius)
         {
             bool supportsBlit = true;
 
@@ -367,14 +370,29 @@ file << "P6\n"
             uint32_t height = texture->GetHeight();
 
             // Create directory if needed
-            LINFO("Creating Directories: %s", path.c_str());
-            if (std::filesystem::path(getDocumentsDirectory() / path).has_parent_path()) {
-                try {
-                    std::filesystem::create_directories(std::filesystem::path(getDocumentsDirectory() / path));
-                    LINFO("Created Directory : %s", path.c_str());
-                } catch (const std::filesystem::filesystem_error& e) {
-                    LERROR("Error creating directory : %s", e.what());
-                }
+            // LINFO("Creating Directories: %s", path.c_str());
+            /*   if(std::filesystem::path(getDocumentsDirectory() / path).has_parent_path())
+               {
+                   try
+                   {
+                       std::filesystem::create_directories(std::filesystem::path(getDocumentsDirectory() / path));
+                       LINFO("Created Directory : %s", path.c_str());
+                   }
+                   catch(const std::filesystem::filesystem_error& e)
+                   {
+                       LERROR("Error creating directory : %s", e.what());
+                   }
+               }
+   */
+
+            uint8_t* outputImage = (uint8_t*)data;
+
+            if(Blur)
+            {
+                outputImage = new uint8_t[width * height * 4];
+                int radius  = (int)BlurRadius;
+                float sigma = 2.0f;
+                Maths::ApplyGaussianBlur((const uint8_t*)data, outputImage, width, height, radius, sigma);
             }
 
             int32_t resWrite = stbi_write_png(
@@ -382,8 +400,11 @@ file << "P6\n"
                 width,
                 height,
                 4,
-                data,
+                outputImage,
                 (int)subResourceLayout.rowPitch);
+
+            if(Blur)
+                delete[] outputImage;
             /*
 
 for(uint32_t y = 0; y < texture->GetHeight(); y++)

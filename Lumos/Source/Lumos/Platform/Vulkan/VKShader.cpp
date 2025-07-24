@@ -379,22 +379,24 @@ namespace Lumos
             return 0;
         }
 
-        VKShader::VKShader(const std::string& filePath)
+        VKShader::VKShader(const char* filePath)
             : m_StageCount(0)
             , m_PipelineLayout(VK_NULL_HANDLE)
             , m_ShaderStages(nullptr)
         {
-            m_Name     = StringUtilities::GetFileName(filePath);
-            m_FilePath = StringUtilities::GetFileLocation(filePath);
-            m_Source   = FileSystem::Get().ReadTextFile(filePath);
+            m_Name     = StringUtilities::GetFileName(std::string(filePath)).c_str();
+            m_FilePath = StringUtilities::GetFileLocation(std::string(filePath)).c_str();
+			Arena* arena = ArenaAlloc(Kilobytes(256));
+            m_Source   = (const char*)FileSystem::Get().ReadTextFile(arena, Str8C((char*)filePath)).str;
 
             if(m_Source.empty())
             {
                 m_Compiled = false;
-                LERROR("Failed to load shader %s", filePath.c_str());
+                LERROR("Failed to load shader %s", filePath);
                 return;
             }
             Init();
+			ArenaRelease(arena);
         }
 
         VKShader::VKShader(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize)
@@ -469,18 +471,23 @@ namespace Lumos
 
             for(auto& file : files)
             {
-                HashCombine(m_Hash, m_FilePath + file.second);
 
-                uint32_t fileSize = uint32_t(FileSystem::GetFileSize(m_FilePath + file.second));
-                uint32_t* source  = reinterpret_cast<uint32_t*>(FileSystem::ReadFile(m_FilePath + file.second));
+				Arena* arena = ArenaAlloc(Kilobytes(256));
+				String8 debugName = PushStr8F(arena, "%s%s", m_FilePath.c_str(), file.second.c_str());
+
+                HashCombine(m_Hash, debugName.str);
+
+                uint32_t fileSize = uint32_t(FileSystem::GetFileSize(debugName));
+                uint32_t* source  = reinterpret_cast<uint32_t*>(FileSystem::ReadFile(arena, debugName));
 
                 if(source)
                 {
                     LoadFromData(source, fileSize, file.first, currentShaderStage);
 
                     currentShaderStage++;
-                    delete[] source;
                 }
+
+				ArenaRelease(arena);
             }
 
             if(files.empty())
@@ -764,8 +771,10 @@ namespace Lumos
 
             VkResult result = vkCreateShaderModule(VKDevice::Get().GetDevice(), &shaderCreateInfo, nullptr, &m_ShaderStages[currentShaderStage].module);
 
-            std::string debugName = m_Name + ShaderStageToString(m_ShaderStages[currentShaderStage].stage);
-            VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_SHADER_MODULE, debugName.c_str(), m_ShaderStages[currentShaderStage].module);
+			Arena* arena = ArenaAlloc(260);
+            String8 debugName = PushStr8F(arena, "%s%s", m_Name.c_str(), ShaderStageToString(m_ShaderStages[currentShaderStage].stage));
+            VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_SHADER_MODULE, (const char*)debugName.str, m_ShaderStages[currentShaderStage].module);
+			ArenaRelease(arena);
 
             if(result == VK_SUCCESS)
             {
@@ -850,37 +859,37 @@ namespace Lumos
                     {
                         type                                           = ShaderType::VERTEX;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
-                        shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
+                        shaders->insert(it, std::pair<ShaderType, const char*>(type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "geometry"))
                     {
                         type                                           = ShaderType::GEOMETRY;
-                        std::map<ShaderType, std::string>::iterator it = shaders->begin();
-                        shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
+                        std::map<ShaderType,std::string>::iterator it = shaders->begin();
+                        shaders->insert(it, std::pair<ShaderType, const char*>(type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "fragment"))
                     {
                         type                                           = ShaderType::FRAGMENT;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
-                        shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
+                        shaders->insert(it, std::pair<ShaderType, const char*>(type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "tess_cont"))
                     {
                         type                                           = ShaderType::TESSELLATION_CONTROL;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
-                        shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
+                        shaders->insert(it, std::pair<ShaderType, const char*>(type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "tess_eval"))
                     {
                         type                                           = ShaderType::TESSELLATION_EVALUATION;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
-                        shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
+                        shaders->insert(it, std::pair<ShaderType, const char*>(type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "compute"))
                     {
                         type                                           = ShaderType::COMPUTE;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
-                        shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
+                        shaders->insert(it, std::pair<ShaderType, const char*>(type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "end"))
                     {
@@ -901,11 +910,9 @@ namespace Lumos
             CreateCompFuncFromEmbedded = CreateCompFromEmbeddedFuncVulkan;
         }
 
-        Shader* VKShader::CreateFuncVulkan(const std::string& filepath)
+        Shader* VKShader::CreateFuncVulkan(const char* filepath)
         {
-            std::string physicalPath;
-            Lumos::FileSystem::Get().ResolvePhysicalPath(filepath, physicalPath, false);
-            return new VKShader(physicalPath);
+            return new VKShader(filepath);
         }
 
         Shader* VKShader::CreateFromEmbeddedFuncVulkan(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize)

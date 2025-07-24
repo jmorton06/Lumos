@@ -3,12 +3,12 @@
 #include "Maths/MathsUtilities.h"
 #include "Core/DataStructures/TDArray.h"
 #include "Core/Thread.h"
+#include "Core/Mutex.h"
 
 #include <atomic>
 #include <thread>
 #include <condition_variable>
 #include <deque>
-#include <mutex>
 #ifdef LUMOS_PLATFORM_WINDOWS
 #define NOMINMAX
 #include <Windows.h>
@@ -75,17 +75,29 @@ namespace Lumos
             struct JobQueue
             {
                 std::deque<Job> queue;
-                std::mutex locker;
+                Mutex* locker;
+
+				JobQueue()
+				{
+					locker = new Mutex();
+					MutexInit(locker);
+				}
+
+				~JobQueue()
+				{
+					MutexDestroy(locker);
+					delete locker;
+				}
 
                 inline void push_back(const Job& item)
                 {
-                    std::scoped_lock lock(locker);
+                    ScopedMutex lock(locker);
                     queue.push_back(item);
                 }
 
                 inline bool pop_front(Job& item)
                 {
-                    std::scoped_lock lock(locker);
+					ScopedMutex lock(locker);
                     if(queue.empty())
                     {
                         return false;

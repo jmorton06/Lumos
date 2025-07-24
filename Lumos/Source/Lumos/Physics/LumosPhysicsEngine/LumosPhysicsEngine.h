@@ -63,6 +63,7 @@ namespace Lumos
         float BaumgarteScalar      = 0.3f;   // Amount of force to add to the System to solve error
         float BaumgarteSlop        = 0.001f; // Amount of allowed penetration, ensures a complete manifold each frame
         float PenetrationSlop      = 0.02f;  // How much bodies are allowed to sink into each other in meters
+        u32 MaxRigidBodyCount      = 4096;
     };
 
     class LUMOS_EXPORT LumosPhysicsEngine : public ISystem
@@ -135,7 +136,7 @@ namespace Lumos
         void NarrowPhaseCollisions();
 
         // Updates all Rigid Body position, orientation, velocity etc (default method uses symplectic euler integration)
-        void UpdateRigidBodys();
+        void UpdateRigidBodies();
         void UpdateRigidBody(RigidBody3D* obj) const;
 
         // Solves all engine constraints (constraints and manifolds)
@@ -150,8 +151,6 @@ namespace Lumos
         uint32_t m_PositionIterations = 2;
         uint32_t m_VelocityIterations = 10;
 
-        uint32_t m_RigidBodyCount = 0;
-
         float m_BaumgarteScalar = 0.2f;   // Amount of force to add to the System to solve error
         float m_BaumgarteSlop   = 0.001f; // Amount of allowed penetration, ensures a complete manifold each frame
 
@@ -160,8 +159,9 @@ namespace Lumos
         Manifold* m_Manifolds;                // Contact constraints between pairs of objects
         std::mutex m_ManifoldsMutex;
 
-        uint32_t m_ManifoldCount   = 0;
-        uint32_t m_ConstraintCount = 0;
+        u32 m_ManifoldCount   = 0;
+        u32 m_ConstraintCount = 0;
+        u32 m_RigidBodyCount = 0;
 
         SharedPtr<Broadphase> m_BroadphaseDetection;
         BroadphaseType m_BroadphaseType;
@@ -170,9 +170,12 @@ namespace Lumos
         uint32_t m_DebugDrawFlags = 0;
         std::mutex m_ManifoldLock;
 
-        RigidBody3D* m_RootBody;
-        PoolAllocator<RigidBody3D>* m_Allocator;
+        RigidBody3D* m_RigidBodies;
+        TDArray<RigidBody3D*> m_RigidBodyFreeList;
+        u32 m_MaxRigidBodyCount;
+
         Arena* m_Arena;
+        Arena* m_FrameArena;
 
         PhysicsStats3D m_Stats;
 

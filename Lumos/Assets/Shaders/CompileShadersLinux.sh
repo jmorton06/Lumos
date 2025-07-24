@@ -2,7 +2,7 @@
 echo "Compiling shaders"
 cd "$(dirname "$0")"
 
-COMPILER="/home/jmorton/Dev/Lumos/Lumos/External/VulkanSDK/1.3.216.0/x86_64/bin/glslc"
+COMPILER="/home/jmorton/Dev/1.4.313.0/x86_64/bin/glslc"
 echo $COMPILER
 
 DSTDIR=CompiledSPV

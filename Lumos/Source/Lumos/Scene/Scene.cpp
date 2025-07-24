@@ -377,16 +377,14 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         LINFO("Scene saved - %s", filePath.c_str());
-        std::string path = filePath;
-        path += m_SceneName; // StringUtilities::RemoveSpaces(m_SceneName);
+        ArenaTemp scratch = ScratchBegin(0, 0);
+        String8 path = PushStr8F(scratch.arena, "%s%s%s", filePath.c_str(), m_SceneName.c_str(), binary ? Str8Lit(".bin") : Str8Lit(".lsn"));
 
         m_SceneSerialisationVersion = SceneSerialisationVersion;
 
         if(binary)
         {
-            path += std::string(".bin");
-
-            std::ofstream file(path, std::ios::binary);
+            std::ofstream file((const char*)path.str, std::ios::binary);
 
             {
                 // output finishes flushing its contents when it goes out of scope
@@ -399,7 +397,6 @@ namespace Lumos
         else
         {
             std::stringstream storage;
-            path += std::string(".lsn");
 
             {
                 // output finishes flushing its contents when it goes out of scope
@@ -407,8 +404,10 @@ namespace Lumos
                 output(*this);
                 entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV10(output);
             }
-            FileSystem::WriteTextFile(path, storage.str());
+            FileSystem::WriteTextFile(path, Str8StdS(storage.str()));
         }
+
+        ScratchEnd(scratch);
     }
 
     void Scene::Deserialise(const std::string& filePath, bool binary)
@@ -416,22 +415,23 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         m_EntityManager->Clear();
         m_SceneGraph->DisableOnConstruct(true, m_EntityManager->GetRegistry());
-        std::string path = filePath;
-        path += m_SceneName; // StringUtilities::RemoveSpaces(m_SceneName);
+
+        ArenaTemp scratch = ScratchBegin(0, 0);
+
+        String8 path = PushStr8F(scratch.arena, "%s%s%s", filePath.c_str(), m_SceneName.c_str(), binary ? (const char*)Str8Lit(".bin").str : (const char*)Str8Lit(".lsn").str);
 
         if(binary)
         {
-            path += std::string(".bin");
-
             if(!FileSystem::FileExists(path))
             {
-                LERROR("No saved scene file found %s", path.c_str());
+                LERROR("No saved scene file found %s", (const char*)path.str);
+                ScratchEnd(scratch);
                 return;
             }
 
             try
             {
-                std::ifstream file(path, std::ios::binary);
+                std::ifstream file((const char*)path.str, std::ios::binary);
                 cereal::BinaryInputArchive input(file);
                 input(*this);
                 if(m_SceneSerialisationVersion == 0)
@@ -511,23 +511,22 @@ namespace Lumos
             }
             catch(...)
             {
-                LERROR("Failed to load scene - %s", path.c_str());
+                LERROR("Failed to load scene - %s", (const char*)path.str);
             }
         }
         else
         {
-            path += std::string(".lsn");
-
             if(!FileSystem::FileExists(path))
             {
-                LERROR("No saved scene file found %s", path.c_str());
+                LERROR("No saved scene file found %s", (const char*)path.str);
+                ScratchEnd(scratch);
                 return;
             }
             try
             {
-                std::string data = FileSystem::ReadTextFile(path);
+                String8 data = FileSystem::ReadTextFile(scratch.arena, path);
                 std::istringstream istr;
-                istr.str(data);
+                istr.str((const char*)data.str);
                 cereal::JSONInputArchive input(istr);
                 input(*this);
 
@@ -604,14 +603,16 @@ namespace Lumos
                 }
 #endif
             }
-            catch(...)
+            catch(const cereal::Exception& e)
             {
-                LERROR("Failed to load scene - %s", path.c_str());
+                LERROR("Failed to load scene - %s - %s", (const char*)path.str, e.what());
             }
         }
 
         m_SceneGraph->DisableOnConstruct(false, m_EntityManager->GetRegistry());
         Application::Get().OnNewScene(this);
+
+        ScratchEnd(scratch);
     }
 
     void Scene::UpdateSceneGraph()
@@ -763,15 +764,17 @@ namespace Lumos
 
     Entity Scene::InstantiatePrefab(const std::string& path)
     {
-        std::string prefabData = FileSystem::Get().ReadTextFileVFS(path);
+        ArenaTemp scratch = ScratchBegin(0, 0);
 
-        if(prefabData.empty())
+        String8 prefabData = FileSystem::Get().ReadTextFileVFS(scratch.arena, Str8StdS(path));
+
+        if(prefabData.size <= 0)
         {
             LERROR("Failed to load prefab %s", path.c_str());
             return Entity();
         }
 
-        std::stringstream storage(prefabData);
+        std::stringstream storage((const char*)prefabData.str);
         cereal::JSONInputArchive input(storage);
 
         int version;
@@ -785,13 +788,15 @@ namespace Lumos
         Entity entity = m_EntityManager->Create();
         DeserializeEntityHierarchy(entity, input, version);
 
-        std::string relativePath;
-        if(FileSystem::Get().AbsolutePathToFileSystem(path, relativePath))
-            entity.AddComponent<PrefabComponent>(relativePath);
+        String8 relativePath;
+        if(FileSystem::Get().AbsolutePathToFileSystem(scratch.arena, Str8StdS(path), relativePath))
+            entity.AddComponent<PrefabComponent>(ToStdString(relativePath));
         else
             entity.AddComponent<PrefabComponent>(path);
 
         Serialisation::CurrentSceneVersion = cachedSceneVersion;
+
+        ScratchEnd(scratch);
 
         return entity;
     }
@@ -842,10 +847,13 @@ namespace Lumos
             // Serialize a single entity
             SerializeEntityHierarchy(entity, output);
         }
+        ArenaTemp scratch = ScratchBegin(0, 0);
 
-        FileSystem::WriteTextFile(path, storage.str());
-        std::string relativePath;
-        if(FileSystem::Get().AbsolutePathToFileSystem(path, relativePath))
-            entity.GetOrAddComponent<PrefabComponent>(relativePath);
+        FileSystem::WriteTextFile(Str8StdS(path), Str8StdS(storage.str()));
+        String8 relativePath;
+        if (FileSystem::Get().AbsolutePathToFileSystem(scratch.arena, Str8StdS(path), relativePath))
+            entity.GetOrAddComponent<PrefabComponent>(ToStdString(relativePath));
+
+        ScratchEnd(scratch);
     }
 }

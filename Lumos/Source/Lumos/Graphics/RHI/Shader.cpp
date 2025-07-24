@@ -10,13 +10,13 @@ namespace Lumos
 {
     namespace Graphics
     {
-        Shader* (*Shader::CreateFunc)(const std::string&)                                               = nullptr;
+        Shader* (*Shader::CreateFunc)(const char*)                                               = nullptr;
         Shader* (*Shader::CreateFuncFromEmbedded)(const uint32_t*, uint32_t, const uint32_t*, uint32_t) = nullptr;
         Shader* (*Shader::CreateCompFuncFromEmbedded)(const uint32_t*, uint32_t)                        = nullptr;
 
         const Shader* Shader::s_CurrentlyBound = nullptr;
 
-        Shader* Shader::CreateFromFile(const std::string& filepath)
+        Shader* Shader::CreateFromFile(const char* filepath)
         {
             ASSERT(CreateFunc, "No Shader Create Function");
             return CreateFunc(filepath);
