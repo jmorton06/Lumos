@@ -5,6 +5,8 @@
 #include "Platform/Windows/WindowsOS.h"
 #elif defined(LUMOS_PLATFORM_MACOS)
 #include "Platform/MacOS/MacOSOS.h"
+#include <stdio.h>
+#include <unistd.h>
 #elif defined(LUMOS_PLATFORM_IOS)
 #include "Platform/iOS/iOSOS.h"
 #else
@@ -65,8 +67,24 @@ namespace Lumos
     void OS::ConsoleWrite(const char* msg, u8 level)
     {
 #ifdef LUMOS_PLATFORM_MACOS
-        const char* colour_strings[] = { "1;32", "1;30", "1;33", "1;31", "0;41" };
-        printf("\033[%sm%s\033[0m", colour_strings[level], msg);
+        static bool CheckedSupport = false;
+        static bool SupportANSI    = false;
+        if(!CheckedSupport)
+        {
+            CheckedSupport = true;
+            // Check if Terminal supports ANSI codes
+            SupportANSI = isatty(fileno(stdout));
+        }
+
+        if(SupportANSI)
+        {
+            const char* colour_strings[] = { "1;32", "1;30", "1;33", "1;31", "0;41" };
+            printf("\033[%sm%s\033[0m", colour_strings[level], msg);
+        }
+        else
+        {
+            printf("%s", msg);
+        }
 #else
         printf("%s", msg);
 #endif

@@ -51,14 +51,17 @@ namespace Lumos::Graphics
     void Model::LoadModel(const std::string& path)
     {
         LUMOS_PROFILE_FUNCTION();
-        std::string physicalPath;
-        if(!Lumos::FileSystem::Get().ResolvePhysicalPath(path, physicalPath))
+		ArenaTemp Scratch = ScratchBegin(0,0);
+
+        String8 physicalPath;
+        if(!Lumos::FileSystem::Get().ResolvePhysicalPath(Scratch.arena, Str8StdS(path), &physicalPath))
         {
             LINFO("Failed to load Model - %s", path.c_str());
+			ScratchEnd(Scratch);
             return;
         }
 
-        std::string resolvedPath = physicalPath;
+        std::string resolvedPath = ToStdString(physicalPath);
 
         const std::string fileExtension = StringUtilities::GetFilePathExtension(path);
 
@@ -72,6 +75,7 @@ namespace Lumos::Graphics
             LERROR("Unsupported File Type : %s", fileExtension.c_str());
 
         LINFO("Loaded Model - %s", path.c_str());
+		ScratchEnd(Scratch);
     }
 
     void Model::UpdateAnimation(const TimeStep& dt)

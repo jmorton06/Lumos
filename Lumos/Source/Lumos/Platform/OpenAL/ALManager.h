@@ -1,8 +1,8 @@
-
+#pragma once
 #include "Audio/AudioManager.h"
 
-#include <AL/al.h>
-#include <AL/alc.h>
+typedef struct ALCdevice_struct ALCdevice;
+typedef struct ALCcontext_struct ALCcontext;
 
 namespace Lumos
 {

@@ -23,13 +23,15 @@ namespace Lumos
                 cereal::make_nvp("Title", application.m_ProjectSettings.Title));
         // Version 2
 
+		ArenaTemp Scratch = ScratchBegin(0,0);
+
         const auto& paths = application.m_SceneManager->GetSceneFilePaths();
-        std::vector<std::string> newPaths;
+        std::vector<String8> newPaths;
         for(auto& path : paths)
         {
-            std::string newPath;
-            FileSystem::Get().AbsolutePathToFileSystem((const char*)path.str, newPath);
-            newPaths.push_back((const char*)path.str);
+            String8 newPath;
+            FileSystem::Get().AbsolutePathToFileSystem(Scratch.arena, path, newPath);
+			newPaths.push_back(newPath);;
         }
         archive(cereal::make_nvp("Scenes", newPaths));
         // Version 3
@@ -69,12 +71,12 @@ namespace Lumos
         }
         if(application.m_ProjectSettings.ProjectVersion > 2)
         {
-            std::vector<std::string> sceneFilePaths;
+            std::vector<String8> sceneFilePaths;
             archive(cereal::make_nvp("Scenes", sceneFilePaths));
 
             for(auto& filePath : sceneFilePaths)
             {
-                application.m_SceneManager->AddFileToLoadList(filePath.c_str());
+                application.m_SceneManager->AddFileToLoadList((const char*)filePath.str);
             }
 
             if(sceneFilePaths.size() == sceneIndex)
@@ -95,7 +97,7 @@ namespace Lumos
             archive(cereal::make_nvp("EngineAssetPath", application.m_ProjectSettings.m_EngineAssetPath));
         }
         else
-            application.m_ProjectSettings.m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
+            application.m_ProjectSettings.m_EngineAssetPath = "/Users/jmorton/Dev/Lumos/Lumos/Assets/";
 
         if(application.m_ProjectSettings.ProjectVersion > 6)
             archive(cereal::make_nvp("GPUIndex", application.m_ProjectSettings.DesiredGPUIndex));

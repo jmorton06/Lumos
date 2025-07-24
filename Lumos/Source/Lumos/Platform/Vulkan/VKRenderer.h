@@ -50,7 +50,7 @@ namespace Lumos
             void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Vec4 clearColour) override;
             void ClearSwapChainImage() const;
 
-            void SaveScreenshot(const std::string& path, Graphics::Texture* texture = nullptr) override;
+            void SaveScreenshot(const std::string& path, Graphics::Texture* texture = nullptr, bool Blur = false, float BlurRadius = 2.0f) override;
 
             const char* GetTitleInternal() const override;
 

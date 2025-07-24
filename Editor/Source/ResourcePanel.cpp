@@ -20,11 +20,10 @@
 #include <Lumos/Core/Asset/AssetManager.h>
 
 #ifdef LUMOS_PLATFORM_WINDOWS
-#include <Windows.h>
-#undef RemoveDirectory
-#undef MoveFile
 #include <Shellapi.h>
 #endif
+
+#include "Core/OS/FileSystem.h"
 
 namespace Lumos
 {
@@ -117,9 +116,9 @@ namespace Lumos
         MaxGridSize *= dpi;
         m_BasePath = PushStr8F(m_Arena, "%sAssets", Application::Get().GetProjectSettings().m_ProjectRoot.c_str());
 
-        std::string assetsBasePath;
-        FileSystem::Get().ResolvePhysicalPath("//Assets", assetsBasePath);
-        m_AssetPath = PushStr8Copy(m_Arena, Str8C((char*)std::filesystem::path(assetsBasePath).string().c_str()));
+        String8 assetsBasePath;
+        FileSystem::Get().ResolvePhysicalPath(m_Arena, Str8Lit("//Assets"), &assetsBasePath);
+        m_AssetPath = PushStr8Copy(m_Arena, Str8C((char*)std::filesystem::path((const char*)assetsBasePath.str).string().c_str()));
 
         String8 baseDirectoryHandle = ProcessDirectory(m_BasePath, nullptr, true);
         m_BaseProjectDir            = m_Directories[baseDirectoryHandle];
@@ -355,6 +354,15 @@ namespace Lumos
     }
 
     static int FileIndex = 0;
+
+    Vec2 GetAspectCorrectedSize(const Vec2& originalSize, float maxSize)
+    {
+        float aspect = originalSize.x / originalSize.y;
+        if(aspect > 1.0f)
+            return { maxSize, maxSize / aspect }; // Wider than tall
+        else
+            return { maxSize * aspect, maxSize }; // Taller than wide or square
+    }
 
     void ResourcePanel::OnImGui()
     {
@@ -846,11 +854,10 @@ namespace Lumos
                     else if(!textureCreated)
                     {
                         textureCreated              = true;
-                        std::string assetPathString = std::string((const char*)CurrentEnty->AssetPath.str, CurrentEnty->AssetPath.size);
-                        if(!m_Editor->GetAssetManager()->AssetExists(assetPathString))
-                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(assetPathString, true);
+                        if(!m_Editor->GetAssetManager()->AssetExists(CurrentEnty->AssetPath))
+                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(CurrentEnty->AssetPath, true);
                         else
-                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(assetPathString).As<Graphics::Texture2D>();
+                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(CurrentEnty->AssetPath).As<Graphics::Texture2D>();
                         textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
                     }
                     break;
@@ -866,10 +873,10 @@ namespace Lumos
                         textureCreated                   = true;
                         String8 sceneScreenShotAssetPath = PushStr8F(scratch.arena, "%s/Scenes/Cache/%s.png", (const char*)Str8Lit("//Assets").str, (const char*)fileName.str);
 
-                        if(!m_Editor->GetAssetManager()->AssetExists(std::string((const char*)sceneScreenShotAssetPath.str, sceneScreenShotAssetPath.size)))
-                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(std::string((const char*)sceneScreenShotAssetPath.str, sceneScreenShotAssetPath.size), true);
+                        if(!m_Editor->GetAssetManager()->AssetExists(sceneScreenShotAssetPath))
+                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(sceneScreenShotAssetPath, true);
                         else
-                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(std::string((const char*)sceneScreenShotAssetPath.str, sceneScreenShotAssetPath.size)).As<Graphics::Texture2D>();
+                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(sceneScreenShotAssetPath).As<Graphics::Texture2D>();
                         textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
                     }
                     ArenaTempEnd(scratch);
@@ -891,16 +898,13 @@ namespace Lumos
                         String8 thumbnailAssetPath;
                         CreateThumbnailPath(scratch.arena, CurrentEnty, thumbnailAssetPath, thumbnailPath);
 
-                        std::string thumbnailpathStdString = std::string((const char*)thumbnailPath.str, thumbnailPath.size);
-                        if(std::filesystem::exists(std::filesystem::path(thumbnailpathStdString)))
+                        if(std::filesystem::exists(std::filesystem::path((const char*)thumbnailPath.str)))
                         {
-                            std::string thumbnailAssetPathStdString = std::string((const char*)thumbnailAssetPath.str, thumbnailAssetPath.size);
-
                             textureCreated = true;
-                            if(!m_Editor->GetAssetManager()->AssetExists(thumbnailpathStdString))
-                                CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(thumbnailAssetPathStdString, true);
+                            if(!m_Editor->GetAssetManager()->AssetExists(thumbnailAssetPath))
+                                CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(thumbnailPath, true);
                             else
-                                CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(thumbnailAssetPathStdString).As<Graphics::Texture2D>();
+                                CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(thumbnailAssetPath).As<Graphics::Texture2D>();
                             textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
                         }
                         else
@@ -1043,7 +1047,8 @@ namespace Lumos
 
             if(ImGui::IsItemHovered() && m_CurrentDir->Children[dirIndex]->Thumbnail)
             {
-                ImGuiUtilities::Tooltip(m_CurrentDir->Children[dirIndex]->Thumbnail, { 512, 512 }, (const char*)(m_CurrentDir->Children[dirIndex]->AssetPath.str));
+                Vec2 TooltipSize = GetAspectCorrectedSize(Vec2(textureId->GetWidth(), textureId->GetHeight()), 512);
+                ImGuiUtilities::Tooltip(m_CurrentDir->Children[dirIndex]->Thumbnail, TooltipSize, (const char*)(m_CurrentDir->Children[dirIndex]->AssetPath.str));
             }
             else
                 ImGuiUtilities::Tooltip((const char*)(m_CurrentDir->Children[dirIndex]->AssetPath.str));
@@ -1075,8 +1080,11 @@ namespace Lumos
 
             ImGui::SetCursorPos({ cursorPos.x + thumbnailPadding * 0.75f, cursorPos.y + thumbnailPadding });
             ImGui::SetNextItemAllowOverlap();
-            // ImGui::Image(reinterpret_cast<ImTextureID>(textureId), { thumbnailSize, thumbnailSize }, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-            ImGuiUtilities::Image(textureId, { thumbnailSize, thumbnailSize });
+
+            Vec2 correctedSize = GetAspectCorrectedSize(Vec2(textureId->GetWidth(), textureId->GetHeight()), thumbnailSize);
+            Vec2 padding2      = (Vec2(thumbnailSize) - correctedSize) * 0.5f;
+            ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(padding2.x, padding2.y));
+            ImGuiUtilities::Image(textureId, correctedSize);
 
             const ImVec2 typeColorFrameSize = { scaledThumbnailSizeX, scaledThumbnailSizeX * 0.03f };
             ImGui::SetCursorPosX(cursorPos.x + padding);

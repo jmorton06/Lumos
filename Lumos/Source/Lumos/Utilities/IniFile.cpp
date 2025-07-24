@@ -59,8 +59,9 @@ void Lumos::IniFile::Load()
     if(m_FilePath.empty())
         return;
 
-    auto fileString = Lumos::FileSystem::ReadTextFile(m_FilePath);
-    auto lines      = Lumos::StringUtilities::GetLines(fileString);
+	ArenaTemp Scratch = ScratchBegin(nullptr, 0);
+    auto fileString = Lumos::FileSystem::ReadTextFile(Scratch.arena, Str8StdS(m_FilePath));
+    auto lines      = Lumos::StringUtilities::GetLines(ToStdString(fileString));
 
     for(auto& line : lines)
     {
@@ -70,6 +71,8 @@ void Lumos::IniFile::Load()
             RegisterPair(ExtractKeyAndValue(line));
         }
     }
+
+	ScratchEnd(Scratch);
 }
 
 void Lumos::IniFile::Rewrite() const
@@ -84,7 +87,7 @@ void Lumos::IniFile::Rewrite() const
     for(const auto& [key, value] : m_Data)
         stream << key << "=" << value << std::endl;
 
-    FileSystem::WriteTextFile(m_FilePath, stream.str());
+    FileSystem::WriteTextFile(Str8StdS(m_FilePath), Str8StdS(stream.str()));
 }
 
 std::pair<std::string, std::string> Lumos::IniFile::ExtractKeyAndValue(const std::string& p_line) const

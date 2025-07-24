@@ -166,7 +166,7 @@ namespace Lumos
             {
                 Graphics::DescriptorDesc descriptorDesc {};
                 descriptorDesc.layoutIndex = 3;
-                descriptorDesc.shader      = Application::Get().GetAssetManager()->GetAssetData("ForwardPBRAnim").As<Graphics::Shader>();
+                descriptorDesc.shader      = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBRAnim")).As<Graphics::Shader>();
                 m_Descriptor               = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
             }
 

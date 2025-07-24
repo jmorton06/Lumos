@@ -40,7 +40,7 @@ namespace Lumos
         static constexpr float M_MIN_NEARCLIP  = 0.01f;
         static constexpr float M_MAX_FOV       = 160.0f;
         static constexpr float M_LARGE_VALUE   = 100000000.0f;
-        static constexpr float M_INFINITY      = 1e30f;// std::numeric_limits<float>::infinity();
+        static constexpr float M_INFINITY      = 1e30f; // std::numeric_limits<float>::infinity();
         static constexpr float M_DEGTORAD      = M_PI / 180.0f;
         static constexpr float M_DEGTORAD_2    = M_PI / 360.0f; // M_DEGTORAD / 2.f
         static constexpr float M_RADTODEG      = 1.0f / M_DEGTORAD;
@@ -407,6 +407,14 @@ namespace Lumos
         float ElasticInOut(float time, float period);
 
         bool AnimateToTarget(float* value, float target, float delta_t, float rate);
+
+        void ApplyGaussianBlur(
+            const uint8_t* input,
+            uint8_t* output,
+            int width,
+            int height,
+            int radius,
+            float sigma);
 
         void Print(const Vector3& vec);
         void Print(const Vector4& vec);

@@ -7,40 +7,19 @@
 
 namespace Lumos
 {
-    RigidBody3DInstance::RigidBody3DInstance()
-    {
-        Body = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
-    }
-
-    RigidBody3DInstance::RigidBody3DInstance(RigidBody3D* physics)
-    {
-        Body = physics;
-    }
-
-    RigidBody3DInstance::RigidBody3DInstance(const RigidBody3DProperties& params)
-    {
-        Body = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody(params);
-    }
-
-    RigidBody3DInstance::~RigidBody3DInstance()
-    {
-        if(Body)
-            Application::Get().GetSystem<LumosPhysicsEngine>()->DestroyBody(Body);
-    }
-
     RigidBody3DComponent::RigidBody3DComponent()
     {
-        m_RigidBody = CreateSharedPtr<RigidBody3DInstance>();
+        m_RigidBody = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
     }
 
     RigidBody3DComponent::RigidBody3DComponent(RigidBody3D* physics)
     {
-        m_RigidBody = CreateSharedPtr<RigidBody3DInstance>(physics);
+        m_RigidBody = physics;
     }
 
     RigidBody3DComponent::RigidBody3DComponent(const RigidBody3DProperties& properties)
     {
-        m_RigidBody = CreateSharedPtr<RigidBody3DInstance>(properties);
+        m_RigidBody = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody(properties);
     }
 
     RigidBody3DComponent::RigidBody3DComponent(const RigidBody3DComponent& other)
@@ -55,6 +34,8 @@ namespace Lumos
 
     RigidBody3DComponent::~RigidBody3DComponent()
     {
+        if (m_RigidBody && m_OwnRigidBody)
+            Application::Get().GetSystem<LumosPhysicsEngine>()->DestroyBody(m_RigidBody);
     }
 
     void RigidBody3DComponent::Init()
@@ -71,23 +52,23 @@ namespace Lumos
         ImGui::Columns(2);
         ImGui::Separator();
 
-        auto pos             = m_RigidBody->Body->GetPosition();
-        auto torque          = m_RigidBody->Body->GetTorque();
-        auto orientation     = m_RigidBody->Body->GetOrientation();
-        auto angularVelocity = m_RigidBody->Body->GetAngularVelocity();
-        auto friction        = m_RigidBody->Body->GetFriction();
-        auto isStatic        = m_RigidBody->Body->GetIsStatic();
-        auto isRest          = m_RigidBody->Body->GetIsAtRest();
-        auto mass            = 1.0f / m_RigidBody->Body->GetInverseMass();
-        auto velocity        = m_RigidBody->Body->GetLinearVelocity();
-        auto elasticity      = m_RigidBody->Body->GetElasticity();
+        auto pos             = m_RigidBody->GetPosition();
+        auto torque          = m_RigidBody->GetTorque();
+        auto orientation     = m_RigidBody->GetOrientation();
+        auto angularVelocity = m_RigidBody->GetAngularVelocity();
+        auto friction        = m_RigidBody->GetFriction();
+        auto isStatic        = m_RigidBody->GetIsStatic();
+        auto isRest          = m_RigidBody->GetIsAtRest();
+        auto mass            = 1.0f / m_RigidBody->GetInverseMass();
+        auto velocity        = m_RigidBody->GetLinearVelocity();
+        auto elasticity      = m_RigidBody->GetElasticity();
 
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted("Position");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat3("##Position", Maths::ValuePtr(pos)))
-            m_RigidBody->Body->SetPosition(pos);
+            m_RigidBody->SetPosition(pos);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -97,7 +78,7 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat3("##Velocity", Maths::ValuePtr(velocity)))
-            m_RigidBody->Body->SetLinearVelocity(velocity);
+            m_RigidBody->SetLinearVelocity(velocity);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -107,7 +88,7 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat3("##Torque", Maths::ValuePtr(torque)))
-            m_RigidBody->Body->SetTorque(torque);
+            m_RigidBody->SetTorque(torque);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -117,7 +98,7 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat4("##Orientation", Maths::ValuePtr(orientation)))
-            m_RigidBody->Body->SetOrientation(orientation);
+            m_RigidBody->SetOrientation(orientation);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -127,7 +108,7 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat3("##Angular Velocity", Maths::ValuePtr(angularVelocity)))
-            m_RigidBody->Body->SetAngularVelocity(angularVelocity);
+            m_RigidBody->SetAngularVelocity(angularVelocity);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -137,7 +118,7 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Friction", &friction))
-            m_RigidBody->Body->SetFriction(friction);
+            m_RigidBody->SetFriction(friction);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -147,7 +128,7 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Mass", &mass))
-            m_RigidBody->Body->SetInverseMass(1.0f / mass);
+            m_RigidBody->SetInverseMass(1.0f / mass);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -157,7 +138,7 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Elasticity", &elasticity))
-            m_RigidBody->Body->SetElasticity(elasticity);
+            m_RigidBody->SetElasticity(elasticity);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -167,7 +148,7 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::Checkbox("##Static", &isStatic))
-            m_RigidBody->Body->SetIsStatic(isStatic);
+            m_RigidBody->SetIsStatic(isStatic);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -177,7 +158,7 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::Checkbox("##At Rest", &isRest))
-            m_RigidBody->Body->SetIsAtRest(isRest);
+            m_RigidBody->SetIsAtRest(isRest);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();

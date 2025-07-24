@@ -271,6 +271,9 @@ namespace Lumos
     private:
         inline void ref(const Reference& p_from)
         {
+            if (!p_from.GetCounter() && !p_from.get())
+                return;
+
             if(p_from.m_Ptr == m_Ptr)
                 return;
 
@@ -298,7 +301,7 @@ namespace Lumos
 
         inline void unref()
         {
-            if(m_Counter != nullptr)
+            if(m_Counter != nullptr && m_Counter->GetReferenceCount() > 0)
             {
                 if(m_Counter->unreference())
                 {

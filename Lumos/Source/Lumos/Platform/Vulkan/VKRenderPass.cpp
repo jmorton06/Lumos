@@ -91,7 +91,7 @@ namespace Lumos
                 attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
             }
 
-            attachment.samples        = samples > 1 ? (VkSampleCountFlagBits)samples : VK_SAMPLE_COUNT_1_BIT;
+            attachment.samples = samples > 1 ? (VkSampleCountFlagBits)samples : VK_SAMPLE_COUNT_1_BIT;
 
             attachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
             attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -236,8 +236,8 @@ namespace Lumos
             renderPassCreateInfo.pAttachments           = attachments.Data();
             renderPassCreateInfo.subpassCount           = 1;
             renderPassCreateInfo.pSubpasses             = &subpass;
-            renderPassCreateInfo.dependencyCount        = 0;//static_cast<uint32_t>(dependencies.Size());
-            renderPassCreateInfo.pDependencies          = nullptr;// dependencies.Data();
+            renderPassCreateInfo.dependencyCount        = 0;       // static_cast<uint32_t>(dependencies.Size());
+            renderPassCreateInfo.pDependencies          = nullptr; // dependencies.Data();
 
             VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Get().GetDevice(), &renderPassCreateInfo, VK_NULL_HANDLE, &m_RenderPass));
 
@@ -284,8 +284,8 @@ namespace Lumos
                 m_ClearValue[m_DepthAttachmentIndex].depthStencil = VkClearDepthStencilValue { 1.0f, 0 };
             }
 
-			float RenderPassWidth = Maths::Max(width, 1.0f);
-			float RenderPassHeight = Maths::Max(height, 1.0f);
+            u32 RenderPassWidth  = Maths::Max((u32)width, 1);
+            u32 RenderPassHeight = Maths::Max((u32)height, 1);
 
             VkRenderPassBeginInfo rpBegin    = {};
             rpBegin.sType                    = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;

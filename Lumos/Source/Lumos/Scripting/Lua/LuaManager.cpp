@@ -304,16 +304,20 @@ namespace Lumos
     void LuaManager::OnNewProject(const std::string& projectPath)
     {
         auto& state = *m_State;
-        std::string ScriptsPath;
-        FileSystem::Get().ResolvePhysicalPath("//Assets/Scripts", ScriptsPath);
+
+		ArenaTemp Scratch = ScratchBegin(0,0);
+        String8 ScriptsPath;
+        FileSystem::Get().ResolvePhysicalPath(Scratch.arena, Str8Lit("//Assets/Scripts"), &ScriptsPath);
 
         // Setup the lua path to see luarocks packages
-        auto package_path = std::filesystem::path(ScriptsPath) / "lua" / "?.lua;";
-        package_path += std::filesystem::path(ScriptsPath) / "?" / "?.lua;";
-        package_path += std::filesystem::path(ScriptsPath) / "?" / "?" / "?.lua;";
+        auto package_path = std::filesystem::path((const char*)ScriptsPath.str) / "lua" / "?.lua;";
+        package_path += std::filesystem::path((const char*)ScriptsPath.str) / "?" / "?.lua;";
+        package_path += std::filesystem::path((const char*)ScriptsPath.str) / "?" / "?" / "?.lua;";
 
         std::string currentPaths = state["package"]["path"];
         state["package"]["path"] = std::string(package_path.string()) + currentPaths;
+
+		ScratchEnd(Scratch);
     }
 
     Entity GetEntityByName(Scene* scene, const std::string& name)

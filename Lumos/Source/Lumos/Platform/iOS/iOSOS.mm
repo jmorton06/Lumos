@@ -128,6 +128,7 @@ namespace Lumos
 
     void iOSOS::OnScreenResize(uint32_t width, uint32_t height)
     {
+        LINFO("Resizing Window %u, %u", width, height);
         ((iOSWindow*)Application::Get().GetWindow())->OnResizeEvent(width, height);
     }
 
@@ -160,10 +161,7 @@ namespace Lumos
 
     void iOSOS::Alert(const char *message, const char *title)
     {
-        NSString* nsmsg = [[NSString alloc] initWithBytes:message
-                            length:strlen(message) * sizeof(message)
-                            encoding:NSUTF8StringEncoding];
-
+        NSString* nsmsg = [[NSString alloc] initWithUTF8String:message];
         UIAlertController* alert = [UIAlertController
                                       alertControllerWithTitle:@"Error"
                                       message:nsmsg
@@ -254,6 +252,7 @@ namespace Lumos
 @property(nonatomic, assign) int drawableWidth;
 @property(nonatomic, assign) int drawableHeight;
 @property(nonatomic, assign) BOOL surfaceCreatedNotified;
+@property(nonatomic, assign) BOOL requestResize;
 
 @end
 
@@ -285,8 +284,6 @@ namespace Lumos
 		NSLog(@"LumosMetalView is being initialised.");
         self.contentScaleFactor = contentScaleFactor;
         self.delegate = self;
-        self.drawableWidth = (int)self.drawableSize.width;
-        self.drawableHeight = (int)self.drawableSize.height;
         self.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
         self.depthStencilPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
         self.sampleCount = 1;
@@ -327,24 +324,38 @@ namespace Lumos
     {
         self.drawableWidth = newDrawableWidth;
         self.drawableHeight = newDrawableHeight;
-
-		Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
-
-        os->OnScreenResize(self.drawableWidth, self.drawableHeight);
+        self.requestResize = YES;
     }
 
    Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
    if(!os->OnFrame())
    {
-	   //os->OnQuit();
+	   os->OnQuit();
    }
+   
+   if(self.requestResize)
+   {
+	Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
+    os->OnScreenResize(self.drawableWidth, self.drawableHeight);
+    self.requestResize = NO;
+    }
 }
 
 
 - (void)layoutSubviews
 {
-    // First render as soon as safeAreaInsets are set
-    if (!self.surfaceCreatedNotified) {
+    [super layoutSubviews];
+
+    CGSize size = self.drawableSize;
+    if (size.width > 0 && size.height > 0 && !self.surfaceCreatedNotified)
+    {
+        self.surfaceCreatedNotified = YES;
+        self.drawableWidth = (int)size.width;
+        self.drawableHeight = (int)size.height;
+
+        Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
+        os->OnScreenResize(self.drawableWidth, self.drawableHeight);
+
         [self draw];
     }
 }
@@ -497,15 +508,14 @@ CALayer* layer;
 #pragma mark UIKeyInput methods
 
 //// A key on the keyboard has been pressed.
-//-(void) insertText: (NSString*) text {
-//    unichar keycode = (text.length > 0) ? [text characterAtIndex: 0] : 0;
-//    [self handleKeyboardInput: keycode];
-//}
-//
-//// The delete backward key has been pressed.
-//-(void) deleteBackward {
-//    [self handleKeyboardInput: 0x33];
-//}
+- (void)insertText:(NSString *)text {
+    unichar keycode = (text.length > 0) ? [text characterAtIndex:0] : 0;
+    [self handleKeyboardInput:keycode];
+}
+
+- (void)deleteBackward {
+    [self handleKeyboardInput:0x08]; // ASCII Backspace
+}
 
 typedef enum {
     TouchPhaseHover,
@@ -595,7 +605,7 @@ typedef enum {
         NSValue *nsValue = (NSValue *)value;
         CGRect keyboardFrame = [nsValue CGRectValue];
 
-        self.keyboardVisible = CGRectIntersectsRect(self.view.window.frame, keyboardFrame);
+        self.keyboardVisible = CGRectIntersectsRect(self.view.frame, keyboardFrame);
     }
 }
 
@@ -606,14 +616,6 @@ typedef enum {
 
 - (BOOL)hasText {
     return YES;
-}
-
-- (void)insertText:(NSString *)text {
-    //Lumos::iOSOS::Get()->OnKeyPressed(text.UTF8String, false);
-}
-
-- (void)deleteBackward {
-    Lumos::iOSOS::Get()->OnKeyPressed('d', false);
 }
 
 - (BOOL)canBecomeFirstResponder {

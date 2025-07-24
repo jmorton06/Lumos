@@ -62,11 +62,12 @@ namespace Lumos
                         ImGui::Text("%" PRIu64, ID);
 
                         ImGui::TableNextColumn();
-                        std::string name = "Unnamed";
+                        String8 name;
 #ifndef LUMOS_PRODUCTION
-                        registry.GetName(ID, name);
+                        if(!registry.GetName(ID, name))
+						   name = Str8Lit("Unnamed");
 #endif
-                        ImGui::TextUnformatted(name.c_str());
+                        ImGui::TextUnformatted((const char*)name.str);
 
                         ImGui::TableNextColumn();
                         ImGui::TextUnformatted(AssetTypeToString(metaData.Type));
@@ -84,10 +85,15 @@ namespace Lumos
                     }
                 };
 
-                for(auto& current : registry)
-                {
-                    DrawEntry(current.second, current.first);
-                }
+				auto& Registry = registry.m_AssetRegistry;
+
+				ForHashMapEach(UUID, AssetMetaData, &Registry, it)
+				{
+					UUID key = *it.key;
+					AssetMetaData& value = *it.value;
+
+					DrawEntry(value, key);
+				}
 
                 ImGui::EndTable();
             }

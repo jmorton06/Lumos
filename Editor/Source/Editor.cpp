@@ -189,8 +189,12 @@ namespace Lumos
             deleteIniFile = true;
         }
 
+#ifdef LUMOS_PLATFORM_WINDOWS
+        m_TempSceneSaveFilePath += "Lumos\\";
+#else
         m_TempSceneSaveFilePath += "/Lumos/";
-        if(!FileSystem::FolderExists(m_TempSceneSaveFilePath))
+#endif
+        if(!FileSystem::FolderExists(Str8StdS(m_TempSceneSaveFilePath)))
             std::filesystem::create_directory(m_TempSceneSaveFilePath);
 
         std::vector<std::string> iniLocation = {
@@ -206,7 +210,7 @@ namespace Lumos
         std::string filePath;
         for(auto& path : iniLocation)
         {
-            if(FileSystem::FileExists(path))
+            if(FileSystem::FileExists(Str8StdS(path)))
             {
                 filePath = path;
 
@@ -1171,7 +1175,7 @@ namespace Lumos
                 int sameNameCount = 0;
 
                 String8 Path = PushStr8F(scratch.arena, "//Assets/Scenes/%s.lsn", (char*)sceneName.str);
-                while(FileSystem::FileExists((const char*)Path.str) || m_SceneManager->ContainsScene((const char*)sceneName.str))
+                while(FileSystem::FileExists(Path) || m_SceneManager->ContainsScene((const char*)sceneName.str))
                 {
                     sameNameCount++;
                     sceneName = PushStr8F(scratch.arena, "%s%i", (char*)newSceneName.c_str(), sameNameCount);
@@ -1663,15 +1667,16 @@ namespace Lumos
             if(newLayout)
             {
                 ImGuiID dock_main_id = DockspaceID;
-                ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.3f, nullptr, &dock_main_id);
-                ImGuiID DockLeft     = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.66f, nullptr, &dock_main_id);
-                ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.33f, nullptr, &dock_main_id);
+                ImGuiID DockLeft     = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.75f, nullptr, &dock_main_id);
+                ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.25f, nullptr, &dock_main_id);
+				ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.3f, nullptr, &DockLeft);
 
                 ImGuiID DockLeftSplitLeft  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Left, 0.5f, nullptr, &DockLeft);
                 ImGuiID DockLeftSplitRight = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Right, 0.5f, nullptr, &DockLeft);
 
-                ImGuiID DockRightSplitLeft  = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Left, 0.5f, nullptr, &DockRight);
+                /*ImGuiID DockRightSplitLeft  = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Left, 0.5f, nullptr, &DockRight);
                 ImGuiID DockRightSplitRight = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Right, 0.5f, nullptr, &DockRight);
+*/
 
                 ImGuiID DockLeftChild         = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.875f, nullptr, &DockLeft);
                 ImGuiID DockRightChild        = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.875f, nullptr, &DockRight);
@@ -1687,26 +1692,26 @@ namespace Lumos
                 ImGuiID DockMiddleLeft   = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Left, 0.5f, nullptr, &DockMiddle);
                 ImGuiID DockMiddleRight  = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Right, 0.5f, nullptr, &DockMiddle);
 
-                ImGuiID DockingBottomRight           = ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Right, 0.33f, nullptr, &DockBottom);
+                ImGuiID DockingBottomRight           = ImGui::DockBuilderSplitNode(DockRightChild, ImGuiDir_Down, 0.5f, nullptr, &DockRightChild);
                 ImGuiID DockingBottomRightSplitLeft  = ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Left, 0.5f, nullptr, &DockingBottomRight);
                 ImGuiID DockingBottomRightSplitRight = ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Right, 0.5f, nullptr, &DockingBottomRight);
 
-                ImGui::DockBuilderDockWindow("###game", DockLeftSplitRight);
-                ImGui::DockBuilderDockWindow("###scene", DockLeftSplitLeft);
-                ImGui::DockBuilderDockWindow("###inspector", DockRightSplitRight);
+                ImGui::DockBuilderDockWindow("###game", DockLeft);
+                ImGui::DockBuilderDockWindow("###scene", DockLeft);
+                ImGui::DockBuilderDockWindow("###inspector", DockRight);
                 ImGui::DockBuilderDockWindow("###console", DockBottom);
 
-                ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
+                ImGui::DockBuilderDockWindow("###profiler", DockingBottomRight);
                 ImGui::DockBuilderDockWindow("###resources", DockBottom);
-                ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockRightSplitRight);
-                ImGui::DockBuilderDockWindow("###GraphicsInfo", DockingBottomRightSplitLeft);
-                ImGui::DockBuilderDockWindow("###appinfo", DockingBottomRightSplitRight);
-                ImGui::DockBuilderDockWindow("###AssetManagerPanel", DockRightSplitRight);
-                ImGui::DockBuilderDockWindow("###hierarchy", DockRightSplitLeft);
-                ImGui::DockBuilderDockWindow("###textEdit", DockLeftSplitLeft);
-                ImGui::DockBuilderDockWindow("###scenesettings", DockingBottomRightSplitLeft);
-                ImGui::DockBuilderDockWindow("###editorsettings", DockingBottomRightSplitRight);
-                ImGui::DockBuilderDockWindow("###projectsettings", DockingBottomRightSplitRight);
+                ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockRight);
+                ImGui::DockBuilderDockWindow("###GraphicsInfo", DockingBottomRight);
+                ImGui::DockBuilderDockWindow("###appinfo", DockingBottomRight);
+                ImGui::DockBuilderDockWindow("###AssetManagerPanel", DockRight);
+                ImGui::DockBuilderDockWindow("###hierarchy", DockingBottomRight);
+                ImGui::DockBuilderDockWindow("###textEdit", DockLeft);
+                ImGui::DockBuilderDockWindow("###scenesettings", DockingBottomRight);
+                ImGui::DockBuilderDockWindow("###editorsettings", DockingBottomRight);
+                ImGui::DockBuilderDockWindow("###projectsettings", DockingBottomRight);
             }
             else
             {
@@ -2588,8 +2593,8 @@ namespace Lumos
     void Editor::OpenTextFile(const std::string& filePath, const std::function<void()>& callback)
     {
         LUMOS_PROFILE_FUNCTION();
-        std::string physicalPath;
-        if(!FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath))
+        String8 physicalPath;
+        if(!FileSystem::Get().ResolvePhysicalPath(m_FrameArena, Str8StdS(filePath), &physicalPath))
         {
             LERROR("Failed to Load Lua script %s", filePath.c_str());
             return;
@@ -2605,7 +2610,7 @@ namespace Lumos
             }
         }
 
-        m_Panels.emplace_back(CreateSharedPtr<TextEditPanel>(physicalPath));
+        m_Panels.emplace_back(CreateSharedPtr<TextEditPanel>(ToStdString(physicalPath)));
         m_Panels.back().As<TextEditPanel>()->SetOnSaveCallback(callback);
         m_Panels.back()->SetEditor(this);
 
@@ -2683,7 +2688,7 @@ namespace Lumos
             String8 assetCachePath    = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_FrameArena, texturePath, Str8Lit("//Assets"), Str8Lit("//Assets/Cache"));
             String8 cacheAbsolutePath = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_FrameArena, assetCachePath, Str8Lit("//Assets"), basePath);
 
-            m_PreviewDraw->SaveTexture(cacheAbsolutePath);
+            m_PreviewDraw->SaveTexture(cacheAbsolutePath, false, 0.0f);
             m_SavePreviewTexture = false;
         }
 
@@ -2761,9 +2766,9 @@ namespace Lumos
         }
         else if(IsAudioFile(path))
         {
-            std::string physicalPath;
-            Lumos::FileSystem::Get().ResolvePhysicalPath(path, physicalPath);
-            auto sound = Sound::Create(physicalPath, StringUtilities::GetFilePathExtension(path));
+            String8 physicalPath;
+            Lumos::FileSystem::Get().ResolvePhysicalPath(m_FrameArena, Str8StdS(path),  &physicalPath);
+            auto sound = Sound::Create(ToStdString(physicalPath), StringUtilities::GetFilePathExtension(path));
 
             auto soundNode = SharedPtr<SoundNode>(SoundNode::Create());
             soundNode->SetSound(sound);
@@ -2823,7 +2828,7 @@ namespace Lumos
         locationPopupOpened   = false;
         m_FileBrowserPanel->ClearFileTypeFilters();
 
-        if(FileSystem::FileExists(filePath))
+        if(FileSystem::FileExists(Str8StdS(filePath)))
         {
             auto it = std::find(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end(), filePath);
             if(it == m_Settings.m_RecentProjects.end())
@@ -2874,7 +2879,8 @@ namespace Lumos
         m_Settings.m_RecentProjects.erase(std::unique(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end()), m_Settings.m_RecentProjects.end());
         m_IniFile.SetOrAdd("RecentProjectCount", int(m_Settings.m_RecentProjects.size()));
 
-        if (m_Settings.m_RecentProjects.size() > 0) {
+        if(m_Settings.m_RecentProjects.size() > 0)
+        {
             for(int i = 0; i < int(m_Settings.m_RecentProjects.size()); i++)
             {
                 m_IniFile.SetOrAdd("RecentProject" + std::to_string(i), m_Settings.m_RecentProjects[i]);
@@ -2893,16 +2899,17 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_MACOS
         // Assuming working directory in /bin/Debug-macosx-x86_64/LumosEditor.app/Contents/MacOS
         m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../../../../ExampleProject/";
-        if(!Lumos::FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot))
+        if(!Lumos::FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)))
         {
             m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "/ExampleProject/";
-            if(!Lumos::FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot))
+            if(!Lumos::FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)))
             {
                 m_ProjectSettings.m_ProjectRoot = "../../ExampleProject/";
             }
         }
 #elif defined(LUMOS_PLATFORM_IOS)
-        m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
+		// TODO: StringRefactr
+       // m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
 #endif
 
         m_ProjectSettings.m_ProjectName = "Example";
@@ -2925,7 +2932,7 @@ namespace Lumos
         m_IniFile.Add("CameraSpeed", m_Settings.m_CameraSpeed);
         m_IniFile.Add("CameraNear", m_Settings.m_CameraNear);
         m_IniFile.Add("CameraFar", m_Settings.m_CameraFar);
-        
+
         m_IniFile.Rewrite();
     }
 
@@ -2963,7 +2970,7 @@ namespace Lumos
         int recentProjectCount  = 0;
         std::string projectPath = m_ProjectSettings.m_ProjectRoot + m_ProjectSettings.m_ProjectName + std::string(".lmproj");
 
-        if(FileSystem::FileExists(projectPath))
+        if(FileSystem::FileExists(Str8StdS(projectPath)))
         {
             auto it = std::find(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end(), projectPath);
             if(it == m_Settings.m_RecentProjects.end())
@@ -2975,7 +2982,7 @@ namespace Lumos
         {
             projectPath = m_IniFile.GetOrDefault("RecentProject" + std::to_string(i), std::string());
 
-            if(FileSystem::FileExists(projectPath))
+            if(FileSystem::FileExists(Str8StdS(projectPath)))
             {
                 auto it = std::find(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end(), projectPath);
                 if(it == m_Settings.m_RecentProjects.end())
@@ -3040,16 +3047,16 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        if(FileSystem::FileExists(m_TempSceneSaveFilePath + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn"))
+        if(FileSystem::FileExists(Str8StdS(std::string(m_TempSceneSaveFilePath + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn"))))
         {
             Application::Get().GetCurrentScene()->Deserialise(m_TempSceneSaveFilePath, false);
         }
         else
         {
-            std::string physicalPath;
-            if(Lumos::FileSystem::Get().ResolvePhysicalPath("//Assets/Scenes/" + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn", physicalPath))
+            String8 physicalPath;
+            if(Lumos::FileSystem::Get().ResolvePhysicalPath(m_FrameArena, Str8StdS(std::string("//Assets/Scenes/" + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn")), &physicalPath))
             {
-                auto newPath = StringUtilities::RemoveName(physicalPath);
+                auto newPath = StringUtilities::RemoveName(ToStdString(physicalPath));
                 Application::Get().GetCurrentScene()->Deserialise(newPath, false);
             }
         }

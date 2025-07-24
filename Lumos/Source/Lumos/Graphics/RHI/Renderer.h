@@ -54,7 +54,7 @@ namespace Lumos
             virtual void DrawSplashScreen(Texture* texture) { }
             virtual uint32_t GetGPUCount() const { return 1; }
             virtual bool SupportsCompute() { return false; }
-            virtual void SaveScreenshot(const std::string& path, Graphics::Texture* texture = nullptr) { };
+            virtual void SaveScreenshot(const std::string& path, Graphics::Texture* texture = nullptr, bool Blur = false, float BlurRadius = 2.0f) { };
             virtual RHIFormat GetDepthFormat() { return RHIFormat::D32_Float; };
 
             inline static void Present()

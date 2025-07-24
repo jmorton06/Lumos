@@ -45,7 +45,7 @@ namespace Lumos
         float Friction       = 0.5f;
         bool AtRest          = false;
         bool isTrigger       = false;
-        SharedPtr<CollisionShape> Shape;
+        SharedPtr<CollisionShape> Shape = nullptr;
     };
 
     class alignas(16) RigidBody3D
@@ -180,16 +180,14 @@ namespace Lumos
         // void SetIsColliding(const bool colliding) { m_IsColliding = colliding; }
         UUID GetUUID() const { return m_UUID; }
 
-        // For iteration
-        RigidBody3D* m_Prev = nullptr;
-        RigidBody3D* m_Next = nullptr;
-
         bool Valid() const { return m_UUID != 0; }
 
         uint16_t GetCollisionLayer() const { return m_CollisionLayer; }
         void SetCollisionLayer(u16 layer) { m_CollisionLayer = layer; }
 
         RigidBody3DProperties GetProperties();
+
+        bool GetIsValid() const { return m_IsValid; }
 
     protected:
         RigidBody3D(const RigidBody3DProperties& properties = RigidBody3DProperties());
@@ -212,13 +210,13 @@ namespace Lumos
 
         UUID m_UUID;
 
-        u16 m_CollisionLayer = 0;
-
         Vec3 m_Position;
-        float m_InvMass;
         Vec3 m_LinearVelocity;
-        bool m_Trigger = false;
         Vec3 m_Force;
+        float m_InvMass;
+        bool m_Trigger = false;
+        u16 m_CollisionLayer = 0;
+        bool m_IsValid = true;
 
         Quat m_Orientation;
         Vec3 m_AngularVelocity;

@@ -4,6 +4,7 @@
 #if defined(LUMOS_RENDER_API_VULKAN)
 #include "Platform/Vulkan/VKDevice.h"
 #include "Platform/Vulkan/VKCommandBuffer.h"
+#include <Tracy/public/tracy/TracyVulkan.hpp>
 #endif
 
 #if LUMOS_VULKAN_MARKERS && defined(LUMOS_RENDER_API_VULKAN)

@@ -89,7 +89,7 @@ project "Lumos"
 		conformancemode "on"
 		pchheader "Precompiled.h"
 		pchsource "Source/Precompiled.cpp"
-		buildoptions { "-msse4.1" }
+		--buildoptions { "-msse4.1" }
 
 		defines
 		{

@@ -37,18 +37,19 @@ namespace Lumos
 #define LEAF_COUNT 1024
         m_Leaves = PushArrayNoZero(m_Arena, OctreeNode*, LEAF_COUNT);
 
-        RigidBody3D* current = rootObject;
-        while(current)
+        for (i32 i = 0; i < totalRigidBodyCount; i++)
         {
-            if(current->GetCollisionShape())
+            RigidBody3D& current = rootObject[i];
+            if (current.GetIsValid())
             {
-                LUMOS_PROFILE_SCOPE_LOW("Merge Bounding box and add Physics Object");
-                m_RootNode.boundingBox.Merge(current->GetWorldSpaceAABB());
-                m_RootNode.PhysicsObjects[m_RootNode.PhysicsObjectCount] = current;
-                m_RootNode.PhysicsObjectCount++;
+                if (current.GetCollisionShape())
+                {
+                    LUMOS_PROFILE_SCOPE_LOW("Merge Bounding box and add Physics Object");
+                    m_RootNode.boundingBox.Merge(current.GetWorldSpaceAABB());
+                    m_RootNode.PhysicsObjects[m_RootNode.PhysicsObjectCount] = &current;
+                    m_RootNode.PhysicsObjectCount++;
+                }
             }
-
-            current = current->m_Next;
         }
 
         m_RootNode.boundingBox.ExtendToCube();

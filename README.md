@@ -14,6 +14,7 @@
 <a href="https://github.com/jmorton06/Lumos/blob/main/LICENSE"><img alt="license" src="https://img.shields.io/github/license/jmorton06/Lumos?style=flat-square"/></a>
 <br/>
 <a href=""><img alt="stars" src="https://img.shields.io/github/stars/jmorton06/Lumos?style=flat-square"/></a>
+<a href="https://ko-fi.com/Jmorton06"><img alt="kofi" src="https://img.shields.io/badge/Ko--fi-FF6433?logo=kofi&logoColor=fff&style=flat"/></a>
 <a href="https://github.com/jmorton06/Lumos/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/jmorton06/Lumos?style=flat-square"/></a>
 <a href="https://discord.gg/n9PDrNjJwt"><img alt="Discord" src="https://img.shields.io/badge/chat-on_discord-7389D8.svg?logo=discord&logoColor=ffffff&labelColor=6A7EC2&style=flat-square"/></a>
 <br/>
@@ -88,6 +89,7 @@ To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation h
 ## Contributing
 
 * Contributions are welcome. Both new features and bug fixes. Just open a pull request.
+* Some ideas for things that need added/fixed are in Todo.txt
 #
 ## Dependencies
  * [imgui](https://github.com/ocornut/imgui) : Dear ImGui: Bloat-free Immediate Mode Graphical User interface for C++ with minimal dependencies.
