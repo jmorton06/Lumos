@@ -59,8 +59,8 @@ public:
 
 #if defined(LUMOS_PLATFORM_IOS)
         projectLocations.Clear();
-		//TODO: StringRefactor
-       // projectLocations.PushBack(OS::Get().GetAssetPath() + "/ExampleProject/");
+        // TODO: StringRefactor
+        // projectLocations.PushBack(OS::Get().GetAssetPath() + "/ExampleProject/");
 #endif
 
         bool fileFound = false;
@@ -75,6 +75,23 @@ public:
                 break;
             }
         }
+
+#ifdef LUMOS_PLATFORM_MACOS
+        m_ProjectSettings.m_ProjectName = "Example";
+        // Assuming working directory in /bin/Debug-macosx-x86_64/LumosEditor.app/Contents/MacOS
+        m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../../../../ExampleProject/";
+        if(!Lumos::FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)))
+        {
+            m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "/ExampleProject/";
+            if(!Lumos::FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)))
+            {
+                m_ProjectSettings.m_ProjectRoot = "../../ExampleProject/";
+            }
+        }
+#elif defined(LUMOS_PLATFORM_IOS)
+        // TODO: StringRefactr
+        // m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
+#endif
 
         Application::Init();
         Application::SetEditorState(EditorState::Play);

@@ -65,7 +65,7 @@ namespace Lumos
                         String8 name;
 #ifndef LUMOS_PRODUCTION
                         if(!registry.GetName(ID, name))
-						   name = Str8Lit("Unnamed");
+                            name = Str8Lit("Unnamed");
 #endif
                         ImGui::TextUnformatted((const char*)name.str);
 
@@ -85,15 +85,15 @@ namespace Lumos
                     }
                 };
 
-				auto& Registry = registry.m_AssetRegistry;
+                auto& Registry = registry.m_AssetRegistry;
 
-				ForHashMapEach(UUID, AssetMetaData, &Registry, it)
-				{
-					UUID key = *it.key;
-					AssetMetaData& value = *it.value;
+                ForHashMapEach(UUID, AssetMetaData, &Registry, it)
+                {
+                    UUID key             = *it.key;
+                    AssetMetaData& value = *it.value;
 
-					DrawEntry(value, key);
-				}
+                    DrawEntry(value, key);
+                }
 
                 ImGui::EndTable();
             }

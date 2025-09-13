@@ -126,7 +126,7 @@ namespace Lumos
         template <typename TEvent, bool Immediate = false, typename... TEventArgs>
         void DispatchEvent(TEventArgs&&... args)
         {
-            SharedPtr<TEvent> event = CreateSharedPtr<TEvent>(std::forward<TEventArgs>(args)...);
+            SharedPtr<TEvent> event = CreateSharedPtr<TEvent>(Forward<TEventArgs>(args)...);
             if(Immediate)
             {
                 OnEvent(*event);
@@ -162,8 +162,8 @@ namespace Lumos
         virtual void Deserialise();
 
         void MountFileSystemPaths();
-		void CreateAssetFolders();
-		void SetEngineAssetPath();
+        void CreateAssetFolders();
+        void SetEngineAssetPath();
 
         struct ProjectSettings
         {
@@ -171,39 +171,29 @@ namespace Lumos
             std::string m_ProjectName;
             std::string m_EngineAssetPath; // TODO: move
             uint32_t Width = 1200, Height = 800;
-            bool Fullscreen  = true;
-            bool VSync       = true;
-            bool Borderless  = false;
-            bool ShowConsole = true;
-            std::string Title = "App";
-            int RenderAPI = 1;
-            int ProjectVersion = 1;
+            bool Fullscreen        = true;
+            bool VSync             = true;
+            bool Borderless        = false;
+            bool ShowConsole       = true;
+            std::string Title      = "App";
+            int RenderAPI          = 1;
+            int ProjectVersion     = 1;
             int8_t DesiredGPUIndex = -1;
             std::string IconPath;
             bool DefaultIcon  = true;
             bool HideTitleBar = false;
         };
 
-        struct RenderConfig
-        {
-             u32 IrradianceMapSize  = 64;
-			u32 EnvironmentMapSize = 512;
-			u32 EnvironmentSamples  = 512;
-			
-        };
-
         ProjectSettings& GetProjectSettings() { return m_ProjectSettings; }
-        RenderConfig& GetRenderConfigSettings() { return m_RenderConfig; }
 
         Arena* GetFrameArena() const { return m_FrameArena; }
         static void UpdateSystems();
 
         Vec2 m_SceneViewPosition; // For Editor
-		const String8& GetAssetPath() const { return m_AssetPath; };
+        const String8& GetAssetPath() const { return m_AssetPath; };
 
     protected:
         ProjectSettings m_ProjectSettings;
-        RenderConfig m_RenderConfig;
         bool m_ProjectLoaded = false;
 
     private:
@@ -224,6 +214,7 @@ namespace Lumos
 
         bool m_SceneViewSizeUpdated = false;
         bool m_RenderDocEnabled     = false;
+        bool m_ImGuiClearScreen     = false;
 
         Mutex* m_EventQueueMutex;
         TDArray<Function<void()>> m_EventQueue;
@@ -241,7 +232,7 @@ namespace Lumos
         AppType m_AppType         = AppType::Editor;
 
         TDArray<Function<void()>> m_MainThreadQueue;
-		Mutex* m_MainThreadQueueMutex;
+        Mutex* m_MainThreadQueueMutex;
 
         Arena* m_FrameArena;
         Arena* m_Arena;
@@ -250,7 +241,7 @@ namespace Lumos
         QualitySettings m_QualitySettings;
         StringPool* m_StringPool;
 
-		String8 m_AssetPath;
+        String8 m_AssetPath;
 
         NONCOPYABLE(Application)
     };

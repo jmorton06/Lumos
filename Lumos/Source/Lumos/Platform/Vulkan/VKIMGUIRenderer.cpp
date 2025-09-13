@@ -1,11 +1,6 @@
 #include "Precompiled.h"
+#include "VKUtilities.h"
 #include "VKIMGUIRenderer.h"
-#include <imgui/imgui.h>
-
-#define IMGUI_IMPL_VULKAN_NO_PROTOTYPES
-#define VK_NO_PROTOTYPES
-#include <imgui/backends/imgui_impl_vulkan.h>
-
 #include "VKDevice.h"
 #include "VKCommandBuffer.h"
 #include "VKRenderer.h"
@@ -13,19 +8,16 @@
 #include "VKTexture.h"
 #include "Graphics/RHI/GPUProfile.h"
 #include "Core/Application.h"
+#include "vulkan/vulkan_core.h"
+#include <imgui/imgui.h>
+
+#define IMGUI_IMPL_VULKAN_NO_PROTOTYPES
+#define VK_NO_PROTOTYPES
+#include <imgui/backends/imgui_impl_vulkan.h>
 
 static ImGui_ImplVulkanH_Window g_WindowData;
 static VkAllocationCallbacks* g_Allocator   = nullptr;
 static VkDescriptorPool g_DescriptorPool[3] = { VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE };
-
-static void check_vk_result(VkResult err)
-{
-    if(err == 0)
-        return;
-    printf("VkResult %d\n", err);
-    if(err < 0)
-        abort();
-}
 
 namespace Lumos
 {
@@ -41,7 +33,7 @@ namespace Lumos
             m_WindowHandle = nullptr;
             m_Width        = width;
             m_Height       = height;
-            m_ClearScreen  = clearScreen;
+            m_ClearScreen  = false;
         }
 
         VKIMGUIRenderer::~VKIMGUIRenderer()
@@ -97,7 +89,7 @@ namespace Lumos
                 pool_info.poolSizeCount              = (uint32_t)IM_ARRAYSIZE(pool_sizes);
                 pool_info.pPoolSizes                 = pool_sizes;
                 VkResult err                         = vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &pool_info, g_Allocator, &g_DescriptorPool[i]);
-                check_vk_result(err);
+                VK_CHECK_RESULT(err);
             }
 
             wd->Surface     = surface;
@@ -125,9 +117,7 @@ namespace Lumos
             wd->RenderPass                 = m_Renderpass->GetHandle();
 
             wd->Frames = (ImGui_ImplVulkanH_Frame*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_Frame) * wd->ImageCount);
-            // wd->FrameSemaphores = (ImGui_ImplVulkanH_FrameSemaphores*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_FrameSemaphores) * wd->ImageCount);
             memset(wd->Frames, 0, sizeof(wd->Frames[0]) * wd->ImageCount);
-            // memset(wd->FrameSemaphores, 0, sizeof(wd->FrameSemaphores[0]) * wd->ImageCount);
 
             // Create The Image Views
             {
@@ -191,24 +181,23 @@ namespace Lumos
 
         void VKIMGUIRenderer::NewFrame()
         {
-            u32 currentImageIndex = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+            u32 CurrentBufferIndex = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
-            vkResetDescriptorPool(VKDevice::Get().GetDevice(), g_DescriptorPool[currentImageIndex], 0);
+            vkResetDescriptorPool(VKDevice::Get().GetDevice(), g_DescriptorPool[CurrentBufferIndex], 0);
             m_CurrentFrameTextures = { Application::Get().GetFrameArena() };
             m_CurrentFrameTextures.Reserve(1024);
 
             ImGui::GetIO().Fonts->TexID = (ImTextureID)AddTexture(m_FontTexture, TextureType::COLOUR, 0, 0);
         }
 
-        void VKIMGUIRenderer::FrameRender(ImGui_ImplVulkanH_Window* wd)
+        void VKIMGUIRenderer::FrameRender(ImGui_ImplVulkanH_Window* wd, VKCommandBuffer* commandBuffer)
         {
             LUMOS_PROFILE_FUNCTION();
 
             LUMOS_PROFILE_GPU("ImGui Pass");
 
-            wd->FrameIndex            = VKRenderer::GetMainSwapChain()->GetCurrentImageIndex();
-            auto currentCommandBuffer = (VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
-            auto swapChain            = static_cast<VKSwapChain*>(VKRenderer::GetMainSwapChain());
+            wd->FrameIndex = VKRenderer::GetMainSwapChain()->GetCurrentImageIndex();
+            auto swapChain = static_cast<VKSwapChain*>(VKRenderer::GetMainSwapChain());
 
             if(wd->Swapchain != swapChain->GetSwapChain())
                 OnResize(wd->Width, wd->Height);
@@ -223,30 +212,32 @@ namespace Lumos
                     if(texture->GetType() == TextureType::COLOUR)
                     {
                         auto tex = (VKTexture2D*)texture;
-                        tex->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, currentCommandBuffer);
+                        tex->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, commandBuffer);
                     }
                     else if(texture->GetType() == TextureType::DEPTH)
                     {
                         auto textureDepth = (VKTextureDepth*)texture;
-                        textureDepth->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, currentCommandBuffer);
+                        textureDepth->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, commandBuffer);
                     }
                     else if(texture->GetType() == TextureType::DEPTHARRAY)
                     {
                         auto textureDepth = (VKTextureDepthArray*)texture;
-                        textureDepth->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, currentCommandBuffer);
+                        textureDepth->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, commandBuffer);
                     }
                 }
             }
 
+            ((VKTexture2D*)Renderer::GetMainSwapChain()->GetImage(wd->FrameIndex))->TransitionImage(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, commandBuffer);
+
             float clearColour[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
-            m_Renderpass->BeginRenderPass(currentCommandBuffer, clearColour, m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
+            m_Renderpass->BeginRenderPass(commandBuffer, clearColour, m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
 
             {
                 LUMOS_PROFILE_SCOPE("ImGui Vulkan RenderDrawData");
                 // Record Imgui Draw Data and draw funcs into command buffer
-                ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), currentCommandBuffer->GetHandle(), VK_NULL_HANDLE, wd->FrameIndex, VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex());
+                ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer->GetHandle(), VK_NULL_HANDLE, wd->FrameIndex, VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex());
             }
-            m_Renderpass->EndRenderPass(currentCommandBuffer);
+            m_Renderpass->EndRenderPass(commandBuffer);
         }
 
         void VKIMGUIRenderer::Render(Lumos::Graphics::CommandBuffer* commandBuffer)
@@ -254,7 +245,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
 
             ImGui::Render();
-            FrameRender(&g_WindowData);
+            FrameRender(&g_WindowData, (VKCommandBuffer*)commandBuffer);
         }
 
         void VKIMGUIRenderer::OnResize(uint32_t width, uint32_t height)
@@ -295,9 +286,8 @@ namespace Lumos
             {
                 attachments[0]              = Renderer::GetMainSwapChain()->GetImage(i);
                 frameBufferDesc.attachments = attachments;
-
-                m_Framebuffers[i]         = new VKFramebuffer(frameBufferDesc);
-                wd->Frames[i].Framebuffer = m_Framebuffers[i]->GetFramebuffer();
+                m_Framebuffers[i]           = new VKFramebuffer(frameBufferDesc);
+                wd->Frames[i].Framebuffer   = m_Framebuffers[i]->GetFramebuffer();
             }
         }
 
@@ -342,24 +332,25 @@ namespace Lumos
 
         ImTextureID VKIMGUIRenderer::AddTexture(Texture* texture, TextureType type, uint32_t level, uint32_t mip)
         {
-            u32 currentImageIndex = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+            LUMOS_PROFILE_FUNCTION();
+            u32 CurrentBufferIndex = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
             // Layout is transitioned to these before rendering
             m_CurrentFrameTextures.PushBack(texture);
             if(type == TextureType::COLOUR)
             {
                 auto tex = (VKTexture2D*)texture;
-                return ImGui_ImplVulkan_AddTexture(tex->GetSampler(), tex->GetMipImageView(mip), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, g_DescriptorPool[currentImageIndex]);
+                return ImGui_ImplVulkan_AddTexture(tex->GetSampler(), tex->GetMipImageView(mip), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, g_DescriptorPool[CurrentBufferIndex]);
             }
             else if(type == TextureType::DEPTH)
             {
                 auto depthTex = (VKTextureDepth*)texture;
-                return ImGui_ImplVulkan_AddTexture(depthTex->GetSampler(), depthTex->GetImageView(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, g_DescriptorPool[currentImageIndex]);
+                return ImGui_ImplVulkan_AddTexture(depthTex->GetSampler(), depthTex->GetImageView(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, g_DescriptorPool[CurrentBufferIndex]);
             }
             else if(type == TextureType::DEPTHARRAY)
             {
                 auto depthTex = (VKTextureDepthArray*)texture;
-                return ImGui_ImplVulkan_AddTexture(depthTex->GetSampler(), depthTex->GetImageView(level), VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, g_DescriptorPool[currentImageIndex]);
+                return ImGui_ImplVulkan_AddTexture(depthTex->GetSampler(), depthTex->GetImageView(level), VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, g_DescriptorPool[CurrentBufferIndex]);
             }
 
             ASSERT("Unsupported Texture Type with ImGui");

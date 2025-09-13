@@ -104,12 +104,12 @@ namespace MM
 
         bool hasReloaded = false;
 
-		Lumos::ArenaTemp Scratch = Lumos::ScratchBegin(0, 0);
+        Lumos::ArenaTemp Scratch = Lumos::ScratchBegin(0, 0);
 
         if(ImGui::Button("New File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
         {
-			Lumos::String8 newFilePath = Lumos::Str8Lit("//Assets/Scripts");
-			Lumos::String8 physicalPath;
+            Lumos::String8 newFilePath = Lumos::Str8Lit("//Assets/Scripts");
+            Lumos::String8 physicalPath;
             if(!Lumos::FileSystem::Get().ResolvePhysicalPath(Scratch.arena, newFilePath, &physicalPath, true))
             {
                 LERROR("Failed to Create Lua script %s", (const char*)physicalPath.str);
@@ -132,13 +132,13 @@ end
                 Lumos::String8 newScriptFileName = Lumos::Str8Lit("Script");
                 int fileIndex                    = 0;
 
-				Lumos::String8 Path = Lumos::PushStr8FillByte(scratch.arena, 260, 0);
-				Path = Lumos::Str8F(Path, "%s/%s.lua", (const char*)physicalPath.str, ((const char*)newScriptFileName.str));
+                Lumos::String8 Path = Lumos::PushStr8FillByte(scratch.arena, 260, 0);
+                Path                = Lumos::Str8F(Path, "%s/%s.lua", (const char*)physicalPath.str, ((const char*)newScriptFileName.str));
 
                 while(Lumos::FileSystem::FileExists(Path))
                 {
                     fileIndex++;
-					Path = Lumos::Str8F(Path, "%s/%s(%i).lua", (const char*)physicalPath.str, ((const char*)newScriptFileName.str), fileIndex);
+                    Path = Lumos::Str8F(Path, "%s/%s(%i).lua", (const char*)physicalPath.str, ((const char*)newScriptFileName.str), fileIndex);
                 }
 
                 Lumos::FileSystem::WriteTextFile(Path, defaultScript);
@@ -189,7 +189,7 @@ end
             }
         }
 
-		ScratchEnd(Scratch);
+        ScratchEnd(Scratch);
 
         if(!script.Loaded() || hasReloaded || !loaded)
         {
@@ -724,13 +724,13 @@ end
         LUMOS_PROFILE_FUNCTION();
         auto& phys = reg.get<Lumos::RigidBody2DComponent>(e);
 
-        auto pos      = phys.GetRigidBody()->GetPosition();
-        auto scale    = phys.GetRigidBody()->GetScale();
-        auto angle    = phys.GetRigidBody()->GetAngle();
-        auto friction = phys.GetRigidBody()->GetFriction();
-        auto isStatic = phys.GetRigidBody()->GetIsStatic();
-        auto isRest   = phys.GetRigidBody()->GetIsAtRest();
-
+        auto pos        = phys.GetRigidBody()->GetPosition();
+        auto scale      = phys.GetRigidBody()->GetScale();
+        auto angle      = phys.GetRigidBody()->GetAngle();
+        auto friction   = phys.GetRigidBody()->GetFriction();
+        auto isStatic   = phys.GetRigidBody()->GetIsStatic();
+        auto isRest     = phys.GetRigidBody()->GetIsAtRest();
+        auto damping    = phys.GetRigidBody()->GetDamping();
         auto elasticity = phys.GetRigidBody()->GetElasticity();
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
@@ -773,6 +773,16 @@ end
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Friction", &friction))
             phys.GetRigidBody()->SetFriction(friction);
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Damping");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if(ImGui::DragFloat("##Damping", &damping))
+            phys.GetRigidBody()->SetDamping(damping);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -927,10 +937,10 @@ end
                     if(ImGui::AcceptDragDropPayload("AssetFile"))
                     {
                         Lumos::String8 physicalPath;
-						Lumos::ArenaTemp scratch         = Lumos::ScratchBegin(nullptr, 0);
+                        Lumos::ArenaTemp scratch = Lumos::ScratchBegin(nullptr, 0);
                         Lumos::FileSystem::Get().ResolvePhysicalPath(scratch.arena, Lumos::Str8StdS(filePath), &physicalPath);
                         auto newSound = Lumos::Sound::Create(std::string((const char*)physicalPath.str, physicalPath.size), Lumos::StringUtilities::GetFilePathExtension(std::string((const char*)physicalPath.str, physicalPath.size)));
-						Lumos::ArenaTempEnd(scratch);
+                        Lumos::ArenaTempEnd(scratch);
                         soundNode->SetSound(newSound);
                     }
 
@@ -2296,8 +2306,8 @@ end
                     if(ImGui::Button("Save to file"))
                     {
 
-						Lumos::ArenaTemp scratch         = Lumos::ScratchBegin(nullptr, 0);
-                        Lumos::String8 filePath = Lumos::Str8Lit("//Assets/Materials/"); // +matName + ".lmat";
+                        Lumos::ArenaTemp scratch = Lumos::ScratchBegin(nullptr, 0);
+                        Lumos::String8 filePath  = Lumos::Str8Lit("//Assets/Materials/"); // +matName + ".lmat";
                         Lumos::String8 physicalPath;
                         if(FileSystem::Get().ResolvePhysicalPath(scratch.arena, filePath, &physicalPath, true))
                         {
@@ -2310,7 +2320,7 @@ end
 
                             FileSystem::WriteTextFile(fullPath, Str8StdS(storage.str()));
                         }
-						Lumos::ArenaTempEnd(scratch);
+                        Lumos::ArenaTempEnd(scratch);
                     }
 
                     if(Lumos::ImGuiUtilities::InputText(matName, "##materialName"))
@@ -3041,13 +3051,13 @@ namespace Lumos
 
                 if(ImGui::Button("OK", ImVec2(120, 0)))
                 {
-					Lumos::ArenaTemp scratch         = Lumos::ScratchBegin(nullptr, 0);
+                    Lumos::ArenaTemp scratch = Lumos::ScratchBegin(nullptr, 0);
                     Lumos::String8 physicalPath;
                     FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(prefabNamePath), &physicalPath, true);
                     std::string FullPath = std::string((const char*)physicalPath.str, physicalPath.size) + prefabName + std::string(".lprefab");
                     Application::Get().GetSceneManager()->GetCurrentScene()->SavePrefab({ selected, Application::Get().GetSceneManager()->GetCurrentScene() }, FullPath);
                     ImGui::CloseCurrentPopup();
-					ArenaTempEnd(scratch);
+                    ArenaTempEnd(scratch);
                 }
                 ImGui::SetItemDefaultFocus();
                 ImGui::SameLine();

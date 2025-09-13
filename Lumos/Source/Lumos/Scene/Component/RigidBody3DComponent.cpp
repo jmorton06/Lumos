@@ -34,7 +34,7 @@ namespace Lumos
 
     RigidBody3DComponent::~RigidBody3DComponent()
     {
-        if (m_RigidBody && m_OwnRigidBody)
+        if(m_RigidBody && m_OwnRigidBody)
             Application::Get().GetSystem<LumosPhysicsEngine>()->DestroyBody(m_RigidBody);
     }
 

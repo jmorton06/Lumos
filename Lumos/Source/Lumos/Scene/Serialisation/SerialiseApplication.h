@@ -23,7 +23,7 @@ namespace Lumos
                 cereal::make_nvp("Title", application.m_ProjectSettings.Title));
         // Version 2
 
-		ArenaTemp Scratch = ScratchBegin(0,0);
+        ArenaTemp Scratch = ScratchBegin(0, 0);
 
         const auto& paths = application.m_SceneManager->GetSceneFilePaths();
         std::vector<String8> newPaths;
@@ -31,7 +31,8 @@ namespace Lumos
         {
             String8 newPath;
             FileSystem::Get().AbsolutePathToFileSystem(Scratch.arena, path, newPath);
-			newPaths.push_back(newPath);;
+            newPaths.push_back(newPath);
+            ;
         }
         archive(cereal::make_nvp("Scenes", newPaths));
         // Version 3

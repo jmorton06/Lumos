@@ -8,36 +8,35 @@
 
 namespace Lumos
 {
-	struct Mutex
-	{
+    struct Mutex
+    {
 #ifdef LUMOS_PLATFORM_WINDOWS
-		CRITICAL_SECTION cs;
+        CRITICAL_SECTION cs;
 #else
-		pthread_mutex_t handle;
+        pthread_mutex_t handle;
 #endif
-	};
+    };
 
-	i32 MutexInit(Mutex* m);
-	int MutexDestroy(Mutex* m);
-	int MutexLock(Mutex* m);
-	int MutexUnlock(Mutex* m);
+    i32 MutexInit(Mutex* m);
+    int MutexDestroy(Mutex* m);
+    int MutexLock(Mutex* m);
+    int MutexUnlock(Mutex* m);
 
-	class ScopedMutex
-	{
-	public:
-		ScopedMutex(Mutex* mutex)
-		: m_Mutex(mutex)
-		{
-			MutexLock(m_Mutex);
-		}
+    class ScopedMutex
+    {
+    public:
+        ScopedMutex(Mutex* mutex)
+            : m_Mutex(mutex)
+        {
+            MutexLock(m_Mutex);
+        }
 
+        ~ScopedMutex()
+        {
+            MutexUnlock(m_Mutex);
+        }
 
-		~ScopedMutex()
-		{
-			MutexUnlock(m_Mutex);
-		}
-
-	private:
-		Mutex* m_Mutex;
-	};
+    private:
+        Mutex* m_Mutex;
+    };
 }

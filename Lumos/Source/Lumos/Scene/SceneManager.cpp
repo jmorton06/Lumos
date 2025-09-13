@@ -111,8 +111,8 @@ namespace Lumos
         app.GetSystem<LumosPhysicsEngine>()->SetPaused(false);
 
         String8 physicalPath;
-		std::string path = "//Assets/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn";
-		if(Lumos::FileSystem::Get().ResolvePhysicalPath(Application::Get().GetFrameArena(), Str8StdS(path), &physicalPath))
+        std::string path = "//Assets/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn";
+        if(Lumos::FileSystem::Get().ResolvePhysicalPath(Application::Get().GetFrameArena(), Str8StdS(path), &physicalPath))
         {
             auto newPath = StringUtilities::RemoveName(ToStdString(physicalPath));
             m_CurrentScene->Deserialise(newPath, false);

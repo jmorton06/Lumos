@@ -239,13 +239,13 @@ namespace Lumos
                     {
                         ImGui::SetTooltip("%s", GetLevelName(message->m_Level));
                     }
-                    ImGui::PopStyleColor();
 
                     // ImGui::TableNextColumn();
                     // ImGui::TextUnformatted(message->m_Time.c_str());
 
                     ImGui::TableNextColumn();
                     message->OnImGUIRender();
+                    ImGui::PopStyleColor();
                     ImGui::TableNextRow();
                 }
             };

@@ -142,6 +142,18 @@
     class_name(class_name&&)                 = delete; \
     class_name& operator=(class_name&&)      = delete;
 
+#define DEFAULTCOPYANDMOVEDECLARE(class_name) \
+    class_name(const class_name&);            \
+    class_name& operator=(const class_name&); \
+    class_name(class_name&&);                 \
+    class_name& operator=(class_name&&);
+
+#define DEFAULTCOPYANDMOVEDEFINE(class_name)                        \
+    class_name::class_name(const class_name&)            = default; \
+    class_name& class_name::operator=(const class_name&) = default; \
+    class_name::class_name(class_name&&)                 = default; \
+    class_name& class_name::operator=(class_name&&)      = default;
+
 #if defined(_MSC_VER)
 #define DISABLE_WARNING_PUSH __pragma(warning(push))
 #define DISABLE_WARNING_POP __pragma(warning(pop))

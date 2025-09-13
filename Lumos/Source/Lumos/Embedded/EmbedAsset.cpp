@@ -35,7 +35,7 @@ namespace Lumos
     {
         // Based on https://github.com/StableCoder/vksbc
 
-		ArenaTemp Scratch = ScratchBegin(0, 0);
+        ArenaTemp Scratch = ScratchBegin(0, 0);
 
         uint32_t* data = reinterpret_cast<uint32_t*>(FileSystem::ReadFile(Scratch.arena, Str8StdS(shaderPath)));
         uint32_t size  = uint32_t(FileSystem::GetFileSize(Str8StdS(shaderPath)));
@@ -43,7 +43,7 @@ namespace Lumos
         if(!data)
         {
             LWARN("Failed to load shader : %s", shaderPath.c_str());
-			ScratchEnd(Scratch);
+            ScratchEnd(Scratch);
             return;
         }
         auto shaderPath2 = shaderPath;
@@ -89,8 +89,8 @@ namespace Lumos
         std::string folder = StringUtilities::GetFileLocation(shaderPath2);
         shaderName         = StringUtilities::BackSlashesToSlashes(shaderName);
 
-		String8 FullPath = PushStr8F(Scratch.arena, "%sHeaders/%s.hpp", folder.c_str(), shaderName.c_str());
+        String8 FullPath = PushStr8F(Scratch.arena, "%sHeaders/%s.hpp", folder.c_str(), shaderName.c_str());
         FileSystem::WriteTextFile(FullPath, Str8StdS(ss.str()));
-		ScratchEnd(Scratch);
+        ScratchEnd(Scratch);
     }
 }

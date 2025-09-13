@@ -143,7 +143,6 @@ namespace Lumos
     String8 Str8From32(Arena* arena, String32 in);
     String32 Str32From8(Arena* arena, String8 in);
 
-
     bool operator==(const String8& lhs, const String8& rhs);
 
 #define Str8Struct(ptr) Str8((uint8_t*)(ptr), sizeof(*(ptr)))

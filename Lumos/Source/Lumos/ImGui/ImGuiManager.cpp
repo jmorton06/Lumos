@@ -8,6 +8,7 @@
 #include "ImGuiUtilities.h"
 #include "Maths/MathsUtilities.h"
 #include "IconsMaterialDesignIcons.h"
+#include "Graphics/RHI/Renderer.h"
 
 #ifdef LUMOS_PLATFORM_LINUX
 #include "Lumos/Platform/GLFW/GLFWWindow.h"
@@ -150,7 +151,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         if(m_IMGUIRenderer && m_IMGUIRenderer->Implemented())
         {
-            m_IMGUIRenderer->Render(nullptr);
+            m_IMGUIRenderer->Render(Graphics::Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
     }
 

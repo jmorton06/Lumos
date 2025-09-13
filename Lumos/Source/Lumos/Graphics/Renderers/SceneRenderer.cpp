@@ -2517,7 +2517,7 @@ namespace Lumos::Graphics
             break;
         }
 #endif
-        
+
         m_FinalPassDescriptorSet->SetTexture(1, finalPassTexture);
         m_FinalPassDescriptorSet->Update();
 
@@ -4581,9 +4581,9 @@ namespace Lumos::Graphics
     {
         // Create shader and pipeline
         // Create Empty Cube Map
-        auto environmentMap         = TextureCube::Create(Application::Get().GetRenderConfigSettings().EnvironmentMapSize, nullptr, true);
-        auto environmentMapFiltered = TextureCube::Create(Application::Get().GetRenderConfigSettings().EnvironmentMapSize, nullptr, true);
-        auto irradianceMap          = TextureCube::Create(Application::Get().GetRenderConfigSettings().IrradianceMapSize, nullptr, true);
+        auto environmentMap         = TextureCube::Create(Application::Get().GetQualitySettings().EnvironmentMapSize, nullptr, true);
+        auto environmentMapFiltered = TextureCube::Create(Application::Get().GetQualitySettings().EnvironmentMapSize, nullptr, true);
+        auto irradianceMap          = TextureCube::Create(Application::Get().GetQualitySettings().IrradianceMapSize, nullptr, true);
 
         auto commandBuffer = CommandBuffer::Create();
         commandBuffer->Init(true);
@@ -4708,7 +4708,7 @@ namespace Lumos::Graphics
 
             descriptorSet->SetTexture(0, environmentMapFiltered);
 
-            uint32_t samples = Application::Get().GetRenderConfigSettings().EnvironmentSamples;
+            uint32_t samples = Application::Get().GetQualitySettings().EnvironmentSamples;
             descriptorSet->SetUniformBufferData(1, (void*)&samples);
             descriptorSet->Update(commandBuffer);
 

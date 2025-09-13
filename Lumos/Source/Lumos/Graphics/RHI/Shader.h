@@ -23,8 +23,8 @@ namespace Lumos
             virtual ~Shader() = default;
 
             virtual const TDArray<ShaderType> GetShaderTypes() const = 0;
-            virtual const char* GetName() const               = 0;
-            virtual const char* GetFilePath() const           = 0;
+            virtual const char* GetName() const                      = 0;
+            virtual const char* GetFilePath() const                  = 0;
 
             virtual void* GetHandle() const = 0;
             virtual bool IsCompiled() const { return true; }

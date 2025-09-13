@@ -46,7 +46,7 @@ namespace Lumos
     void LuaScriptComponent::LoadScript(const std::string& fileName)
     {
         m_FileName = fileName;
-        m_Env = CreateSharedPtr<sol::environment>(LuaManager::Get().GetState(), sol::create, LuaManager::Get().GetState().globals());
+        m_Env      = CreateSharedPtr<sol::environment>(LuaManager::Get().GetState(), sol::create, LuaManager::Get().GetState().globals());
 
         auto loadFileResult = LuaManager::Get().GetState().script_file(m_FileName, *m_Env, sol::script_pass_on_error);
         if(!loadFileResult.valid())

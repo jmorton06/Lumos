@@ -490,10 +490,7 @@ namespace Lumos
 
             if(m_Description.swapchainTarget)
             {
-                for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
-                {
-                    ((VKTexture2D*)Renderer::GetMainSwapChain()->GetImage(i))->TransitionImage(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, (VKCommandBuffer*)commandBuffer);
-                }
+                ((VKTexture2D*)Renderer::GetMainSwapChain()->GetImage(Renderer::GetMainSwapChain()->GetCurrentImageIndex()))->TransitionImage(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, (VKCommandBuffer*)commandBuffer);
             }
 
             if(m_Description.depthArrayTarget)

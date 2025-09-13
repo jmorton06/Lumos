@@ -39,6 +39,7 @@ namespace Lumos
     void* ArenaPushAligner(Arena* arena, uint64_t alignment);
     void* ArenaPush(Arena* arena, uint64_t size);
     void ArenaPopTo(Arena* arena, uint64_t pos);
+    void ArenaPopToPointer(Arena* arena, u8* ptr);
     void ArenaSetAutoAlign(Arena* arena, uint64_t align);
     void ArenaPop(Arena* arena, uint64_t size);
     void ArenaClear(Arena* arena);

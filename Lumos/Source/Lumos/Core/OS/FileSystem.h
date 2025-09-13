@@ -20,18 +20,18 @@ namespace Lumos
     public:
         bool ResolvePhysicalPath(Arena* arena, const String8& path, String8* outPhysicalPath, bool folder = false);
         bool AbsolutePathToFileSystem(Arena* arena, const String8& path, String8& outFileSystemPath, bool folder = false);
-		String8 AbsolutePathToFileSystem(Arena* arena, const String8& path, bool folder = false);
+        String8 AbsolutePathToFileSystem(Arena* arena, const String8& path, bool folder = false);
 
         uint8_t* ReadFileVFS(Arena* arena, const String8& path);
-		String8 ReadTextFileVFS(Arena* arena, const String8& path);
+        String8 ReadTextFileVFS(Arena* arena, const String8& path);
 
         bool WriteFileVFS(const String8& path, uint8_t* buffer, uint32_t size);
         bool WriteTextFileVFS(const String8& path, const String8& text);
 
-		void SetAssetPath(const String8& Path)
-		{
-			m_AssetsPath = Path;
-		}
+        void SetAssetPath(const String8& Path)
+        {
+            m_AssetsPath = Path;
+        }
 
         // Static Helpers. Implemented in OS specific Files
         static bool FileExists(const String8& path);
@@ -54,7 +54,7 @@ namespace Lumos
 
         static void IterateFolder(const char* path, void (*f)(const char*));
 
-	private:
-		String8 m_AssetsPath;
+    private:
+        String8 m_AssetsPath;
     };
 }

@@ -84,7 +84,7 @@ namespace Lumos
             return OS::Get().GetCurrentWorkingDirectory();
 #else
             const char* home = std::getenv("HOME");
-            if (!home)
+            if(!home)
             {
                 throw std::runtime_error("Can't obtain HOME");
             }
@@ -130,19 +130,19 @@ namespace Lumos
             {
                 storageBuffer.Allocate(uint32_t(FileSystem::GetFileSize(Str8StdS(filepath.string()))));
 
-				Lumos::Arena* arena = Lumos::ArenaAlloc(storageBuffer.GetSize() + 128);
+                Lumos::Arena* arena = Lumos::ArenaAlloc(storageBuffer.GetSize() + 128);
 
                 auto data = FileSystem::ReadFile(arena, Str8StdS(filepath.string()));
                 storageBuffer.Write(data, storageBuffer.Size);
 
                 header = *storageBuffer.As<AtlasHeader>();
                 pixels = (uint8_t*)storageBuffer.Data + sizeof(AtlasHeader);
-				ArenaRelease(arena);
+                ArenaRelease(arena);
 
-				ScratchEnd(scratch);
+                ScratchEnd(scratch);
                 return true;
             }
-			ScratchEnd(scratch);
+            ScratchEnd(scratch);
             return false;
         }
 
@@ -324,18 +324,18 @@ namespace Lumos
             if(m_FontDataSize == 0)
             {
                 String8 outPath;
-				Arena* temp = ArenaAlloc(260);
+                Arena* temp = ArenaAlloc(260);
                 if(!FileSystem::Get().ResolvePhysicalPath(temp, Str8StdS(m_FilePath), &outPath))
-				{
-					ArenaRelease(temp);
-					return;
-				}
+                {
+                    ArenaRelease(temp);
+                    return;
+                }
 
                 FONT_LOG("Font: Loading Font %s", m_FilePath);
                 fontInput.fontFilename = (const char*)outPath.str;
                 m_FilePath             = ToStdString(outPath);
 
-				ArenaRelease(temp);
+                ArenaRelease(temp);
 
                 if(!font.load(fontInput.fontFilename))
                 {

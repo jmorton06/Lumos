@@ -45,7 +45,7 @@ namespace Lumos
         float Friction       = 0.5f;
         bool AtRest          = false;
         bool isTrigger       = false;
-        SharedPtr<CollisionShape> Shape = nullptr;
+        SharedPtr<CollisionShape> Shape;
     };
 
     class alignas(16) RigidBody3D
@@ -59,6 +59,8 @@ namespace Lumos
 
     public:
         ~RigidBody3D();
+
+        DEFAULTCOPYANDMOVEDECLARE(RigidBody3D);
 
         //<--------- GETTERS ------------->
         const Vec3& GetPosition() const { return m_Position; }
@@ -214,9 +216,9 @@ namespace Lumos
         Vec3 m_LinearVelocity;
         Vec3 m_Force;
         float m_InvMass;
-        bool m_Trigger = false;
+        bool m_Trigger       = false;
         u16 m_CollisionLayer = 0;
-        bool m_IsValid = true;
+        bool m_IsValid       = true;
 
         Quat m_Orientation;
         Vec3 m_AngularVelocity;

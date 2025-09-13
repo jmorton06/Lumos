@@ -77,17 +77,17 @@ namespace Lumos
                 std::deque<Job> queue;
                 Mutex* locker;
 
-				JobQueue()
-				{
-					locker = new Mutex();
-					MutexInit(locker);
-				}
+                JobQueue()
+                {
+                    locker = new Mutex();
+                    MutexInit(locker);
+                }
 
-				~JobQueue()
-				{
-					MutexDestroy(locker);
-					delete locker;
-				}
+                ~JobQueue()
+                {
+                    MutexDestroy(locker);
+                    delete locker;
+                }
 
                 inline void push_back(const Job& item)
                 {
@@ -97,7 +97,7 @@ namespace Lumos
 
                 inline bool pop_front(Job& item)
                 {
-					ScopedMutex lock(locker);
+                    ScopedMutex lock(locker);
                     if(queue.empty())
                     {
                         return false;

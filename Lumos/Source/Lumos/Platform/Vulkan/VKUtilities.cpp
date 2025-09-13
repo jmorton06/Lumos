@@ -10,6 +10,7 @@
 #include "Core/Application.h"
 #include "Core/OS/Window.h"
 #include "VKInitialisers.h"
+#include "vulkan/vulkan_core.h"
 
 namespace Lumos
 {
@@ -112,6 +113,10 @@ namespace Lumos
         {
             VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffer));
 
+            VkFence fence;
+            VkFenceCreateInfo fenceInfo{VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
+            vkCreateFence(VKDevice::Get().GetDevice(), &fenceInfo, nullptr, &fence);
+            
             VkSubmitInfo submitInfo;
             submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
             submitInfo.commandBufferCount   = 1;
@@ -122,9 +127,11 @@ namespace Lumos
             submitInfo.signalSemaphoreCount = 0;
             submitInfo.waitSemaphoreCount   = 0;
 
-            VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
-            VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Get().GetGraphicsQueue()));
+            VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, fence));
 
+            VK_CHECK_RESULT(vkWaitForFences(VKDevice::Get().GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX));
+            vkDestroyFence(VKDevice::Get().GetDevice(), fence, nullptr);
+            
             vkFreeCommandBuffers(VKDevice::Get().GetDevice(),
                                  VKDevice::Get().GetCommandPool()->GetHandle(), 1, &commandBuffer);
         }
@@ -271,22 +278,19 @@ namespace Lumos
                     break;
 
                 case VK_ACCESS_MEMORY_READ_BIT:
-                    break;
-
                 case VK_ACCESS_MEMORY_WRITE_BIT:
-                    break;
-
                 default:
                     LERROR("Unknown access flag");
+                    stages |= VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
                     break;
                 }
             }
             return stages;
         }
 
-        VkPipelineStageFlags LayoutToAccessMask(const VkImageLayout layout, const bool isDestination)
+        VkAccessFlags LayoutToAccessMask(const VkImageLayout layout, const bool isDestination)
         {
-            VkPipelineStageFlags accessMask = 0;
+            VkAccessFlags accessMask = 0;
 
             switch(layout)
             {
@@ -345,7 +349,7 @@ namespace Lumos
                 break;
 
             case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
-                accessMask = VK_ACCESS_2_NONE;
+                accessMask = 0;
                 break;
 
             default:

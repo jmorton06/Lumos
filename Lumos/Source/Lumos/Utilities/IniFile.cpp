@@ -59,9 +59,9 @@ void Lumos::IniFile::Load()
     if(m_FilePath.empty())
         return;
 
-	ArenaTemp Scratch = ScratchBegin(nullptr, 0);
-    auto fileString = Lumos::FileSystem::ReadTextFile(Scratch.arena, Str8StdS(m_FilePath));
-    auto lines      = Lumos::StringUtilities::GetLines(ToStdString(fileString));
+    ArenaTemp Scratch = ScratchBegin(nullptr, 0);
+    auto fileString   = Lumos::FileSystem::ReadTextFile(Scratch.arena, Str8StdS(m_FilePath));
+    auto lines        = Lumos::StringUtilities::GetLines(ToStdString(fileString));
 
     for(auto& line : lines)
     {
@@ -72,7 +72,7 @@ void Lumos::IniFile::Load()
         }
     }
 
-	ScratchEnd(Scratch);
+    ScratchEnd(Scratch);
 }
 
 void Lumos::IniFile::Rewrite() const

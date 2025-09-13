@@ -176,6 +176,13 @@ namespace Lumos
         arena->Align = align;
     }
 
+    void ArenaPopToPointer(Arena* arena, u8* ptr)
+    {
+        ASSERT(arena != nullptr);
+        arena->Position = u8(ptr - (u8*)arena->Ptr);
+
+    }
+
     void ArenaPop(Arena* arena, uint64_t size)
     {
         ASSERT(arena != nullptr);

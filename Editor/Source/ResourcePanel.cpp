@@ -843,6 +843,8 @@ namespace Lumos
             if(CurrentEnty->IsFile)
             {
                 textureId = m_FileIcon;
+                static bool EnableThumbnails = false;
+                if(EnableThumbnails)
                 switch(CurrentEnty->Type)
                 {
                 case FileType::Texture:
@@ -853,7 +855,7 @@ namespace Lumos
                     }
                     else if(!textureCreated)
                     {
-                        textureCreated              = true;
+                        textureCreated = true;
                         if(!m_Editor->GetAssetManager()->AssetExists(CurrentEnty->AssetPath))
                             CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(CurrentEnty->AssetPath, true);
                         else

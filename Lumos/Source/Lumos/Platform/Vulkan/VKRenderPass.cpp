@@ -43,7 +43,30 @@ namespace Lumos
                                        { vkDestroyRenderPass(VKDevice::Get().GetDevice(), renderPass, VK_NULL_HANDLE); });
         }
 
-        VkAttachmentDescription GetAttachmentDescription(TextureType type, Texture* texture, uint8_t samples = 1, bool clear = true)
+        VkSampleCountFlagBits ConvertSampleCount(u8 samples)
+        {
+            switch(samples)
+            {
+            case 1:
+                return VK_SAMPLE_COUNT_1_BIT;
+            case 2:
+                return VK_SAMPLE_COUNT_2_BIT;
+            case 4:
+                return VK_SAMPLE_COUNT_4_BIT;
+            case 8:
+                return VK_SAMPLE_COUNT_8_BIT;
+            case 16:
+                return VK_SAMPLE_COUNT_16_BIT;
+            case 32:
+                return VK_SAMPLE_COUNT_32_BIT;
+            case 64:
+                return VK_SAMPLE_COUNT_64_BIT;
+            default:
+                return VK_SAMPLE_COUNT_1_BIT;
+            }
+        }
+
+        VkAttachmentDescription GetAttachmentDescription(TextureType type, Texture* texture, uint8_t samples = 1, bool clear = true, bool swapchainTarget = false)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             VkAttachmentDescription attachment = {};
@@ -91,11 +114,16 @@ namespace Lumos
                 attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
             }
 
-            attachment.samples = samples > 1 ? (VkSampleCountFlagBits)samples : VK_SAMPLE_COUNT_1_BIT;
+            attachment.samples = ConvertSampleCount(samples);
 
             attachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
             attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             attachment.flags          = 0;
+            
+            if (type == TextureType::COLOUR && swapchainTarget)
+           {
+               attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+           }
 
             return attachment;
         }
@@ -115,7 +143,7 @@ namespace Lumos
 
             for(uint32_t i = 0; i < renderPassDesc.attachmentCount; i++)
             {
-                attachments.PushBack(GetAttachmentDescription(renderPassDesc.attachmentTypes[i], renderPassDesc.attachments[i], renderPassDesc.samples, renderPassDesc.clear));
+                attachments.PushBack(GetAttachmentDescription(renderPassDesc.attachmentTypes[i], renderPassDesc.attachments[i], renderPassDesc.samples, renderPassDesc.clear, renderPassDesc.swapchainTarget));
 
                 if(renderPassDesc.attachmentTypes[i] == TextureType::COLOUR)
                 {
@@ -124,6 +152,11 @@ namespace Lumos
                     colourAttachmentRef.attachment            = uint32_t(i);
                     colourAttachmentRef.layout                = layout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : layout;
                     colourAttachmentReferences.PushBack(colourAttachmentRef);
+                    
+                    if(attachments.Back().finalLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+                    {
+                        ((VKTexture2D*)renderPassDesc.attachments[i])->SetImageLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+                    }
                     m_DepthOnly = false;
                 }
                 else if(renderPassDesc.attachmentTypes[i] == TextureType::DEPTH)
@@ -184,15 +217,16 @@ namespace Lumos
                 else
                 {
                     {
-                        VkSubpassDependency& depedency = dependencies.EmplaceBack();
-                        depedency.srcSubpass           = VK_SUBPASS_EXTERNAL;
-                        depedency.dstSubpass           = 0;
-                        depedency.srcStageMask         = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-                        depedency.srcAccessMask        = VK_ACCESS_SHADER_READ_BIT;
-                        depedency.dstStageMask         = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-                        depedency.dstAccessMask        = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-                        depedency.dependencyFlags      = VK_DEPENDENCY_BY_REGION_BIT;
+                        VkSubpassDependency& dependency = dependencies.EmplaceBack();
+                        dependency.srcSubpass      = VK_SUBPASS_EXTERNAL;
+                        dependency.dstSubpass      = 0;
+                        dependency.srcStageMask    = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                        dependency.srcAccessMask   = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                        dependency.dstStageMask    = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                        dependency.dstAccessMask   = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                        dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
                     }
+
                     {
                         VkSubpassDependency& depedency = dependencies.EmplaceBack();
                         depedency.srcSubpass           = 0;
@@ -219,7 +253,7 @@ namespace Lumos
                 colourAttachmentResolvedRef.layout     = layout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : layout;
                 attachmentCount++;
 
-                attachments.PushBack(GetAttachmentDescription(renderPassDesc.attachmentTypes[0], renderPassDesc.resolveTexture, 1, renderPassDesc.clear));
+                attachments.PushBack(GetAttachmentDescription(renderPassDesc.attachmentTypes[0], renderPassDesc.resolveTexture, 1, renderPassDesc.clear, renderPassDesc.swapchainTarget));
             }
 
             VkSubpassDescription subpass    = {};
@@ -236,8 +270,8 @@ namespace Lumos
             renderPassCreateInfo.pAttachments           = attachments.Data();
             renderPassCreateInfo.subpassCount           = 1;
             renderPassCreateInfo.pSubpasses             = &subpass;
-            renderPassCreateInfo.dependencyCount        = 0;       // static_cast<uint32_t>(dependencies.Size());
-            renderPassCreateInfo.pDependencies          = nullptr; // dependencies.Data();
+            renderPassCreateInfo.dependencyCount        = static_cast<uint32_t>(dependencies.Size());
+            renderPassCreateInfo.pDependencies          = dependencies.Data();
 
             VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Get().GetDevice(), &renderPassCreateInfo, VK_NULL_HANDLE, &m_RenderPass));
 

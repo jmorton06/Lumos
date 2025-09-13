@@ -14,7 +14,7 @@ namespace Lumos
     AssetManager::AssetManager()
     {
         m_Arena         = ArenaAlloc(Megabytes(4));
-		m_StringPool    = CreateSharedPtr<StringPool>(m_Arena, 260);
+        m_StringPool    = CreateSharedPtr<StringPool>(m_Arena, 260);
         m_AssetRegistry = CreateSharedPtr<AssetRegistry>();
     }
 

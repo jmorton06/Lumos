@@ -167,9 +167,9 @@ namespace Lumos
 
         inline RigidBody3DComponent& operator=(RigidBody3DComponent& rhs)
         {
-            m_OwnRigidBody        = rhs.m_OwnRigidBody;
+            m_OwnRigidBody     = rhs.m_OwnRigidBody;
             rhs.m_OwnRigidBody = false;
-            m_RigidBody           = rhs.m_RigidBody;
+            m_RigidBody        = rhs.m_RigidBody;
 
             return *this;
         }
