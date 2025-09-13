@@ -163,7 +163,7 @@ namespace Lumos
             VkSubmitInfo submitInfo         = VKInitialisers::SubmitInfo();
             submitInfo.waitSemaphoreCount   = waitSemaphoreCount;
             submitInfo.pWaitSemaphores      = waitSemaphoreCount == 0 ? nullptr : &waitSemaphore;
-            submitInfo.pWaitDstStageMask    = waitSemaphore ? &flags : nullptr;
+            submitInfo.pWaitDstStageMask    = &flags;
             submitInfo.commandBufferCount   = 1;
             submitInfo.pCommandBuffers      = &m_CommandBuffer;
             submitInfo.signalSemaphoreCount = signalSemaphoreCount;
@@ -173,7 +173,7 @@ namespace Lumos
 
             {
                 LUMOS_PROFILE_SCOPE("vkQueueSubmit");
-                VK_CHECK_RESULT_RETURN_FALSE(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, m_Fence->GetHandle()));
+                VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, m_Fence->GetHandle()));
             }
 
             m_State = CommandBufferState::Submitted;

@@ -2,10 +2,21 @@
 # This file is part of volk library; see volk.h for version/license details
 
 from collections import OrderedDict
+import re
 import sys
 import urllib
 import xml.etree.ElementTree as etree
 import urllib.request
+import zlib
+
+cmdversions = {
+	"vkCmdSetDiscardRectangleEnableEXT": 2,
+	"vkCmdSetDiscardRectangleModeEXT": 2,
+	"vkCmdSetExclusiveScissorEnableNV": 2,
+	"vkGetImageViewAddressNVX": 2,
+	"vkGetImageViewHandle64NVX": 3,
+	"vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI": 2,
+}
 
 def parse_xml(path):
 	file = urllib.request.urlopen(path) if path.startswith("http") else open(path, 'r')
@@ -42,7 +53,7 @@ def is_descendant_type(types, name, base):
 	if name == base:
 		return True
 	type = types.get(name)
-	if not type:
+	if type is None:
 		return False
 	parents = type.get('parent')
 	if not parents:
@@ -51,6 +62,9 @@ def is_descendant_type(types, name, base):
 
 def defined(key):
 	return 'defined(' + key + ')'
+
+def cdepends(key):
+	return re.sub(r'[a-zA-Z0-9_]+', lambda m: defined(m.group(0)), key).replace(',', ' || ').replace('+', ' && ')
 
 if __name__ == "__main__":
 	specpath = "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/main/xml/vk.xml"
@@ -72,24 +86,37 @@ if __name__ == "__main__":
 	instance_commands = set()
 
 	for feature in spec.findall('feature'):
+		api = feature.get('api')
+		if 'vulkan' not in api.split(','):
+			continue
 		key = defined(feature.get('name'))
 		cmdrefs = feature.findall('require/command')
 		command_groups[key] = [cmdref.get('name') for cmdref in cmdrefs]
 
 	for ext in sorted(spec.findall('extensions/extension'), key=lambda ext: ext.get('name')):
 		supported = ext.get('supported')
-		if supported == 'disabled':
+		if 'vulkan' not in supported.split(','):
 			continue
 		name = ext.get('name')
 		type = ext.get('type')
 		for req in ext.findall('require'):
 			key = defined(name)
-			if req.get('feature'):
-				key += ' && ' + defined(req.get('feature'))
-			if req.get('extension'):
-				key += ' && ' + defined(req.get('extension'))
+			if req.get('feature'): # old-style XML depends specification
+				for i in req.get('feature').split(','):
+					key += ' && ' + defined(i)
+			if req.get('extension'): # old-style XML depends specification
+				for i in req.get('extension').split(','):
+					key += ' && ' + defined(i)
+			if req.get('depends'): # new-style XML depends specification
+				dep = cdepends(req.get('depends'))
+				key += ' && ' + ('(' + dep + ')' if '||' in dep else dep)
 			cmdrefs = req.findall('command')
-			command_groups.setdefault(key, []).extend([cmdref.get('name') for cmdref in cmdrefs])
+			for cmdref in cmdrefs:
+				ver = cmdversions.get(cmdref.get('name'))
+				if ver:
+					command_groups.setdefault(key + ' && ' + name.upper() + '_SPEC_VERSION >= ' + str(ver), []).append(cmdref.get('name'))
+				else:
+					command_groups.setdefault(key, []).append(cmdref.get('name'))
 			if type == 'instance':
 				for cmdref in cmdrefs:
 					instance_commands.add(cmdref.get('name'))
@@ -131,11 +158,16 @@ if __name__ == "__main__":
 	for key in block_keys:
 		blocks[key] = ''
 
+	devp = {}
+
 	for (group, cmdnames) in command_groups.items():
 		ifdef = '#if ' + group + '\n'
 
 		for key in block_keys:
 			blocks[key] += ifdef
+
+		devt = 0
+		devo = len(blocks['DEVICE_TABLE'])
 
 		for name in sorted(cmdnames):
 			cmd = commands[name]
@@ -150,6 +182,7 @@ if __name__ == "__main__":
 				blocks['LOAD_DEVICE'] += '\t' + name + ' = (PFN_' + name + ')load(context, "' + name + '");\n'
 				blocks['DEVICE_TABLE'] += '\tPFN_' + name + ' ' + name + ';\n'
 				blocks['LOAD_DEVICE_TABLE'] += '\ttable->' + name + ' = (PFN_' + name + ')load(context, "' + name + '");\n'
+				devt += 1
 			elif is_descendant_type(types, type, 'VkInstance'):
 				blocks['LOAD_INSTANCE'] += '\t' + name + ' = (PFN_' + name + ')load(context, "' + name + '");\n'
 			elif type != '':
@@ -161,9 +194,19 @@ if __name__ == "__main__":
 		for key in block_keys:
 			if blocks[key].endswith(ifdef):
 				blocks[key] = blocks[key][:-len(ifdef)]
+			elif key == 'DEVICE_TABLE':
+				devh = zlib.crc32(blocks[key][devo:].encode())
+				assert(devh not in devp)
+				devp[devh] = True
+
+				blocks[key] += '#else\n'
+				blocks[key] += f'\tPFN_vkVoidFunction padding_{devh:x}[{devt}];\n'
+				blocks[key] += '#endif /* ' + group + ' */\n'
 			else:
 				blocks[key] += '#endif /* ' + group + ' */\n'
 
 	patch_file('volk.h', blocks)
 	patch_file('volk.c', blocks)
 	patch_file('CMakeLists.txt', blocks)
+
+	print(version.find('name').tail.strip())

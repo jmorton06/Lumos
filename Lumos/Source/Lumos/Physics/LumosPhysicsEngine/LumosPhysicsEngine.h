@@ -161,7 +161,7 @@ namespace Lumos
 
         u32 m_ManifoldCount   = 0;
         u32 m_ConstraintCount = 0;
-        u32 m_RigidBodyCount = 0;
+        u32 m_RigidBodyCount  = 0;
 
         SharedPtr<Broadphase> m_BroadphaseDetection;
         BroadphaseType m_BroadphaseType;

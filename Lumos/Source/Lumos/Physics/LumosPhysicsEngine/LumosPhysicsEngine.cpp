@@ -42,9 +42,9 @@ namespace Lumos
         m_DebugName = "Lumos3DPhysicsEngine";
         m_BroadphaseCollisionPairs.Reserve(1000);
 
-        m_FrameArena  = ArenaAlloc(Megabytes(4));
-        m_Arena       = ArenaAlloc(m_MaxRigidBodyCount * sizeof(RigidBody3D) * 2);
-        m_RigidBodies = PushArray(m_Arena, RigidBody3D, m_MaxRigidBodyCount);
+        m_FrameArena        = ArenaAlloc(Megabytes(4));
+        m_Arena             = ArenaAlloc(m_MaxRigidBodyCount * sizeof(RigidBody3D) * 2);
+        m_RigidBodies       = PushArray(m_Arena, RigidBody3D, m_MaxRigidBodyCount);
         m_RigidBodyFreeList = TDArray<RigidBody3D*>(m_Arena);
         m_RigidBodyFreeList.Reserve(m_MaxRigidBodyCount);
     }
@@ -188,10 +188,10 @@ namespace Lumos
         m_Stats.RestCount      = 0;
         m_Stats.RigidBodyCount = 0;
 
-        for (u32 i = 0; i < m_RigidBodyCount; i++)
+        for(u32 i = 0; i < m_RigidBodyCount; i++)
         {
             RigidBody3D& current = m_RigidBodies[i];
-            if (!current.m_IsValid)
+            if(!current.m_IsValid)
                 continue;
 
             if(current.m_AtRest)
@@ -207,22 +207,22 @@ namespace Lumos
 
     RigidBody3D* LumosPhysicsEngine::CreateBody(const RigidBody3DProperties& properties)
     {
-        if (!m_RigidBodyFreeList.Empty())
+        if(!m_RigidBodyFreeList.Empty())
         {
             RigidBody3D* body = m_RigidBodyFreeList.Back();
-            *body = RigidBody3D(properties);
-            body->m_IsValid = true;
+            *body             = RigidBody3D(properties);
+            body->m_IsValid   = true;
             m_RigidBodyFreeList.PopBack();
 
             return body;
         }
         else
         {
-            if (m_RigidBodyCount < m_MaxRigidBodyCount)
+            if(m_RigidBodyCount < m_MaxRigidBodyCount)
             {
                 RigidBody3D* body = &m_RigidBodies[m_RigidBodyCount];
-                *body = RigidBody3D(properties);
-                body->m_IsValid = true;
+                *body             = RigidBody3D(properties);
+                body->m_IsValid   = true;
                 m_RigidBodyCount++;
 
                 return body;
@@ -237,7 +237,7 @@ namespace Lumos
 
     void LumosPhysicsEngine::DestroyBody(RigidBody3D* body)
     {
-        if (body && body->m_IsValid)
+        if(body && body->m_IsValid)
         {
             body->m_IsValid = false;
             m_RigidBodyFreeList.PushBack(body);
@@ -722,13 +722,13 @@ namespace Lumos
         if(!m_IsPaused && m_BroadphaseDetection && (m_DebugDrawFlags & PhysicsDebugFlags::BROADPHASE))
             m_BroadphaseDetection->DebugDraw();
 
-        for (u32 i = 0; i < m_RigidBodyCount; i++)
+        for(u32 i = 0; i < m_RigidBodyCount; i++)
         {
             RigidBody3D& current = m_RigidBodies[i];
-            if (current.m_IsValid)
+            if(current.m_IsValid)
             {
                 current.DebugDraw(m_DebugDrawFlags);
-                if (current.GetCollisionShape() && (m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONVOLUMES))
+                if(current.GetCollisionShape() && (m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONVOLUMES))
                     current.GetCollisionShape()->DebugDraw(&current);
             }
         }

@@ -335,6 +335,8 @@ namespace Lumos
         m_GraphicsContext = SharedPtr<Graphics::GraphicsContext>(Graphics::GraphicsContext::Create());
         m_GraphicsContext->Init();
 
+        LINFO("Initialised Graphics Context");
+
         m_SwapChain = SharedPtr<Graphics::SwapChain>(Graphics::SwapChain::Create(m_Data.Width, m_Data.Height));
         m_SwapChain->Init(m_VSync, (Window*)this);
 
@@ -540,8 +542,18 @@ namespace Lumos
     void GLFWWindow::UpdateControllers()
     {
         LUMOS_PROFILE_FUNCTION();
+    #ifdef LUMOS_PLATFORM_LINUX
+        //Disable on linux for now. Keyboard is classed as a controller
+        return;
+    #endif
         auto& controllers = Input::Get().m_Controllers;
-
+        for(i32 id = 0; id < MAX_CONTROLLER_COUNT; id++)
+        {
+            if(glfwJoystickPresent(id) == GLFW_FALSE)
+            {
+                controllers[id].Present = false;
+            }
+        }
         // Update controllers
         for(int id = GLFW_JOYSTICK_1; id < GLFW_JOYSTICK_LAST; id++)
         {
@@ -553,6 +565,8 @@ namespace Lumos
                     controller->ID      = id;
                     controller->Name    = glfwGetJoystickName(id);
                     controller->Present = true;
+
+                    LINFO("Controller Connected : %s", controller->Name.c_str());
                 }
 
                 int buttonCount;
@@ -584,8 +598,6 @@ namespace Lumos
                 for(int i = 0; i < hatCount; i++)
                     controller->HatStates[i] = hats[i];
             }
-            else
-                controllers[id].Present = false;
         }
     }
 

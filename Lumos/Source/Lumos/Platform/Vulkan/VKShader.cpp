@@ -384,10 +384,10 @@ namespace Lumos
             , m_PipelineLayout(VK_NULL_HANDLE)
             , m_ShaderStages(nullptr)
         {
-            m_Name     = StringUtilities::GetFileName(std::string(filePath)).c_str();
-            m_FilePath = StringUtilities::GetFileLocation(std::string(filePath)).c_str();
-			Arena* arena = ArenaAlloc(Kilobytes(256));
-            m_Source   = (const char*)FileSystem::Get().ReadTextFile(arena, Str8C((char*)filePath)).str;
+            m_Name       = StringUtilities::GetFileName(std::string(filePath)).c_str();
+            m_FilePath   = StringUtilities::GetFileLocation(std::string(filePath)).c_str();
+            Arena* arena = ArenaAlloc(Kilobytes(256));
+            m_Source     = (const char*)FileSystem::Get().ReadTextFile(arena, Str8C((char*)filePath)).str;
 
             if(m_Source.empty())
             {
@@ -396,7 +396,7 @@ namespace Lumos
                 return;
             }
             Init();
-			ArenaRelease(arena);
+            ArenaRelease(arena);
         }
 
         VKShader::VKShader(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize)
@@ -472,8 +472,8 @@ namespace Lumos
             for(auto& file : files)
             {
 
-				Arena* arena = ArenaAlloc(Kilobytes(256));
-				String8 debugName = PushStr8F(arena, "%s%s", m_FilePath.c_str(), file.second.c_str());
+                Arena* arena      = ArenaAlloc(Kilobytes(256));
+                String8 debugName = PushStr8F(arena, "%s%s", m_FilePath.c_str(), file.second.c_str());
 
                 HashCombine(m_Hash, debugName.str);
 
@@ -487,7 +487,7 @@ namespace Lumos
                     currentShaderStage++;
                 }
 
-				ArenaRelease(arena);
+                ArenaRelease(arena);
             }
 
             if(files.empty())
@@ -771,10 +771,10 @@ namespace Lumos
 
             VkResult result = vkCreateShaderModule(VKDevice::Get().GetDevice(), &shaderCreateInfo, nullptr, &m_ShaderStages[currentShaderStage].module);
 
-			Arena* arena = ArenaAlloc(260);
+            Arena* arena      = ArenaAlloc(260);
             String8 debugName = PushStr8F(arena, "%s%s", m_Name.c_str(), ShaderStageToString(m_ShaderStages[currentShaderStage].stage));
             VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_SHADER_MODULE, (const char*)debugName.str, m_ShaderStages[currentShaderStage].module);
-			ArenaRelease(arena);
+            ArenaRelease(arena);
 
             if(result == VK_SUCCESS)
             {
@@ -864,7 +864,7 @@ namespace Lumos
                     else if(StringUtilities::StringContains(str, "geometry"))
                     {
                         type                                           = ShaderType::GEOMETRY;
-                        std::map<ShaderType,std::string>::iterator it = shaders->begin();
+                        std::map<ShaderType, std::string>::iterator it = shaders->begin();
                         shaders->insert(it, std::pair<ShaderType, const char*>(type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "fragment"))

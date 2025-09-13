@@ -35,9 +35,9 @@ namespace Lumos
     bool FileSystem::FileExists(const String8& path)
     {
         ArenaTemp scratch = ScratchBegin(0, 0);
-        String16 path16 = Str16From8(scratch.arena, path);
-        DWORD attributes = GetFileAttributesW((WCHAR*)path16.str);
-        bool exists = (attributes != INVALID_FILE_ATTRIBUTES) && !!(~attributes & FILE_ATTRIBUTE_DIRECTORY);
+        String16 path16   = Str16From8(scratch.arena, path);
+        DWORD attributes  = GetFileAttributesW((WCHAR*)path16.str);
+        bool exists       = (attributes != INVALID_FILE_ATTRIBUTES) && !!(~attributes & FILE_ATTRIBUTE_DIRECTORY);
         ScratchEnd(scratch);
         return exists;
     }
@@ -45,9 +45,9 @@ namespace Lumos
     bool FileSystem::FolderExists(const String8& path)
     {
         ArenaTemp scratch = ScratchBegin(0, 0);
-        String16 path16 = Str16From8(scratch.arena, path);
-        DWORD attributes = GetFileAttributesW((WCHAR*)path16.str);
-        bool      exists = (attributes != INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_DIRECTORY);
+        String16 path16   = Str16From8(scratch.arena, path);
+        DWORD attributes  = GetFileAttributesW((WCHAR*)path16.str);
+        bool exists       = (attributes != INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_DIRECTORY);
         ScratchEnd(scratch);
         return exists;
 
@@ -99,11 +99,11 @@ namespace Lumos
 
     String8 FileSystem::ReadTextFile(Arena* arena, const String8& path)
     {
-        if (!FileExists(path))
+        if(!FileExists(path))
             return String8();
 
         std::ifstream stream((const char*)path.str, std::ios::in | std::ios::ate);
-        if (!stream.is_open())
+        if(!stream.is_open())
             return String8();
 
         auto end = stream.tellg();
@@ -123,7 +123,6 @@ namespace Lumos
 #endif
         return result;
     }
-
 
     bool FileSystem::WriteFile(const String8& path, uint8_t* buffer, uint32_t size)
     {

@@ -309,7 +309,7 @@ namespace Lumos
 
         void Mesh::SetAndLoadMaterial(const std::string& filePath)
         {
-			ArenaTemp Scratch = ScratchBegin(0,0);
+            ArenaTemp Scratch = ScratchBegin(0, 0);
 
             String8 Data = FileSystem::Get().ReadTextFileVFS(Scratch.arena, Str8StdS(filePath));
             std::istringstream istr;
@@ -320,8 +320,7 @@ namespace Lumos
             m_Material = SharedPtr<Material>(material.get());
             material.release();
 
-			ScratchEnd(Scratch);
-
+            ScratchEnd(Scratch);
         }
     }
 }

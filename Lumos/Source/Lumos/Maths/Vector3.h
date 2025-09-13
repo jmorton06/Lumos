@@ -104,6 +104,7 @@ namespace Lumos
             bool IsValid() const;
             bool IsInf() const;
             bool IsNaN() const;
+            bool IsZero() const;
 
             static float Sqrt(float x);
 

@@ -21,7 +21,7 @@
 #define VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME "VK_LAYER_LUNARG_assistant_layer"
 #define VK_LAYER_LUNARG_VALIDATION_NAME "VK_LAYER_KHRONOS_validation"
 
-const bool EnableValidationLayers = true;
+const bool EnableValidationLayers = false;
 
 namespace Lumos
 {
@@ -224,7 +224,7 @@ namespace Lumos
 
             if(flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
             {
-                LWARN("[VULKAN] - ERROR : [%s] Code %i  : %s", pLayerPrefix, msgCode, pMsg);
+                LERROR("[VULKAN] - ERROR : [%s] Code %i  : %s", pLayerPrefix, msgCode, pMsg);
             }
             // Warnings may hint at unexpected / non-spec API usage
             if(flags & VK_DEBUG_REPORT_WARNING_BIT_EXT)
@@ -239,7 +239,7 @@ namespace Lumos
             // Informal messages that may become handy during debugging
             if(flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
             {
-                LWARN("[VULKAN] - INFO : [%s] Code %i : %s", pLayerPrefix, msgCode, pMsg);
+                LINFO("[VULKAN] - INFO : [%s] Code %i : %s", pLayerPrefix, msgCode, pMsg);
             }
             // Diagnostic info from the Vulkan loader and layers
             // Usually not helpful in terms of API usage, but may help to debug layer and loader problems
@@ -284,35 +284,34 @@ namespace Lumos
             m_InstanceExtensionNames = GetRequiredExtensions(enableValidation);
 
             VkApplicationInfo appInfo = {};
+            uint32_t sdkVersion       = VK_HEADER_VERSION_COMPLETE;
+            uint32_t loaderVersion    = 0;
 
-            uint32_t sdkVersion    = VK_HEADER_VERSION_COMPLETE;
-            uint32_t driverVersion = 0;
-
-            // if enumerateInstanceVersion  is missing, only vulkan 1.0 supported
-            // https://www.lunarg.com/wp-content/uploads/2019/02/Vulkan-1.1-Compatibility-Statement_01_19.pdf
-            auto enumerateInstanceVersion = reinterpret_cast<PFN_vkEnumerateInstanceVersion>(vkGetInstanceProcAddr(nullptr, "vkEnumerateInstanceVersion"));
+            auto enumerateInstanceVersion = reinterpret_cast<PFN_vkEnumerateInstanceVersion>(
+                vkGetInstanceProcAddr(nullptr, "vkEnumerateInstanceVersion"));
 
             if(enumerateInstanceVersion)
             {
-                enumerateInstanceVersion(&driverVersion);
+                enumerateInstanceVersion(&loaderVersion);
             }
             else
             {
-                driverVersion = VK_API_VERSION_1_0;
+                loaderVersion = VK_API_VERSION_1_0;
             }
 
-            // Choose supported version
-            appInfo.apiVersion = Maths::Min(sdkVersion, driverVersion);
+            appInfo.apiVersion = Maths::Min(sdkVersion, loaderVersion);
+            m_VKVersion        = appInfo.apiVersion;
 
-            m_VKVersion = appInfo.apiVersion;
-
-            // SDK not supported
-            if(sdkVersion > driverVersion)
+            if(sdkVersion > loaderVersion)
             {
-                // Detect and log version
-                std::string driverVersionStr = StringUtilities::ToString(VK_API_VERSION_MAJOR(driverVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_MINOR(driverVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_PATCH(driverVersion));
-                std::string sdkVersionStr    = StringUtilities::ToString(VK_API_VERSION_MAJOR(sdkVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_MINOR(sdkVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_PATCH(sdkVersion));
-                // LWARN("Using Vulkan %s. Please update your graphics drivers to support Vulkan %s.", driverVersionStr, sdkVersionStr);
+                auto VersionToStr = [](uint32_t version) -> std::string
+                {
+                    return std::to_string(VK_API_VERSION_MAJOR(version)) + "." + std::to_string(VK_API_VERSION_MINOR(version)) + "." + std::to_string(VK_API_VERSION_PATCH(version));
+                };
+
+                LWARN("Using Vulkan %s. Please update your graphics drivers to support Vulkan %s.",
+                      VersionToStr(loaderVersion).c_str(),
+                      VersionToStr(sdkVersion).c_str());
             }
 
             appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;

@@ -8,6 +8,7 @@
 #include "Core/Application.h"
 #include "Core/Thread.h"
 #include "Maths/MathsUtilities.h"
+#include "vulkan/vulkan_core.h"
 
 namespace Lumos
 {
@@ -23,7 +24,7 @@ namespace Lumos
             m_Surface      = VK_NULL_HANDLE;
 
             // Initialised by first Image Acquire
-            m_CurrentBuffer     = 0; // std::numeric_limits<uint32_t>::max();
+            m_CurrentBuffer     = std::numeric_limits<uint32_t>::max();
             m_AcquireImageIndex = std::numeric_limits<uint32_t>::max();
         }
 
@@ -214,7 +215,7 @@ namespace Lumos
                 VkImageView imageView;
                 VK_CHECK_RESULT(vkCreateImageView(VKDevice::Get().GetDevice(), &viewCI, VK_NULL_HANDLE, &imageView));
                 VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView, m_ColourFormat, m_Width, m_Height);
-                swapChainBuffer->TransitionImage(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+                swapChainBuffer->TransitionImage(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
                 m_SwapChainBuffers[i] = swapChainBuffer;
             }
@@ -236,11 +237,6 @@ namespace Lumos
         {
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
-                VkSemaphoreCreateInfo semaphoreInfo = {};
-                semaphoreInfo.sType                 = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-                semaphoreInfo.pNext                 = nullptr;
-                semaphoreInfo.flags                 = 0;
-
                 m_Frames[i].ImageAcquireSemaphore = CreateSharedPtr<VKSemaphore>(false);
                 if(!m_Frames[i].MainCommandBuffer)
                 {
@@ -375,29 +371,17 @@ namespace Lumos
             GetCurrentCommandBuffer()->EndRecording();
         }
 
-        void VKSwapChain::Present(const TDArray<VkSemaphore>& semaphores)
+        void VKSwapChain::Present(VkSemaphore semaphore)
         {
             LUMOS_PROFILE_FUNCTION();
-
-            VkSemaphore vkWaitSemaphores[3] = { nullptr, nullptr, nullptr };
-            uint32_t semaphoreCount         = 0;
-
-            for(auto semaphore : semaphores)
-            {
-                if(semaphoreCount >= 3)
-                    break;
-
-                vkWaitSemaphores[semaphoreCount++] = semaphore;
-            }
-
             VkPresentInfoKHR present;
             present.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
             present.pNext              = VK_NULL_HANDLE;
             present.swapchainCount     = 1;
             present.pSwapchains        = &m_SwapChain;
             present.pImageIndices      = &m_AcquireImageIndex;
-            present.waitSemaphoreCount = semaphoreCount;
-            present.pWaitSemaphores    = vkWaitSemaphores;
+            present.waitSemaphoreCount = 1;
+            present.pWaitSemaphores    = &semaphore;
             present.pResults           = VK_NULL_HANDLE;
 
             auto error = vkQueuePresentKHR(VKDevice::Get().GetPresentQueue(), &present);
@@ -414,8 +398,6 @@ namespace Lumos
             {
                 VK_CHECK_RESULT(error);
             }
-
-            // AcquireNextImage();
         }
 
         void VKSwapChain::MakeDefault()

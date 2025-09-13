@@ -79,14 +79,14 @@ namespace Lumos
         if(SupportANSI)
         {
             const char* colour_strings[] = { "1;32", "1;30", "1;33", "1;31", "0;41" };
-            printf("\033[%sm%s\033[0m", colour_strings[level], msg);
+            printf("\033[%sm%s\033[0m\n", colour_strings[level], msg);
         }
         else
         {
-            printf("%s", msg);
+            printf("%s\n", msg);
         }
 #else
-        printf("%s", msg);
+        printf("%s\n", msg);
 #endif
     }
 

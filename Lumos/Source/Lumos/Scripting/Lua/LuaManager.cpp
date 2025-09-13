@@ -305,7 +305,7 @@ namespace Lumos
     {
         auto& state = *m_State;
 
-		ArenaTemp Scratch = ScratchBegin(0,0);
+        ArenaTemp Scratch = ScratchBegin(0, 0);
         String8 ScriptsPath;
         FileSystem::Get().ResolvePhysicalPath(Scratch.arena, Str8Lit("//Assets/Scripts"), &ScriptsPath);
 
@@ -317,7 +317,7 @@ namespace Lumos
         std::string currentPaths = state["package"]["path"];
         state["package"]["path"] = std::string(package_path.string()) + currentPaths;
 
-		ScratchEnd(Scratch);
+        ScratchEnd(Scratch);
     }
 
     Entity GetEntityByName(Scene* scene, const std::string& name)

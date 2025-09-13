@@ -189,8 +189,8 @@ namespace Lumos
     void Entity::Destroy()
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-		if(Valid())
-			m_Scene->GetRegistry().destroy(m_EntityHandle);
+        if(Valid())
+            m_Scene->GetRegistry().destroy(m_EntityHandle);
     }
 
     bool Entity::Valid()

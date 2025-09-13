@@ -326,6 +326,8 @@ namespace Lumos
             Handle = UUID();
 
             BuildTexture();
+            
+            TransitionImage(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
         }
 
         void VKTexture2D::UpdateDescriptor()
@@ -521,9 +523,14 @@ namespace Lumos
             delete stagingBuffer;
 
             if(m_Flags & TextureFlags::Texture_CreateMips && m_Width > 1 && m_Height > 1)
+            {
                 GenerateMipmaps(nullptr, m_TextureImage, m_VKFormat, m_Width, m_Height, m_MipLevels);
-
-            m_ImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            }
+            else
+            {
+                m_ImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            }
 
             m_UUID = {};
 
@@ -608,7 +615,7 @@ namespace Lumos
 
         void VKTexture2D::SetData(const void* pixels)
         {
-            VkDeviceSize imageSize = VkDeviceSize(m_Width * m_Height * m_BitsPerChannel / 2); // / 8);
+            VkDeviceSize imageSize = VkDeviceSize(m_Width * m_Height * m_BitsPerChannel / 8 * m_ChannelCount);
 
             if(!pixels)
             {

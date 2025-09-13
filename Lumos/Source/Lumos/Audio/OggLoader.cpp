@@ -12,7 +12,7 @@ namespace Lumos
     {
         AudioData data = AudioData();
 
-		ArenaTemp Scratch = ScratchBegin(0, 0);
+        ArenaTemp Scratch = ScratchBegin(0, 0);
 
         String8 physicalPath;
         if(!Lumos::FileSystem::Get().ResolvePhysicalPath(Scratch.arena, Str8StdS(fileName), &physicalPath))
@@ -20,7 +20,7 @@ namespace Lumos
             LINFO("Failed to load Ogg file : File Not Found");
         }
 
-		//TODO: Replace with filesystem call
+        // TODO: Replace with filesystem call
         const auto m_FileHandle = fopen((const char*)physicalPath.str, "rb");
 
         if(!m_FileHandle)

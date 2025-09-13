@@ -83,6 +83,8 @@ namespace Lumos
     {
         Debug::Log::SetLoggerFunction(ConsoleLoggerFunction);
         Application::SetInstance(this);
+
+        m_ImGuiClearScreen = true;
     }
 
     Editor::~Editor()
@@ -137,7 +139,10 @@ namespace Lumos
                 "Classic",
                 "Cherry",
                 "Cinder",
-                "Cosy" });
+                "Cosy",
+                "AppleLight",
+                "GraphiteDark",
+                "Pastel" });
         };
         select_theme_cmd.SubsequentCallback = [&](int selected_option)
         {
@@ -677,6 +682,24 @@ namespace Lumos
                     {
                         m_Settings.m_Theme = ImGuiUtilities::Cosy;
                         ImGuiUtilities::SetTheme(ImGuiUtilities::Cosy);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                    }
+                    if(ImGui::MenuItem("Apple Light", "", m_Settings.m_Theme == ImGuiUtilities::AppleLight))
+                    {
+                        m_Settings.m_Theme = ImGuiUtilities::AppleLight;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::AppleLight);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                    }
+                    if(ImGui::MenuItem("Graphite Dark", "", m_Settings.m_Theme == ImGuiUtilities::GraphiteDark))
+                    {
+                        m_Settings.m_Theme = ImGuiUtilities::GraphiteDark;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::GraphiteDark);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                    }
+                    if(ImGui::MenuItem("Pastel", "", m_Settings.m_Theme == ImGuiUtilities::Pastel))
+                    {
+                        m_Settings.m_Theme = ImGuiUtilities::Pastel;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::Pastel);
                         OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
                     ImGui::EndMenu();
@@ -1669,7 +1692,7 @@ namespace Lumos
                 ImGuiID dock_main_id = DockspaceID;
                 ImGuiID DockLeft     = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.75f, nullptr, &dock_main_id);
                 ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.25f, nullptr, &dock_main_id);
-				ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.3f, nullptr, &DockLeft);
+                ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.3f, nullptr, &DockLeft);
 
                 ImGuiID DockLeftSplitLeft  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Left, 0.5f, nullptr, &DockLeft);
                 ImGuiID DockLeftSplitRight = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Right, 0.5f, nullptr, &DockLeft);
@@ -1677,11 +1700,6 @@ namespace Lumos
                 /*ImGuiID DockRightSplitLeft  = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Left, 0.5f, nullptr, &DockRight);
                 ImGuiID DockRightSplitRight = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Right, 0.5f, nullptr, &DockRight);
 */
-
-                ImGuiID DockLeftChild         = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.875f, nullptr, &DockLeft);
-                ImGuiID DockRightChild        = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.875f, nullptr, &DockRight);
-                ImGuiID DockingLeftDownChild  = ImGui::DockBuilderSplitNode(DockLeftChild, ImGuiDir_Down, 0.06f, nullptr, &DockLeftChild);
-                ImGuiID DockingRightDownChild = ImGui::DockBuilderSplitNode(DockRightChild, ImGuiDir_Down, 0.06f, nullptr, &DockRightChild);
 
                 ImGuiID DockBottomChild         = ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Down, 0.2f, nullptr, &DockBottom);
                 ImGuiID DockingBottomLeftChild  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.4f, nullptr, &DockLeft);
@@ -1692,7 +1710,7 @@ namespace Lumos
                 ImGuiID DockMiddleLeft   = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Left, 0.5f, nullptr, &DockMiddle);
                 ImGuiID DockMiddleRight  = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Right, 0.5f, nullptr, &DockMiddle);
 
-                ImGuiID DockingBottomRight           = ImGui::DockBuilderSplitNode(DockRightChild, ImGuiDir_Down, 0.5f, nullptr, &DockRightChild);
+                ImGuiID DockingBottomRight           = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.5f, nullptr, &DockRight);
                 ImGuiID DockingBottomRightSplitLeft  = ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Left, 0.5f, nullptr, &DockingBottomRight);
                 ImGuiID DockingBottomRightSplitRight = ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Right, 0.5f, nullptr, &DockingBottomRight);
 
@@ -2767,7 +2785,7 @@ namespace Lumos
         else if(IsAudioFile(path))
         {
             String8 physicalPath;
-            Lumos::FileSystem::Get().ResolvePhysicalPath(m_FrameArena, Str8StdS(path),  &physicalPath);
+            Lumos::FileSystem::Get().ResolvePhysicalPath(m_FrameArena, Str8StdS(path), &physicalPath);
             auto sound = Sound::Create(ToStdString(physicalPath), StringUtilities::GetFilePathExtension(path));
 
             auto soundNode = SharedPtr<SoundNode>(SoundNode::Create());
@@ -2908,8 +2926,8 @@ namespace Lumos
             }
         }
 #elif defined(LUMOS_PLATFORM_IOS)
-		// TODO: StringRefactr
-       // m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
+        // TODO: StringRefactr
+        // m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
 #endif
 
         m_ProjectSettings.m_ProjectName = "Example";

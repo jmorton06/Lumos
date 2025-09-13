@@ -198,7 +198,6 @@ namespace Lumos
 
             trans.SetLocalPosition(Vec3(phys.GetRigidBody()->GetPosition(), trans.GetLocalPosition().z));
             trans.SetLocalOrientation(Quat(Vec3(0.0f, 0.0f, Maths::ToDegrees(phys.GetRigidBody()->GetAngle()))));
-            // trans.SetWorldMatrix(Mat4(1.0f)); // TODO: temp
         };
     }
 }

@@ -13,6 +13,7 @@
 <a href="https://github.com/jmorton06/Lumos/releases/latest"><img alt="platforms" src="https://img.shields.io/badge/Platforms-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20iOS-blue?style=flat-square"/></a>
 <a href="https://github.com/jmorton06/Lumos/blob/main/LICENSE"><img alt="license" src="https://img.shields.io/github/license/jmorton06/Lumos?style=flat-square"/></a>
 <br/>
+
 <a href=""><img alt="stars" src="https://img.shields.io/github/stars/jmorton06/Lumos?style=flat-square"/></a>
 <a href="https://ko-fi.com/Jmorton06"><img alt="kofi" src="https://img.shields.io/badge/Ko--fi-FF6433?logo=kofi&logoColor=fff&style=flat"/></a>
 <a href="https://github.com/jmorton06/Lumos/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/jmorton06/Lumos?style=flat-square"/></a>

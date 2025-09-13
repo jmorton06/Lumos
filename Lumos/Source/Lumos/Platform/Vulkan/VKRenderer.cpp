@@ -17,9 +17,10 @@
 #include "Core/DataStructures/TArray.h"
 #include "stb_image_write.h"
 #include "Maths/MathsUtilities.h"
+#include "vulkan/vulkan_core.h"
 #include <filesystem>
 
-#define DELETION_QUEUE_CAPACITY 3 // 12
+#define DELETION_QUEUE_CAPACITY 12
 #define DESCRIPTOR_POOL_CAPACITY 100
 namespace Lumos
 {
@@ -146,17 +147,12 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION_LOW();
             SharedPtr<VKSwapChain> swapChain = Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>();
 
+            FrameData& frameData  = swapChain->GetCurrentFrameData();
+            
             swapChain->End();
             swapChain->QueueSubmit();
-
-            FrameData& frameData  = swapChain->GetCurrentFrameData();
             VkSemaphore semaphore = frameData.MainCommandBuffer->GetSemaphore();
-
-            ArenaTemp scratch = ScratchBegin(nullptr, 0);
-            TDArray<VkSemaphore> semaphores(scratch.arena);
-            semaphores.EmplaceBack(semaphore);
-            swapChain->Present(semaphores);
-            ScratchEnd(scratch);
+            swapChain->Present(semaphore);
         }
 
         const char* VKRenderer::GetTitleInternal() const
@@ -535,7 +531,8 @@ file.close();
             renderPassDesc.attachments     = attachments.Data();
             renderPassDesc.clear           = true;
             renderPassDesc.DebugName       = "Splash Screen Pass";
-
+            renderPassDesc.swapchainTarget = true;
+            
             float clearColour[4] = { 040.0f / 256.0f, 42.0f / 256.0f, 54.0f / 256.0f, 1.0f };
 
             int32_t width  = Application::Get().GetWindow()->GetWidth();
@@ -591,7 +588,7 @@ file.close();
                            &blit,
                            VK_FILTER_LINEAR);
 
-            ((VKTexture2D*)image)->TransitionImage(layout, (VKCommandBuffer*)commandBuffer);
+            ((VKTexture2D*)image)->TransitionImage(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, (VKCommandBuffer*)commandBuffer);
         }
 
         void VKRenderer::MakeDefault()

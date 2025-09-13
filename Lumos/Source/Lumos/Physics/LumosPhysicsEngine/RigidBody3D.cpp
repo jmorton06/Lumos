@@ -52,6 +52,8 @@ namespace Lumos
         m_UUID = 0;
     }
 
+    DEFAULTCOPYANDMOVEDEFINE(RigidBody3D);
+
     RigidBody3DProperties::RigidBody3DProperties()  = default;
     RigidBody3DProperties::~RigidBody3DProperties() = default;
 
@@ -190,7 +192,7 @@ namespace Lumos
     {
         m_CollisionShape = shape;
 
-        if (m_CollisionShape)
+        if(m_CollisionShape)
         {
             m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
             AutoResizeBoundingBox();

@@ -86,19 +86,14 @@ namespace Lumos
         m_Arena      = ArenaAlloc(Megabytes(1));
 
         m_StringPool = new StringPool(m_Arena, 260);
-		m_AssetPath = m_StringPool->Allocate("");
+        m_AssetPath  = m_StringPool->Allocate("");
 
-		m_EventQueueMutex = PushArray(m_Arena, Mutex, 1);
-		m_MainThreadQueueMutex = PushArray(m_Arena, Mutex, 1);
 
-		MutexInit(m_EventQueueMutex);
-		MutexInit(m_MainThreadQueueMutex);
+        m_EventQueueMutex      = PushArray(m_Arena, Mutex, 1);
+        m_MainThreadQueueMutex = PushArray(m_Arena, Mutex, 1);
 
-#ifdef LUMOS_PLATFORM_MACOS
-		m_RenderConfig.EnvironmentMapSize = 256;
-		m_RenderConfig.IrradianceMapSize  = 32;
-		m_RenderConfig.EnvironmentSamples = 128;
-#endif
+        MutexInit(m_EventQueueMutex);
+        MutexInit(m_MainThreadQueueMutex);
 
         m_EventQueue.Reserve(16);
 
@@ -113,10 +108,11 @@ namespace Lumos
         m_ProjectSettings.m_EngineAssetPath = OS::Get().GetAssetPath();
 #endif
 
-        CommandLine* cmdline = Internal::CoreSystem::GetCmdLine();
-        if(cmdline->OptionBool(Str8Lit("help")))
+        bool bDisableSplashScreen = false;
+        CommandLine* cmdline      = Internal::CoreSystem::GetCmdLine();
+        if(cmdline->OptionBool(Str8Lit("disable-splash")))
         {
-            LINFO("Print this help.\n Option 1 : EnableVulkanValidation");
+            bDisableSplashScreen = true;
         }
 
         Engine::Get();
@@ -151,7 +147,7 @@ namespace Lumos
         m_EditorState = EditorState::Play;
 
         bool loadEmbeddedShaders = true;
-		std::string ShaderFolder = m_ProjectSettings.m_EngineAssetPath + "Shaders";
+        std::string ShaderFolder = m_ProjectSettings.m_EngineAssetPath + "Shaders";
 
         if(FileSystem::FolderExists(Str8StdS(ShaderFolder)))
             loadEmbeddedShaders = false;
@@ -172,6 +168,7 @@ namespace Lumos
             m_Window->Maximise();
 
         // Draw Splash Screen
+        if(!bDisableSplashScreen)
         {
             auto desc          = Graphics::TextureDesc(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::REPEAT);
             desc.flags         = Graphics::TextureFlags::Texture_Sampled;
@@ -214,7 +211,7 @@ namespace Lumos
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
                                    { m_SceneManager->LoadCurrentList(); });
 
-        m_ImGuiManager = CreateUniquePtr<ImGuiManager>(false);
+        m_ImGuiManager = CreateUniquePtr<ImGuiManager>(m_ImGuiClearScreen);
         m_ImGuiManager->OnInit();
         LINFO("Initialised ImGui Manager");
 
@@ -245,7 +242,10 @@ namespace Lumos
 
         GetUIState()->DPIScale = Application::Get().GetWindow()->GetDPIScale();
 
-        Maths::TestMaths();
+        if(cmdline->OptionBool(Str8Lit("test-maths")))
+        {
+            Maths::TestMaths();
+        }
     }
 
     void Application::OnQuit()
@@ -253,8 +253,8 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         Serialise();
 
-		MutexDestroy(m_EventQueueMutex);
-		MutexDestroy(m_MainThreadQueueMutex);
+        MutexDestroy(m_EventQueueMutex);
+        MutexDestroy(m_MainThreadQueueMutex);
 
         ArenaRelease(m_FrameArena);
         ArenaRelease(m_Arena);
@@ -297,7 +297,7 @@ namespace Lumos
         m_ProjectSettings.m_ProjectRoot = projectRoot;
 
         String8 pathCopy                = PushStr8Copy(m_FrameArena, projectRoot.c_str());
-	pathCopy                        = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
+        pathCopy                        = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
         m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
 
         CreateAssetFolders();
@@ -327,7 +327,7 @@ namespace Lumos
         m_SceneManager = CreateUniquePtr<SceneManager>();
 
         MountFileSystemPaths();
-		SetEngineAssetPath();
+        SetEngineAssetPath();
         CreateAssetFolders();
 
         m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
@@ -348,8 +348,8 @@ namespace Lumos
 
     void Application::MountFileSystemPaths()
     {
-		m_AssetPath = Str8F(m_AssetPath, "%sAssets", m_ProjectSettings.m_ProjectRoot.c_str());
-		FileSystem::Get().SetAssetPath(m_AssetPath);
+        m_AssetPath = Str8F(m_AssetPath, "%sAssets", m_ProjectSettings.m_ProjectRoot.c_str());
+        FileSystem::Get().SetAssetPath(m_AssetPath);
     }
 
     Scene* Application::GetCurrentScene() const
@@ -697,7 +697,7 @@ namespace Lumos
     void Application::SubmitToMainThread(const Function<void()>& function)
     {
         LUMOS_PROFILE_FUNCTION();
-		ScopedMutex lock(m_MainThreadQueueMutex);
+        ScopedMutex lock(m_MainThreadQueueMutex);
 
         m_MainThreadQueue.PushBack(function);
     }
@@ -705,7 +705,7 @@ namespace Lumos
     void Application::ExecuteMainThreadQueue()
     {
         LUMOS_PROFILE_FUNCTION();
-		ScopedMutex lock(m_MainThreadQueueMutex);
+        ScopedMutex lock(m_MainThreadQueueMutex);
 
         for(const auto& func : m_MainThreadQueue)
             func();
@@ -798,18 +798,18 @@ namespace Lumos
         Graphics::Renderer::GetGraphicsContext()->WaitIdle();
     }
 
-	//Temp - Copied
-	template<class Archive>
-	std::string save_minimal(Archive & ar, String8 const & str)
-	{
-		return ToStdString(str);
-	}
+    // Temp - Copied
+    template <class Archive>
+    std::string save_minimal(Archive& ar, String8 const& str)
+    {
+        return ToStdString(str);
+    }
 
-	template<class Archive>
-	void load_minimal(Archive& ar, String8& str, const std::string& value)
-	{
-		str = PushStr8Copy(Application::Get().GetFrameArena(), value.c_str());
-	}
+    template <class Archive>
+    void load_minimal(Archive& ar, String8& str, const std::string& value)
+    {
+        str = PushStr8Copy(Application::Get().GetFrameArena(), value.c_str());
+    }
 
     void Application::Serialise()
     {
@@ -837,7 +837,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         {
-			std::string filePath = m_ProjectSettings.m_ProjectRoot + m_ProjectSettings.m_ProjectName + std::string(".lmproj");
+            std::string filePath = m_ProjectSettings.m_ProjectRoot + m_ProjectSettings.m_ProjectName + std::string(".lmproj");
 
             MountFileSystemPaths();
 
@@ -850,10 +850,10 @@ namespace Lumos
                     m_SceneManager = CreateUniquePtr<SceneManager>();
 
                     // Set Default values
-					m_ProjectSettings = {};
-                    m_ProjectLoaded = false;
+                    m_ProjectSettings = {};
+                    m_ProjectLoaded   = false;
 
-					SetEngineAssetPath();
+                    SetEngineAssetPath();
                     m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
                     m_SceneManager->SwitchScene(0);
                 }
@@ -867,7 +867,7 @@ namespace Lumos
             String8 data = FileSystem::ReadTextFile(m_FrameArena, Str8StdS(filePath));
             std::istringstream istr;
             istr.str((const char*)data.str);
-            //try
+            // try
             {
                 cereal::JSONInputArchive input(istr);
                 input(*this);
@@ -881,69 +881,68 @@ namespace Lumos
                     }
                 }
             }
-//            catch(...)
-//            {
-//                m_ProjectSettings = {};
-//				SetEngineAssetPath();
-//
-//                m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
-//                m_SceneManager->SwitchScene(0);
-//
-//                LERROR("Failed to load project - %s", filePath.c_str());
-//            }
+            //            catch(...)
+            //            {
+            //                m_ProjectSettings = {};
+            //				SetEngineAssetPath();
+            //
+            //                m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
+            //                m_SceneManager->SwitchScene(0);
+            //
+            //                LERROR("Failed to load project - %s", filePath.c_str());
+            //            }
         }
     }
-	
-	void Application::CreateAssetFolders()
-	{
-		ArenaTemp tempArena = ScratchBegin(nullptr, 0);
-		String8 path = PushStr8F(tempArena.arena, "%sAssets", m_ProjectSettings.m_ProjectRoot.c_str());
-		FileSystem::CreateFolderIfDoesntExist(path);
-		ArenaClear(tempArena.arena);
 
-		path = PushStr8F(tempArena.arena, "%sAssets/Scripts", m_ProjectSettings.m_ProjectRoot.c_str());
-		FileSystem::CreateFolderIfDoesntExist(path);
-		ArenaClear(tempArena.arena);
+    void Application::CreateAssetFolders()
+    {
+        ArenaTemp tempArena = ScratchBegin(nullptr, 0);
+        String8 path        = PushStr8F(tempArena.arena, "%sAssets", m_ProjectSettings.m_ProjectRoot.c_str());
+        FileSystem::CreateFolderIfDoesntExist(path);
+        ArenaClear(tempArena.arena);
 
-		path = PushStr8F(tempArena.arena, "%sAssets/Scenes", m_ProjectSettings.m_ProjectRoot.c_str());
-		FileSystem::CreateFolderIfDoesntExist(path);
-		ArenaClear(tempArena.arena);
+        path = PushStr8F(tempArena.arena, "%sAssets/Scripts", m_ProjectSettings.m_ProjectRoot.c_str());
+        FileSystem::CreateFolderIfDoesntExist(path);
+        ArenaClear(tempArena.arena);
 
-		path = PushStr8F(tempArena.arena, "%sAssets/Textures", m_ProjectSettings.m_ProjectRoot.c_str());
-		FileSystem::CreateFolderIfDoesntExist(path);
-		ArenaClear(tempArena.arena);
+        path = PushStr8F(tempArena.arena, "%sAssets/Scenes", m_ProjectSettings.m_ProjectRoot.c_str());
+        FileSystem::CreateFolderIfDoesntExist(path);
+        ArenaClear(tempArena.arena);
 
-		path = PushStr8F(tempArena.arena, "%sAssets/Meshes", m_ProjectSettings.m_ProjectRoot.c_str());
-		FileSystem::CreateFolderIfDoesntExist(path);
-		ArenaClear(tempArena.arena);
+        path = PushStr8F(tempArena.arena, "%sAssets/Textures", m_ProjectSettings.m_ProjectRoot.c_str());
+        FileSystem::CreateFolderIfDoesntExist(path);
+        ArenaClear(tempArena.arena);
 
-		path = PushStr8F(tempArena.arena, "%sAssets/Sounds", m_ProjectSettings.m_ProjectRoot.c_str());
-		FileSystem::CreateFolderIfDoesntExist(path);
-		ArenaClear(tempArena.arena);
+        path = PushStr8F(tempArena.arena, "%sAssets/Meshes", m_ProjectSettings.m_ProjectRoot.c_str());
+        FileSystem::CreateFolderIfDoesntExist(path);
+        ArenaClear(tempArena.arena);
 
-		path = PushStr8F(tempArena.arena, "%sAssets/Prefabs", m_ProjectSettings.m_ProjectRoot.c_str());
-		FileSystem::CreateFolderIfDoesntExist(path);
-		ArenaClear(tempArena.arena);
+        path = PushStr8F(tempArena.arena, "%sAssets/Sounds", m_ProjectSettings.m_ProjectRoot.c_str());
+        FileSystem::CreateFolderIfDoesntExist(path);
+        ArenaClear(tempArena.arena);
 
-		path = PushStr8F(tempArena.arena, "%sAssets/Materials", m_ProjectSettings.m_ProjectRoot.c_str());
-		FileSystem::CreateFolderIfDoesntExist(path);
-		ScratchEnd(tempArena);
+        path = PushStr8F(tempArena.arena, "%sAssets/Prefabs", m_ProjectSettings.m_ProjectRoot.c_str());
+        FileSystem::CreateFolderIfDoesntExist(path);
+        ArenaClear(tempArena.arena);
 
-	}
-	
-	void Application::SetEngineAssetPath()
-	{
+        path = PushStr8F(tempArena.arena, "%sAssets/Materials", m_ProjectSettings.m_ProjectRoot.c_str());
+        FileSystem::CreateFolderIfDoesntExist(path);
+        ScratchEnd(tempArena);
+    }
+
+    void Application::SetEngineAssetPath()
+    {
 #ifdef LUMOS_PLATFORM_MACOS
         // This is assuming Application in bin/Release-macos-x86_64/LumosEditor.app
         LINFO(StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()).c_str());
         m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../../../../Lumos/Assets/";
-		
-		if(!FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_EngineAssetPath)))
-		{
-			m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../Lumos/Assets/";
-		}
+
+        if(!FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_EngineAssetPath)))
+        {
+            m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../Lumos/Assets/";
+        }
 #else
         m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../Lumos/Assets/";
 #endif
-	}
+    }
 }

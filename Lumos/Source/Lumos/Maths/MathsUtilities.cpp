@@ -432,6 +432,17 @@ namespace Lumos::Maths
         return mat.Transpose();
     }
 
+    Vec3 PerpendicularVector(const Vec3& v)
+    {
+        // Pick component least aligned with input
+        if(Maths::Abs(v.x) < Maths::Abs(v.y))
+            return Maths::Abs(v.x) < Maths::Abs(v.z) ? Vec3(0, -v.z, v.y).Normalised()
+                                                     : Vec3(-v.y, v.x, 0).Normalised();
+        else
+            return Maths::Abs(v.y) < Maths::Abs(v.z) ? Vec3(-v.z, 0, v.x).Normalised()
+                                                     : Vec3(-v.y, v.x, 0).Normalised();
+    }
+
 #define ENABLE_MATHS_TEST 0
 #if ENABLE_MATHS_TEST
 #define GIVEN(x) LINFO(x);

@@ -37,6 +37,15 @@ namespace Lumos
         bool EnableSSR   = false;
         bool EnableSSAO  = false;
 
+        u32 IrradianceMapSize = 64;
+#ifdef LUMOS_PLATFORM_MACOS
+        u32 EnvironmentMapSize = 256;
+        u32 EnvironmentSamples = 128;
+#else
+        u32 EnvironmentMapSize = 512;
+        u32 EnvironmentSamples = 512;
+#endif
+
         void SetGeneralLeve(uint8_t level)
         {
             switch(level)

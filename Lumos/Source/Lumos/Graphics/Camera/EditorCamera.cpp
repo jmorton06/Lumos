@@ -259,6 +259,7 @@ namespace Lumos
                 }
             }
 
+            if(Input::Get().IsControllerPresent(0))
             {
                 // Controller
                 {

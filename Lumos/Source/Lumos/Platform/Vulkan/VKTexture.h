@@ -140,7 +140,6 @@ namespace Lumos
             VkImageLayout GetImageLayout() const { return m_ImageLayout; }
             const TextureDesc& GetTextureParameters() const { return m_Parameters; }
             void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer = nullptr);
-
             static void MakeDefault();
 
         protected:
