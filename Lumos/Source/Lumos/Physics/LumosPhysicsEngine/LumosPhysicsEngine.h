@@ -5,6 +5,7 @@
 #include "Broadphase/Broadphase.h"
 #include "Scene/ISystem.h"
 #include "Core/OS/Allocators/PoolAllocator.h"
+#include "Core/Mutex.h"
 
 namespace Lumos
 {
@@ -157,7 +158,6 @@ namespace Lumos
         TDArray<CollisionPair> m_BroadphaseCollisionPairs;
         SharedPtr<Constraint>* m_Constraints; // Misc constraints between pairs of objects
         Manifold* m_Manifolds;                // Contact constraints between pairs of objects
-        std::mutex m_ManifoldsMutex;
 
         u32 m_ManifoldCount   = 0;
         u32 m_ConstraintCount = 0;
@@ -168,7 +168,7 @@ namespace Lumos
         IntegrationType m_IntegrationType;
 
         uint32_t m_DebugDrawFlags = 0;
-        std::mutex m_ManifoldLock;
+        Mutex* m_ManifoldLock;
 
         RigidBody3D* m_RigidBodies;
         TDArray<RigidBody3D*> m_RigidBodyFreeList;

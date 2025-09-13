@@ -43,10 +43,13 @@ namespace Lumos
         m_BroadphaseCollisionPairs.Reserve(1000);
 
         m_FrameArena        = ArenaAlloc(Megabytes(4));
-        m_Arena             = ArenaAlloc(m_MaxRigidBodyCount * sizeof(RigidBody3D) * 2);
+        m_Arena             = ArenaAlloc(m_MaxRigidBodyCount * sizeof(RigidBody3D) * 2 + sizeof(Mutex));
         m_RigidBodies       = PushArray(m_Arena, RigidBody3D, m_MaxRigidBodyCount);
         m_RigidBodyFreeList = TDArray<RigidBody3D*>(m_Arena);
         m_RigidBodyFreeList.Reserve(m_MaxRigidBodyCount);
+
+        m_ManifoldLock   = PushArray(m_Arena, Mutex, 1);
+        MutexInit(m_ManifoldLock);
     }
 
     void LumosPhysicsEngine::SetDefaults()
@@ -63,6 +66,8 @@ namespace Lumos
 
     LumosPhysicsEngine::~LumosPhysicsEngine()
     {
+        MutexDestroy(m_ManifoldLock);
+
         ArenaRelease(m_Arena);
         ArenaRelease(m_FrameArena);
 
@@ -495,7 +500,7 @@ namespace Lumos
                     {
                         // Build full collision manifold that will also handle the collision
                         // response between the two objects in the solver stage
-                        m_ManifoldLock.lock();
+                        ScopedMutex lock(m_ManifoldLock);
                         Manifold& manifold = m_Manifolds[m_ManifoldCount++];
                         manifold.Initiate(cp.pObjectA, cp.pObjectB, m_BaumgarteScalar, m_BaumgarteSlop);
 
@@ -518,8 +523,6 @@ namespace Lumos
                         {
                             m_ManifoldCount--;
                         }
-
-                        m_ManifoldLock.unlock();
                     }
                 }
             }
