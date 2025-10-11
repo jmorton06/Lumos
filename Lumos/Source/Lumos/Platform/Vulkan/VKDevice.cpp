@@ -162,7 +162,9 @@ namespace Lumos
             vkGetPhysicalDeviceProperties(m_Handle, &m_PhysicalDeviceProperties);
             vkGetPhysicalDeviceMemoryProperties(m_Handle, &m_MemoryProperties);
 
+#ifndef LUMOS_PLATFORM_IOS
             LINFO("Volk Header Version : %i", VOLK_HEADER_VERSION);
+#endif
             LINFO("Vulkan : %i.%i.%i", VK_API_VERSION_MAJOR(m_PhysicalDeviceProperties.apiVersion), VK_API_VERSION_MINOR(m_PhysicalDeviceProperties.apiVersion), VK_API_VERSION_PATCH(m_PhysicalDeviceProperties.apiVersion));
             LINFO("GPU : %s", m_DeviceInfo.Name.c_str());
             LINFO("Memory : %s mb", StringUtilities::ToString(m_DeviceInfo.Memory).c_str());
