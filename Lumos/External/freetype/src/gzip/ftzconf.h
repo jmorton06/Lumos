@@ -215,7 +215,11 @@
 #   define FAR
 #endif
 
-#if !defined(MACOS) && !defined(TARGET_OS_MAC) && !defined(TARGET_OS_IPHONE)
+#ifdef defined(TARGET_OS_IPHONE)
+typedef unsigned char Byte;
+#endif
+
+#if !defined(MACOS) && !defined(TARGET_OS_MAC)
 typedef unsigned char  Byte;  /* 8 bits */
 #endif
 typedef unsigned int   uInt;  /* 16 bits or more */
