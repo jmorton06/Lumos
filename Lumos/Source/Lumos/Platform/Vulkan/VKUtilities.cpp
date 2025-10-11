@@ -48,9 +48,13 @@ namespace Lumos
             LERROR("Failed to find suitable memory type!");
             return 0;
         }
-
+#ifdef USE_VMA_ALLOCATOR
         void VKUtilities::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
                                        VkDeviceMemory& bufferMemory, VmaAllocator allocator, VmaAllocation allocation)
+#else
+    void VKUtilities::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
+                                   VkDeviceMemory& bufferMemory)
+#endif
         {
             VkBufferCreateInfo bufferInfo = {};
             bufferInfo.sType              = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
