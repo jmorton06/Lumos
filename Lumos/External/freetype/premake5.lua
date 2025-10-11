@@ -72,9 +72,6 @@ project "freetype"
     filter "system:windows"
         systemversion "latest"
 
-    filter "system:ios"
-        defines { "Byte=unsigned char" }
-
     filter "configurations:Debug"
         runtime "Debug"
         symbols "on"
