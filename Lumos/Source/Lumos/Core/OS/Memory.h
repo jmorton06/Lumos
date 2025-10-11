@@ -9,7 +9,7 @@ namespace Lumos
         static void* AlignedAlloc(size_t size, size_t alignment);
         static void AlignedFree(void* data);
 
-        static void* NewFunc(std::size_t size, const char* file, int line);
+        static void* NewFunc(size_t size, const char* file, int line);
         static void DeleteFunc(void* p);
     };
 

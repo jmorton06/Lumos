@@ -48,7 +48,7 @@ namespace Lumos
 #endif
     }
 
-    void* Memory::NewFunc(std::size_t size, const char* file, int line)
+    void* Memory::NewFunc(size_t size, const char* file, int line)
     {
         void* memory = malloc(size);
 
