@@ -73,7 +73,7 @@ project "freetype"
         systemversion "latest"
 
     filter "system:ios"
-        defines { "Byte=unsigned\ char" }
+        defines { "Byte=unsigned char" }
 
     filter "configurations:Debug"
         runtime "Debug"
