@@ -119,7 +119,7 @@ namespace Lumos
             attachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
             attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             attachment.flags          = 0;
-            
+
             if (type == TextureType::COLOUR && swapchainTarget)
            {
                attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
@@ -152,7 +152,7 @@ namespace Lumos
                     colourAttachmentRef.attachment            = uint32_t(i);
                     colourAttachmentRef.layout                = layout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : layout;
                     colourAttachmentReferences.PushBack(colourAttachmentRef);
-                    
+
                     if(attachments.Back().finalLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
                     {
                         ((VKTexture2D*)renderPassDesc.attachments[i])->SetImageLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
@@ -279,7 +279,7 @@ namespace Lumos
                 VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_RENDER_PASS, renderPassDesc.DebugName.c_str(), m_RenderPass);
 
             m_ClearValue      = new VkClearValue[attachmentCount];
-            m_ClearCount      = renderPassDesc.attachmentCount;
+            m_ClearCount      = attachmentCount;
             m_SwapchainTarget = renderPassDesc.swapchainTarget;
 
             return true;

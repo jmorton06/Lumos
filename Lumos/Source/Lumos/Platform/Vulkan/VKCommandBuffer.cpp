@@ -68,7 +68,7 @@ namespace Lumos
 
             m_Semaphore = CreateSharedPtr<VKSemaphore>(false);
             m_Fence     = CreateSharedPtr<VKFence>(false);
-            m_Fence->Reset();
+
             return true;
         }
 
@@ -84,8 +84,7 @@ namespace Lumos
             VK_CHECK_RESULT(vkAllocateCommandBuffers(VKDevice::Get().GetDevice(), &cmdBufferCreateInfo, &m_CommandBuffer));
 
             m_Semaphore = CreateSharedPtr<VKSemaphore>(false);
-            m_Fence     = CreateSharedPtr<VKFence>(true);
-            m_Fence->Reset();
+            m_Fence     = CreateSharedPtr<VKFence>(false);
 
             return true;
         }
@@ -110,7 +109,7 @@ namespace Lumos
 
             m_State                                  = CommandBufferState::Recording;
             VkCommandBufferBeginInfo beginCreateInfo = VKInitialisers::CommandBufferBeginInfo();
-            beginCreateInfo.flags                    = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+            beginCreateInfo.flags                    = 0;
             VK_CHECK_RESULT(vkBeginCommandBuffer(m_CommandBuffer, &beginCreateInfo));
         }
 
@@ -168,8 +167,6 @@ namespace Lumos
             submitInfo.pCommandBuffers      = &m_CommandBuffer;
             submitInfo.signalSemaphoreCount = signalSemaphoreCount;
             submitInfo.pSignalSemaphores    = &semaphore;
-
-            m_Fence->Reset();
 
             {
                 LUMOS_PROFILE_SCOPE("vkQueueSubmit");

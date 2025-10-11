@@ -79,7 +79,7 @@ project "Lumos"
 		linkoptions {"-ftime-trace"}
 
 	filter 'architecture:x86_64'
-		defines { "USE_VMA_ALLOCATOR", "LUMOS_SSE" }
+		defines { "LUMOS_SSE" }
 
 	filter "system:windows"
 		cppdialect "C++17"
@@ -104,7 +104,8 @@ project "Lumos"
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL",
 			"LUMOS_VOLK",
-			"LUMOS_USE_GLFW_WINDOWS"
+			"LUMOS_USE_GLFW_WINDOWS",
+			"USE_VMA_ALLOCATOR"
 		}
 
 		files
@@ -128,7 +129,7 @@ project "Lumos"
 			"glfw",
 			"Dwmapi.lib"
 		}
-		
+
 		filter "action:vs*"
 			buildoptions { "/bigobj" }
 		filter 'files:External/**.cpp'
@@ -173,8 +174,7 @@ project "Lumos"
 			"VK_USE_PLATFORM_METAL_EXT",
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL",
-			"LUMOS_VOLK",
-			"USE_VMA_ALLOCATOR"
+			"LUMOS_VOLK"
 		}
 
 		links
@@ -227,7 +227,6 @@ project "Lumos"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_IOS_MVK",
 			"LUMOS_IMGUI",
-			"USE_VMA_ALLOCATOR",
 			"LUMOS_OPENAL"
 		}
 
@@ -287,7 +286,8 @@ project "Lumos"
 			"VK_USE_PLATFORM_XCB_KHR",
 			"LUMOS_IMGUI",
 			"LUMOS_VOLK",
-			"LUMOS_OPENAL"
+			"LUMOS_OPENAL",
+			"USE_VMA_ALLOCATOR"
 		}
 
 		files
@@ -346,13 +346,13 @@ project "Lumos"
 			}
 
 	filter "configurations:Debug"
-defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE_ENABLED","TRACY_ON_DEMAND"  }
+        defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE_ENABLED","TRACY_ON_DEMAND"  }
 		symbols "On"
 		runtime "Debug"
 		optimize "Off"
 
 	filter "configurations:Release"
-defines { "LUMOS_RELEASE", "NDEBUG", "TRACY_ENABLE","LUMOS_PROFILE_ENABLED", "TRACY_ON_DEMAND"}
+        defines { "LUMOS_RELEASE", "NDEBUG", "TRACY_ENABLE","LUMOS_PROFILE_ENABLED", "TRACY_ON_DEMAND"}
 		optimize "Speed"
 		symbols "On"
 		runtime "Release"

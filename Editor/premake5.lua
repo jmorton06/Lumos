@@ -61,7 +61,7 @@ project "LumosEditor"
 		warnings "Off"
 
 	filter 'architecture:x86_64'
-		defines { "USE_VMA_ALLOCATOR", "LUMOS_SSE"  }
+		defines { "LUMOS_SSE"  }
 
 	filter "system:windows"
 		cppdialect "C++17"
@@ -78,7 +78,8 @@ project "LumosEditor"
 			"_CRT_SECURE_NO_WARNINGS",
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
-			"LUMOS_VOLK"
+			"LUMOS_VOLK",
+			"USE_VMA_ALLOCATOR"
 		}
 
 		libdirs
@@ -276,7 +277,8 @@ project "LumosEditor"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
 			"LUMOS_IMGUI",
-			"LUMOS_VOLK"
+			"LUMOS_VOLK",
+			"USE_VMA_ALLOCATOR"
 		}
 
 		buildoptions

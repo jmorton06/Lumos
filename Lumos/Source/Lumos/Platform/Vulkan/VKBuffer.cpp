@@ -52,8 +52,8 @@ namespace Lumos
                     auto memory = m_Memory;
                     currentDeletionQueue.PushFunction([buffer, memory]
                                                       {
-                                                          vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
-                                                          vkFreeMemory(VKDevice::Device(), memory, nullptr); });
+                                                          vkDestroyBuffer(VKDevice::Get().GetDevice(), buffer, nullptr);
+                                                          vkFreeMemory(VKDevice::Get().GetDevice(), memory, nullptr); });
 #endif
                 }
                 else
@@ -61,8 +61,8 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
                     vmaDestroyBuffer(VKDevice::Get().GetAllocator(), buffer, m_Allocation);
 #else
-                    vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
-                    vkFreeMemory(VKDevice::Device(), memory, nullptr);
+                    vkDestroyBuffer(VKDevice::Get().GetDevice(), buffer, nullptr);
+                    vkFreeMemory(VKDevice::Get().GetDevice(), m_Memory, nullptr);
 #endif
                 }
             }
@@ -88,6 +88,8 @@ namespace Lumos
 
             m_GPUOnlyMemory = !isMappable;
 
+#ifdef USE_VMA_ALLOCATOR
+            
             if(!data)
             {
                 VmaAllocationCreateInfo vmaAllocInfo = {};
@@ -107,7 +109,6 @@ namespace Lumos
                 return;
             }
 
-#ifdef USE_VMA_ALLOCATOR
 #define USE_STAGING 1
 #if USE_STAGING
             VmaAllocationCreateInfo vmaAllocInfo = {};
@@ -186,19 +187,19 @@ namespace Lumos
                 SetData(size, data);
 #endif
 #else
-            VK_CHECK_RESULT(vkCreateBuffer(VKDevice::Device(), &bufferInfo, nullptr, &m_Buffer));
+            VK_CHECK_RESULT(vkCreateBuffer(VKDevice::Get().GetDevice(), &bufferInfo, nullptr, &m_Buffer));
 
             VkMemoryRequirements memRequirements;
-            vkGetBufferMemoryRequirements(VKDevice::Device(), m_Buffer, &memRequirements);
+            vkGetBufferMemoryRequirements(VKDevice::Get().GetDevice(), m_Buffer, &memRequirements);
 
             VkMemoryAllocateInfo allocInfo = {};
             allocInfo.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocInfo.allocationSize       = memRequirements.size;
             allocInfo.memoryTypeIndex      = VKUtilities::FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-            VK_CHECK_RESULT(vkAllocateMemory(VKDevice::Device(), &allocInfo, nullptr, &m_Memory));
+            VK_CHECK_RESULT(vkAllocateMemory(VKDevice::Get().GetDevice(), &allocInfo, nullptr, &m_Memory));
 
-            vkBindBufferMemory(VKDevice::Device(), m_Buffer, m_Memory, 0);
+            vkBindBufferMemory(VKDevice::Get().GetDevice(), m_Buffer, m_Memory, 0);
 
             if(data != nullptr)
                 SetData(size, data);
@@ -242,7 +243,7 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
             VkResult res = static_cast<VkResult>(vmaMapMemory(VKDevice::Get().GetAllocator(), m_Allocation, (void**)&m_Mapped));
 #else
-            VkResult res = vkMapMemory(VKDevice::Device(), m_Memory, offset, size, 0, &m_Mapped);
+            VkResult res = vkMapMemory(VKDevice::Get().GetDevice(), m_Memory, offset, size, 0, &m_Mapped);
 #endif
             if(res != VK_SUCCESS)
                 LFATAL("[VULKAN] Failed to map buffer");
@@ -256,7 +257,7 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
                 vmaUnmapMemory(VKDevice::Get().GetAllocator(), m_Allocation);
 #else
-                vkUnmapMemory(VKDevice::Device(), m_Memory);
+                vkUnmapMemory(VKDevice::Get().GetDevice(), m_Memory);
 #endif
                 m_Mapped = nullptr;
             }
@@ -272,7 +273,7 @@ namespace Lumos
             mappedRange.memory              = m_Memory;
             mappedRange.offset              = offset;
             mappedRange.size                = size;
-            vkFlushMappedMemoryRanges(VKDevice::Device(), 1, &mappedRange);
+            vkFlushMappedMemoryRanges(VKDevice::Get().GetDevice(), 1, &mappedRange);
 #endif
         }
 
@@ -286,7 +287,7 @@ namespace Lumos
             mappedRange.memory              = m_Memory;
             mappedRange.offset              = offset;
             mappedRange.size                = size;
-            vkInvalidateMappedMemoryRanges(VKDevice::Device(), 1, &mappedRange);
+            vkInvalidateMappedMemoryRanges(VKDevice::Get().GetDevice(), 1, &mappedRange);
 #endif
         }
     }

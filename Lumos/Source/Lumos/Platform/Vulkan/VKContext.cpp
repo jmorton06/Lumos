@@ -395,6 +395,7 @@ namespace Lumos
 
         void VKContext::OnImGui()
         {
+#ifdef USE_VMA_ALLOCATOR
             const auto& memoryProps = VKDevice::Get().GetPhysicalDevice()->GetMemoryProperties();
             TDArray<VmaBudget> budgets(memoryProps.memoryHeapCount);
             vmaGetHeapBudgets(VKDevice::Get().GetAllocator(), budgets.Data());
@@ -406,6 +407,7 @@ namespace Lumos
                 ImGui::Text("VmaBudget.usage = %s", StringUtilities::BytesToString(b.usage).c_str());
                 ImGui::Text("VmaBudget.budget = %s", StringUtilities::BytesToString(b.budget).c_str());
             }
+#endif
         }
     }
 }

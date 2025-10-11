@@ -13,11 +13,6 @@
 
 #include <MoltenVK/vk_mvk_moltenvk.h>
 
-//Copied from newer versions of mvk
-#define MVK_STRINGIFY_IMPL_COPY(val) #val
-#define MVK_STRINGIFY_COPY(val)       MVK_STRINGIFY_IMPL_COPY(val)
-#define MVK_VERSION_STRING_COPY       (MVK_STRINGIFY_COPY(MVK_VERSION_MAJOR) "." MVK_STRINGIFY_COPY(MVK_VERSION_MINOR) "." MVK_STRINGIFY_COPY(MVK_VERSION_PATCH))
-
 
 extern "C" void* GetCAMetalLayer(void* handle)
 {
@@ -57,11 +52,10 @@ namespace Lumos
         if (res != VK_SUCCESS || surface == VK_NULL_HANDLE)
         LFATAL("Failed to create Vulkan surface: %s",std::to_string(res).c_str());
 
-        void* lib = dlopen("/usr/local/lib/libMoltenVK.dylib", RTLD_NOW | RTLD_LOCAL);
-        if (!lib)
+        void* libMoltenVK = dlopen("/usr/local/lib/libMoltenVK.dylib", RTLD_NOW | RTLD_LOCAL);
+        if (!libMoltenVK)
             LERROR("dlopen failed: %s", dlerror());
 
-		auto libMoltenVK = dlopen("/usr/local/lib/libMoltenVK.dylib", RTLD_NOW | RTLD_LOCAL);
 		auto getMoltenVKConfigurationMVK = (PFN_vkGetMoltenVKConfigurationMVK)
 			dlsym(libMoltenVK, "vkGetMoltenVKConfigurationMVK");
 		auto setMoltenVKConfigurationMVK = (PFN_vkSetMoltenVKConfigurationMVK)
@@ -79,16 +73,15 @@ namespace Lumos
 
 		//mvkConfig.traceVulkanCalls = MVK_CONFIG_TRACE_VULKAN_CALLS_DURATION;
 		mvkConfig.performanceTracking = false;
-        mvkConfig.synchronousQueueSubmits = false;
+        mvkConfig.synchronousQueueSubmits = true;
         //mvkConfig.presentWithCommandBuffer = false;
         //mvkConfig.prefillMetalCommandBuffers = true;
-
 		//mvkConfig.useMetalArgumentBuffers = MVKUseMetalArgumentBuffers::MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS_ALWAYS;
         mvkConfig.resumeLostDevice = true;
 
         setMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
-#ifdef MVK_VERSION_STRING_COPY
-        LINFO("MVK Version %s", MVK_VERSION_STRING_COPY);
+#ifdef MVK_VERSION_STRING
+        LINFO("MVK Version %s", MVK_VERSION_STRING);
 #endif
 		return surface;
 	}

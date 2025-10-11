@@ -28,9 +28,13 @@ namespace Lumos
         namespace VKUtilities
         {
             void Init();
+#ifdef USE_VMA_ALLOCATOR
             void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
                               VkDeviceMemory& bufferMemory, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
-
+#else
+            void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
+                          VkDeviceMemory& bufferMemory);
+#endif
             VkCommandBuffer BeginSingleTimeCommands();
             void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 
