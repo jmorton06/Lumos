@@ -6,6 +6,7 @@
 #include "VKRenderer.h"
 #include "Core/UUID.h"
 #include "Maths/MathsUtilities.h"
+
 #ifdef LUMOS_PLATFORM_WINDOWS
 #define USE_SMALL_VMA_POOL 0
 #else
@@ -108,15 +109,15 @@ namespace Graphics
     {
         LUMOS_PROFILE_FUNCTION();
         vkCreateImage(VKDevice::Get().GetDevice(), &imageInfo, nullptr, &image);
-        
+
         VkMemoryRequirements memRequirements;
         vkGetImageMemoryRequirements(VKDevice::Get().GetDevice(), image, &memRequirements);
-        
+
         VkMemoryAllocateInfo allocInfo = {};
         allocInfo.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize       = memRequirements.size;
         allocInfo.memoryTypeIndex      = VKUtilities::FindMemoryType(memRequirements.memoryTypeBits, properties);
-        
+
         vkAllocateMemory(VKDevice::Get().GetDevice(), &allocInfo, nullptr, &imageMemory);
         vkBindImageMemory(VKDevice::Get().GetDevice(), image, imageMemory, 0);
     }
@@ -514,10 +515,10 @@ namespace Graphics
 
             if(m_Data == nullptr)
                 delete[] pixels;
-            
+
             VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
 #ifdef USE_VMA_ALLOCATOR
-            Graphics::CreateImage(m_Width, m_Height, m_MipLevels, m_VKFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, , VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0, m_Allocation, m_Samples);
+            Graphics::CreateImage(m_Width, m_Height, m_MipLevels, m_VKFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0, m_Allocation, m_Samples);
 #else
             Graphics::CreateImage(m_Width, m_Height, m_MipLevels, m_VKFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0, m_Samples);
 #endif
@@ -1052,10 +1053,10 @@ namespace Graphics
                 delete[] allData;
                 allData = nullptr;
             }
-            
+
             VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
 #ifdef USE_VMA_ALLOCATOR
-            Graphics::CreateImage(faceWidths[0], faceHeights[0], m_NumMips, m_VKFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, usage, m_TextureImage, m_TextureImageMemory, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, m_Allocation);
+            Graphics::CreateImage(faceWidths[0], faceHeights[0], m_NumMips, m_VKFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, m_Allocation);
 #else
             Graphics::CreateImage(faceWidths[0], faceHeights[0], m_NumMips, m_VKFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT);
 #endif
