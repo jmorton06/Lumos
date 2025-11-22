@@ -170,7 +170,12 @@ namespace Lumos
 
             {
                 LUMOS_PROFILE_SCOPE("vkQueueSubmit");
-                VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, m_Fence->GetHandle()));
+                VkResult res = vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, m_Fence->GetHandle());
+                if(res != VK_SUCCESS)
+                {
+                    LERROR("[VULKAN] : vkQueueSubmit failed (%s) in %s at line %d", Lumos::Graphics::VKUtilities::ErrorString(res).c_str(), __FILE__, __LINE__);
+                    return false;
+                }
             }
 
             m_State = CommandBufferState::Submitted;

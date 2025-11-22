@@ -4,10 +4,22 @@ function OnInit()
 end
 
 local ProjectileChargeAmount = 0.0
+local FireTimer = 0.0
 
 function OnUpdate()
 	if Input.GetKeyPressed( Key.M ) then
 		SwitchScene()
+	end
+
+	if Input.GetMouseHeld( MouseButton.Left ) then
+		FireTimer = FireTimer + 0.1
+
+		if FireTimer >= 5.0 then
+			local cameraTransform = Entity.new(scene:GetEntityManager():GetRegistry():view_Camera(y):front(), scene):GetTransform()
+			AddSphereEntity(scene, cameraTransform:GetWorldPosition(),cameraTransform:GetForwardDirection())
+			FireTimer = 0.0
+		end
+
 	end
 	
 	if  Input.GetKeyPressed( Key.J ) then

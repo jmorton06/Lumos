@@ -9,6 +9,9 @@ namespace Lumos
         m_Arena         = ArenaAlloc(Kilobytes(64));
         m_Systems       = {};
         m_Systems.arena = m_Arena;
+
+        m_Mutex = PushArray(m_Arena, Mutex, 1);
+        MutexInit(m_Mutex);
     }
     SystemManager::~SystemManager()
     {
@@ -17,6 +20,8 @@ namespace Lumos
             ISystem* value = *it.value;
             delete value;
         }
+
+        MutexDestroy(m_Mutex);
     }
 
     void SystemManager::OnImGui()

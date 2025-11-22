@@ -16,6 +16,7 @@
 #include "Graphics/RHI/GPUProfile.h"
 #include "Graphics/RHI/VertexBuffer.h"
 #include "Graphics/RHI/IndexBuffer.h"
+#include "Graphics/RHI/Texture.h"
 #include "Graphics/Font.h"
 #include "Graphics/MSDFData.h"
 #include "Graphics/ParticleManager.h"
@@ -98,8 +99,8 @@ namespace Lumos::Graphics
             shadowMapResolution = 4096;
             break;
         }
-        m_ShadowData.m_ShadowMapSize = shadowMapResolution;
 
+        m_ShadowData.m_ShadowMapSize         = shadowMapResolution;
         m_ShadowData.m_ShadowMapsInvalidated = true;
         m_ShadowData.m_CascadeSplitLambda    = 0.92f;
         m_ShadowData.m_Shader                = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("Shadow")).As<Graphics::Shader>();
@@ -858,7 +859,7 @@ namespace Lumos::Graphics
             Mat4 ViewMatrix;
             Mat4 LightView;
             Mat4 BiasMatrix;
-            Vec4 cameraPosition;
+            Vec4 CameraPosition;
             Vec4 SplitDepths[MAX_SHADOWMAPS];
             float LightSize;
             float MaxShadowDist;
@@ -871,7 +872,11 @@ namespace Lumos::Graphics
             float InitialBias;
             float Width;
             float Height;
-            int shadowEnabled;
+            int ShadowEnabled;
+            int BlendShadows;
+            int PCFSamples;
+            int VogelOffset;
+            int FilterShadows;
         };
 
         if(renderSettings.Renderer3DEnabled)
@@ -912,7 +917,7 @@ namespace Lumos::Graphics
                 }
             }
 
-            if(renderSettings.ShadowsEnabled)
+            if(renderSettings.ShadowsEnabled && Application::Get().GetQualitySettings().EnableShadows)
             {
                 for(uint32_t i = 0; i < m_ShadowData.m_ShadowMapNum; i++)
                 {
@@ -942,13 +947,39 @@ namespace Lumos::Graphics
             uniformSceneData.MaxShadowDist  = shadowData.m_MaxShadowDistance;
             uniformSceneData.Width          = (float)m_MainTexture->GetWidth();
             uniformSceneData.Height         = (float)m_MainTexture->GetHeight();
-            uniformSceneData.shadowEnabled  = renderSettings.ShadowsEnabled ? 1 : 0;
+            uniformSceneData.ShadowEnabled  = (renderSettings.ShadowsEnabled && Application::Get().GetQualitySettings().EnableShadows) ? 1 : 0;
             uniformSceneData.ShadowCount    = shadowData.m_ShadowMapNum;
             uniformSceneData.EnvMipCount    = m_ForwardData.m_EnvironmentMap ? m_ForwardData.m_EnvironmentMap->GetMipMapLevels() : 0;
             uniformSceneData.ViewMatrix     = view;
             uniformSceneData.BiasMatrix     = m_ForwardData.m_BiasMatrix;
             uniformSceneData.Mode           = m_ForwardData.m_RenderMode;
-            uniformSceneData.cameraPosition = Vec4(m_CameraTransform->GetWorldPosition(), 1.0f);
+            uniformSceneData.CameraPosition = Vec4(m_CameraTransform->GetWorldPosition(), 1.0f);
+            uniformSceneData.BlendShadows   = 1;
+            uniformSceneData.PCFSamples     = 4;
+            uniformSceneData.VogelOffset    = 1;
+            uniformSceneData.FilterShadows  = 1;
+
+            switch(Application::Get().GetQualitySettings().ShadowQuality)
+            {
+            case ShadowQualitySetting::Low:
+                uniformSceneData.BlendShadows  = 0;
+                uniformSceneData.PCFSamples    = 1;
+                uniformSceneData.VogelOffset   = 0;
+                uniformSceneData.FilterShadows = 0;
+                break;
+            case ShadowQualitySetting::Medium:
+                uniformSceneData.BlendShadows  = 1;
+                uniformSceneData.PCFSamples    = 4;
+                uniformSceneData.VogelOffset   = 1;
+                uniformSceneData.FilterShadows = 1;
+                break;
+            case ShadowQualitySetting::High:
+                uniformSceneData.BlendShadows  = 1;
+                uniformSceneData.PCFSamples    = 16;
+                uniformSceneData.VogelOffset   = 1;
+                uniformSceneData.FilterShadows = 1;
+                break;
+            }
 
             MemoryCopy(uniformSceneData.lights, lights, sizeof(Graphics::Light) * numLights);
             uniformSceneData.LightCount = numLights;
@@ -1190,6 +1221,8 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_GPU("Render Passes");
 
         auto& sceneRenderSettings = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
+        const QualitySettings& qualitySettings         = Application::Get().GetQualitySettings();
+
         {
             LUMOS_PROFILE_GPU("Clear Main Texture Pass");
             Renderer::GetRenderer()->ClearRenderTarget(m_MainTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
@@ -1198,16 +1231,15 @@ namespace Lumos::Graphics
                 Renderer::GetRenderer()->ClearRenderTarget(m_ResolveTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
-        if(sceneRenderSettings.SSAOEnabled)
+        if(sceneRenderSettings.SSAOEnabled && qualitySettings.EnableSSAO)
         {
             LUMOS_PROFILE_GPU("Clear Normal Texture Pass");
             Renderer::GetRenderer()->ClearRenderTarget(m_NormalTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
-        if(sceneRenderSettings.ShadowsEnabled)
+        if(sceneRenderSettings.ShadowsEnabled && qualitySettings.EnableShadows)
         {
             LUMOS_PROFILE_GPU("Clear Shadow Texture Pass");
-            Renderer::GetMainSwapChain()->GetCurrentCommandBuffer()->UnBindPipeline();
             Renderer::GetRenderer()->ClearRenderTarget(m_ShadowData.m_ShadowTex, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
@@ -1230,7 +1262,7 @@ namespace Lumos::Graphics
         //     sceneRenderSettings.SSAOEnabled = false;
         // }
 
-        if(sceneRenderSettings.SSAOEnabled && !m_DisablePostProcess)
+        if(sceneRenderSettings.SSAOEnabled && !m_DisablePostProcess && qualitySettings.EnableSSAO)
         {
             SSAOPass();
 
@@ -1238,16 +1270,17 @@ namespace Lumos::Graphics
                 SSAOBlurPass();
         }
 
-        if(sceneRenderSettings.ShadowsEnabled && sceneRenderSettings.Renderer3DEnabled)
+        if(sceneRenderSettings.ShadowsEnabled && sceneRenderSettings.Renderer3DEnabled && qualitySettings.EnableShadows)
             ShadowPass();
+
         if(sceneRenderSettings.Renderer3DEnabled)
             ForwardPass();
         if(sceneRenderSettings.SkyboxRenderEnabled)
             SkyboxPass();
-        if(sceneRenderSettings.Renderer3DEnabled)
-            ParticlePass();
         if(sceneRenderSettings.Renderer2DEnabled)
             Render2DPass();
+        if (sceneRenderSettings.Renderer3DEnabled)
+            ParticlePass();
 
         if(m_DebugRenderEnabled && sceneRenderSettings.DebugRenderEnabled)
             DebugPass();
@@ -1257,7 +1290,7 @@ namespace Lumos::Graphics
         if(sceneRenderSettings.DepthOfFieldEnabled && !m_DisablePostProcess)
             DepthOfFieldPass();
 
-        if(sceneRenderSettings.BloomEnabled && !m_DisablePostProcess)
+        if(sceneRenderSettings.BloomEnabled && !m_DisablePostProcess && qualitySettings.EnableBloom)
             BloomPass();
 
         if(sceneRenderSettings.DebandingEnabled && !m_DisablePostProcess)
@@ -1268,7 +1301,7 @@ namespace Lumos::Graphics
         if(sceneRenderSettings.SharpenEnabled && !m_DisablePostProcess)
             SharpenPass();
 
-        if(sceneRenderSettings.FXAAEnabled && !m_DisablePostProcess)
+        if(sceneRenderSettings.FXAAEnabled && !m_DisablePostProcess && qualitySettings.EnableFXAA)
             FXAAPass();
 
         if(sceneRenderSettings.ChromaticAberationEnabled && !m_DisablePostProcess)
@@ -1462,7 +1495,7 @@ namespace Lumos::Graphics
             cascadeSplits[i] = (d - nearClip) / clipRange;
         }
 
-        cascadeSplits[3]    = 0.35f;
+       // cascadeSplits[3]    = 0.35f;
         float lastSplitDist = 0.0f;
         Mat4 CameraProj     = Mat4::Perspective(nearClip, farClip, m_Camera->GetAspectRatio(), m_Camera->GetFOV());
 
@@ -1530,7 +1563,7 @@ namespace Lumos::Graphics
             Vec3 minExtents = -maxExtents;
 
             Vec3 lightDir         = (-light->Direction).Normalised();
-            Mat4 lightOrthoMatrix = Mat4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, m_ShadowData.CascadeNearPlaneOffset, maxExtents.z - minExtents.z + m_ShadowData.CascadeFarPlaneOffset);
+            Mat4 lightOrthoMatrix = Mat4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -maxExtents.z - m_ShadowData.CascadeNearPlaneOffset, maxExtents.z + m_ShadowData.CascadeFarPlaneOffset);
             Mat4 LightViewMatrix  = Mat4::LookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, Vec3(0.0f, 1.0f, 0.0f));
             Mat4 shadowProj       = lightOrthoMatrix * LightViewMatrix;
 
@@ -1549,11 +1582,7 @@ namespace Lumos::Graphics
                 roundOffset.z      = 0.0f;
                 roundOffset.w      = 0.0f;
 
-                // lightOrthoMatrix[3] = Vec3(lightOrthoMatrix[3]) + roundOffset;
-
-                auto offsetValue = lightOrthoMatrix.Translation() + roundOffset;
-                // MemoryCopy(&offsetValue, lightOrthoMatrix[3], sizeof(Vec3));
-                lightOrthoMatrix.SetTranslation(offsetValue);
+                lightOrthoMatrix.SetTranslation(lightOrthoMatrix.Translation() + Vec3(roundOffset.x, roundOffset.y, 0.0f));
             }
             // Store split distance and matrix in cascade
             m_ShadowData.m_SplitDepth[i]     = Vec4((m_Camera->GetNear() + splitDist * clipRange) * -1.0f);
@@ -2046,15 +2075,24 @@ namespace Lumos::Graphics
 
         if(widget->HotTransition > 0.0f)
         {
-            border_color     = border_color.Lerp(widget->style_vars[StyleVar_HotBorderColor], widget->HotTransition);
-            background_color = background_color.Lerp(widget->style_vars[StyleVar_HotBackgroundColor], widget->HotTransition);
-            text_color       = text_color.Lerp(widget->style_vars[StyleVar_HotTextColor], widget->HotTransition);
+            Vec4 hotBorderColor     = widget->style_vars[StyleVar_HotBorderColor];
+            Vec4 hotBackgroundColor = widget->style_vars[StyleVar_HotBackgroundColor];
+            Vec4 hotTextColor       = widget->style_vars[StyleVar_HotTextColor];
+
+            border_color     = border_color.Lerp(hotBorderColor, widget->HotTransition);
+            background_color = background_color.Lerp(hotBackgroundColor, widget->HotTransition);
+            text_color       = text_color.Lerp(hotTextColor, widget->HotTransition);
         }
-        else if(widget->ActiveTransition > 0.0f)
+
+        if(widget->ActiveTransition > 0.0f)
         {
-            border_color     = border_color.Lerp(widget->style_vars[StyleVar_ActiveBorderColor], widget->ActiveTransition);
-            background_color = background_color.Lerp(widget->style_vars[StyleVar_ActiveBackgroundColor], widget->ActiveTransition);
-            text_color       = text_color.Lerp(widget->style_vars[StyleVar_ActiveTextColor], widget->ActiveTransition);
+            Vec4 activeBorderColor     = widget->style_vars[StyleVar_ActiveBorderColor];
+            Vec4 activeBackgroundColor = widget->style_vars[StyleVar_ActiveBackgroundColor];
+            Vec4 activeTextColor       = widget->style_vars[StyleVar_ActiveTextColor];
+
+            border_color     = border_color.Lerp(activeBorderColor, widget->ActiveTransition);
+            background_color = background_color.Lerp(activeBackgroundColor, widget->ActiveTransition);
+            text_color       = text_color.Lerp(activeTextColor, widget->ActiveTransition);
         }
 
         if(widget->flags & WidgetFlags_DrawBorder)
@@ -2263,8 +2301,8 @@ namespace Lumos::Graphics
                 float lineHeightOffset = 0.0f;
                 float kerningOffset    = 0.0f;
 
-                float maxWidth     = 100.0f; // widget->size.x;// textComp.MaxWidth;
-                auto colour        = Vec4(1.0f);
+                float maxWidth     = 100.0f;
+                auto colour        = text_color;
                 float lineSpacing  = 0.0f;
                 float kerning      = 0.0f;
                 auto outlineColour = Vec4(1.0f);
@@ -2451,7 +2489,7 @@ namespace Lumos::Graphics
         };
 
         ToneMappingUniformData data;
-        data.BloomIntensity = m_CurrentScene->GetSettings().RenderSettings.BloomEnabled ? m_CurrentScene->GetSettings().RenderSettings.m_BloomIntensity : 0.0f;
+        data.BloomIntensity = (m_CurrentScene->GetSettings().RenderSettings.BloomEnabled && Application::Get().GetQualitySettings().EnableBloom) ? m_CurrentScene->GetSettings().RenderSettings.m_BloomIntensity : 0.0f;
         data.Saturation     = m_CurrentScene->GetSettings().RenderSettings.Saturation;
         data.Brightness     = m_CurrentScene->GetSettings().RenderSettings.Brightness;
         data.Contrast       = m_CurrentScene->GetSettings().RenderSettings.Contrast;
@@ -5010,8 +5048,8 @@ namespace Lumos::Graphics
                 pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
 
             pipelineDesc.clearTargets            = false;
-            pipelineDesc.DepthTest               = true;
-            pipelineDesc.DepthWrite              = false;
+            pipelineDesc.DepthTest               = emitter.GetDepthWrite();
+            pipelineDesc.DepthWrite              = emitter.GetDepthWrite();
             pipelineDesc.DebugName               = "Particle";
             pipelineDesc.depthBiasEnabled        = true;
             pipelineDesc.depthBiasConstantFactor = -1.25f;

@@ -32,21 +32,22 @@ namespace Lumos
         ShadowResolutionSetting ShadowResolution = ShadowResolutionSetting::Low;
 
         // Post-Process
-        bool EnableBloom = true;
+        bool EnableBloom = false;
         bool EnableDOF   = false;
         bool EnableSSR   = false;
         bool EnableSSAO  = false;
+        bool EnableFXAA  = true;
 
         u32 IrradianceMapSize = 64;
 #ifdef LUMOS_PLATFORM_MACOS
-        u32 EnvironmentMapSize = 256;
-        u32 EnvironmentSamples = 128;
+        u32 EnvironmentMapSize = 128;
+        u32 EnvironmentSamples = 32;
 #else
         u32 EnvironmentMapSize = 512;
         u32 EnvironmentSamples = 512;
 #endif
 
-        void SetGeneralLeve(uint8_t level)
+        void SetGeneralLevel(uint8_t level)
         {
             switch(level)
             {
@@ -60,6 +61,7 @@ namespace Lumos
                 EnableDOF   = false;
                 EnableSSR   = false;
                 EnableSSAO  = false;
+                EnableFXAA  = false;
                 break;
             }
             case 1:
@@ -72,6 +74,7 @@ namespace Lumos
                 EnableDOF   = false;
                 EnableSSR   = false;
                 EnableSSAO  = false;
+                EnableFXAA  = true;
                 break;
             }
             default:
@@ -85,6 +88,7 @@ namespace Lumos
                 EnableDOF   = true;
                 EnableSSR   = false;
                 EnableSSAO  = true;
+                EnableFXAA  = true;
                 break;
             }
             }

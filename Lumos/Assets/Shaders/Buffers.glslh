@@ -72,7 +72,12 @@ layout(set = 2, binding = 5) uniform UniformSceneData
 	float InitialBias;
 	float Width;
 	float Height;
-	int shadowEnabled;
+	int ShadowEnabled;
+	int BlendShadows;
+	int PCFSamples;
+	int VogelOffset;
+	int FilterShadows;
+	
 } u_SceneData;
 
 layout (std140, set = 3, binding = 0) uniform BoneTransforms

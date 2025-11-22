@@ -69,31 +69,53 @@ namespace Lumos
     bool FileSystem::ReadFile(Arena* arena, const String8& path, void* buffer, int64_t size)
     {
         std::ifstream stream((const char*)path.str, std::ios::binary | std::ios::ate);
+        if (!stream.is_open())
+        {
+            return false; 
+        }
 
-        auto end = stream.tellg();
+        size = stream.tellg();
         stream.seekg(0, std::ios::beg);
-        size   = end - stream.tellg();
+
         buffer = new char[size];
         stream.read((char*)buffer, size);
-        stream.close();
 
-        return buffer;
+        if (!stream) 
+        {
+            delete[](char*)buffer;
+            return false;
+        }
+
+        stream.close();
+        return true;
     }
 
     uint8_t* FileSystem::ReadFile(Arena* arena, const String8& path)
     {
-        if(!FileExists(path))
+        if (!FileExists(path)) 
+        {
             return nullptr;
+        }
 
         std::ifstream stream((const char*)path.str, std::ios::binary | std::ios::ate);
+        if (!stream.is_open()) 
+        {
+            return nullptr;
+        }
 
-        auto end = stream.tellg();
+        int64_t size = stream.tellg();
         stream.seekg(0, std::ios::beg);
-        const int64_t size = end - stream.tellg();
-        char* buffer       = new char[size];
-        stream.read((char*)buffer, size);
-        stream.close();
 
+        u8* buffer = PushArrayNoZero(arena, u8, size);
+        stream.read((char*)buffer, size);
+
+        if (!stream) 
+        {
+            ArenaPop(arena, sizeof(u8) * size);
+            return nullptr;
+        }
+
+        stream.close();
         return (uint8_t*)buffer;
     }
 
@@ -121,6 +143,7 @@ namespace Lumos
             if (stream.bad())   LINFO("Read/writing error on i/o operation.");
         }
 #endif
+        NullTerminate(result);
         return result;
     }
 

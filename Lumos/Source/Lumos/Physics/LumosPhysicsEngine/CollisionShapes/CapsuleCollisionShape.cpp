@@ -55,68 +55,28 @@ namespace Lumos
 
     void CapsuleCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Vec3& axis, Vec3* out_min, Vec3* out_max) const
     {
-        //        Mat4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
-        //        Vec3 pos       = transform[3];
-        //
-        //        Vec3 topPosition    = Vec3(transform * Vec4(0.0f, m_Height * 0.5f, 0.0f, 1.0f));
-        //        Vec3 bottomPosition = Vec3(transform * Vec4(0.0f, -m_Height * 0.5f, 0.0f, 1.0f));
-        //
-        //        // Transform the axis into the local coordinate space of the capsule
-        //        Mat4 inverseTransform = glm::affineInverse(transform);
-        //        Vec3 localAxis        = Vec3(inverseTransform * Vec4(axis, 1.0f));
-        //
-        //        float minProj = Maths::Dot(topPosition, localAxis) - m_Radius;
-        //        float maxProj = Maths::Dot(bottomPosition, localAxis) + m_Radius;
-        //
-        //        *out_min = topPosition + minProj * localAxis;
-        //        *out_max = bottomPosition + maxProj * localAxis;
+        LUMOS_PROFILE_FUNCTION_LOW();
+        Mat4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
 
-        float minCorrelation = FLT_MAX, maxCorrelation = -FLT_MAX;
-
-        Mat4 transform       = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
-        const Vec3 localAxis = transform.Transpose() * Vec4(axis, 1.0f);
-
-        Vec3 pos       = transform.GetPositionVector();
-        Vec3 minVertex = Vec3(0.0f), maxVertex = Vec3(0.0f);
-
+        // Get the top and bottom positions of the capsule in world space
         Vec3 topPosition    = Vec3(transform * Vec4(0.0f, m_Height * 0.5f, 0.0f, 1.0f));
         Vec3 bottomPosition = Vec3(transform * Vec4(0.0f, -m_Height * 0.5f, 0.0f, 1.0f));
 
-        // Transform the axis into the local coordinate space of the capsule
-        // Mat4 inverseTransform = glm::affineInverse(transform);
-        // Vec3 localAxis        = Vec3(inverseTransform * Vec4(axis, 1.0f));
+        // Project the top and bottom positions onto the axis
+        float topProj    = Maths::Dot(topPosition, axis);
+        float bottomProj = Maths::Dot(bottomPosition, axis);
 
-        float minProj = Maths::Dot(topPosition, localAxis) - m_Radius;
-        float maxProj = Maths::Dot(bottomPosition, localAxis) + m_Radius;
+        // Find the min and max projections (accounting for radius)
+        float minProj = Maths::Min(topProj, bottomProj) - m_Radius;
+        float maxProj = Maths::Max(topProj, bottomProj) + m_Radius;
 
+        // Calculate the min and max points as world space positions
+        // These are points along the axis that have the correct projections
+        Vec3 axisNormalized = axis.Normalised();
         if(out_min)
-            *out_min = topPosition + minProj; // * localAxis;
+            *out_min = axisNormalized * minProj;
         if(out_max)
-            *out_max = bottomPosition + maxProj; // * localAxis;
-
-        // Capsule Collision shape
-        //		for(size_t i = 0; i < m_Vertices.size(); ++i)
-        //		{
-        //			const float cCorrelation = Maths::Dot(local_axis, m_Vertices[i].pos);
-        //
-        //			if(cCorrelation > maxCorrelation)
-        //			{
-        //				maxCorrelation = cCorrelation;
-        //				maxVertex      = int(i);
-        //			}
-        //
-        //			if(cCorrelation <= minCorrelation)
-        //			{
-        //				minCorrelation = cCorrelation;
-        //				minVertex      = int(i);
-        //			}
-        //		}
-
-        //		if(out_min)
-        //			*out_min = pos - axis * m_Radius;
-        //
-        //		if(out_max)
-        //			*out_max = pos + axis * m_Radius;
+            *out_max = axisNormalized * maxProj;
     }
 
     void CapsuleCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject,

@@ -542,10 +542,10 @@ namespace Lumos
     void GLFWWindow::UpdateControllers()
     {
         LUMOS_PROFILE_FUNCTION();
-    #ifdef LUMOS_PLATFORM_LINUX
-        //Disable on linux for now. Keyboard is classed as a controller
+#ifdef LUMOS_PLATFORM_LINUX
+        // Disable on linux for now. Keyboard is classed as a controller
         return;
-    #endif
+#endif
         auto& controllers = Input::Get().m_Controllers;
         for(i32 id = 0; id < MAX_CONTROLLER_COUNT; id++)
         {

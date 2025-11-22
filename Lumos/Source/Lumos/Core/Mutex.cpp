@@ -29,6 +29,41 @@ namespace Lumos
         return 0;
     }
 
+    i32 ConditionInit(ConditionVar* cv)
+    {
+        InitializeConditionVariable(cv);
+        return 0;
+    }
+
+    i32 ConditionDestroy(ConditionVar* cv)
+    {
+        (void)cv;
+        return 0;
+    }
+
+    i32 ConditionWait(ConditionVar* cv, Mutex* m)
+    {
+        BOOL ok = SleepConditionVariableCS(cv, &m->cs, INFINITE);
+        return ok ? 0 : GetLastError();
+    }
+
+    i32 ConditionTimedWait(ConditionVar* cv, Mutex* m, const timespec* abstime)
+    {
+        return 0;
+    }
+
+    i32 ConditionNotifyOne(ConditionVar* cv)
+    {
+        WakeConditionVariable(cv);
+        return 0;
+    }
+
+    i32 ConditionNotifyAll(ConditionVar* cv)
+    {
+        WakeAllConditionVariable(cv);
+        return 0;
+    }
+
 #else // POSIX
 
     i32 MutexInit(Mutex* m)
@@ -49,6 +84,31 @@ namespace Lumos
     i32 MutexUnlock(Mutex* m)
     {
         return pthread_mutex_unlock(&m->handle);
+    }
+
+    i32 ConditionInit(ConditionVar* cv)
+    {
+        return pthread_cond_init(cv, nullptr);
+    }
+    i32 ConditionDestroy(ConditionVar* cv)
+    {
+        return pthread_cond_destroy(cv);
+    }
+    i32 ConditionWait(ConditionVar* cv, Mutex* m)
+    {
+        return pthread_cond_wait(cv, &m->handle);
+    }
+    i32 ConditionTimedWait(ConditionVar* cv, Mutex* m, const timespec* abstime)
+    {
+        return pthread_cond_timedwait(cv, &m->handle, abstime);
+    }
+    i32 ConditionNotifyOne(ConditionVar* cv)
+    {
+        return pthread_cond_signal(cv);
+    }
+    i32 ConditionNotifyAll(ConditionVar* cv)
+    {
+        return pthread_cond_broadcast(cv);
     }
 
 #endif

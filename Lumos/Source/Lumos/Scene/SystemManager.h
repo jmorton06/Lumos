@@ -1,8 +1,8 @@
 #pragma once
 #include "Scene/ISystem.h"
 #include "Core/DataStructures/Map.h"
+#include "Core/Mutex.h"
 
-#include <mutex>
 namespace Lumos
 {
     class SystemManager
@@ -14,7 +14,7 @@ namespace Lumos
         template <typename T, typename... Args>
         ISystem* RegisterSystem(Args&&... args)
         {
-            std::scoped_lock<std::mutex> lock(m_Mutex);
+            ScopedMutex lock(m_Mutex);
             auto typeName = typeid(T).hash_code();
             ASSERT(!HasSystem<T>(), "Registering system more than once.");
 
@@ -27,7 +27,7 @@ namespace Lumos
         template <typename T>
         ISystem* RegisterSystem(T* t)
         {
-            std::scoped_lock<std::mutex> lock(m_Mutex);
+            ScopedMutex lock(m_Mutex);
             auto typeName = typeid(T).hash_code();
             ASSERT(!HasSystem<T>(), "Registering system more than once.");
 
@@ -40,7 +40,7 @@ namespace Lumos
         template <typename T>
         void RemoveSystem()
         {
-            std::scoped_lock<std::mutex> lock(m_Mutex);
+            ScopedMutex lock(m_Mutex);
             auto typeName = typeid(T).hash_code();
             HashMapRemove(&m_Systems, typeName);
         }
@@ -90,7 +90,7 @@ namespace Lumos
         }
 
     private:
-        std::mutex m_Mutex;
+        Mutex* m_Mutex;
         Arena* m_Arena;
 
         HashMap(size_t, ISystem*) m_Systems;

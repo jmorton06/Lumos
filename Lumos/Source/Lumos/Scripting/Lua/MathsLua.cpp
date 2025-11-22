@@ -18,6 +18,16 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         auto Vector2type = state.new_usertype<Vec2>("Vector2", sol::constructors<Vec2(float, float)>());
 
+        auto mult_overloads_vec2 = sol::overload(
+            [](const Vec2& v1, const Vec2& v2) -> Vec2
+            { return v1 * v2; },
+            [](const Vec2& v1, float f) -> Vec2
+            { return v1 * f; },
+            [](float f, const Vec2& v1) -> Vec2
+            { return f * v1; });
+
+        Vector2type[sol::meta_function::multiplication] = mult_overloads_vec2;
+
         // Fields
         Vector2type["x"] = &Vec2::x;
         Vector2type["y"] = &Vec2::y;
@@ -27,10 +37,7 @@ namespace Lumos
         {
             return a + b;
         };
-        Vector2type[sol::meta_function::multiplication] = [](const Vec2& a, const Vec2& b)
-        {
-            return a * b;
-        };
+
         Vector2type[sol::meta_function::subtraction] = [](const Vec2& a, const Vec2& b)
         {
             return a - b;

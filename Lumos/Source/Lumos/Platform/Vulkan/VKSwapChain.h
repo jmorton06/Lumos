@@ -73,6 +73,7 @@ namespace Lumos
             uint32_t m_QueueNodeIndex = UINT32_MAX;
             uint32_t m_SwapChainBufferCount;
             bool m_VSyncEnabled = false;
+            bool m_NeedRecreate = false;
 
             VkSwapchainKHR m_SwapChain;
             VkSwapchainKHR m_OldSwapChain;

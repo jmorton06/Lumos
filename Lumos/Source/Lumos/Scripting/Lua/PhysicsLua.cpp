@@ -60,6 +60,7 @@ namespace Lumos
         physicsObjectParameters_type["customShapePositions"]            = &RigidBodyParameters::customShapePositions;
         physicsObjectParameters_type["friction"]                        = &RigidBodyParameters::friction;
         physicsObjectParameters_type["damping"]                         = &RigidBodyParameters::damping;
+        physicsObjectParameters_type["elasticity"]                      = &RigidBodyParameters::elasticity;
 
         sol::usertype<RigidBody3DProperties> physicsObjectParameters3D_type = state.new_usertype<RigidBody3DProperties>("RigidBodyParameters3D");
         physicsObjectParameters3D_type["mass"]                              = &RigidBody3DProperties::Mass;

@@ -5,9 +5,10 @@
 #include <imgui/imgui.h>
 #include <Lumos/Core/Reference.h>
 #include <Lumos/Core/DataStructures/TDArray.h>
-#include <mutex>
+
 namespace Lumos
 {
+    struct Mutex;
     enum class ConsoleLogLevel : int16_t
     {
         None  = -1,
@@ -16,7 +17,7 @@ namespace Lumos
         Info  = 4,
         Warn  = 8,
         Error = 16,
-        FATAL = 32,
+        Fatal = 32,
     };
 
     struct ConsoleMessage
@@ -39,7 +40,7 @@ namespace Lumos
     {
     public:
         ConsolePanel();
-        ~ConsolePanel() = default;
+        ~ConsolePanel();
         void OnImGui() override;
 
         static void AddMessage(const ConsoleMessage& message);
@@ -49,7 +50,7 @@ namespace Lumos
         void ImGuiRenderMessages();
 
     private:
-        static std::mutex m_MessageBufferMutex;
+        static Mutex* m_MessageBufferMutex;
         static TDArray<ConsoleMessage> m_MessageBuffer;
 
         static bool s_AllowScrollingToBottom;

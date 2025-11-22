@@ -38,10 +38,14 @@ void main()
 
 	VertexOutput.Colour = inColor.xyz;
 	VertexOutput.TexCoord = inTexCoord;
-	//VertexOutput.Normal = mat3(pushConsts.transform) * inNormal;
-	mat3 transposeInv = transpose(inverse(mat3(pushConsts.transform)));
-    VertexOutput.Normal = transposeInv * inNormal;
 
-    VertexOutput.WorldNormal = transposeInv * mat3(inTangent, inBitangent, inNormal);
+	mat3 transposeInv = transpose(inverse(mat3(pushConsts.transform)));
+
+	vec3 N = normalize(transposeInv * inNormal);
+	vec3 T = normalize(transposeInv * inTangent);
+	vec3 B = normalize(cross(N, T));
+
+	VertexOutput.Normal = N;
+	VertexOutput.WorldNormal = mat3(T, B, N);
 
 }

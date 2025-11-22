@@ -89,7 +89,7 @@ namespace Lumos
             m_GPUOnlyMemory = !isMappable;
 
 #ifdef USE_VMA_ALLOCATOR
-            
+
             if(!data)
             {
                 VmaAllocationCreateInfo vmaAllocInfo = {};
@@ -187,6 +187,13 @@ namespace Lumos
                 SetData(size, data);
 #endif
 #else
+            if(size == 0)
+            {
+                m_Buffer = VK_NULL_HANDLE;
+                m_Memory = VK_NULL_HANDLE;
+                return;
+            }
+
             VK_CHECK_RESULT(vkCreateBuffer(VKDevice::Get().GetDevice(), &bufferInfo, nullptr, &m_Buffer));
 
             VkMemoryRequirements memRequirements;

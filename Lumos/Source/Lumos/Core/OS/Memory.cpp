@@ -180,7 +180,6 @@ namespace Lumos
     {
         ASSERT(arena != nullptr);
         arena->Position = u8(ptr - (u8*)arena->Ptr);
-
     }
 
     void ArenaPop(Arena* arena, uint64_t size)

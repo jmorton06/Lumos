@@ -3,13 +3,14 @@
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/Maths/MathsUtilities.h>
+#include <Lumos/Core/Mutex.h>
 
 namespace Lumos
 {
-    uint32_t ConsolePanel::s_MessageBufferRenderFilter = 0;
-    bool ConsolePanel::s_AllowScrollingToBottom        = true;
-    bool ConsolePanel::s_RequestScrollToBottom         = false;
-    std::mutex ConsolePanel::m_MessageBufferMutex;
+    uint32_t ConsolePanel::s_MessageBufferRenderFilter    = 0;
+    bool ConsolePanel::s_AllowScrollingToBottom           = true;
+    bool ConsolePanel::s_RequestScrollToBottom            = false;
+    Mutex* ConsolePanel::m_MessageBufferMutex             = nullptr;
     TDArray<ConsoleMessage> ConsolePanel::m_MessageBuffer = TDArray<ConsoleMessage>();
 
     const char* GetLevelIcon(ConsoleLogLevel level)
@@ -26,7 +27,7 @@ namespace Lumos
             return ICON_MDI_ALERT;
         case ConsoleLogLevel::Error:
             return ICON_MDI_CLOSE_OCTAGON;
-        case ConsoleLogLevel::FATAL:
+        case ConsoleLogLevel::Fatal:
             return ICON_MDI_ALERT_OCTAGRAM;
         default:
             return "Unknown name";
@@ -47,7 +48,7 @@ namespace Lumos
             return ICON_MDI_ALERT " Warning";
         case ConsoleLogLevel::Error:
             return ICON_MDI_CLOSE_OCTAGON " Error";
-        case ConsoleLogLevel::FATAL:
+        case ConsoleLogLevel::Fatal:
             return ICON_MDI_ALERT_OCTAGRAM " FATAL";
         default:
             return "Unknown name";
@@ -68,7 +69,7 @@ namespace Lumos
             return { 1.00f, 1.00f, 0.00f, 1.00f }; // Yellow
         case ConsoleLogLevel::Error:
             return { 1.00f, 0.25f, 0.25f, 1.00f }; // Red
-        case ConsoleLogLevel::FATAL:
+        case ConsoleLogLevel::Fatal:
             return { 0.6f, 0.2f, 0.8f, 1.00f }; // Purple
         default:
             return { 1.00f, 1.00f, 1.00f, 1.00f };
@@ -80,24 +81,41 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         m_Name                      = ICON_MDI_VIEW_LIST " Console###console";
         m_SimpleName                = "Console";
-        s_MessageBufferRenderFilter = (int16_t)ConsoleLogLevel::Trace | (int16_t)ConsoleLogLevel::Info | (int16_t)ConsoleLogLevel::Debug | (int16_t)ConsoleLogLevel::Warn | (int16_t)ConsoleLogLevel::Error | (int16_t)ConsoleLogLevel::FATAL;
+        s_MessageBufferRenderFilter = (int16_t)ConsoleLogLevel::Trace | (int16_t)ConsoleLogLevel::Info | (int16_t)ConsoleLogLevel::Debug | (int16_t)ConsoleLogLevel::Warn | (int16_t)ConsoleLogLevel::Error | (int16_t)ConsoleLogLevel::Fatal;
         m_MessageBuffer.Reserve(2000);
+
+        if(!m_MessageBufferMutex)
+        {
+            m_MessageBufferMutex = new Mutex();
+            MutexInit(m_MessageBufferMutex);
+        }
+    }
+
+    ConsolePanel::~ConsolePanel()
+    {
+        delete m_MessageBufferMutex;
     }
 
     void ConsolePanel::AddMessage(const ConsoleMessage& message)
     {
         LUMOS_PROFILE_FUNCTION();
+        if(!m_MessageBufferMutex)
+        {
+            m_MessageBufferMutex = new Mutex();
+            MutexInit(m_MessageBufferMutex);
+        }
+
         if(m_MessageBuffer.Size() > 0)
         {
             if(m_MessageBuffer.Back().m_MessageID == message.m_MessageID)
             {
-                std::scoped_lock<std::mutex> lock(m_MessageBufferMutex);
+                ScopedMutex lock(m_MessageBufferMutex);
                 m_MessageBuffer.Back().m_Count++;
                 return;
             }
         }
         {
-            std::scoped_lock<std::mutex> lock(m_MessageBufferMutex);
+            ScopedMutex lock(m_MessageBufferMutex);
             m_MessageBuffer.EmplaceBack(message);
         }
 
@@ -138,7 +156,7 @@ namespace Lumos
             // Button to clear the console
             if(ImGui::Button("Clear console"))
             {
-                std::scoped_lock<std::mutex> lock(m_MessageBufferMutex);
+                ScopedMutex lock(m_MessageBufferMutex);
                 m_MessageBuffer.Clear();
             }
 

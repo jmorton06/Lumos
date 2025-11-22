@@ -48,7 +48,7 @@ namespace Lumos
         m_RigidBodyFreeList = TDArray<RigidBody3D*>(m_Arena);
         m_RigidBodyFreeList.Reserve(m_MaxRigidBodyCount);
 
-        m_ManifoldLock   = PushArray(m_Arena, Mutex, 1);
+        m_ManifoldLock = PushArray(m_Arena, Mutex, 1);
         MutexInit(m_ManifoldLock);
     }
 

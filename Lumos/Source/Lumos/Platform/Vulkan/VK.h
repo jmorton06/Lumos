@@ -39,19 +39,19 @@ static char VMA_LOG_BUFFER[100];
 #endif
 
 #if defined(CAP_VK_VERSION_12) && (defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS))
-    #undef VMA_VULKAN_VERSION
+#undef VMA_VULKAN_VERSION
 
-    // Cap version to 1.2 for apple devices
-    // Fixes issue with vma assuming vkGetDeviceBufferMemoryRequirements is available
-    #if defined(VK_VERSION_1_3)
-        #define VMA_VULKAN_VERSION 1002000
-    #elif defined(VK_VERSION_1_2)
-        #define VMA_VULKAN_VERSION 1002000
-    #elif defined(VK_VERSION_1_1)
-        #define VMA_VULKAN_VERSION 1001000
-    #else
-        #define VMA_VULKAN_VERSION 1000000
-    #endif
+// Cap version to 1.2 for apple devices
+// Fixes issue with vma assuming vkGetDeviceBufferMemoryRequirements is available
+#if defined(VK_VERSION_1_3)
+#define VMA_VULKAN_VERSION 1002000
+#elif defined(VK_VERSION_1_2)
+#define VMA_VULKAN_VERSION 1002000
+#elif defined(VK_VERSION_1_1)
+#define VMA_VULKAN_VERSION 1001000
+#else
+#define VMA_VULKAN_VERSION 1000000
+#endif
 #endif
 
 #include <vulkan/vk_mem_alloc.h>

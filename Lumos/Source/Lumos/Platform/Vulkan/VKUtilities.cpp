@@ -52,8 +52,8 @@ namespace Lumos
         void VKUtilities::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
                                        VkDeviceMemory& bufferMemory, VmaAllocator allocator, VmaAllocation allocation)
 #else
-    void VKUtilities::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
-                                   VkDeviceMemory& bufferMemory)
+        void VKUtilities::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
+                                       VkDeviceMemory& bufferMemory)
 #endif
         {
             VkBufferCreateInfo bufferInfo = {};
@@ -118,9 +118,9 @@ namespace Lumos
             VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffer));
 
             VkFence fence;
-            VkFenceCreateInfo fenceInfo{VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
+            VkFenceCreateInfo fenceInfo { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
             vkCreateFence(VKDevice::Get().GetDevice(), &fenceInfo, nullptr, &fence);
-            
+
             VkSubmitInfo submitInfo;
             submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
             submitInfo.commandBufferCount   = 1;
@@ -135,7 +135,7 @@ namespace Lumos
 
             VK_CHECK_RESULT(vkWaitForFences(VKDevice::Get().GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX));
             vkDestroyFence(VKDevice::Get().GetDevice(), fence, nullptr);
-            
+
             vkFreeCommandBuffers(VKDevice::Get().GetDevice(),
                                  VKDevice::Get().GetCommandPool()->GetHandle(), 1, &commandBuffer);
         }

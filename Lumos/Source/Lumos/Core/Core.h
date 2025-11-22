@@ -100,7 +100,8 @@
 #if LUMOS_ENABLE_LOG
 #ifdef LUMOS_PLATFORM_UNIX
 #define ASSERT(condition, ...)                                                                \
-    do {                                                                                      \
+    do                                                                                        \
+    {                                                                                         \
         if(!(condition))                                                                      \
         {                                                                                     \
             LERROR("Assertion failed: %s, file %s, line %i", #condition, __FILE__, __LINE__); \
@@ -110,7 +111,8 @@
     } while(0)
 #else
 #define ASSERT(condition, ...)                                                                \
-    do {                                                                                      \
+    do                                                                                        \
+    {                                                                                         \
         if(!(condition))                                                                      \
         {                                                                                     \
             LERROR("Assertion failed: %s, file %s, line %i", #condition, __FILE__, __LINE__); \
@@ -203,12 +205,14 @@
 #define MemorySet memset
 
 #define MemoryCopyStruct(dst, src)                \
-    do {                                          \
+    do                                            \
+    {                                             \
         ASSERT(sizeof(*(dst)) == sizeof(*(src))); \
         MemoryCopy((dst), (src), sizeof(*(dst))); \
     } while(0)
 #define MemoryCopyArray(dst, src)              \
-    do {                                       \
+    do                                         \
+    {                                          \
         ASSERT(sizeof(dst) == sizeof(src));    \
         MemoryCopy((dst), (src), sizeof(src)); \
     } while(0)
