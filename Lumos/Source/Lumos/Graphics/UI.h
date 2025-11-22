@@ -29,7 +29,8 @@ namespace Lumos
         WidgetFlags_Floating_X        = (1 << 7),
         WidgetFlags_Floating_Y        = (1 << 8),
         WidgetFlags_CentreX           = (1 << 9),
-		WidgetFlags_CentreY           = (1 << 10)
+		WidgetFlags_CentreY           = (1 << 10),
+        WidgetFlags_DragParent       = (1 << 11)
     };
 
     enum UITextAlignment : u32
@@ -179,6 +180,7 @@ namespace Lumos
 
     void UIEndFrame(Graphics::Font* font);
 
+    UI_Interaction UIBeginPanel(const char* str);
     UI_Interaction UIBeginPanel(const char* str, u32 extraFlags = 0);
     UI_Interaction UIBeginPanel(const char* str, SizeKind sizeKindX, float xValue, SizeKind sizeKindY, float yValue, u32 extraFlags = 0);
 
@@ -190,6 +192,7 @@ namespace Lumos
     void UIPushStyle(StyleVar style_variable, const Vec4& value);
     void UIPopStyle(StyleVar style_variable);
 
+    UI_Interaction UILabelCStr(const char* str, const char* text);
     UI_Interaction UILabel(const char* str, const String8& text);
     UI_Interaction UIButton(const char* str);
     UI_Interaction UIImage(const char* str,

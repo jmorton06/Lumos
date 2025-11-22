@@ -103,25 +103,25 @@ namespace Lumos
     }
 
 #else
-namespace Graphics
-{
-    void CreateImageDefault(const VkImageCreateInfo& imageInfo, VkImage& image, VkDeviceMemory& imageMemory, VkMemoryPropertyFlags properties)
+    namespace Graphics
     {
-        LUMOS_PROFILE_FUNCTION();
-        vkCreateImage(VKDevice::Get().GetDevice(), &imageInfo, nullptr, &image);
+        void CreateImageDefault(const VkImageCreateInfo& imageInfo, VkImage& image, VkDeviceMemory& imageMemory, VkMemoryPropertyFlags properties)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            vkCreateImage(VKDevice::Get().GetDevice(), &imageInfo, nullptr, &image);
 
-        VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(VKDevice::Get().GetDevice(), image, &memRequirements);
+            VkMemoryRequirements memRequirements;
+            vkGetImageMemoryRequirements(VKDevice::Get().GetDevice(), image, &memRequirements);
 
-        VkMemoryAllocateInfo allocInfo = {};
-        allocInfo.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.allocationSize       = memRequirements.size;
-        allocInfo.memoryTypeIndex      = VKUtilities::FindMemoryType(memRequirements.memoryTypeBits, properties);
+            VkMemoryAllocateInfo allocInfo = {};
+            allocInfo.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            allocInfo.allocationSize       = memRequirements.size;
+            allocInfo.memoryTypeIndex      = VKUtilities::FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-        vkAllocateMemory(VKDevice::Get().GetDevice(), &allocInfo, nullptr, &imageMemory);
-        vkBindImageMemory(VKDevice::Get().GetDevice(), image, imageMemory, 0);
+            vkAllocateMemory(VKDevice::Get().GetDevice(), &allocInfo, nullptr, &imageMemory);
+            vkBindImageMemory(VKDevice::Get().GetDevice(), image, imageMemory, 0);
+        }
     }
-}
 #endif
 
 #ifdef USE_VMA_ALLOCATOR
@@ -557,7 +557,7 @@ namespace Graphics
             VkImageUsageFlags usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 #ifdef USE_VMA_ALLOCATOR
-            Graphics::CreateImage(m_Width, m_Height, m_MipLevels, m_VKFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, usage , VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0, m_Allocation, m_Samples);
+            Graphics::CreateImage(m_Width, m_Height, m_MipLevels, m_VKFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0, m_Allocation, m_Samples);
 #else
             Graphics::CreateImage(m_Width, m_Height, m_MipLevels, m_VKFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0, m_Samples);
 #endif
@@ -1356,7 +1356,7 @@ namespace Graphics
             VKUtilities::TransitionImageLayout(m_TextureImage, m_VKFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, m_Count);
             m_ImageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-            m_TextureSampler = CreateTextureSampler(VK_FILTER_LINEAR, VK_FILTER_LINEAR, 0.0f, 1, false, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, false,
+            m_TextureSampler = CreateTextureSampler(VK_FILTER_LINEAR, VK_FILTER_LINEAR, 0.0f, 1, false, 1.0f, false,
                                                     VK_SAMPLER_ADDRESS_MODE_REPEAT,
                                                     VK_SAMPLER_ADDRESS_MODE_REPEAT,
                                                     VK_SAMPLER_ADDRESS_MODE_REPEAT);

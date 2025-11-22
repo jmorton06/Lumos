@@ -5,6 +5,7 @@
 #include "Core/Application.h"
 #include "Graphics/RHI/IMGUIRenderer.h"
 #include "Core/OS/FileSystem.h"
+#include "Core/OS/OS.h"
 #include "ImGuiUtilities.h"
 #include "Maths/MathsUtilities.h"
 #include "IconsMaterialDesignIcons.h"
@@ -130,6 +131,11 @@ namespace Lumos
         ImGuizmo::BeginFrame();
 
         Application::Get().OnImGui();
+
+        if(ImGui::GetIO().WantTextInput)
+        {
+            OS::Get().ShowKeyboard(true);
+        }
     }
 
     void ImGuiManager::OnEvent(Event& event)

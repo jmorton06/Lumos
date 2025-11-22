@@ -264,10 +264,16 @@ namespace Lumos
             while(FailedCount < 10)
             {
                 LUMOS_PROFILE_SCOPE("vkAcquireNextImageKHR");
+                if(!m_Frames[m_CurrentBuffer].ImageAcquireSemaphore)
+                {
+                    LWARN("No ImageAcquireSemaphore for buffer %u", m_CurrentBuffer);
+                    return false;
+                }
                 auto result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_Frames[m_CurrentBuffer].ImageAcquireSemaphore->GetHandle(), VK_NULL_HANDLE, &m_AcquireImageIndex);
 
                 if(result == VK_SUCCESS)
                 {
+                    FailedCount = 0;
                     return true;
                 }
 
@@ -281,6 +287,10 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_LINUX
                         return false;
 #endif
+                    }
+                    else
+                    {
+                        m_NeedRecreate = true;
                     }
 
                     return true;
@@ -374,15 +384,15 @@ namespace Lumos
         void VKSwapChain::Present(VkSemaphore semaphore)
         {
             LUMOS_PROFILE_FUNCTION();
-            VkPresentInfoKHR present;
+            VkPresentInfoKHR present {};
             present.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-            present.pNext              = VK_NULL_HANDLE;
+            present.pNext              = nullptr;
             present.swapchainCount     = 1;
             present.pSwapchains        = &m_SwapChain;
             present.pImageIndices      = &m_AcquireImageIndex;
             present.waitSemaphoreCount = 1;
             present.pWaitSemaphores    = &semaphore;
-            present.pResults           = VK_NULL_HANDLE;
+            present.pResults           = nullptr;
 
             auto error = vkQueuePresentKHR(VKDevice::Get().GetPresentQueue(), &present);
 
@@ -397,6 +407,13 @@ namespace Lumos
             else
             {
                 VK_CHECK_RESULT(error);
+            }
+
+            if(m_NeedRecreate)
+            {
+                vkDeviceWaitIdle(VKDevice::Get().GetDevice());
+                OnResize(m_Width, m_Height, true);
+                m_NeedRecreate = false;
             }
         }
 

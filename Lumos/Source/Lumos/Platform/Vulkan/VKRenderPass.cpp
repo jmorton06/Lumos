@@ -120,10 +120,10 @@ namespace Lumos
             attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             attachment.flags          = 0;
 
-            if (type == TextureType::COLOUR && swapchainTarget)
-           {
-               attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-           }
+            if(type == TextureType::COLOUR && swapchainTarget)
+            {
+                attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+            }
 
             return attachment;
         }
@@ -218,13 +218,13 @@ namespace Lumos
                 {
                     {
                         VkSubpassDependency& dependency = dependencies.EmplaceBack();
-                        dependency.srcSubpass      = VK_SUBPASS_EXTERNAL;
-                        dependency.dstSubpass      = 0;
-                        dependency.srcStageMask    = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-                        dependency.srcAccessMask   = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-                        dependency.dstStageMask    = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-                        dependency.dstAccessMask   = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-                        dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+                        dependency.srcSubpass           = VK_SUBPASS_EXTERNAL;
+                        dependency.dstSubpass           = 0;
+                        dependency.srcStageMask         = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                        dependency.srcAccessMask        = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                        dependency.dstStageMask         = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                        dependency.dstAccessMask        = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                        dependency.dependencyFlags      = VK_DEPENDENCY_BY_REGION_BIT;
                     }
 
                     {

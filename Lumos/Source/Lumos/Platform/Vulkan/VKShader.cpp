@@ -687,22 +687,11 @@ namespace Lumos
 
                 auto& type = comp.get_type(u.type_id);
 
-                auto ranges = comp.get_active_buffer_ranges(u.id);
-
-                uint32_t size = 0;
-                for(auto& range : ranges)
-                {
-                    SHADER_LOG(LINFO("Accessing Member %i offset %i, size %i", range.index, range.offset, range.range));
-                    size += uint32_t(range.range);
-                }
-
-                SHADER_LOG(LINFO("Found Push Constant %s at set = %i, binding = %i", u.name.c_str(), set, binding, type.array.size() ? uint32_t(type.array[0]) : 1));
-
-                m_PushConstants.PushBack({ size, shaderType });
-                m_PushConstants.Back().data = new uint8_t[size];
-
                 auto& bufferType = comp.get_type(u.base_type_id);
                 auto bufferSize  = comp.get_declared_struct_size(bufferType);
+
+                m_PushConstants.PushBack({ (uint32_t)bufferSize, shaderType });
+                m_PushConstants.Back().data = new uint8_t[bufferSize]();
                 int memberCount  = (int)bufferType.member_types.size();
 
                 for(int i = 0; i < memberCount; i++)

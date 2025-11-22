@@ -267,8 +267,14 @@ namespace Lumos
             properties.Mass = 1.0f / m_InvMass;
         else
             properties.Mass = 1.0f;
-        // TODO: Finish rest;
-        LWARN("WIP Rigidbody GetProperties");
+        properties.Orientation     = m_Orientation;
+        properties.AngularVelocity = m_AngularVelocity;
+        properties.Torque          = m_Torque;
+        properties.Static          = m_Static;
+        properties.Friction        = m_Friction;
+        properties.AtRest          = m_AtRest;
+        properties.isTrigger       = m_Trigger;
+        properties.Shape           = m_CollisionShape;
 
         return properties;
     }

@@ -56,19 +56,6 @@ namespace Lumos
     void iOSOS::Init()
     {
         Lumos::Internal::CoreSystem::Init(false);
-
-        std::string root = GetAssetPath();
-		/*
-        Lumos::VFS::Get().Mount("CoreShaders", root + "Shaders");
-
-       // Lumos::VFS::Get().Mount("Shaders", root + "shaders");
-        Lumos::VFS::Get().Mount("Meshes", root + "Meshes");
-        Lumos::VFS::Get().Mount("Textures", root + "Textures");
-        Lumos::VFS::Get().Mount("Scripts", root + "Scripts");
-        Lumos::VFS::Get().Mount("Scenes", root + "Scenes");
-        Lumos::VFS::Get().Mount("Sounds", root + "Sounds");
-        Lumos::VFS::Get().Mount("Assets", root + "Assets");
-*/
         LINFO("Device : %s",GetModelName().c_str());
 
         iOSWindow::MakeDefault();
@@ -134,21 +121,9 @@ namespace Lumos
 
     std::string iOSOS::GetExecutablePath()
     {
-        //Get iOS Documents Directory
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         NSString *documentsDirectory = [paths objectAtIndex:0];
         return [documentsDirectory stringByAppendingString: @"/"].UTF8String;
-
-        //return GetAssetPath();
-#if 0
-        static char path[512] = "";
-        if (!path[0])
-        {
-            NSString *bundlePath = [[NSBundle mainBundle] bundlePath];
-            strcpy(path, (const char *)[bundlePath cStringUsingEncoding:NSUTF8StringEncoding]);
-        }
-        return path;
-#endif
     }
 
     void iOSOS::Vibrate() const
@@ -201,9 +176,9 @@ namespace Lumos
         return std::string(str != NULL ? str : "");
     }
 
-    void iOSOS::ShowKeyboard(bool open)
+    void iOSOS::ShowKeyboard(bool bShow)
     {
-
+        //bShow ? KeyboardBridge_ShowKeyboard() : KeyboardBridge_HideKeyboard();
     }
 
     bool iOSOS::HasWifiConnection()
@@ -291,7 +266,7 @@ namespace Lumos
 		// Configure the Metal layer
 		CAMetalLayer *metalLayer = (CAMetalLayer *)self.layer;
 		metalLayer.device = device;
-		metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+		metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
 		metalLayer.framebufferOnly = YES; // Optimize for rendering performance.
     }
     return self;
@@ -341,7 +316,6 @@ namespace Lumos
     }
 }
 
-
 - (void)layoutSubviews
 {
     [super layoutSubviews];
@@ -359,14 +333,11 @@ namespace Lumos
         [self draw];
     }
 }
-
 @end
 
 @interface LumosAppDelegate : UIResponder <UIApplicationDelegate>
-
 @property(nonatomic, strong) UIWindow *window;
 @property(nonatomic, assign) BOOL active;
-
 @end
 
 UIView<LumosView> *lumosView = nil;
@@ -416,7 +387,6 @@ CALayer* layer;
 - (void)loadView
 {
 	//[super loadView];
-
 	auto *delegate = UIApplication.sharedApplication.delegate;
 	CGRect frame = delegate.window.bounds;
 	CGFloat scale = [UIScreen mainScreen].nativeScale;
@@ -459,20 +429,18 @@ CALayer* layer;
 	layer = [self.view layer];		// SRS - When creating a Vulkan Metal surface, need the layer backing the view
 
     auto *delegate = (LumosAppDelegate*)UIApplication.sharedApplication.delegate;
-    //self.lumosView.animating = delegate.active;
+    self.lumosView.animating = delegate.active;
 
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    self.multipleTouchEnabled = true;
+    
 #if TARGET_OS_IOS
     self.view.multipleTouchEnabled = self.multipleTouchEnabled;
-
     [self setNeedsStatusBarAppearanceUpdate];
-
     [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(keyboardFrameChanged:)
                                                name:UIKeyboardWillChangeFrameNotification
                                              object:self.view.window];
 #endif
-
-	self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-	self.multipleTouchEnabled = true;
 
 	if (![self.view.layer isKindOfClass:[CAMetalLayer class]]) {
 		NSLog(@"Error: The layer is not a CAMetalLayer.");
@@ -686,16 +654,15 @@ typedef enum {
     return NO;
 }
 
-- (void)showKeyboard {
+- (void)KeyboardBridge_ShowKeyboard {
     [self.view becomeFirstResponder];
 };
 
-- (void)hideKeyboard {
+- (void)KeyboardBridge_HideKeyboard {
     [self.view resignFirstResponder];
 };
 
 @synthesize hasText;
-
 @end
 
 @implementation LumosAppDelegate

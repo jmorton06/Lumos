@@ -842,86 +842,86 @@ namespace Lumos
 
             if(CurrentEnty->IsFile)
             {
-                textureId = m_FileIcon;
+                textureId                    = m_FileIcon;
                 static bool EnableThumbnails = false;
                 if(EnableThumbnails)
-                switch(CurrentEnty->Type)
-                {
-                case FileType::Texture:
-                {
-                    if(CurrentEnty->Thumbnail)
+                    switch(CurrentEnty->Type)
                     {
-                        textureId = CurrentEnty->Thumbnail;
-                    }
-                    else if(!textureCreated)
+                    case FileType::Texture:
                     {
-                        textureCreated = true;
-                        if(!m_Editor->GetAssetManager()->AssetExists(CurrentEnty->AssetPath))
-                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(CurrentEnty->AssetPath, true);
-                        else
-                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(CurrentEnty->AssetPath).As<Graphics::Texture2D>();
-                        textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
-                    }
-                    break;
-                }
-                case FileType::Scene:
-                {
-                    ArenaTemp scratch                       = ArenaTempBegin(m_Arena);
-                    String8 fileName                        = PushStr8Copy(scratch.arena, StringUtilities::GetFileName(CurrentEnty->AssetPath));
-                    String8 sceneScreenShotPath             = PushStr8F(scratch.arena, "%s/Scenes/Cache/%s.png", (const char*)m_BasePath.str, (const char*)fileName.str);
-                    std::string sceneScreenShotPathtdString = std::string((const char*)sceneScreenShotPath.str, sceneScreenShotPath.size);
-                    if(std::filesystem::exists(std::filesystem::path(sceneScreenShotPathtdString)))
-                    {
-                        textureCreated                   = true;
-                        String8 sceneScreenShotAssetPath = PushStr8F(scratch.arena, "%s/Scenes/Cache/%s.png", (const char*)Str8Lit("//Assets").str, (const char*)fileName.str);
-
-                        if(!m_Editor->GetAssetManager()->AssetExists(sceneScreenShotAssetPath))
-                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(sceneScreenShotAssetPath, true);
-                        else
-                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(sceneScreenShotAssetPath).As<Graphics::Texture2D>();
-                        textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
-                    }
-                    ArenaTempEnd(scratch);
-                    break;
-                }
-                case FileType::Material:
-                case FileType::Model:
-                {
-                    if(CurrentEnty->Thumbnail)
-                    {
-                        textureId = CurrentEnty->Thumbnail;
-                    }
-                    else if(!textureCreated)
-                    {
-                        textureCreated    = true;
-                        ArenaTemp scratch = ArenaTempBegin(m_Arena);
-
-                        String8 thumbnailPath;
-                        String8 thumbnailAssetPath;
-                        CreateThumbnailPath(scratch.arena, CurrentEnty, thumbnailAssetPath, thumbnailPath);
-
-                        if(std::filesystem::exists(std::filesystem::path((const char*)thumbnailPath.str)))
+                        if(CurrentEnty->Thumbnail)
+                        {
+                            textureId = CurrentEnty->Thumbnail;
+                        }
+                        else if(!textureCreated)
                         {
                             textureCreated = true;
-                            if(!m_Editor->GetAssetManager()->AssetExists(thumbnailAssetPath))
-                                CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(thumbnailPath, true);
+                            if(!m_Editor->GetAssetManager()->AssetExists(CurrentEnty->AssetPath))
+                                CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(CurrentEnty->AssetPath, true);
                             else
-                                CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(thumbnailAssetPath).As<Graphics::Texture2D>();
+                                CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(CurrentEnty->AssetPath).As<Graphics::Texture2D>();
                             textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
                         }
-                        else
-                        {
-                            m_Editor->RequestThumbnail(CurrentEnty->AssetPath);
-                            textureId = m_FileIcon;
-                        }
-
-                        ArenaTempEnd(scratch);
+                        break;
                     }
-                    break;
-                }
-                default:
-                    break;
-                }
+                    case FileType::Scene:
+                    {
+                        ArenaTemp scratch                       = ArenaTempBegin(m_Arena);
+                        String8 fileName                        = PushStr8Copy(scratch.arena, StringUtilities::GetFileName(CurrentEnty->AssetPath));
+                        String8 sceneScreenShotPath             = PushStr8F(scratch.arena, "%s/Scenes/Cache/%s.png", (const char*)m_BasePath.str, (const char*)fileName.str);
+                        std::string sceneScreenShotPathtdString = std::string((const char*)sceneScreenShotPath.str, sceneScreenShotPath.size);
+                        if(std::filesystem::exists(std::filesystem::path(sceneScreenShotPathtdString)))
+                        {
+                            textureCreated                   = true;
+                            String8 sceneScreenShotAssetPath = PushStr8F(scratch.arena, "%s/Scenes/Cache/%s.png", (const char*)Str8Lit("//Assets").str, (const char*)fileName.str);
+
+                            if(!m_Editor->GetAssetManager()->AssetExists(sceneScreenShotAssetPath))
+                                CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(sceneScreenShotAssetPath, true);
+                            else
+                                CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(sceneScreenShotAssetPath).As<Graphics::Texture2D>();
+                            textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
+                        }
+                        ArenaTempEnd(scratch);
+                        break;
+                    }
+                    case FileType::Material:
+                    case FileType::Model:
+                    {
+                        if(CurrentEnty->Thumbnail)
+                        {
+                            textureId = CurrentEnty->Thumbnail;
+                        }
+                        else if(!textureCreated)
+                        {
+                            textureCreated    = true;
+                            ArenaTemp scratch = ArenaTempBegin(m_Arena);
+
+                            String8 thumbnailPath;
+                            String8 thumbnailAssetPath;
+                            CreateThumbnailPath(scratch.arena, CurrentEnty, thumbnailAssetPath, thumbnailPath);
+
+                            if(std::filesystem::exists(std::filesystem::path((const char*)thumbnailPath.str)))
+                            {
+                                textureCreated = true;
+                                if(!m_Editor->GetAssetManager()->AssetExists(thumbnailAssetPath))
+                                    CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(thumbnailPath, true);
+                                else
+                                    CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(thumbnailAssetPath).As<Graphics::Texture2D>();
+                                textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
+                            }
+                            else
+                            {
+                                m_Editor->RequestThumbnail(CurrentEnty->AssetPath);
+                                textureId = m_FileIcon;
+                            }
+
+                            ArenaTempEnd(scratch);
+                        }
+                        break;
+                    }
+                    default:
+                        break;
+                    }
             }
             bool flipImage = false;
 

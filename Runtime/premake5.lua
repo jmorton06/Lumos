@@ -244,16 +244,24 @@ project "Runtime"
 
 		xcodebuildresources
 		{
-			"../Lumos/Source/Platform/iOS/Client",
-			"Assets.xcassets",
-            "Shaders",
-            "ExampleProject"
+			"../Resources/AppIcons/Assets.xcassets",
+			"../Lumos/Assets/Shaders",
+			--"../Lumos/Source/Lumos/Platform/iOS/Client/**",
+			"../ExampleProject/"
             -- "Meshes",
             -- "Scenes",
             -- "Scripts",
             -- "Sounds",
             -- "Textures",
 			--"Example.lmproj"
+		}
+
+			xcodebuildresources
+		{
+			"../Lumos/Source/Platform/iOS/Client",
+			"Assets.xcassets",
+            "Shaders",
+            "ExampleProject"
 		}
 
 	filter "system:linux"

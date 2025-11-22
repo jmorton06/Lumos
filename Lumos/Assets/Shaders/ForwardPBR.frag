@@ -16,12 +16,8 @@ struct VertexData
 
 layout(location = 0) in VertexData VertexOutput;
 
-#define BLEND_SHADOW_CASCADES 1
-#define FILTER_SHADOWS 1
-#define NUM_PCF_SAMPLES 4
-#define INV_SQRT_PCF_SAMPLES 0.5// 1.0 / sqrt(NUM_PCF_SAMPLES)
-#define VOGEL_OFFSET 1
 float ShadowFade = 1.0;
+float InvSqrtPCFSamples = 1.0;
 
 layout(location = 0) out vec4 outColour;
 
@@ -162,10 +158,10 @@ float rand(vec2 co)
 
 vec2 VogelDiskSample(int sampleIndex, float invSquareRootSamplesCount, float phi)
 {
-    float GoldenAngle = 2.4f;
+	float GoldenAngle = 2.4;
 
-    float r = sqrt(sampleIndex + 0.5f) * invSquareRootSamplesCount;/// sqrt(samplesCount);
-    float theta = sampleIndex * GoldenAngle + phi;
+	float r = sqrt(sampleIndex + 0.5) * invSquareRootSamplesCount;/// sqrt(samplesCount);
+	float theta = sampleIndex * GoldenAngle + phi;
 
     float sine = sin(theta);
     float cosine = cos(theta);
@@ -176,7 +172,7 @@ vec2 VogelDiskSample(int sampleIndex, float invSquareRootSamplesCount, float phi
 float Random(vec4 seed4)
 {
 	float dot_product = dot(seed4, vec4(12.9898,78.233,45.164,94.673));
-    return fract(sin(dot_product) * 43758.5453);
+	return fract(sin(dot_product) * 43758.5453);
 }
 
 float Random(vec3 seed, int i)
@@ -210,12 +206,17 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 	float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
 	float sum = 0.0;
 	//float noise = Noise(wsPos.xy);
-	float invSquareRootSamplesCount = INV_SQRT_PCF_SAMPLES;;
+	float invSquareRootSamplesCount = InvSqrtPCFSamples;
     vec3 flooredPos = floor(wsPos.xyz*1000.0);
     //int index = int(16.0*Random(flooredPos.xyz, 1))%16;
-
-	for (int i = 0; i < NUM_PCF_SAMPLES; i++)
+	#define MAX_PCF_SAMPLES 64
+	for (int i = 0; i < MAX_PCF_SAMPLES; i++)
 	{
+		if(i >= u_SceneData.PCFSamples)
+			break;
+
+		vec2 offset;
+
 		//int index = int(16.0f*Random(vec4(wsPos, i)))%16;
 		//int index = int(float(NUM_PCF_SAMPLES)*GoldNoise(wsPos.xy, i * wsPos.z))%NUM_PCF_SAMPLES;
 		//int index = int(float(NUM_PCF_SAMPLES)*Random(vec4(wsPos.xyz, 1)))%NUM_PCF_SAMPLES;
@@ -223,18 +224,21 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 		//int index = int(NUM_PCF_SAMPLES*Random(vec4(floor(wsPos.xyz*1000.0), i)))%NUM_PCF_SAMPLES;
 		//int index = int(NUM_PCF_SAMPLES*Random(vec4(wsPos.xyy, i)))%NUM_PCF_SAMPLES;
 
+	if(u_SceneData.VogelOffset > 0)
+	{
+		offset = VogelDiskSample(i, invSquareRootSamplesCount, interleavedGradientNoise(gl_FragCoord.xy)) / 1024.0;
+	}
+	else
+	{
+		int index = int(16.0f*Random(vec4(wsPos, i)))%16;
+ 		offset = SamplePoisson(index) / 700.0;
+	}
 
-#if VOGEL_OFFSET
-        vec2 offset = VogelDiskSample(i, invSquareRootSamplesCount, interleavedGradientNoise(gl_FragCoord.xy)) / 1024.0f;
-#else
-        vec2 offset = SamplePoisson(index) / 700.0f;
-#endif
-
-        float z = texture(shadowMap, vec3(shadowCoords.xy + offset, cascadeIndex)).r - bias;
+	float z = texture(shadowMap, vec3(shadowCoords.xy + offset, cascadeIndex)).r - bias;
         sum += step(shadowCoords.z, z);
 	}
 
-	return sum / NUM_PCF_SAMPLES;
+	return sum / u_SceneData.PCFSamples;
 }
 
 int CalculateCascadeIndex(vec3 wsPos)
@@ -244,6 +248,7 @@ int CalculateCascadeIndex(vec3 wsPos)
 
 	for(int i = 0; i < u_SceneData.ShadowCount - 1; ++i)
 	{
+		// If the view-space depth is greater than a split depth, the cascade index should increase.
 		if(viewPos.z < u_SceneData.SplitDepths[i].x)
 		{
 			cascadeIndex = i + 1;
@@ -266,31 +271,38 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 
 	vec4 shadowCoord = u_SceneData.BiasMatrix * u_SceneData.ShadowTransform[cascadeIndex] * vec4(wsPos, 1.0);
 	shadowCoord = shadowCoord * (1.0 / shadowCoord.w);
-	float NEAR = 0.01;
-	float uvRadius =  u_SceneData.LightSize * NEAR / shadowCoord.z;
-	uvRadius = min(uvRadius, 0.002f);
 
 	float shadowAmount = 1.0;
 
-#if (FILTER_SHADOWS  == 1)
-	shadowAmount = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeIndex);
-#else
-	float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
-	float z = texture(uShadowMap, vec3(shadowCoord.xy, cascadeIndex)).r;
-	shadowAmount = step(shadowCoord.z - bias, z);
-#endif
+	float uvRadius = 0.002;
 
-#if (BLEND_SHADOW_CASCADES == 1)
-	float cascadeFade = smoothstep(u_SceneData.SplitDepths[cascadeIndex].x + u_SceneData.CascadeFade, u_SceneData.SplitDepths[cascadeIndex].x, viewPos.z);
-	int cascadeNext = cascadeIndex + 1;
-	if (cascadeFade > 0.0 && cascadeNext < u_SceneData.ShadowCount)
+	if (u_SceneData.FilterShadows  == 1)
 	{
-		shadowCoord = u_SceneData.BiasMatrix * u_SceneData.ShadowTransform[cascadeNext] * vec4(wsPos, 1.0);
-		float shadowAmount1 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeNext);
+		float NEAR = 0.01;
+		uvRadius =  u_SceneData.LightSize * NEAR / shadowCoord.z;
+		uvRadius = min(uvRadius, 0.002);
 
-		shadowAmount =  mix(shadowAmount, shadowAmount1, cascadeFade);
+		shadowAmount = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeIndex);
 	}
-#endif
+	else
+	{
+		float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
+		float z = texture(uShadowMap, vec3(shadowCoord.xy, cascadeIndex)).r;
+		shadowAmount = step(shadowCoord.z - bias, z);
+	}
+
+	if (u_SceneData.BlendShadows == 1)
+	{
+		float cascadeFade = smoothstep(u_SceneData.SplitDepths[cascadeIndex].x + u_SceneData.CascadeFade, u_SceneData.SplitDepths[cascadeIndex].x, viewPos.z);
+		int cascadeNext = cascadeIndex + 1;
+		if (cascadeFade > 0.0 && cascadeNext < u_SceneData.ShadowCount)
+		{
+			shadowCoord = u_SceneData.BiasMatrix * u_SceneData.ShadowTransform[cascadeNext] * vec4(wsPos, 1.0);
+			float shadowAmount1 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeNext);
+
+			shadowAmount =  mix(shadowAmount, shadowAmount1, cascadeFade);
+		}
+	}
 
 	return 1.0 - ((1.0 - shadowAmount) * ShadowFade);
 }
@@ -352,9 +364,11 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 			float dist          = length(L);
 			L = normalize(L);
 			float theta         = dot(L.xyz, light.direction.xyz);
-			float epsilon       = cutoffAngle - cutoffAngle * 0.9f;
-			float attenuation 	= ((theta - cutoffAngle) / epsilon); // atteunate when approaching the outer cone
-			attenuation         *= light.radius / (pow(dist, 2.0) + 1.0);//saturate(1.0f - dist / light.range);
+			float cutoffAngleF   = 1.0 - light.angle;
+			float distF          = dist;
+			float epsilon       = cutoffAngleF - cutoffAngleF * 0.9;
+			float attenuation 	= ((theta - cutoffAngleF) / epsilon); // attenuate when approaching the outer cone
+			attenuation         *= light.radius / (distF * distF + 1.0);//saturate(1.0 - distF / light.range);
 			//float intensity 	= attenuation * attenuation;
 
 			// Erase light if there is no need to compute it
@@ -366,9 +380,9 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 		{
 			float nDotL = dot(material.Normal, light.direction.xyz);
 
-			if(u_SceneData.shadowEnabled > 0 && nDotL > 0.0f)
+			if(u_SceneData.ShadowEnabled > 0 && nDotL > 0.0f)
 			{
-			int cascadeIndex = CalculateCascadeIndex(wsPos);
+				int cascadeIndex = CalculateCascadeIndex(wsPos);
 				value = CalculateShadow(wsPos,cascadeIndex, light.direction.xyz, material.Normal);
 			}
 			else
@@ -529,6 +543,8 @@ void main()
 		
 		material.Roughness = sqrt(filteredRoughness2);
 	}
+
+	InvSqrtPCFSamples = 1.0 / sqrt(float(u_SceneData.PCFSamples));
 	
 	vec3 wsPos     = VertexOutput.Position.xyz;
 	material.View  = normalize(u_SceneData.cameraPosition.xyz - wsPos);

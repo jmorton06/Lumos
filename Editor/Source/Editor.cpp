@@ -70,6 +70,7 @@
 #include <Lumos/Core/CoreSystem.h>
 #include <Lumos/Core/Thread.h>
 #include <Lumos/Graphics/UI.h>
+#include <Lumos/Core/Undo.h>
 
 #include <imgui/imgui_internal.h>
 #include <imgui/Plugins/ImGuizmo.h>
@@ -862,7 +863,7 @@ namespace Lumos
                 ImGui::Text("Version : %d.%d.%d", version.major, version.minor, version.patch);
                 ImGui::Separator();
 
-                std::string githubMenuText = ICON_MDI_GITHUB_BOX " Github";
+                std::string githubMenuText = std::string(ICON_MDI_GITHUB_BOX) + std::string(" Github");
                 if(ImGui::MenuItem(githubMenuText.c_str()))
                 {
                     Lumos::OS::Get().OpenURL("https://www.github.com/jmorton06/Lumos");
@@ -2012,6 +2013,13 @@ namespace Lumos
             SetEditorState(EditorState::Preview);
         }
 
+        if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || Input::Get().GetKeyHeld(InputCode::Key::LeftControl))
+           && Input::Get().GetKeyPressed(Lumos::InputCode::Key::Z))
+        {
+            LINFO("Undo");
+            undo();
+        }
+
         if(m_SceneViewActive)
         {
             auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
@@ -2927,7 +2935,7 @@ namespace Lumos
         }
 #elif defined(LUMOS_PLATFORM_IOS)
         // TODO: StringRefactr
-        // m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
+        m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
 #endif
 
         m_ProjectSettings.m_ProjectName = "Example";

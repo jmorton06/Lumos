@@ -1,24 +1,8 @@
 #include "Precompiled.h"
 #include "DebugRenderer.h"
-#include "Core/OS/Window.h"
-#include "Graphics/RHI/Shader.h"
-#include "Graphics/RHI/Framebuffer.h"
-#include "Graphics/RHI/UniformBuffer.h"
-#include "Graphics/RHI/Renderer.h"
-#include "Graphics/RHI/CommandBuffer.h"
-#include "Graphics/RHI/SwapChain.h"
-#include "Graphics/RHI/RenderPass.h"
-#include "Graphics/RHI/Pipeline.h"
-#include "Graphics/RHI/IndexBuffer.h"
-#include "Graphics/RHI/Texture.h"
-#include "Graphics/Sprite.h"
 #include "Graphics/Light.h"
 #include "Graphics/Camera/Camera.h"
-#include "Scene/Scene.h"
-#include "Core/Application.h"
-#include "SceneRenderer.h"
-#include "Platform/OpenGL/GLDescriptorSet.h"
-#include "Graphics/Renderable2D.h"
+#include "Audio/SoundNode.h"
 #include "Graphics/Camera/Camera.h"
 #include "Maths/Transform.h"
 #include "Maths/Frustum.h"
@@ -26,13 +10,13 @@
 #include "Maths/BoundingSphere.h"
 #include "Maths/Ray.h"
 #include "Maths/MathsUtilities.h"
-#include "Audio/SoundNode.h"
-#include <cstdarg>
 #include "Maths/Vector2.h"
 #include "Maths/Vector3.h"
 #include "Maths/Vector4.h"
 #include "Maths/Matrix4.h"
 #include "Maths/Quaternion.h"
+
+#include <cstdarg>
 #include <stb/stb_sprintf.h>
 
 namespace Lumos

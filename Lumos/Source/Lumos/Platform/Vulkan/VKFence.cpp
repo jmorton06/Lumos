@@ -82,10 +82,15 @@ namespace Lumos
             if(!IsSignaled())
                 succeeded = Wait();
 
-            if(succeeded)
-                Reset();
+            if(!succeeded)
+            {
+                LERROR("[VULKAN] : Fence wait failed or timed out in %s at line %d", __FILE__, __LINE__);
+                return false;
+            }
 
-            return succeeded;
+            Reset();
+
+            return true;
         }
     }
 }

@@ -78,8 +78,10 @@ namespace MM
     void ComponentEditorWidget<Lumos::LuaScriptComponent>(entt::registry& reg, entt::registry::entity_type e)
     {
         LUMOS_PROFILE_FUNCTION();
-        auto& script = reg.get<Lumos::LuaScriptComponent>(e);
-        bool loaded  = false;
+        auto& script     = reg.get<Lumos::LuaScriptComponent>(e);
+        bool hasReloaded = false;
+        bool loaded      = false;
+        ImGui::Columns(2);
         if(!script.Loaded())
         {
             ImGui::Text("Script Failed to Load : %s", script.GetFilePath().c_str());
@@ -95,17 +97,41 @@ namespace MM
 
         // auto& solEnv         = script.GetSolEnvironment();
         std::string filePath = script.GetFilePath();
+        // Show and allow editing the file path. Only set it when changed.
+        if(Lumos::ImGuiUtilities::Property("File Path", filePath, Lumos::ImGuiUtilities::PropertyFlag::None))
+        {
+            script.SetFilePath(filePath);
+        }
+        ImGui::Columns(1);
+        // Allow dragging an asset file onto the inspector to set the script path
+        if(const ImGuiPayload* payload = ImGui::GetDragDropPayload())
+        {
+            if(payload->IsDataType("AssetFile"))
+            {
+                if(ImGui::BeginDragDropTarget())
+                {
+                    if(ImGui::AcceptDragDropPayload("AssetFile"))
+                    {
+                        auto filePathDropped = std::string(reinterpret_cast<const char*>(payload->Data));
+                        script.SetFilePath(filePathDropped);
+                        script.Reload();
+                        hasReloaded = true;
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+            }
+        }
 
-        static char objName[INPUT_BUF_SIZE];
-        strcpy(objName, filePath.c_str());
-        ImGui::PushItemWidth(-1);
-        if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
-            script.SetFilePath(objName);
-
-        bool hasReloaded = false;
+        // static char objName[INPUT_BUF_SIZE];
+        // strcpy(objName, filePath.c_str());
+        // ImGui::PushItemWidth(-1);
+        // if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
+        //     script.SetFilePath(objName);
 
         Lumos::ArenaTemp Scratch = Lumos::ScratchBegin(0, 0);
 
+        // Buttons: New / Edit / Open / Reload / Load
+        ImGui::BeginGroup();
         if(ImGui::Button("New File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
         {
             Lumos::String8 newFilePath = Lumos::Str8Lit("//Assets/Scripts");
@@ -150,9 +176,9 @@ end
             }
         }
 
-        if(loaded)
+        if(ImGui::Button("Edit File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
         {
-            if(ImGui::Button("Edit File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+            if(!script.GetFilePath().empty())
             {
                 Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath(), [&]
                                                          {
@@ -161,26 +187,28 @@ end
 
                                                              auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
                                                              if(textEditPanel)
-                                                             ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors()); });
+                                                                 ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors()); });
 
                 auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
                 if(textEditPanel)
                     ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
             }
-
-            if(ImGui::Button("Open File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
-            {
-                Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
-                Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(std::bind(&Lumos::LuaScriptComponent::LoadScript, &script, std::placeholders::_1));
-            }
-
-            if(ImGui::Button("Reload", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
-            {
-                script.Reload();
-                hasReloaded = true;
-            }
         }
-        else
+
+        if(ImGui::Button("Open File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+        {
+            Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+            Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(std::bind(&Lumos::LuaScriptComponent::LoadScript, &script, std::placeholders::_1));
+        }
+
+        if(ImGui::Button("Reload", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+        {
+            script.Reload();
+            hasReloaded = true;
+        }
+
+        // If not loaded, provide a Load button as well
+        if(!script.Loaded())
         {
             if(ImGui::Button("Load", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
             {
@@ -189,24 +217,35 @@ end
             }
         }
 
+        ImGui::EndGroup();
+
         ScratchEnd(Scratch);
 
-        if(!script.Loaded() || hasReloaded || !loaded)
+        // If script failed to load, show status and errors and don't proceed further
+        if(!script.Loaded())
         {
+            // Show load status
+            if(script.GetFilePath().empty())
+                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.1f, 1.0f), "No script file set");
+            else
+                ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Script failed to load: %s", script.GetFilePath().c_str());
+
+            // Show errors if available
+            const auto& errors = script.GetErrors();
+            if(!errors.empty())
+            {
+                if(ImGui::TreeNode("Errors"))
+                {
+                    for(const auto& err : errors)
+                    {
+                        ImGui::TextUnformatted(err.second.c_str());
+                    }
+                    ImGui::TreePop();
+                }
+            }
+
             return;
         }
-
-        // ImGui::TextUnformatted("Loaded Functions : ");
-
-        /*     ImGui::Indent();
-             for(auto&& function : solEnv)
-             {
-                 if(function.second.is<sol::function>())
-                 {
-                     ImGui::TextUnformatted(function.first.as<std::string>().c_str());
-                 }
-             }
-             ImGui::Unindent();*/
     }
 
     template <>

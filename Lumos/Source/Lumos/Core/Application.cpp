@@ -26,7 +26,6 @@
 #include "Core/JobSystem.h"
 #include "Core/CoreSystem.h"
 #include "Utilities/StringUtilities.h"
-#include "Core/OS/FileSystem.h"
 #include "Core/String.h"
 #include "Core/DataStructures/TDArray.h"
 #include "Core/CommandLine.h"
@@ -49,6 +48,7 @@
 
 #include "Embedded/splash.inl"
 #include "Core/OS/OS.h"
+#include "Core/Undo.h"
 
 #include <cereal/archives/json.hpp>
 #include <cereal/types/vector.hpp>
@@ -88,6 +88,7 @@ namespace Lumos
         m_StringPool = new StringPool(m_Arena, 260);
         m_AssetPath  = m_StringPool->Allocate("");
 
+        InitialiseUndo();
 
         m_EventQueueMutex      = PushArray(m_Arena, Mutex, 1);
         m_MainThreadQueueMutex = PushArray(m_Arena, Mutex, 1);
@@ -246,6 +247,12 @@ namespace Lumos
         {
             Maths::TestMaths();
         }
+
+#ifdef LUMOS_PLATFORM_MACOS
+        m_QualitySettings.SetGeneralLevel(2);
+#else
+        m_QualitySettings.SetGeneralLevel(2);
+#endif
     }
 
     void Application::OnQuit()
@@ -451,14 +458,6 @@ namespace Lumos
                 event();
             }
             m_EventQueue.Clear();
-
-            // Process custom event queue
-            while(!m_EventQueue.Empty())
-            {
-                auto& func = m_EventQueue.Back();
-                func();
-                m_EventQueue.PopBack();
-            }
         }
 
         System::JobSystem::Context context;
@@ -489,15 +488,16 @@ namespace Lumos
             return false;
         }
 
+        UILayout();
+        UIAnimate();
+
         UIEndFrame(Graphics::Font::GetDefaultFont());
 
         UIEndBuild();
-        UILayout();
         // if (Platform->WindowIsActive)
         {
             // UIProcessInteractions();
         }
-        UIAnimate();
 
         if(!m_Minimized)
         {
@@ -593,7 +593,7 @@ namespace Lumos
             static bool showDebugDearImGuiPanel = false;
 
             {
-                UIBeginPanel("First Panel", WidgetFlags_StackVertically | WidgetFlags_CentreX | WidgetFlags_CentreY);
+                UIBeginPanel("First Panel", WidgetFlags_Draggable | WidgetFlags_StackVertically | WidgetFlags_CentreX | WidgetFlags_CentreY | WidgetFlags_Floating_X | WidgetFlags_Floating_Y | WidgetFlags_DragParent);
                 if(UIButton("Test Button2").clicked)
                     LINFO("clicked button2");
 
@@ -618,7 +618,7 @@ namespace Lumos
 
             if(value)
             {
-                UIBeginPanel("Second Panel", WidgetFlags_StackVertically); // WidgetFlags_Draggable |  WidgetFlags_Floating_X | WidgetFlags_Floating_Y);
+                UIBeginPanel("Second Panel", WidgetFlags_StackVertically | WidgetFlags_Draggable | WidgetFlags_Floating_X | WidgetFlags_Floating_Y | WidgetFlags_DragParent);
                 UILabel("Info 5", Str8Lit("Test 1234"));
                 UILabel("Info 6", Str8Lit("Test 56789"));
                 UILabel("Info 7", Str8Lit("Test"));

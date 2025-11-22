@@ -86,11 +86,12 @@ namespace Lumos
         {
             b2Circle circle = { { 0.0f, 0.0f }, params.scale.x };
 
-            b2ShapeDef shapeDef          = b2DefaultShapeDef();
-            shapeDef.density             = params.density;
-            shapeDef.material.friction   = m_Friction;
-            shapeDef.enableHitEvents     = params.enableEvents;
-            shapeDef.enableContactEvents = params.enableEvents;
+            b2ShapeDef shapeDef           = b2DefaultShapeDef();
+            shapeDef.density              = params.density;
+            shapeDef.material.friction    = m_Friction;
+            shapeDef.enableHitEvents      = params.enableEvents;
+            shapeDef.enableContactEvents  = params.enableEvents;
+            shapeDef.material.restitution = params.elasticity;
 
             b2CreateCircleShape(m_B2Body, &shapeDef, &circle);
         }
@@ -104,6 +105,7 @@ namespace Lumos
             shapeDef.enableHitEvents            = params.enableEvents;
             shapeDef.enableContactEvents        = params.enableEvents;
             shapeDef.material.rollingResistance = 1.0f;
+            shapeDef.material.restitution       = params.elasticity;
 
             b2CreatePolygonShape(m_B2Body, &shapeDef, &box);
         }
@@ -122,11 +124,12 @@ namespace Lumos
             b2Hull hull             = b2ComputeHull(b2ShapePositions, i32(params.customShapePositions.size()));
             b2Polygon customPolygon = b2MakePolygon(&hull, 0.0f);
 
-            b2ShapeDef shapeDef          = b2DefaultShapeDef();
-            shapeDef.density             = params.density;
-            shapeDef.material.friction   = m_Friction;
-            shapeDef.enableHitEvents     = params.enableEvents;
-            shapeDef.enableContactEvents = params.enableEvents;
+            b2ShapeDef shapeDef           = b2DefaultShapeDef();
+            shapeDef.density              = params.density;
+            shapeDef.material.friction    = m_Friction;
+            shapeDef.enableHitEvents      = params.enableEvents;
+            shapeDef.enableContactEvents  = params.enableEvents;
+            shapeDef.material.restitution = params.elasticity;
 
             b2CreatePolygonShape(m_B2Body, &shapeDef, &customPolygon);
             ScratchEnd(temp);

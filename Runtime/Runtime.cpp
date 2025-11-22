@@ -90,16 +90,14 @@ public:
         }
 #elif defined(LUMOS_PLATFORM_IOS)
         // TODO: StringRefactr
-        // m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
+        m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
+        m_ProjectSettings.m_ProjectName = "Example";
 #endif
 
         Application::Init();
         Application::SetEditorState(EditorState::Play);
         Application::Get().GetWindow()->SetWindowTitle("Runtime");
         Application::Get().GetWindow()->SetEventCallback(BIND_EVENT_FN(Runtime::OnEvent));
-
-        Vec4 testVec4 = { 3.0f, 0.0f, 0.0f, 1.0f };
-        Mat4 testMat4 = Mat4::Translation(testVec4.ToVector3());
     }
 
     void OnImGui() override

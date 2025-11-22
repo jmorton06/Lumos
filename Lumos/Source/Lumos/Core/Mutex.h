@@ -39,4 +39,17 @@ namespace Lumos
     private:
         Mutex* m_Mutex;
     };
+
+#ifdef LUMOS_PLATFORM_WINDOWS
+    using ConditionVar = CONDITION_VARIABLE;
+#else
+    using ConditionVar = pthread_cond_t;
+#endif
+
+    i32 ConditionInit(ConditionVar* cv);
+    i32 ConditionDestroy(ConditionVar* cv);
+    i32 ConditionWait(ConditionVar* cv, Mutex* m);
+    i32 ConditionTimedWait(ConditionVar* cv, Mutex* m, const timespec* abstime);
+    i32 ConditionNotifyOne(ConditionVar* cv);
+    i32 ConditionNotifyAll(ConditionVar* cv);
 }

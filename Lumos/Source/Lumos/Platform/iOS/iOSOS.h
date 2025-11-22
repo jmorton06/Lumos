@@ -39,7 +39,7 @@ namespace Lumos
             m_LayerPtr = layer;
         }
 
-        void ShowKeyboard(bool open);
+        void ShowKeyboard(bool bShow) override;
         bool HasWifiConnection();
 
         bool OnFrame();

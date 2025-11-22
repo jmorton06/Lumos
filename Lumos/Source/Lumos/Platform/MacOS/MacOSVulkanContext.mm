@@ -73,8 +73,8 @@ namespace Lumos
 
 		//mvkConfig.traceVulkanCalls = MVK_CONFIG_TRACE_VULKAN_CALLS_DURATION;
 		mvkConfig.performanceTracking = false;
-        mvkConfig.synchronousQueueSubmits = true;
-        //mvkConfig.presentWithCommandBuffer = false;
+        mvkConfig.synchronousQueueSubmits = false;
+        mvkConfig.presentWithCommandBuffer = true;
         //mvkConfig.prefillMetalCommandBuffers = true;
 		//mvkConfig.useMetalArgumentBuffers = MVKUseMetalArgumentBuffers::MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS_ALWAYS;
         mvkConfig.resumeLostDevice = true;

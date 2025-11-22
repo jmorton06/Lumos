@@ -59,7 +59,7 @@ namespace Lumos
         style_variable_lists[StyleVar_ActiveTextColor].first->value       = { 0.5f, 0.0f, 0.0f, 1.0f };
         style_variable_lists[StyleVar_FontSize].first->value              = { 28.0f, 0.0f, 0.0f, 1.0f };
 
-#ifdef LUMOS_PLATFORM_MACOS
+#ifdef LUMOS_PLATFORM_MACOS || LUMOS_PLATFORM_IOS
         style_variable_lists[StyleVar_FontSize].first->value = { 48.0f, 0.0f, 0.0f, 1.0f };
 #endif
 
@@ -224,6 +224,11 @@ namespace Lumos
         UI_Interaction interaction = {};
         interaction.widget         = widget;
 
+        if(!(widget->flags & WidgetFlags_Clickable) && !(widget->flags & WidgetFlags_Draggable) && !(widget->flags & WidgetFlags_DragParent))
+        {
+            return interaction;
+        }
+
         const Vec2& position = widget->position;
         const Vec2& size     = widget->size;
         const Vec2& mouse    = Input::Get().GetMousePosition() * s_UIState->DPIScale - s_UIState->InputOffset; // Needs to take Quality setting render scale into accoutn too
@@ -231,8 +236,16 @@ namespace Lumos
         bool hovering = mouse.x >= position.x && mouse.x <= position.x + size.x && mouse.y >= position.y && mouse.y <= position.y + size.y;
         if(hovering)
         {
-            s_UIState->next_hot_widget = widget->hash;
-            interaction.hovering       = true;
+            // If this widget is marked to drag/forward interaction to its parent, forward the hot widget to parent
+            if((widget->flags & WidgetFlags_DragParent) && widget->parent)
+            {
+                s_UIState->next_hot_widget = widget->parent->hash;
+            }
+            else
+            {
+                s_UIState->next_hot_widget = widget->hash;
+            }
+            interaction.hovering = true;
         }
 
         interaction.clicked  = widget->clicked;
@@ -410,6 +423,11 @@ namespace Lumos
         return text;
     }
 
+    UI_Interaction UIBeginPanel(const char* str)
+    {
+        return UIBeginPanel(str, SizeKind_MaxChild, 1.0f, SizeKind_ChildSum, 1.0f, 0);
+    }
+
     UI_Interaction UIBeginPanel(const char* str, u32 extraFlags)
     {
         return UIBeginPanel(str, SizeKind_MaxChild, 1.0f, SizeKind_ChildSum, 1.0f, extraFlags);
@@ -434,7 +452,7 @@ namespace Lumos
         u64 hashHeader;
         String8 HeaderText2 = HandleUIString((char*)HeaderText.str, &hashHeader);
         UIPushStyle(StyleVar_Padding, { 0.0f, 0.0f, 0.0f, 0.0f });
-        UI_Widget* header = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_StackVertically,
+        UI_Widget* header = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_StackVertically | WidgetFlags_DragParent,
                                        HeaderText2,
                                        hashHeader,
                                        { SizeKind_PercentOfParent, 1.0f },
@@ -455,6 +473,11 @@ namespace Lumos
     void UIEndPanel()
     {
         PopParent(GetCurrentParent());
+    }
+
+    UI_Interaction UILabelCStr(const char* str, const char* text)
+    {
+        return UILabel(str, Str8C((char*)text));
     }
 
     UI_Interaction UILabel(const char* str, const String8& text)
@@ -526,7 +549,7 @@ namespace Lumos
             float lSliderWidth  = 250.0f;
             float lSliderHeight = 20.0f;
             String8 parentText  = PushStr8F(s_UIState->UIFrameArena, "parent###parent%s", (char*)text.str);
-            UI_Widget* parent   = PushWidget(WidgetFlags_Clickable | WidgetFlags_DrawBorder | WidgetFlags_DrawBackground,
+            UI_Widget* parent   = PushWidget(WidgetFlags_Clickable | WidgetFlags_DrawBorder | WidgetFlags_DrawBackground | WidgetFlags_CentreY,
                                              text,
                                              HashUIStr8Name(parentText),
                                              { SizeKind_Pixels, lSliderWidth },
@@ -548,44 +571,48 @@ namespace Lumos
 
             slider->drag_constraint_y = true;
 
-            *value         = Maths::Clamp(*value, min_value, max_value);
-            Vec2& slider_p = slider->relative_position;
+            // Clamp input value first
+            *value = Maths::Clamp(*value, min_value, max_value);
 
-            f32 slider_x      = slider->position.x;
+            // Use parent size and fraction to compute slider width (slider is 10% of parent)
             f32 parent_x      = parent->position.x;
-            f32 slider_size_x = slider->size.x;
             f32 parent_size_x = parent->size.x;
+            f32 slider_size_x = parent_size_x * 0.1f; // 10% of parent
 
+            // Helper: get mouse in UI coords
+            Vec2 mouse = Input::Get().GetMousePosition() * s_UIState->DPIScale - s_UIState->InputOffset;
+
+            // If clicked on the parent track, set value based on mouse position
             if(parent_interaction.clicked)
             {
-                const Vec2& mouse = Input::Get().GetMousePosition() * s_UIState->DPIScale - s_UIState->InputOffset; // s_UIState->input->mouse_position;
-                f32 t             = (mouse.x - parent_x) / (parent_size_x - slider_size_x);
-                *value            = min_value + (max_value - min_value) * t;
-            }
-
-            f32 t = 0.0f;
-            if(slider->dragging)
-            {
-                t      = (slider_x - parent_x) / (lSliderWidth - 0.1f * lSliderWidth);
+                f32 t  = (mouse.x - parent_x - slider_size_x * 0.5f) / (parent_size_x - slider_size_x);
+                t      = Maths::Clamp(t, 0.0f, 1.0f);
                 *value = min_value + (max_value - min_value) * t;
             }
-            else
+
+            // Compute t from value, unless dragging, in which case use mouse pos
+            f32 t = (*value - min_value) / (max_value - min_value);
+            if(slider->dragging)
             {
-                t          = (*value - min_value) / (max_value - min_value);
-                slider_p.x = t * (lSliderWidth - 0.1f * lSliderWidth);
+                Vec2 dragMouse = Input::Get().GetMousePosition() * s_UIState->DPIScale - s_UIState->InputOffset;
+                t              = (dragMouse.x - parent_x - slider_size_x * 0.5f) / (parent_size_x - slider_size_x);
             }
 
-            *value = Maths::Clamp(*value, min_value, max_value);
+            // Final clamp and apply
             t      = Maths::Clamp(t, 0.0f, 1.0f);
+            *value = Maths::Clamp(min_value + (max_value - min_value) * t, min_value, max_value);
 
-            String8 slider_text                 = PushStr8F(s_UIState->UIFrameArena, "%.2f - %s", *value, (const char*)text.str);
-            String8 text                        = HandleUIString((char*)slider_text.str, &hash);
-            slider->relative_position[UIAxis_X] = lSliderWidth * t - (0.1f * lSliderWidth * 0.5f);
-            UI_Widget* widget                   = PushWidget(WidgetFlags_DrawText,
-                                                             text,
-                                                             hash,
-                                                             { SizeKind_TextContent, 1.0f },
-                                                             { SizeKind_TextContent, 1.0f });
+            // Place the slider so it stays within the parent (relative position)
+            slider->relative_position[UIAxis_X] = t * (parent_size_x - slider_size_x);
+
+            // Render text showing the value
+            String8 slider_text  = PushStr8F(s_UIState->UIFrameArena, "%.2f - %s", *value, (const char*)text.str);
+            String8 slider_label = HandleUIString((char*)slider_text.str, &hash);
+            UI_Widget* widget    = PushWidget(WidgetFlags_DrawText,
+                                              slider_label,
+                                              hash,
+                                              { SizeKind_TextContent, 1.0f },
+                                              { SizeKind_TextContent, 1.0f });
         }
         PopParent(spacer);
 
@@ -880,10 +907,16 @@ namespace Lumos
 
     void UIBeginBuild()
     {
+        LUMOS_PROFILE_FUNCTION();
+        // Mark the beginning of UI building phase
+        // This can be used for validation or setup if needed
     }
 
     void UIEndBuild()
     {
+        LUMOS_PROFILE_FUNCTION();
+        // Mark the end of UI building phase
+        // This can be used for validation or cleanup if needed
     }
 
     void UILayoutRoot(UI_Widget* Root)
@@ -910,6 +943,9 @@ namespace Lumos
 
     void UIAnimate()
     {
+        LUMOS_PROFILE_FUNCTION();
+        // Animation transitions are handled in UIEndFrame()
+        // This function is kept for future animation features or as a hook point
     }
 
     void RefreshUI()

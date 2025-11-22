@@ -27,6 +27,7 @@ namespace Lumos
             damping      = 1.0f;
             density      = 1.0f;
             enableEvents = true;
+            elasticity   = 0.0f;
         }
 
         float mass;
@@ -39,6 +40,7 @@ namespace Lumos
         float damping;
         float density;
         bool enableEvents;
+        float elasticity;
     };
 
     class RigidBody2D
