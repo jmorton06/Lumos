@@ -48,7 +48,6 @@
 
 #include "Embedded/splash.inl"
 #include "Core/OS/OS.h"
-#include "Core/Undo.h"
 
 #include <cereal/archives/json.hpp>
 #include <cereal/types/vector.hpp>

@@ -70,7 +70,6 @@
 #include <Lumos/Core/CoreSystem.h>
 #include <Lumos/Core/Thread.h>
 #include <Lumos/Graphics/UI.h>
-#include <Lumos/Core/Undo.h>
 
 #include <imgui/imgui_internal.h>
 #include <imgui/Plugins/ImGuizmo.h>
@@ -2011,13 +2010,6 @@ namespace Lumos
             ImGui::SetWindowFocus("###scene");
             LoadCachedScene();
             SetEditorState(EditorState::Preview);
-        }
-
-        if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || Input::Get().GetKeyHeld(InputCode::Key::LeftControl))
-           && Input::Get().GetKeyPressed(Lumos::InputCode::Key::Z))
-        {
-            LINFO("Undo");
-            undo();
         }
 
         if(m_SceneViewActive)
