@@ -87,8 +87,6 @@ namespace Lumos
         m_StringPool = new StringPool(m_Arena, 260);
         m_AssetPath  = m_StringPool->Allocate("");
 
-        InitialiseUndo();
-
         m_EventQueueMutex      = PushArray(m_Arena, Mutex, 1);
         m_MainThreadQueueMutex = PushArray(m_Arena, Mutex, 1);
 
