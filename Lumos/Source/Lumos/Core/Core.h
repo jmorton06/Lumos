@@ -203,6 +203,7 @@
 #define MemoryCopy memcpy
 #define MemoryMove memmove
 #define MemorySet memset
+#define MemoryCompare memcmp
 
 #define MemoryCopyStruct(dst, src)                \
     do                                            \

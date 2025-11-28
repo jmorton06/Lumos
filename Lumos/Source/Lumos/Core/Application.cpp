@@ -48,6 +48,7 @@
 
 #include "Embedded/splash.inl"
 #include "Core/OS/OS.h"
+#include "Core/Undo.h"
 
 #include <cereal/archives/json.hpp>
 #include <cereal/types/vector.hpp>
@@ -87,8 +88,10 @@ namespace Lumos
         m_StringPool = new StringPool(m_Arena, 260);
         m_AssetPath  = m_StringPool->Allocate("");
 
-        m_EventQueueMutex      = PushArray(m_Arena, Mutex, 1);
-        m_MainThreadQueueMutex = PushArray(m_Arena, Mutex, 1);
+        InitialiseUndo();
+
+        m_EventQueueMutex      = PushObject(m_Arena, Mutex);
+        m_MainThreadQueueMutex = PushObject(m_Arena, Mutex);
 
         MutexInit(m_EventQueueMutex);
         MutexInit(m_MainThreadQueueMutex);

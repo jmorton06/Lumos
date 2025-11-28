@@ -24,7 +24,7 @@ namespace Lumos
         class TextureDepthArray;
 
         static constexpr uint8_t MAX_RENDER_TARGETS = 8;
-        static constexpr uint8_t SHADOWMAP_MAX      = 16;
+        static constexpr uint8_t SHADOWMAP_MAX      = 4;
         static constexpr uint8_t MAX_MIPS           = 32;
 
         // Descriptor set limits

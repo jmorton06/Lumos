@@ -301,6 +301,7 @@ namespace Lumos
         Vec3 m_CameraDestination;
         bool m_SceneViewActive     = false;
         bool m_NewProjectPopupOpen = false;
+        bool m_GizmoUsing          = false;
 
         EditorSettings m_Settings;
         std::vector<SharedPtr<EditorPanel>> m_Panels;

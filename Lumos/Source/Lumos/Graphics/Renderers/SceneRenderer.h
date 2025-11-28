@@ -178,7 +178,7 @@ namespace Lumos
                 uint32_t m_ShadowMapSize;
                 bool m_ShadowMapsInvalidated;
                 Mat4 m_ShadowProjView[SHADOWMAP_MAX];
-                Vec4 m_SplitDepth[SHADOWMAP_MAX];
+                Vec4 m_SplitDepth;
                 Mat4 m_LightMatrix;
                 TDArray<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
 

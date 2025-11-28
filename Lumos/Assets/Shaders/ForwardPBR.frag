@@ -47,7 +47,7 @@ vec4 GetAlbedo()
 	if(u_MaterialData.AlbedoMapFactor < 0.05)
 		return  u_MaterialData.AlbedoColour;
 
-	return /*(1.0 - u_MaterialData.AlbedoMapFactor) **/ u_MaterialData.AlbedoColour * (u_MaterialData.AlbedoMapFactor * DeGamma(texture(u_AlbedoMap, VertexOutput.TexCoord)));
+	return u_MaterialData.AlbedoColour * (u_MaterialData.AlbedoMapFactor * DeGamma(texture(u_AlbedoMap, VertexOutput.TexCoord)));
 }
 
 vec3 GetMetallic()
@@ -249,7 +249,7 @@ int CalculateCascadeIndex(vec3 wsPos)
 	for(int i = 0; i < u_SceneData.ShadowCount - 1; ++i)
 	{
 		// If the view-space depth is greater than a split depth, the cascade index should increase.
-		if(viewPos.z < u_SceneData.SplitDepths[i].x)
+		if(viewPos.z < u_SceneData.SplitDepths[i])
 		{
 			cascadeIndex = i + 1;
 		}
@@ -293,7 +293,7 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 
 	if (u_SceneData.BlendShadows == 1)
 	{
-		float cascadeFade = smoothstep(u_SceneData.SplitDepths[cascadeIndex].x + u_SceneData.CascadeFade, u_SceneData.SplitDepths[cascadeIndex].x, viewPos.z);
+		float cascadeFade = smoothstep(u_SceneData.SplitDepths[cascadeIndex] + u_SceneData.CascadeFade * 0.5, u_SceneData.SplitDepths[cascadeIndex] - u_SceneData.CascadeFade * 0.5, viewPos.z);
 		int cascadeNext = cascadeIndex + 1;
 		if (cascadeFade > 0.0 && cascadeNext < u_SceneData.ShadowCount)
 		{
