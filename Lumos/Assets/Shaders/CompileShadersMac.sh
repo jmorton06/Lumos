@@ -20,14 +20,14 @@ for SRC in *.vert *.frag *.comp; do
             # don't re-compile if existing binary is newer than source file
             NEWER="$(ls -t1 "$SRC" "$OUT" | head -1)"
 
-            if [ "$SRC" = "$NEWER" ]; then
+            #if [ "$SRC" = "$NEWER" ]; then
 
                 echo "Compiling $OUT from: $SRC"
 
                 $COMPILER  "$SRC" -o "$OUT"
             #else
                # echo "(Unchanged $SRC)"
-            fi
+            #fi
         else
             echo "Compiling $OUT from:"
             $COMPILER "$SRC" -o "$OUT"

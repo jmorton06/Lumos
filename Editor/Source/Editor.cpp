@@ -70,6 +70,7 @@
 #include <Lumos/Core/CoreSystem.h>
 #include <Lumos/Core/Thread.h>
 #include <Lumos/Graphics/UI.h>
+#include <Lumos/Core/Undo.h>
 
 #include <imgui/imgui_internal.h>
 #include <imgui/Plugins/ImGuizmo.h>
@@ -116,6 +117,7 @@ namespace Lumos
     void Editor::Init()
     {
         LUMOS_PROFILE_FUNCTION();
+        Lumos::InitialiseUndo();
         ImCmd::CreateContext();
         toggle_demo_cmd.Name            = "Toggle ImGui demo window";
         toggle_demo_cmd.InitialCallback = [&]()
@@ -455,6 +457,17 @@ namespace Lumos
         m_Settings.m_View2D = m_CurrentCamera->IsOrthographic();
 
         m_FileBrowserPanel->OnImGui();
+
+        bool ctrlPressed  = Input::Get().GetKeyHeld(Lumos::InputCode::Key::LeftControl) || Input::Get().GetKeyHeld(Lumos::InputCode::Key::RightControl);
+        bool shiftPressed = Input::Get().GetKeyHeld(Lumos::InputCode::Key::LeftShift) || Input::Get().GetKeyHeld(Lumos::InputCode::Key::RightShift);
+        bool zPressed     = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Z);
+        bool yPressed     = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Y);
+
+        if(ctrlPressed && zPressed && !shiftPressed)
+            Lumos::Undo();
+        else if(ctrlPressed && (yPressed || (zPressed && shiftPressed)))
+            Lumos::Redo();
+
         auto& io  = ImGui::GetIO();
         auto ctrl = io.ConfigMacOSXBehaviors ? io.KeySuper : io.KeyCtrl;
         if(ctrl && Input::Get().GetKeyPressed(Lumos::InputCode::Key::P))
@@ -716,14 +729,15 @@ namespace Lumos
             }
             if(ImGui::BeginMenu("Edit"))
             {
-                // TODO
-                //  if(ImGui::MenuItem("Undo", "CTRL+Z"))
-                //  {
-                //  }
-                //  if(ImGui::MenuItem("Redo", "CTRL+Y", false, false))
-                //  {
-                //  } // Disabled item
-                //  ImGui::Separator();
+                if(ImGui::MenuItem("Undo", "CTRL+Z"))
+                {
+                    Lumos::Undo();
+                }
+                if(ImGui::MenuItem("Redo", "CTRL+Y", false, true))
+                {
+                    Lumos::Redo();
+                }
+                ImGui::Separator();
 
                 bool enabled = !m_SelectedEntities.empty();
 
@@ -1386,8 +1400,19 @@ namespace Lumos
 
                 auto transform = m_SelectedEntity.TryGetComponent<Maths::Transform>();
                 if(transform != nullptr)
+            {
+                if(ImGuizmo::IsUsing() && !m_GizmoUsing)
                 {
-                    Mat4 model = transform->GetWorldMatrix();
+                    Lumos::UndoPush(transform, sizeof(Maths::Transform));
+                    m_GizmoUsing = true;
+                }
+                else if(!ImGuizmo::IsUsing() && m_GizmoUsing)
+                {
+                    Lumos::UndoCommit();
+                    m_GizmoUsing = false;
+                }
+
+                Mat4 model = transform->GetWorldMatrix();
 
                     float snapAmount[3] = { m_Settings.m_SnapAmount, m_Settings.m_SnapAmount, m_Settings.m_SnapAmount };
                     float delta[16];
@@ -2010,6 +2035,12 @@ namespace Lumos
             ImGui::SetWindowFocus("###scene");
             LoadCachedScene();
             SetEditorState(EditorState::Preview);
+        }
+
+        if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || Input::Get().GetKeyHeld(InputCode::Key::LeftControl))
+           && Input::Get().GetKeyPressed(Lumos::InputCode::Key::Z))
+        {
+            Undo();
         }
 
         if(m_SceneViewActive)

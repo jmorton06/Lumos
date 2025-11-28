@@ -57,7 +57,6 @@ static const uint32_t MAX_LINE_BATCH_DRAW_CALLS = 100;
 static const uint32_t RENDERER_LINE_SIZE        = sizeof(Lumos::Graphics::LineVertexData) * 4;
 static const uint32_t RENDERER_LINE_BUFFER_SIZE = RENDERER_LINE_SIZE * MaxLineVertices;
 static const uint32_t MAX_LIGHTS                = 32;
-static const uint32_t MAX_SHADOWMAPS            = 4;
 
 namespace Lumos::Graphics
 {
@@ -855,12 +854,11 @@ namespace Lumos::Graphics
         struct UniformSceneData
         {
             Light lights[MAX_LIGHTS];
-            Mat4 ShadowTransform[MAX_SHADOWMAPS];
+            Mat4 ShadowTransform[SHADOWMAP_MAX];
             Mat4 ViewMatrix;
             Mat4 LightView;
             Mat4 BiasMatrix;
             Vec4 CameraPosition;
-            Vec4 SplitDepths[MAX_SHADOWMAPS];
             float LightSize;
             float MaxShadowDist;
             float ShadowFade;
@@ -869,6 +867,7 @@ namespace Lumos::Graphics
             int ShadowCount;
             int Mode;
             int EnvMipCount;
+            Vec4 SplitDepths;
             float InitialBias;
             float Width;
             float Height;
@@ -938,7 +937,7 @@ namespace Lumos::Graphics
             UniformSceneData uniformSceneData;
             auto& shadowData = GetShadowData();
             MemoryCopy(uniformSceneData.ShadowTransform, shadowData.m_ShadowProjView, sizeof(Mat4) * shadowData.m_ShadowMapNum);
-            MemoryCopy(uniformSceneData.SplitDepths, shadowData.m_SplitDepth, sizeof(Vec4) * shadowData.m_ShadowMapNum);
+            uniformSceneData.SplitDepths    = shadowData.m_SplitDepth;
             uniformSceneData.LightView      = shadowData.m_LightMatrix;
             uniformSceneData.InitialBias    = shadowData.m_InitialBias;
             uniformSceneData.LightSize      = (float)shadowData.m_ShadowMapSize;
@@ -1275,10 +1274,13 @@ namespace Lumos::Graphics
 
         if(sceneRenderSettings.Renderer3DEnabled)
             ForwardPass();
+            
         if(sceneRenderSettings.SkyboxRenderEnabled)
             SkyboxPass();
+
         if(sceneRenderSettings.Renderer2DEnabled)
             Render2DPass();
+
         if (sceneRenderSettings.Renderer3DEnabled)
             ParticlePass();
 
@@ -1562,8 +1564,9 @@ namespace Lumos::Graphics
             Vec3 maxExtents = Vec3(radius);
             Vec3 minExtents = -maxExtents;
 
-            Vec3 lightDir         = (-light->Direction).Normalised();
-            Mat4 lightOrthoMatrix = Mat4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -maxExtents.z - m_ShadowData.CascadeNearPlaneOffset, maxExtents.z + m_ShadowData.CascadeFarPlaneOffset);
+            Vec3 lightDir         = (-light->Direction).Normalised(); 
+            //Mat4 lightOrthoMatrix = Mat4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -maxExtents.z - m_ShadowData.CascadeNearPlaneOffset, maxExtents.z + m_ShadowData.CascadeFarPlaneOffset);
+            Mat4 lightOrthoMatrix = Mat4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, m_ShadowData.CascadeNearPlaneOffset, maxExtents.z - minExtents.z + m_ShadowData.CascadeFarPlaneOffset);
             Mat4 LightViewMatrix  = Mat4::LookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, Vec3(0.0f, 1.0f, 0.0f));
             Mat4 shadowProj       = lightOrthoMatrix * LightViewMatrix;
 
@@ -1585,7 +1588,7 @@ namespace Lumos::Graphics
                 lightOrthoMatrix.SetTranslation(lightOrthoMatrix.Translation() + Vec3(roundOffset.x, roundOffset.y, 0.0f));
             }
             // Store split distance and matrix in cascade
-            m_ShadowData.m_SplitDepth[i]     = Vec4((m_Camera->GetNear() + splitDist * clipRange) * -1.0f);
+            m_ShadowData.m_SplitDepth[i]     = (m_Camera->GetNear() + splitDist * clipRange) * -1.0f;
             m_ShadowData.m_ShadowProjView[i] = lightOrthoMatrix * LightViewMatrix;
 
             if(i == 0)
