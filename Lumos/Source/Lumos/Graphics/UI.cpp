@@ -59,7 +59,7 @@ namespace Lumos
         style_variable_lists[StyleVar_ActiveTextColor].first->value       = { 0.5f, 0.0f, 0.0f, 1.0f };
         style_variable_lists[StyleVar_FontSize].first->value              = { 28.0f, 0.0f, 0.0f, 1.0f };
 
-#ifdef LUMOS_PLATFORM_MACOS || LUMOS_PLATFORM_IOS
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
         style_variable_lists[StyleVar_FontSize].first->value = { 48.0f, 0.0f, 0.0f, 1.0f };
 #endif
 
@@ -527,57 +527,61 @@ namespace Lumos
     UI_Interaction UISlider(const char* str,
                             float* value,
                             float min_value,
-                            float max_value)
+                            float max_value,
+                            float width,
+                            float height,
+                            float handleSizeFraction)
     {
         u64 hash;
         String8 text = HandleUIString(str, &hash);
-
+ 
         String8 spacerText = PushStr8F(s_UIState->UIFrameArena, "spacer###spacer%s", (char*)text.str);
         u64 hashSpacer;
         String8 SpacerText2 = HandleUIString((char*)spacerText.str, &hashSpacer);
-
+ 
         UI_Widget* spacer = PushWidget(WidgetFlags_StackHorizontally,
                                        SpacerText2,
                                        hashSpacer,
                                        { SizeKind_ChildSum, 1.0f },
                                        { SizeKind_MaxChild, 1.0f });
-
+ 
         UI_Interaction slider_interaction = {};
-
+ 
         PushParent(spacer);
         {
-            float lSliderWidth  = 250.0f;
-            float lSliderHeight = 20.0f;
+            float lSliderWidth  = width;
+            float lSliderHeight = height;
             String8 parentText  = PushStr8F(s_UIState->UIFrameArena, "parent###parent%s", (char*)text.str);
             UI_Widget* parent   = PushWidget(WidgetFlags_Clickable | WidgetFlags_DrawBorder | WidgetFlags_DrawBackground | WidgetFlags_CentreY,
                                              text,
                                              HashUIStr8Name(parentText),
                                              { SizeKind_Pixels, lSliderWidth },
                                              { SizeKind_Pixels, lSliderHeight });
-
+ 
             UI_Interaction parent_interaction = HandleWidgetInteraction(parent);
             PushParent(parent);
-
+ 
             UI_Widget* slider                    = PushWidget(WidgetFlags_Clickable | WidgetFlags_DrawBorder | WidgetFlags_DrawBackground | WidgetFlags_Floating_X | WidgetFlags_Draggable,
                                                               text,
                                                               hash,
-                                                              { SizeKind_PercentOfParent, 0.1f },
+                                                              { SizeKind_PercentOfParent, handleSizeFraction },
                                                               { SizeKind_PercentOfParent, 1.0f });
             slider->style_vars[StyleVar_Border]  = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
             slider->style_vars[StyleVar_Padding] = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
             slider_interaction                   = HandleWidgetInteraction(slider);
-
+ 
             PopParent(parent);
-
+ 
             slider->drag_constraint_y = true;
-
+ 
             // Clamp input value first
             *value = Maths::Clamp(*value, min_value, max_value);
-
-            // Use parent size and fraction to compute slider width (slider is 10% of parent)
+ 
+            // Use parent size and fraction to compute slider width
             f32 parent_x      = parent->position.x;
             f32 parent_size_x = parent->size.x;
-            f32 slider_size_x = parent_size_x * 0.1f; // 10% of parent
+            f32 slider_size_x = parent_size_x * handleSizeFraction;
+
 
             // Helper: get mouse in UI coords
             Vec2 mouse = Input::Get().GetMousePosition() * s_UIState->DPIScale - s_UIState->InputOffset;
@@ -862,8 +866,7 @@ namespace Lumos
                     }
 
                     Child->relative_position[Axis] = LayoutPosition + xOffset;
-
-                    LayoutPosition += (Parent->flags & WidgetFlags_StackHorizontally ? 1 : 0) * (Child->size[Axis] + xOffset);
+                    LayoutPosition += (Parent->flags & WidgetFlags_StackHorizontally ? 1 : 0) * Child->size[Axis];
                 }
                 if(Axis == UIAxis_Y && !(Child->flags & WidgetFlags_Floating_Y))
                 {
@@ -874,7 +877,7 @@ namespace Lumos
                     }
 
                     Child->relative_position[Axis] = LayoutPosition + yOffset;
-                    LayoutPosition += /*(Axis == Parent->LayoutingAxis)*/ (Parent->flags & WidgetFlags_StackVertically ? 1 : 0) * (Child->size[Axis] + yOffset);
+                    LayoutPosition += (Parent->flags & WidgetFlags_StackVertically ? 1 : 0) * Child->size[Axis];
                 }
 
                 Vec2 padding = Child->style_vars[StyleVar_Padding].ToVector2();

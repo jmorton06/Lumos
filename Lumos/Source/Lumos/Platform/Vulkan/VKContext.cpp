@@ -36,10 +36,10 @@ namespace Lumos
             if(m_InstanceExtensions.Empty())
             {
                 uint32_t extensionCount;
-                vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+                VK_CHECK_RESULT(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr));
 
                 m_InstanceExtensions.Resize(extensionCount);
-                vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, m_InstanceExtensions.Data());
+                VK_CHECK_RESULT(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, m_InstanceExtensions.Data()));
             }
 
             auto CheckExtension = [&](const char* extensionName)
@@ -116,10 +116,10 @@ namespace Lumos
             if(m_InstanceLayers.Empty())
             {
                 uint32_t layerCount;
-                vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+                VK_CHECK_RESULT(vkEnumerateInstanceLayerProperties(&layerCount, nullptr));
 
                 m_InstanceLayers.Resize(layerCount);
-                vkEnumerateInstanceLayerProperties(&layerCount, m_InstanceLayers.Data());
+                VK_CHECK_RESULT(vkEnumerateInstanceLayerProperties(&layerCount, m_InstanceLayers.Data()));
             }
 
             auto CheckLayer = [&](const char* layerName)
@@ -260,11 +260,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 #ifndef LUMOS_PLATFORM_IOS
-            VkResult result = volkInitialize();
-            if(result != VK_SUCCESS)
-            {
-                ASSERT(false, "volkInitialize failed");
-            }
+            VK_CHECK_RESULT(volkInitialize());
 
             if(volkGetInstanceVersion() == 0)
             {
@@ -345,12 +341,7 @@ namespace Lumos
                 createInfo.pNext                                  = &validation_features;
             }
 
-            VkResult createResult = vkCreateInstance(&createInfo, nullptr, &s_VkInstance);
-            if(createResult != VK_SUCCESS)
-            {
-
-                LFATAL("[VULKAN] Failed to create instance!");
-            }
+            VK_CHECK_RESULT(vkCreateInstance(&createInfo, nullptr, &s_VkInstance));
 #ifndef LUMOS_PLATFORM_IOS
             volkLoadInstance(s_VkInstance);
 #endif
@@ -371,11 +362,7 @@ namespace Lumos
             createInfo.flags                              = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
             createInfo.pfnCallback                        = reinterpret_cast<PFN_vkDebugReportCallbackEXT>(DebugCallback);
 
-            VkResult result = CreateDebugReportCallbackEXT(s_VkInstance, &createInfo, nullptr, &m_DebugCallback);
-            if(result != VK_SUCCESS)
-            {
-                LFATAL("[VULKAN] Failed to set up debug callback!");
-            }
+            VK_CHECK_RESULT(CreateDebugReportCallbackEXT(s_VkInstance, &createInfo, nullptr, &m_DebugCallback));
         }
 
         void VKContext::MakeDefault()

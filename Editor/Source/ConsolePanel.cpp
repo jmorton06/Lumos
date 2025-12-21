@@ -93,7 +93,9 @@ namespace Lumos
 
     ConsolePanel::~ConsolePanel()
     {
+        MutexDestroy(m_MessageBufferMutex);
         delete m_MessageBufferMutex;
+        m_MessageBufferMutex = nullptr;
     }
 
     void ConsolePanel::AddMessage(const ConsoleMessage& message)

@@ -86,6 +86,8 @@ namespace Lumos
         m_Arena      = ArenaAlloc(Megabytes(1));
 
         m_StringPool = new StringPool(m_Arena, 260);
+
+        // Allocate Asset Path String. Set later
         m_AssetPath  = m_StringPool->Allocate("");
 
         InitialiseUndo();
@@ -313,6 +315,29 @@ namespace Lumos
         m_SceneManager = CreateUniquePtr<SceneManager>();
 
         Deserialise();
+
+        // Load default shaders again. Opening a project will load a new asset registry, so previously loaded shaders will be deleted/not in the asset manager
+        // TODO: Fix needing this
+        {
+            bool loadEmbeddedShaders = true;
+            std::string ShaderFolder = m_ProjectSettings.m_EngineAssetPath + "Shaders";
+
+            if(FileSystem::FolderExists(Str8StdS(ShaderFolder)))
+                loadEmbeddedShaders = false;
+
+            if(!loadEmbeddedShaders)
+            {
+                ArenaTemp temp     = ScratchBegin(0, 0);
+                String8 shaderPath = PushStr8F(temp.arena, "%sShaders/CompiledSPV/", m_ProjectSettings.m_EngineAssetPath.c_str());
+
+                FileSystem::IterateFolder((const char*)shaderPath.str, EmbedShaderFunc);
+                ScratchEnd(temp);
+
+                LINFO("Embedded %i shaders.", EmbedShaderCount);
+            }
+            Graphics::Renderer::Init(loadEmbeddedShaders, m_ProjectSettings.m_EngineAssetPath);
+
+        }
 
         m_SceneManager->LoadCurrentList();
         m_SceneManager->ApplySceneSwitch();

@@ -202,7 +202,10 @@ namespace Lumos
     UI_Interaction UISlider(const char* str,
                              float* value,
                              float min_value = 0.0f,
-                             float max_value = 1.0f);
+                             float max_value = 1.0f,
+                             float width = 250.0f,
+                             float height = 20.0f,
+                             float handleSizeFraction = 0.1f);
 
     UI_Interaction UIToggle(const char* str,
                              bool* value);

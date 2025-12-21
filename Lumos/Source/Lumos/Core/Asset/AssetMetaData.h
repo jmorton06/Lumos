@@ -7,10 +7,10 @@ namespace Lumos
 
     struct AssetMetaData
     {
-        float timeSinceReload = 0.0f;
-        float lastAccessed    = 0.0f;
-        SharedPtr<Asset> data = nullptr;
-        bool onDisk           = false;
+        float TimeSinceReload = 0.0f;
+        float LastAccessed    = 0.0f;
+        SharedPtr<Asset> Data = nullptr;
+        bool bEmbeddedAsset   = false;
         bool Expire           = true;
         AssetType Type;
         bool IsDataLoaded       = false;

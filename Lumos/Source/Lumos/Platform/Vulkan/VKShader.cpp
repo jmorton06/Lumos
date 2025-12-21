@@ -564,9 +564,10 @@ namespace Lumos
                 setLayoutCreateInfo.pNext                           = &flagsInfo;
 
                 VkDescriptorSetLayout layout;
-                vkCreateDescriptorSetLayout(VKDevice::Get().GetDevice(), &setLayoutCreateInfo, VK_NULL_HANDLE, &layout);
+                VK_CHECK_RESULT(vkCreateDescriptorSetLayout(VKDevice::Get().GetDevice(), &setLayoutCreateInfo, VK_NULL_HANDLE, &layout));
 
-                m_DescriptorSetLayouts.PushBack(layout);
+                if(layout != VK_NULL_HANDLE)
+                    m_DescriptorSetLayouts.PushBack(layout);
             }
 
             const auto& pushConsts = GetPushConstants();

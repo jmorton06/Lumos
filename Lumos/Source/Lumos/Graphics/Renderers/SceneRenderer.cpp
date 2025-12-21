@@ -1274,7 +1274,7 @@ namespace Lumos::Graphics
 
         if(sceneRenderSettings.Renderer3DEnabled)
             ForwardPass();
-            
+
         if(sceneRenderSettings.SkyboxRenderEnabled)
             SkyboxPass();
 
@@ -1564,7 +1564,7 @@ namespace Lumos::Graphics
             Vec3 maxExtents = Vec3(radius);
             Vec3 minExtents = -maxExtents;
 
-            Vec3 lightDir         = (-light->Direction).Normalised(); 
+            Vec3 lightDir         = (-light->Direction).Normalised();
             //Mat4 lightOrthoMatrix = Mat4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -maxExtents.z - m_ShadowData.CascadeNearPlaneOffset, maxExtents.z + m_ShadowData.CascadeFarPlaneOffset);
             Mat4 lightOrthoMatrix = Mat4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, m_ShadowData.CascadeNearPlaneOffset, maxExtents.z - minExtents.z + m_ShadowData.CascadeFarPlaneOffset);
             Mat4 LightViewMatrix  = Mat4::LookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, Vec3(0.0f, 1.0f, 0.0f));
@@ -2067,8 +2067,6 @@ namespace Lumos::Graphics
         Swap(m_PostProcessTexture1, m_LastRenderTarget);
     }
 
-    static Vec2 debugUIOffset     = Vec2(0.0f, 0.0f);
-    static Vec2 debugUISizeOffset = Vec2(0.0f, 0.0f);
 
     void SceneRenderer::draw_ui(UI_Widget* widget)
     {
@@ -2101,13 +2099,13 @@ namespace Lumos::Graphics
         if(widget->flags & WidgetFlags_DrawBorder)
         {
             Vec2 size = widget->size;
-            Vec2 p    = widget->position + /*size * 0.5f+*/ debugUIOffset;
+            Vec2 p    = widget->position;
             // size *= 4.0f;
             p.y = m_MainTexture->GetHeight() - p.y;
 
             if(m_CurrentUIText)
             {
-                if(m_TextRendererData.m_IndexCount >= 0)
+                if(m_TextRendererData.m_IndexCount > 0)
                 {
                     TextFlush(m_TextRendererData, TextVertexBufferBase, TextVertexBufferPtr);
                     // BeginTextPass();
@@ -2180,7 +2178,7 @@ namespace Lumos::Graphics
         {
             Vec2 border = widget->style_vars[StyleVar_Border].ToVector2();
             Vec2 size   = widget->size - 2.0f * border;
-            Vec2 p      = widget->position + border + debugUIOffset; /* + size * 0.5f */
+            Vec2 p      = widget->position + border; /* + size * 0.5f */
             ;
             // size *= 4.0f;
             p.y = m_MainTexture->GetHeight() - p.y; //- size.y;
@@ -2261,14 +2259,14 @@ namespace Lumos::Graphics
             float fontSize = widget->style_vars[StyleVar_FontSize].x;
 
             Vec2 size = widget->size;
-            Vec2 p    = widget->position /* - size * 0.5f*/ + debugUIOffset;
+            Vec2 p    = widget->position;
             // size *= 4.0f;
 
             if(widget->TextAlignment & UI_Text_Alignment_Center_X)
             {
                 p.y = m_MainTexture->GetHeight() - p.y;
                 p.y -= size.y - padding.y * 0.5f;
-                p.x += size.x * 0.5f + padding.x * 0.5f;
+                p.x += (size.x - GetStringSize(widget->text, fontSize).x) * 0.5f;
             }
             else
             {
@@ -2278,7 +2276,7 @@ namespace Lumos::Graphics
             }
             if(!m_CurrentUIText)
             {
-                if(m_Renderer2DData.m_IndexCount >= 0)
+                if(m_Renderer2DData.m_IndexCount > 0)
                 {
                     Render2DFlush();
                 }
@@ -2433,27 +2431,6 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("UI Pass");
 
-#if 0
-        ImGui::Begin("UI");
-        ImGui::Columns(1);
-
-        float a = debugUISizeOffset.x;
-        if(ImGui::DragFloat("SizeX", &a))
-            debugUISizeOffset.x = a;
-
-        ImGui::DragFloat("Sizey", &debugUISizeOffset.y);
-        ImGui::DragFloat("PosX", &debugUIOffset.x);
-        ImGui::DragFloat("PosY", &debugUIOffset.y);
-
-        // ImGuiUtilities::Property("Size Y", debugUISizeOffset.y);
-
-        // ImGuiUtilities::Property("Pos X", debugUIOffset.x);
-        // ImGuiUtilities::Property("Pos Y", debugUIOffset.y);
-
-        ImGui::Columns(1);
-
-        ImGui::End();
-#endif
         BeginTextPass();
         // Begin2DPass();
 
