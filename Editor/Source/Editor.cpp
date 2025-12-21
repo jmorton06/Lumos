@@ -1273,7 +1273,14 @@ namespace Lumos
                 locationPopupOpened   = true;
 
                 // Set filePath to working directory
+                #ifdef LUMOS_PLATFORM_LINUX
+                std::string path  = OS::Get().GetExecutablePath() + "/../../../";
+                String8 pathCopy  = PushStr8Copy(m_FrameArena, path.c_str());
+                pathCopy           = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
+                path = (const char*)pathCopy.str;
+                #else
                 const auto& path  = OS::Get().GetExecutablePath();
+                #endif
                 auto& browserPath = m_FileBrowserPanel->GetPath();
                 browserPath       = std::filesystem::path(path);
                 m_FileBrowserPanel->SetFileTypeFilters({ ".lmproj" });
@@ -2959,6 +2966,8 @@ namespace Lumos
 #elif defined(LUMOS_PLATFORM_IOS)
         // TODO: StringRefactr
         m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
+#elif defined(LUMOS_PLATFORM_LINUX)
+        m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "/../../ExampleProject/";
 #endif
 
         m_ProjectSettings.m_ProjectName = "Example";

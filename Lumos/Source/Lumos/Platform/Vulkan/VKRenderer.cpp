@@ -85,16 +85,20 @@ namespace Lumos
             }
             else if(texture->GetType() == TextureType::DEPTHARRAY)
             {
-                VkImageLayout layout = ((VKTextureDepthArray*)texture)->GetImageLayout();
-
+                VKTextureDepthArray* VKDepthTexture = ((VKTextureDepthArray*)texture);
+                VkImageLayout layout = VKDepthTexture->GetImageLayout();
                 VkClearDepthStencilValue clear_depth_stencil = { 1.0f, 1 };
 
-                subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+                subresourceRange.aspectMask = Texture::IsDepthFormat(VKDepthTexture->GetFormat()) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+
+                if(Texture::IsStencilFormat(VKDepthTexture->GetFormat()))
+                    subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+
                 subresourceRange.layerCount = static_cast<VKTextureDepthArray*>(texture)->GetCount();
 
-                ((VKTextureDepthArray*)texture)->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VKCommandBuffer*)commandBuffer);
+                VKDepthTexture->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VKCommandBuffer*)commandBuffer);
                 vkCmdClearDepthStencilImage(((VKCommandBuffer*)commandBuffer)->GetHandle(), static_cast<VKTextureDepthArray*>(texture)->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clear_depth_stencil, 1, &subresourceRange);
-                ((VKTextureDepthArray*)texture)->TransitionImage(layout, (VKCommandBuffer*)commandBuffer);
+                VKDepthTexture->TransitionImage(layout, (VKCommandBuffer*)commandBuffer);
             }
         }
 

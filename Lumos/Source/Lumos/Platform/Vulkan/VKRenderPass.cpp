@@ -120,11 +120,6 @@ namespace Lumos
             attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             attachment.flags          = 0;
 
-            if(type == TextureType::COLOUR && swapchainTarget)
-            {
-                attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-            }
-
             return attachment;
         }
 
@@ -345,7 +340,7 @@ namespace Lumos
             commandBuffer->UpdateViewport(RenderPassWidth, RenderPassHeight, m_SwapchainTarget);
 
             s_ActiveCount++;
-            Engine::Get().Statistics().BoundSceneRenderer++;
+            Engine::Get().Statistics().BoundRenderPasses++;
         }
 
         void VKRenderPass::EndRenderPass(CommandBuffer* commandBuffer)

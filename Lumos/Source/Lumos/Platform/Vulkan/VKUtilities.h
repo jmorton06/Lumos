@@ -28,13 +28,6 @@ namespace Lumos
         namespace VKUtilities
         {
             void Init();
-#ifdef USE_VMA_ALLOCATOR
-            void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
-                              VkDeviceMemory& bufferMemory, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
-#else
-            void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
-                              VkDeviceMemory& bufferMemory);
-#endif
             VkCommandBuffer BeginSingleTimeCommands();
             void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 
@@ -57,8 +50,8 @@ namespace Lumos
             void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels = 1, uint32_t layerCount = 1, VkCommandBuffer commandBuffer = nullptr);
 
             uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-            VkFormat FindSupportedFormat(const TDArray<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-            VkFormat FindDepthFormat();
+            VkFormat FindSupportedFormat(const TDArray<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags requiredFeatures);
+            VkFormat FindDepthFormat(bool bNeedSampling = true);
 
             void ValidateResolution(uint32_t& width, uint32_t& height);
             bool IsPresentModeSupported(const TDArray<VkPresentModeKHR>& supportedModes, VkPresentModeKHR presentMode);

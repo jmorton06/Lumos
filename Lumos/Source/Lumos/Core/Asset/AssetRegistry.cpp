@@ -44,8 +44,8 @@ namespace Lumos
             UUID key             = *it.key;
             AssetMetaData& value = *it.value;
 
-            if(value.Expire && value.IsDataLoaded && value.data.GetCounter()->GetReferenceCount() == 1
-               && m_ExpirationTime < (elapsedSeconds - value.lastAccessed))
+            if(value.Expire && value.IsDataLoaded && value.Data.GetCounter()->GetReferenceCount() == 1
+               && m_ExpirationTime < (elapsedSeconds - value.LastAccessed))
             {
                 keysToDelete[keysToDeleteCount++] = key;
             }

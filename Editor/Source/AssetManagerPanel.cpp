@@ -73,13 +73,13 @@ namespace Lumos
                         ImGui::TextUnformatted(AssetTypeToString(metaData.Type));
                         ImGui::TableNextColumn();
 
-                        if(!metaData.data)
+                        if(!metaData.Data)
                             ImGui::TextUnformatted("Data Null");
-                        else if(metaData.Type == AssetType::Shader && metaData.data.As<Graphics::Shader>())
-                            ImGui::TextUnformatted(metaData.data.As<Graphics::Shader>()->IsCompiled() ? "Compiled" : "Failed to compile");
+                        else if(metaData.Type == AssetType::Shader && metaData.Data.As<Graphics::Shader>())
+                            ImGui::TextUnformatted(metaData.Data.As<Graphics::Shader>()->IsCompiled() ? "Compiled" : "Failed to compile");
 
                         ImGui::TableNextColumn();
-                        ImGui::Text("%.2f", metaData.lastAccessed);
+                        ImGui::Text("%.2f", metaData.LastAccessed);
 
                         ImGui::TableNextRow();
                     }

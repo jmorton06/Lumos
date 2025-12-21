@@ -19,16 +19,21 @@ namespace Lumos
             m_FramesInFlight = uint32_t(VKRenderer::GetMainSwapChain()->GetSwapChainBufferCount());
 
             m_Shader                            = descriptorDesc.shader;
+            if(!m_Shader)
+            {
+                LWARN("Shader is nullptr in DescriptorDesc");
+                return;
+            }
+
             DescriptorSetInfo descriptorSetInfo = m_Shader->GetDescriptorInfo(descriptorDesc.layoutIndex);
 
             for(auto& descriptor : descriptorSetInfo.descriptors)
             {
                 DescriptorData info;
-                info.HasUpdated[0] = false;
-                info.HasUpdated[1] = false;
-                info.HasUpdated[2] = false;
-                info.Desc          = descriptor;
-                info.Binding       = descriptor.binding;
+                for(uint32_t frame = 0; frame < m_FramesInFlight; frame++)
+                    info.HasUpdated[frame] = false;
+                info.Desc    = descriptor;
+                info.Binding = descriptor.binding;
 
                 if(descriptor.type == DescriptorType::UNIFORM_BUFFER)
                 {
@@ -81,7 +86,7 @@ namespace Lumos
                 bufferData.LocalStorage.Release();
             }
 
-            g_DescriptorSetCount -= 3;
+            g_DescriptorSetCount -= m_FramesInFlight;
         }
 
         void VKDescriptorSet::MakeDefault()
@@ -146,10 +151,18 @@ namespace Lumos
                 uint32_t imageIndex             = 0;
                 uint32_t index                  = 0;
 
-                ArenaTemp scratch                         = ScratchBegin(nullptr, 0);
-                VkDescriptorBufferInfo* bufferInfos       = PushArrayNoZero(scratch.arena, VkDescriptorBufferInfo, 32);
-                VkDescriptorImageInfo* imageInfos         = PushArrayNoZero(scratch.arena, VkDescriptorImageInfo, 32);
-                VkWriteDescriptorSet* writeDescriptorSets = PushArrayNoZero(scratch.arena, VkWriteDescriptorSet, 32);
+                ArenaTemp scratch = ScratchBegin(nullptr, 0);
+
+                uint32_t descriptorCount = 0;
+                for(auto& info : m_DescriptorData)
+                {
+                    if(info.valid)
+                        descriptorCount++;
+                }
+
+                VkDescriptorBufferInfo* bufferInfos       = PushArrayNoZero(scratch.arena, VkDescriptorBufferInfo, descriptorCount);
+                VkDescriptorImageInfo* imageInfos         = PushArrayNoZero(scratch.arena, VkDescriptorImageInfo, descriptorCount * 32); // Each descriptor could have multiple textures
+                VkWriteDescriptorSet* writeDescriptorSets = PushArrayNoZero(scratch.arena, VkWriteDescriptorSet, descriptorCount);
 
                 for(auto& imageInfo : m_DescriptorData)
                 {
@@ -285,9 +298,8 @@ namespace Lumos
                     descriptor.Desc.textureCount = texture ? 1 : 0;
                     descriptor.Desc.mipLevel     = mipIndex;
 
-                    m_DescriptorDirty[0] = true;
-                    m_DescriptorDirty[1] = true;
-                    m_DescriptorDirty[2] = true;
+                    for(uint32_t frame = 0; frame < m_FramesInFlight; frame++)
+                        m_DescriptorDirty[frame] = true;
                 }
             }
         }

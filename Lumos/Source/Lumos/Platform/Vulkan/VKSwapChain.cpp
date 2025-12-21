@@ -87,13 +87,13 @@ namespace Lumos
 
             // Swap chain
             VkSurfaceCapabilitiesKHR surfaceCapabilities;
-            vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), m_Surface, &surfaceCapabilities);
+            VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), m_Surface, &surfaceCapabilities));
 
             uint32_t numPresentModes;
-            vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, VK_NULL_HANDLE);
+            VK_CHECK_RESULT(vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, VK_NULL_HANDLE));
 
             TDArray<VkPresentModeKHR> pPresentModes(numPresentModes);
-            vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, pPresentModes.Data());
+            VK_CHECK_RESULT(vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, pPresentModes.Data()));
 
             VkExtent2D swapChainExtent;
 
@@ -269,7 +269,7 @@ namespace Lumos
                     LWARN("No ImageAcquireSemaphore for buffer %u", m_CurrentBuffer);
                     return false;
                 }
-                auto result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_Frames[m_CurrentBuffer].ImageAcquireSemaphore->GetHandle(), VK_NULL_HANDLE, &m_AcquireImageIndex);
+                VkResult result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_Frames[m_CurrentBuffer].ImageAcquireSemaphore->GetHandle(), VK_NULL_HANDLE, &m_AcquireImageIndex);
 
                 if(result == VK_SUCCESS)
                 {
@@ -301,6 +301,10 @@ namespace Lumos
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     FailedCount++;
                     LFATAL("[VULKAN] Failed to acquire swap chain image! - %s", VKUtilities::ErrorString(result).c_str());
+                }
+                else
+                {
+                    VK_CHECK_RESULT(result);
                 }
             }
 

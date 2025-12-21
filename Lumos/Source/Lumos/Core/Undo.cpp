@@ -36,7 +36,7 @@ namespace Lumos
         if(s_Undo->undo >= MAX_UNDOS)
             return;
 
-        s_Undo->tag = 0; /* Ignore for now : ) */
+        s_Undo->tag = 0;
 
         i32 changes = 0;
         u8* new_pos = s_Undo->copyRedoStart;
