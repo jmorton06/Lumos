@@ -29,7 +29,20 @@ namespace Lumos
         , m_WSTransform(Mat4(1.0f))
     {
         ASSERT(properties.Mass > 0.0f, "Mass <= 0");
-        m_InvMass = 1.0f / properties.Mass;
+        
+        m_Static = properties.Static;
+        
+        // Static objects have infinite mass (zero inverse mass)
+        if(m_Static)
+        {
+            m_InvMass = 0.0f;
+            m_AtRest = true;
+        }
+        else
+        {
+            m_InvMass = 1.0f / properties.Mass;
+            m_AtRest = properties.AtRest;
+        }
 
         m_LocalBoundingBox.Set(Vec3(-0.5f), Vec3(0.5f));
         m_CollisionShape = nullptr;
@@ -37,14 +50,12 @@ namespace Lumos
         if(properties.Shape)
             SetCollisionShape(properties.Shape);
 
-        m_Static     = properties.Static;
-        m_AtRest     = properties.AtRest;
-        m_Elasticity = properties.Elasticity;
-        m_Friction   = properties.Friction;
-        m_UUID       = UUID();
-
-        if(m_Static)
-            m_AtRest = true;
+        m_Elasticity     = properties.Elasticity;
+        m_Friction       = properties.Friction;
+        m_Trigger        = properties.isTrigger;
+        m_CollisionLayer = properties.CollisionLayer;
+        m_CollisionMask  = properties.CollisionMask;
+        m_UUID           = UUID();
     }
 
     RigidBody3D::~RigidBody3D()

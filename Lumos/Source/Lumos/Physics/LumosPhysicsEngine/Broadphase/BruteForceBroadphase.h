@@ -5,7 +5,7 @@
 
 namespace Lumos
 {
-
+    struct Arena;
     class LUMOS_EXPORT BruteForceBroadphase : public Broadphase
     {
     public:
@@ -17,5 +17,6 @@ namespace Lumos
 
     private:
         Vec3 m_axis;
+        Arena* m_Arena = nullptr;
     };
 }

@@ -165,21 +165,44 @@ namespace Lumos
 
         ~RigidBody3DComponent();
 
-        inline RigidBody3DComponent& operator=(RigidBody3DComponent& rhs)
+        RigidBody3DComponent& operator=(const RigidBody3DComponent& rhs)
         {
-            m_OwnRigidBody     = rhs.m_OwnRigidBody;
-            rhs.m_OwnRigidBody = false;
-            m_RigidBody        = rhs.m_RigidBody;
+            if(this != &rhs)
+            {
+                // Clean up existing body if we own it
+                if(m_RigidBody && m_OwnRigidBody)
+                    Application::Get().GetSystem<LumosPhysicsEngine>()->DestroyBody(m_RigidBody);
 
+                // Create a new physics body with the same properties
+                if(rhs.m_RigidBody)
+                {
+                    auto properties = rhs.m_RigidBody->GetProperties();
+                    m_RigidBody     = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody(properties);
+                    m_OwnRigidBody  = true;
+                }
+                else
+                {
+                    m_RigidBody    = nullptr;
+                    m_OwnRigidBody = false;
+                }
+            }
             return *this;
         }
 
-        inline RigidBody3DComponent& operator=(RigidBody3DComponent&& rhs) noexcept
+        RigidBody3DComponent& operator=(RigidBody3DComponent&& rhs) noexcept
         {
-            m_OwnRigidBody     = rhs.m_OwnRigidBody;
-            rhs.m_OwnRigidBody = false;
-            m_RigidBody        = rhs.m_RigidBody;
+            if(this != &rhs)
+            {
+                // Clean up existing body if we own it
+                if(m_RigidBody && m_OwnRigidBody)
+                    Application::Get().GetSystem<LumosPhysicsEngine>()->DestroyBody(m_RigidBody);
 
+                // Take ownership from rhs (move semantics)
+                m_RigidBody        = rhs.m_RigidBody;
+                m_OwnRigidBody     = rhs.m_OwnRigidBody;
+                rhs.m_RigidBody    = nullptr;
+                rhs.m_OwnRigidBody = false;
+            }
             return *this;
         }
 

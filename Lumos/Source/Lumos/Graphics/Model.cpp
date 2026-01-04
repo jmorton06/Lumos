@@ -8,7 +8,6 @@
 #include "Animation/Animation.h"
 #include "Animation/AnimationController.h"
 #include "Animation/SamplingContext.h"
-#include "AI/AStar.h"
 
 namespace Lumos::Graphics
 {

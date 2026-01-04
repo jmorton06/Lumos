@@ -15,7 +15,7 @@ namespace Lumos
         ~Engine();
 
         float TargetFrameRate() const { return m_MaxFramesPerSecond; }
-        void SetTargetFrameRate(float targetFPS) { m_MaxFramesPerSecond = targetFPS; }
+        void SetTargetFrameRate(float targetFPS) { m_MaxFramesPerSecond = targetFPS; m_TimeStep->SetTargetFrameTime(targetFPS); }
 
         static TimeStep& GetTimeStep() { return *Engine::Get().m_TimeStep; }
 

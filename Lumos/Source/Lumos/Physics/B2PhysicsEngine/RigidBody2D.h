@@ -97,6 +97,8 @@ namespace Lumos
 
         void RebuildShape();
 
+        RigidBodyParameters GetParameters() const;
+
     protected:
         b2BodyId m_B2Body;
         Shape m_ShapeType;

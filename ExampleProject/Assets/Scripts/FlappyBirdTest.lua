@@ -30,7 +30,7 @@ gameOverTexture = nil
 gameOverEntity = nil
 gameOverScale = 1.0
 totalTime = 0.0
-gameOverSize = Vector2.new(30, 4)
+gameOverSize = Vec2.new(30, 4)
 showImguiWindow = false
 
 function EndGame()
@@ -38,11 +38,11 @@ function EndGame()
 
     if gameOverEntity == nil then
         gameOverEntity = entityManager:Create()
-        gameOverEntity:AddSprite(Vector2.new(0.0, 0.0), gameOverSize, Vector4.new(1.0, 1.0, 1.0, 1.0)):SetTexture(gameOverTexture)
-        gameOverEntity:GetTransform():SetLocalScale(Vector3.new(0.2, 0.2, 0.2))
+        gameOverEntity:AddSprite(Vec2.new(0.0, 0.0), gameOverSize, Vec4.new(1.0, 1.0, 1.0, 1.0)):SetTexture(gameOverTexture)
+        gameOverEntity:GetTransform():SetLocalScale(Vec3.new(0.2, 0.2, 0.2))
     end
     if player then
-        local gameOverPos = player:GetTransform():GetWorldPosition() + Vector3.new(15.0, 2.0, 1.0)
+        local gameOverPos = player:GetTransform():GetWorldPosition() + Vec3.new(15.0, 2.0, 1.0)
         gameOverEntity:GetTransform():SetLocalPosition(gameOverPos)
     end
 end
@@ -55,16 +55,16 @@ function CreatePlayer()
     local texture = LoadTextureWithParams("icon", "//Assets/Textures/TappyPlane/PNG/Planes/planeBlue1.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
 
     player = entityManager:Create()
-    player:AddSprite(Vector2.new(-0.9, -0.8), Vector2.new(1.7, 1.5), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(texture)
+    player:AddSprite(Vec2.new(-0.9, -0.8), Vec2.new(1.7, 1.5), Vec4.new(1.0,1.0,1.0,1.0)):SetTexture(texture)
 
     local params = RigidBodyParameters.new()
-    params.position = Vector3.new(1.0, 1.0, 1.0)
-    params.scale = Vector3.new(1.7 / 2.0, 1.5 / 2.0, 1.0)
+    params.position = Vec3.new(1.0, 1.0, 1.0)
+    params.scale = Vec3.new(1.7 / 2.0, 1.5 / 2.0, 1.0)
     params.shape = Shape.Circle
     params.isStatic = false
 
-    player:GetTransform():SetLocalPosition(Vector3.new(1.0,1.0,1.0))
-    player:AddRigidBody2DComponent(params):GetRigidBody():SetForce(Vector2.new(0.0,0.0))
+    player:GetTransform():SetLocalPosition(Vec3.new(1.0,1.0,1.0))
+    player:AddRigidBody2DComponent(params):GetRigidBody():SetForce(Vec2.new(0.0,0.0))
     player:GetRigidBody2DComponent():GetRigidBody():SetIsStatic(true)
     player:GetRigidBody2DComponent():GetRigidBody():SetLinearDamping(0.1)
     local emitter = player:AddParticleEmitter()
@@ -73,11 +73,11 @@ function CreatePlayer()
     emitter:SetNumLaunchParticles(100)
     emitter:SetParticleLife(0.9)
     emitter:SetParticleSize(0.2)
-    emitter:SetGravity(Vector3.new(0.0, -1.0, 0.0))
-    emitter:SetSpread(Vector3.new(1.0, 0.4, 0.0))
-    emitter:SetVelocitySpread(Vector3.new(0.0, 0.8, 0.0))
-    emitter:SetInitialVelocity(Vector3.new(-3.0, 0.0, 0.0))
-	emitter:SetInitialColour(Vector4.new(0.8,0.8,0.8,0.6))
+    emitter:SetGravity(Vec3.new(0.0, -1.0, 0.0))
+    emitter:SetSpread(Vec3.new(1.0, 0.4, 0.0))
+    emitter:SetVelocitySpread(Vec3.new(0.0, 0.8, 0.0))
+    emitter:SetInitialVelocity(Vec3.new(-3.0, 0.0, 0.0))
+	emitter:SetInitialColour(Vec4.new(0.8,0.8,0.8,0.6))
 	emitter:SetFadeOut(0.9)
 	emitter:SetFadeIn(2.0)
     SetCallback(beginContact, player:GetRigidBody2DComponent():GetRigidBody():GetB2Body())
@@ -90,21 +90,21 @@ function CreatePillar(index, offset)
 
     local centre = Rand(-6.0, 6.0);
     local width = Rand(1.0, 2.0)
-    
+
     local topY = maxHeight;
 	local bottomY = centre + (gapSize / 2.0);
 
-	local pos = Vector3.new(offset / 2.0, ((topY - bottomY )/ 2.0) + bottomY, 0.0);
-	local scale = Vector3.new(width, (topY - bottomY) / 2.0, 1.0);
+	local pos = Vec3.new(offset / 2.0, ((topY - bottomY )/ 2.0) + bottomY, 0.0);
+	local scale = Vec3.new(width, (topY - bottomY) / 2.0, 1.0);
 
-    pillars[index]:AddSprite(Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 2.0, scale.y * 2.0), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(iconTexture)
+    pillars[index]:AddSprite(Vec2.new(-scale.x, -scale.y), Vec2.new(scale.x * 2.0, scale.y * 2.0), Vec4.new(1.0,1.0,1.0,1.0)):SetTexture(iconTexture)
 
     local params = RigidBodyParameters.new()
 	params.position = pos
 	params.scale = scale
 	params.shape = Shape.Custom
 	params.isStatic = true
-	params.customShapePositions = { Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 0.25, scale.y * 1.05), Vector2.new(scale.x, -scale.y)}
+	params.customShapePositions = { Vec2.new(-scale.x, -scale.y), Vec2.new(scale.x * 0.25, scale.y * 1.05), Vec2.new(scale.x, -scale.y)}
 
     pillars[index]:GetTransform():SetLocalPosition(pos)
     pillars[index]:AddRigidBody2DComponent(params):GetRigidBody():SetOrientation(3.14)
@@ -112,16 +112,16 @@ function CreatePillar(index, offset)
     topY = centre - (gapSize / 2.0)
     bottomY = -maxHeight;
     width = Rand(1.0, 2.0)
-	pos = Vector3.new(offset / 2.0, ((topY - bottomY) / 2.0) + bottomY, 0.0)
-	scale = Vector3.new(width, (topY - bottomY) / 2.0, 1.0)
+	pos = Vec3.new(offset / 2.0, ((topY - bottomY) / 2.0) + bottomY, 0.0)
+	scale = Vec3.new(width, (topY - bottomY) / 2.0, 1.0)
 
-    pillars[index + 1]:AddSprite(Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 2.0, scale.y * 2.0), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(iconTexture)
+    pillars[index + 1]:AddSprite(Vec2.new(-scale.x, -scale.y), Vec2.new(scale.x * 2.0, scale.y * 2.0), Vec4.new(1.0,1.0,1.0,1.0)):SetTexture(iconTexture)
 
 	params.position = pos
 	params.scale = scale
 	params.shape = Shape.Custom
 	params.isStatic = true
-	params.customShapePositions = { Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 0.25, scale.y * 1.05), Vector2.new(scale.x, -scale.y)}
+	params.customShapePositions = { Vec2.new(-scale.x, -scale.y), Vec2.new(scale.x * 0.25, scale.y * 1.05), Vec2.new(scale.x, -scale.y)}
 
     pillars[index + 1]:GetTransform():SetLocalPosition(pos)
     pillars[index + 1]:AddRigidBody2DComponent(params)
@@ -133,8 +133,8 @@ end
 
 function CreateBackground(index)
     backgrounds[index] = entityManager:Create()
-    backgrounds[index]:AddTransform():SetLocalPosition(Vector3.new(index * 20.0 - 40.0, 0.0, -9.0))
-    backgrounds[index]:AddSprite(Vector2.new(-10.0, -10.0), Vector2.new(10.0 * 2.0, 10.0 * 2.0), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(backgroundTexture)
+    backgrounds[index]:AddTransform():SetLocalPosition(Vec3.new(index * 20.0 - 40.0, 0.0, -9.0))
+    backgrounds[index]:AddSprite(Vec2.new(-10.0, -10.0), Vec2.new(10.0 * 2.0, 10.0 * 2.0), Vec4.new(1.0,1.0,1.0,1.0)):SetTexture(backgroundTexture)
 end
 
 function updateSpeed(v)
@@ -153,7 +153,7 @@ function OnInit()
 
     entityManager = scene:GetEntityManager()
 
-    SetB2DGravity(Vector2.new(0.0, -9.81 * 2.0))
+    SetB2DGravity(Vec2.new(0.0, -9.81 * 2.0))
 
     camera = entityManager:Create()
     camera:AddTransform()
@@ -161,10 +161,10 @@ function OnInit()
     scoreEntity = entityManager:Create()
     scoreEntity:AddTransform()
     scoreEntity:AddTextComponent()
-    scoreEntity:GetTextComponent().Colour = Vector4.new(0.4, 0.1, 0.9, 1.0)
+    scoreEntity:GetTextComponent().Colour = Vec4.new(0.4, 0.1, 0.9, 1.0)
     scoreEntity:GetTextComponent().TextString = ""
-    scoreEntity:GetTransform():SetLocalPosition(Vector3.new(-4.0, 8.0, 0.0))
-    scoreEntity:GetTransform():SetLocalScale(Vector3.new(2.0, 2.0, 2.0))
+    scoreEntity:GetTransform():SetLocalPosition(Vec3.new(-4.0, 8.0, 0.0))
+    scoreEntity:GetTransform():SetLocalScale(Vec3.new(2.0, 2.0, 2.0))
 
     local screenSize = GetAppInstance():GetWindowSize()
     camera:AddCamera(screenSize.x / screenSize.y, 10.0, 1.0)
@@ -236,8 +236,8 @@ function OnUpdate(dt)
         camera:GetTransform():SetLocalPosition(pos)
 
         score = math.max(math.floor((pos.x - 5) / 10), 0)
-        scoreEntity:GetTransform():SetLocalPosition(pos + Vector3.new(0.0, 8.0, 0.0))
-        scoreEntity:GetTextComponent().TextString = "Score: " .. tostring(score) 
+        scoreEntity:GetTransform():SetLocalPosition(pos + Vec3.new(0.0, 8.0, 0.0))
+        scoreEntity:GetTextComponent().TextString = "Score: " .. tostring(score)
 
         if pos.x > pillarTarget then
             if pillars[pillarIndex] and pillars[pillarIndex]:Valid() then
@@ -263,14 +263,14 @@ function OnUpdate(dt)
         totalTime = totalTime + dt * 2
         gameOverScale = 0.2 + (math.sin(totalTime) + 1.0) / 10.0
         if gameOverEntity then
-            gameOverEntity:GetTransform():SetLocalScale(Vector3.new(gameOverScale, gameOverScale, gameOverScale))
-            gameOverEntity:GetTransform():SetLocalPosition(camera:GetTransform():GetWorldPosition() - Vector3.new((gameOverScale *  gameOverSize.x )/ 2, (gameOverScale *  gameOverSize.y )/ 2, -2.0))
+            gameOverEntity:GetTransform():SetLocalScale(Vec3.new(gameOverScale, gameOverScale, gameOverScale))
+            gameOverEntity:GetTransform():SetLocalPosition(camera:GetTransform():GetWorldPosition() - Vec3.new((gameOverScale *  gameOverSize.x )/ 2, (gameOverScale *  gameOverSize.y )/ 2, -2.0))
         end
 
     elseif gameState == GameStates.Start then
 
        --scoreEntity:GetTextComponent().TextString = "Click to start"
-       scoreEntity:GetTransform():SetLocalPosition(Vector3.new(-4.0, 8.0, 0.0))
+       scoreEntity:GetTransform():SetLocalPosition(Vec3.new(-4.0, 8.0, 0.0))
 
        pos = player:GetTransform():GetWorldPosition()
        pos.y = 0.0
@@ -290,11 +290,11 @@ function OnUpdate(dt)
         end
         gui.endWindow()
     end
-   
+
     if GetUIState then
-        UIPushStyle(StyleVar.BackgroundColor, Vector4.new(0.08, 0.08, 0.08, 0.7))
-        UIPushStyle(StyleVar.BorderColor, Vector4.new(0.4, 0.4, 0.4, 0.8))
-        UIPushStyle(StyleVar.TextColor, Vector4.new(1.0, 1.0, 1.0, 1.0))
+        UIPushStyle(StyleVar.BackgroundColor, Vec4.new(0.08, 0.08, 0.08, 0.7))
+        UIPushStyle(StyleVar.BorderColor, Vec4.new(0.4, 0.4, 0.4, 0.8))
+        UIPushStyle(StyleVar.TextColor, Vec4.new(1.0, 1.0, 1.0, 1.0))
 
         if gameState == GameStates.Start or gameState == GameStates.GameOver then
             UIBeginPanel("FlappyMenu", WidgetFlags.StackVertically | WidgetFlags.CentreX | WidgetFlags.CentreY)
@@ -306,13 +306,13 @@ function OnUpdate(dt)
                 if gameState == GameStates.Start then
                     gameState = GameStates.Running
                     player:GetRigidBody2DComponent():GetRigidBody():SetIsStatic(false)
-                    --player:GetRigidBody2DComponent():GetRigidBody():SetForce(Vector2.new(200.0,0.0))
+                    --player:GetRigidBody2DComponent():GetRigidBody():SetForce(Vec2.new(200.0,0.0))
                     PlayerJump()
                 else
                     Reset()
                     gameState = GameStates.Running
                     player:GetRigidBody2DComponent():GetRigidBody():SetIsStatic(false)
-                   -- player:GetRigidBody2DComponent():GetRigidBody():SetForce(Vector2.new(200.0,0.0))
+                   -- player:GetRigidBody2DComponent():GetRigidBody():SetForce(Vec2.new(200.0,0.0))
                     PlayerJump()
                 end
             end
@@ -344,10 +344,10 @@ function Reset()
     gameState = GameStates.Start
     phys = player:GetRigidBody2DComponent():GetRigidBody()
 
-    phys:SetPosition(Vector2.new(0.0, 0.0))
-    phys:SetForce(Vector2.new(0.0,0.0))
+    phys:SetPosition(Vec2.new(0.0, 0.0))
+    phys:SetForce(Vec2.new(0.0,0.0))
 
-    phys:SetLinearVelocity(Vector2.new(0.0, 0.0))
+    phys:SetLinearVelocity(Vec2.new(0.0, 0.0))
 	phys:SetOrientation(0.0)
 	phys:SetAngularVelocity(0.0)
 	phys:SetIsStatic(true)
@@ -356,7 +356,7 @@ function Reset()
     pillarTarget = 35.0
     pillarIndex = 1
 
-	player:GetTransform():SetLocalPosition(Vector3.new(0.0,0.0,0.0))
+	player:GetTransform():SetLocalPosition(Vec3.new(0.0,0.0,0.0))
 
     for i=1,10, 2 do
         if pillars[i] and pillars[i]:Valid() then
@@ -391,69 +391,3 @@ end
 function OnRelease()
     OnCleanUp()
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -13,6 +13,18 @@ namespace Lumos
         RigidBody2DComponent(const RigidBodyParameters& params);
         explicit RigidBody2DComponent(SharedPtr<RigidBody2D>& physics);
 
+        // Copy constructor - creates a new physics body with same properties
+        RigidBody2DComponent(const RigidBody2DComponent& other);
+
+        // Copy assignment - creates a new physics body with same properties
+        RigidBody2DComponent& operator=(const RigidBody2DComponent& other);
+
+        // Move constructor
+        RigidBody2DComponent(RigidBody2DComponent&& other) noexcept = default;
+
+        // Move assignment
+        RigidBody2DComponent& operator=(RigidBody2DComponent&& other) noexcept = default;
+
         void Update();
         void OnImGui();
 

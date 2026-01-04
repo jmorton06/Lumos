@@ -37,20 +37,25 @@ namespace Lumos
 #define LEAF_COUNT 1024
         m_Leaves = PushArrayNoZero(m_Arena, OctreeNode*, LEAF_COUNT);
 
+        // Early exit if no objects
+        if(totalRigidBodyCount == 0)
+            return;
+
         for(i32 i = 0; i < totalRigidBodyCount; i++)
         {
             RigidBody3D& current = rootObject[i];
-            if(current.GetIsValid())
+            if(current.GetIsValid() && current.GetCollisionShape())
             {
-                if(current.GetCollisionShape())
-                {
-                    LUMOS_PROFILE_SCOPE_LOW("Merge Bounding box and add Physics Object");
-                    m_RootNode.boundingBox.Merge(current.GetWorldSpaceAABB());
-                    m_RootNode.PhysicsObjects[m_RootNode.PhysicsObjectCount] = &current;
-                    m_RootNode.PhysicsObjectCount++;
-                }
+                LUMOS_PROFILE_SCOPE_LOW("Merge Bounding box and add Physics Object");
+                m_RootNode.boundingBox.Merge(current.GetWorldSpaceAABB());
+                m_RootNode.PhysicsObjects[m_RootNode.PhysicsObjectCount] = &current;
+                m_RootNode.PhysicsObjectCount++;
             }
         }
+
+        // Early exit if no valid objects with collision shapes
+        if(m_RootNode.PhysicsObjectCount == 0)
+            return;
 
         m_RootNode.boundingBox.ExtendToCube();
 
@@ -82,8 +87,18 @@ namespace Lumos
 
                     RigidBody3D& obj2 = *node.PhysicsObjects[j];
 
-                    // Skip pairs of two at objects at rest
-                    if(obj1.GetIsAtRest() && obj2.GetIsAtRest())
+                    // Skip pairs of two static objects
+                    if(obj1.GetIsStatic() && obj2.GetIsStatic())
+                        continue;
+
+                    // Skip pairs of two non-static objects that are both at rest
+                    // (Don't skip static-dynamic pairs even if dynamic object is at rest,
+                    // because another dynamic object could push the at-rest object into the static one)
+                    if(obj1.GetIsAtRest() && obj2.GetIsAtRest() && !obj1.GetIsStatic() && !obj2.GetIsStatic())
+                        continue;
+
+                    // Skip pairs filtered out by collision layers
+                    if(!obj1.CanCollideWith(&obj2))
                         continue;
 
                     if(!obj1.GetWorldSpaceAABB().IsInsideFast(obj2.GetWorldSpaceAABB()))
@@ -188,12 +203,12 @@ namespace Lumos
             chileNode.boundingBox.m_Max = upper;
 
             // Add objects inside division
-            for(uint32_t i = 0; i < division.PhysicsObjectCount; i++)
+            for(uint32_t j = 0; j < division.PhysicsObjectCount; j++)
             {
-                LUMOS_PROFILE_SCOPE_LOW("PhysicsObject BB check");
-                RigidBody3D* physicsObject = division.PhysicsObjects[i];
+                RigidBody3D* physicsObject = division.PhysicsObjects[j];
 
-                if(!physicsObject || !physicsObject->GetCollisionShape())
+                // Skip null objects (already completely contained by sibling)
+                if(!physicsObject)
                     continue;
 
                 const Maths::BoundingBox& boundingBox = physicsObject->GetWorldSpaceAABB();
@@ -203,13 +218,15 @@ namespace Lumos
                     chileNode.PhysicsObjects[chileNode.PhysicsObjectCount] = physicsObject;
                     chileNode.PhysicsObjectCount++;
 
+                    // If object is completely inside this child, remove from parent to avoid redundant checks
                     if(intersection == Maths::Intersection::INSIDE)
-                        division.PhysicsObjects[i] = nullptr;
+                        division.PhysicsObjects[j] = nullptr;
                 }
             }
 
-            // Do further subdivisioning
-            Divide(chileNode, iteration + 1);
+            // Do further subdivisioning only if child has objects
+            if(chileNode.PhysicsObjectCount > 0)
+                Divide(chileNode, iteration + 1);
         }
     }
 

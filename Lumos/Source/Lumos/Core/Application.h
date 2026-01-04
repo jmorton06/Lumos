@@ -89,6 +89,8 @@ namespace Lumos
         virtual void OnUpdate(const TimeStep& dt);
         virtual void OnImGui();
         virtual void OnDebugDraw();
+        
+        virtual void ExitApp();
 
         SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
         Graphics::SceneRenderer* GetSceneRenderer() const { return m_SceneRenderer.get(); }

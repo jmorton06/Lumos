@@ -6,6 +6,7 @@
 #include "Scene/EntityManager.h"
 #include "Utilities/StringUtilities.h"
 #include "Core/Engine.h"
+#include "Core/OS/FileSystem.h"
 
 #include <sol/sol.hpp>
 
@@ -48,7 +49,21 @@ namespace Lumos
         m_FileName = fileName;
         m_Env      = CreateSharedPtr<sol::environment>(LuaManager::Get().GetState(), sol::create, LuaManager::Get().GetState().globals());
 
-        auto loadFileResult = LuaManager::Get().GetState().script_file(m_FileName, *m_Env, sol::script_pass_on_error);
+        // Resolve virtual //Assets paths to physical paths
+        std::string actualPath = m_FileName;
+        if(m_FileName.find("//") == 0)
+        {
+            ArenaTemp scratch = ScratchBegin(0, 0);
+            String8 virtualPath = Str8((u8*)m_FileName.c_str(), m_FileName.size());
+            String8 physicalPath;
+            if(FileSystem::Get().ResolvePhysicalPath(scratch.arena, virtualPath, &physicalPath, true))
+            {
+                actualPath = std::string((const char*)physicalPath.str, physicalPath.size);
+            }
+            ScratchEnd(scratch);
+        }
+
+        auto loadFileResult = LuaManager::Get().GetState().script_file(actualPath, *m_Env, sol::script_pass_on_error);
         if(!loadFileResult.valid())
         {
             sol::error err = loadFileResult;

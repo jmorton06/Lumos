@@ -195,20 +195,18 @@ float GetShadowBias(vec3 lightDirection, vec3 normal, int shadowIndex)
 	return bias;
 }
 
-float interleavedGradientNoise(vec2 position_screen)
+float InterleavedGradientNoise(vec2 screenPosition)
 {
     vec3 magic = vec3(0.06711056, 0.00583715, 52.9829189);
-    return fract(magic.z * fract(dot(position_screen, magic.xy)));
+    return fract(magic.z * fract(dot(screenPosition, magic.xy)));
 }
 
 float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, float uvRadius, vec3 lightDirection, vec3 normal, vec3 wsPos, int cascadeIndex)
 {
 	float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
 	float sum = 0.0;
-	//float noise = Noise(wsPos.xy);
 	float invSquareRootSamplesCount = InvSqrtPCFSamples;
-    vec3 flooredPos = floor(wsPos.xyz*1000.0);
-    //int index = int(16.0*Random(flooredPos.xyz, 1))%16;
+
 	#define MAX_PCF_SAMPLES 64
 	for (int i = 0; i < MAX_PCF_SAMPLES; i++)
 	{
@@ -217,25 +215,19 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 
 		vec2 offset;
 
-		//int index = int(16.0f*Random(vec4(wsPos, i)))%16;
-		//int index = int(float(NUM_PCF_SAMPLES)*GoldNoise(wsPos.xy, i * wsPos.z))%NUM_PCF_SAMPLES;
-		//int index = int(float(NUM_PCF_SAMPLES)*Random(vec4(wsPos.xyz, 1)))%NUM_PCF_SAMPLES;
-		//int index = int(float(NUM_PCF_SAMPLES)*Random(vec4(floor(wsPos*1000.0), 1)))%NUM_PCF_SAMPLES;
-		//int index = int(NUM_PCF_SAMPLES*Random(vec4(floor(wsPos.xyz*1000.0), i)))%NUM_PCF_SAMPLES;
-		//int index = int(NUM_PCF_SAMPLES*Random(vec4(wsPos.xyy, i)))%NUM_PCF_SAMPLES;
+		if(u_SceneData.VogelOffset > 0)
+		{
+	    	float noise = InterleavedGradientNoise(gl_FragCoord.xy) * TwoPI;
+			offset = VogelDiskSample(i, invSquareRootSamplesCount, noise) * uvRadius;
+		}
+		else
+		{
+		    int index = int(16.0f*Random(vec4(wsPos, i)))%16;
+			offset = SamplePoisson(index) * uvRadius;
+		}
 
-	if(u_SceneData.VogelOffset > 0)
-	{
-		offset = VogelDiskSample(i, invSquareRootSamplesCount, interleavedGradientNoise(gl_FragCoord.xy)) / 1024.0;
-	}
-	else
-	{
-		int index = int(16.0f*Random(vec4(wsPos, i)))%16;
- 		offset = SamplePoisson(index) / 700.0;
-	}
-
-	float z = texture(shadowMap, vec3(shadowCoords.xy + offset, cascadeIndex)).r - bias;
-        sum += step(shadowCoords.z, z);
+		float z = texture(shadowMap, vec3(shadowCoords.xy + offset, cascadeIndex)).r - bias;
+		sum += step(shadowCoords.z, z);
 	}
 
 	return sum / u_SceneData.PCFSamples;
@@ -243,19 +235,16 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 
 int CalculateCascadeIndex(vec3 wsPos)
 {
-	int cascadeIndex = 0;
 	vec4 viewPos = u_SceneData.ViewMatrix * vec4(wsPos, 1.0);
-
-	for(int i = 0; i < u_SceneData.ShadowCount - 1; ++i)
-	{
-		// If the view-space depth is greater than a split depth, the cascade index should increase.
-		if(viewPos.z < u_SceneData.SplitDepths[i])
-		{
-			cascadeIndex = i + 1;
-		}
-	}
-
-	return cascadeIndex;
+    float z = viewPos.z;
+    vec4 comparison = vec4(
+        step(z, u_SceneData.SplitDepths[0]),
+        step(z, u_SceneData.SplitDepths[1]),
+        step(z, u_SceneData.SplitDepths[2]),
+        step(z, u_SceneData.SplitDepths[3])
+    );
+    int cascadeIndex = int(dot(comparison, vec4(1.0)));
+	return min(cascadeIndex, u_SceneData.ShadowCount - 1);
 }
 
 float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 normal)
@@ -272,6 +261,9 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 	vec4 shadowCoord = u_SceneData.BiasMatrix * u_SceneData.ShadowTransform[cascadeIndex] * vec4(wsPos, 1.0);
 	shadowCoord = shadowCoord * (1.0 / shadowCoord.w);
 
+	if(shadowCoord.z > 0.999 || shadowCoord.z < 0.0)
+		return 1.0;
+
 	float shadowAmount = 1.0;
 
 	float uvRadius = 0.002;
@@ -280,7 +272,7 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 	{
 		float NEAR = 0.01;
 		uvRadius =  u_SceneData.LightSize * NEAR / shadowCoord.z;
-		uvRadius = min(uvRadius, 0.002);
+		uvRadius = min(uvRadius, 0.005);
 
 		shadowAmount = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeIndex);
 	}
@@ -293,12 +285,15 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 
 	if (u_SceneData.BlendShadows == 1)
 	{
-		float cascadeFade = smoothstep(u_SceneData.SplitDepths[cascadeIndex] + u_SceneData.CascadeFade * 0.5, u_SceneData.SplitDepths[cascadeIndex] - u_SceneData.CascadeFade * 0.5, viewPos.z);
+		float splitDist = u_SceneData.SplitDepths[cascadeIndex];
+		float fadeDist = u_SceneData.CascadeFade * 0.5;
+		float cascadeFade = smoothstep(splitDist + fadeDist, splitDist - fadeDist, viewPos.z);
 		int cascadeNext = cascadeIndex + 1;
 		if (cascadeFade > 0.0 && cascadeNext < u_SceneData.ShadowCount)
 		{
-			shadowCoord = u_SceneData.BiasMatrix * u_SceneData.ShadowTransform[cascadeNext] * vec4(wsPos, 1.0);
-			float shadowAmount1 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeNext);
+			vec4 shadowCoordNext = u_SceneData.BiasMatrix * u_SceneData.ShadowTransform[cascadeNext] * vec4(wsPos, 1.0);
+			shadowCoordNext = shadowCoordNext * (1.0 / shadowCoordNext.w);
+			float shadowAmount1 = PCFShadowDirectionalLight(uShadowMap, shadowCoordNext, uvRadius, lightDirection, normal, wsPos, cascadeNext);
 
 			shadowAmount =  mix(shadowAmount, shadowAmount1, cascadeFade);
 		}
@@ -526,26 +521,26 @@ void main()
     // Start from clamped perceptual
 	material.PerceptualRoughness = clamp(material.PerceptualRoughness, MIN_PERCEPTUAL_ROUGHNESS, 1.0);
 	float roughness2 = material.PerceptualRoughness * material.PerceptualRoughness;
-	
+
 	// Specular anti-aliasing
 	{
 		const float strength = 1.0;
 		const float maxRoughnessGain = 0.02;
-		
+
 		vec3 dndu = dFdx(material.Normal);
 		vec3 dndv = dFdy(material.Normal);
 		float variance = dot(dndu, dndu) + dot(dndv, dndv);
-		
+
 		float kernelRoughness2 = min(variance * strength, maxRoughnessGain);
-		
+
 		float filteredRoughness2 = roughness2 + kernelRoughness2;
 		filteredRoughness2 = clamp(filteredRoughness2, MIN_ROUGHNESS, 1.0);
-		
+
 		material.Roughness = sqrt(filteredRoughness2);
 	}
 
 	InvSqrtPCFSamples = 1.0 / sqrt(float(u_SceneData.PCFSamples));
-	
+
 	vec3 wsPos     = VertexOutput.Position.xyz;
 	material.View  = normalize(u_SceneData.cameraPosition.xyz - wsPos);
 	material.NDotV = max(dot(material.Normal, material.View), 1e-4);

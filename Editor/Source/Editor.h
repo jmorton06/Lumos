@@ -66,6 +66,8 @@ namespace Lumos
         void OnDebugDraw() override;
         void OnEvent(Event& e) override;
         void OnQuit() override;
+        
+        void ExitApp() override;
 
         void DrawMenuBar();
         void BeginDockSpace(bool gameFullScreen);
@@ -331,5 +333,6 @@ namespace Lumos
         IniFile m_IniFile;
 
         bool m_PreviewScreenshot = false;
+        bool m_QueuedScenePreviewEnd = false;
     };
 }

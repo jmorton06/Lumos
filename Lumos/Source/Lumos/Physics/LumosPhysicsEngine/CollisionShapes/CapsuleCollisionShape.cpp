@@ -21,8 +21,9 @@ namespace Lumos
 
     Mat3 CapsuleCollisionShape::BuildInverseInertia(float invMass) const
     {
+        // Capsule is oriented along Y-axis, so height extends along Y
         Vec3 halfExtents(m_Radius, m_Radius, m_Radius);
-        halfExtents.x += m_Height * 0.5f;
+        halfExtents.y += m_Height * 0.5f;
 
         float lx               = 2.0f * (halfExtents.x);
         float ly               = 2.0f * (halfExtents.y);

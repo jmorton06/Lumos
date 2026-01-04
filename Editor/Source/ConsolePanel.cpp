@@ -144,29 +144,38 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         ImGuiStyle& style = ImGui::GetStyle();
         ImGui::AlignTextToFramePadding();
-        // Button for advanced settings
+
+        // Clear button
         {
             ImGuiUtilities::ScopedColour buttonColour(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-            if(ImGui::Button(ICON_MDI_COGS))
-                ImGui::OpenPopup("SettingsPopup");
-        }
-        if(ImGui::BeginPopup("SettingsPopup"))
-        {
-            // Checkbox for scrolling lock
-            ImGui::Checkbox("Scroll to bottom", &s_AllowScrollingToBottom);
-
-            // Button to clear the console
-            if(ImGui::Button("Clear console"))
+            if(ImGui::Button(ICON_MDI_DELETE))
             {
                 ScopedMutex lock(m_MessageBufferMutex);
                 m_MessageBuffer.Clear();
             }
+            if(ImGui::IsItemHovered())
+                ImGui::SetTooltip("Clear console");
+        }
+
+        // Settings button
+        ImGui::SameLine();
+        {
+            ImGuiUtilities::ScopedColour buttonColour(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+            if(ImGui::Button(ICON_MDI_COGS))
+                ImGui::OpenPopup("SettingsPopup");
+            if(ImGui::IsItemHovered())
+                ImGui::SetTooltip("Settings");
+        }
+        if(ImGui::BeginPopup("SettingsPopup"))
+        {
+            // Checkbox for scrolling lock
+            ImGui::Checkbox("Auto-scroll to bottom", &s_AllowScrollingToBottom);
 
             ImGui::EndPopup();
         }
 
         ImGui::SameLine();
-        ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
+        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
         ImGui::SameLine();
 
         float spacing                   = ImGui::GetStyle().ItemSpacing.x;
@@ -174,15 +183,60 @@ namespace Lumos
         float levelButtonWidth          = (ImGui::CalcTextSize(GetLevelIcon(ConsoleLogLevel(1))) + ImGui::GetStyle().FramePadding * 2.0f).x;
         float levelButtonWidths         = (levelButtonWidth + ImGui::GetStyle().ItemSpacing.x) * 6;
 
+        // Store cursor position for placeholder text
+        ImVec2 filterPos = ImGui::GetCursorScreenPos();
+        float filterWidth = ImGui::GetContentRegionAvail().x - (levelButtonWidths);
+
         {
             ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
             ImGuiUtilities::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
             ImGuiUtilities::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
-            Filter.Draw("###ConsoleFilter", ImGui::GetContentRegionAvail().x - (levelButtonWidths));
+            Filter.Draw("###ConsoleFilter", filterWidth);
             ImGuiUtilities::DrawItemActivityOutline(2.0f, false);
         }
 
+        // Draw placeholder when filter is empty
+        if(!Filter.IsActive())
+        {
+            ImDrawList* drawList = ImGui::GetWindowDrawList();
+            float yOffset = (ImGui::GetFrameHeight() - ImGui::GetFontSize()) * 0.5f;
+
+            // Draw magnify icon
+            ImVec2 iconPos = ImVec2(filterPos.x + ImGui::GetStyle().FramePadding.x,
+                                   filterPos.y + yOffset);
+            drawList->AddText(iconPos, ImGui::GetColorU32(ImGuiCol_TextDisabled), ICON_MDI_MAGNIFY);
+
+            // Draw "Search..." text with proper offset
+            float iconWidth = ImGui::CalcTextSize(ICON_MDI_MAGNIFY).x;
+            ImVec2 textPos = ImVec2(filterPos.x + ImGui::GetStyle().FramePadding.x + iconWidth + ImGui::GetStyle().ItemInnerSpacing.x,
+                                   filterPos.y + yOffset);
+
+            ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
+            drawList->AddText(textPos, ImGui::GetColorU32(ImGuiCol_TextDisabled), "Search...");
+        }
+
         ImGui::SameLine(); // ImGui::GetWindowWidth() - levelButtonWidths);
+
+        // Count messages by level
+        int counts[6] = {0, 0, 0, 0, 0, 0};
+        for(uint32_t i = 0; i < m_MessageBuffer.Size(); i++)
+        {
+            auto& msg = m_MessageBuffer[i];
+            int levelIndex = 0;
+            switch(msg.m_Level)
+            {
+                case ConsoleLogLevel::Trace: levelIndex = 0; break;
+                case ConsoleLogLevel::Debug: levelIndex = 1; break;
+                case ConsoleLogLevel::Info:  levelIndex = 2; break;
+                case ConsoleLogLevel::Warn:  levelIndex = 3; break;
+                case ConsoleLogLevel::Error: levelIndex = 4; break;
+                case ConsoleLogLevel::Fatal: levelIndex = 5; break;
+                default: break;
+            }
+            counts[levelIndex] += msg.m_Count;
+        }
+
+        ImGui::AlignTextToFramePadding();
 
         for(int i = 0; i < 6; i++)
         {
@@ -196,7 +250,14 @@ namespace Lumos
             else
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5, 0.5f, 0.5f));
 
-            if(ImGui::Button(GetLevelIcon(level)))
+            // Show icon with count badge
+            char buttonLabel[64];
+            if(counts[i] > 0)
+                snprintf(buttonLabel, sizeof(buttonLabel), "%s %d", GetLevelIcon(level), counts[i]);
+            else
+                snprintf(buttonLabel, sizeof(buttonLabel), "%s", GetLevelIcon(level));
+
+            if(ImGui::Button(buttonLabel))
             {
                 s_MessageBufferRenderFilter ^= (int16_t)level;
             }
@@ -209,15 +270,6 @@ namespace Lumos
         }
 
         ImGui::GetStyle().ItemSpacing.x = spacing;
-
-        if(!Filter.IsActive())
-        {
-            ImGui::SameLine();
-            ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
-            ImGui::SetCursorPosX(ImGui::GetFontSize() * 4.0f);
-            ImGuiUtilities::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, ImGui::GetStyle().FramePadding.y));
-            ImGui::TextUnformatted("Search...");
-        }
     }
 
     enum MyItemColumnID
@@ -230,12 +282,26 @@ namespace Lumos
     void ConsolePanel::ImGuiRenderMessages()
     {
         LUMOS_PROFILE_FUNCTION();
+
+        // Show auto-scroll status indicator when disabled
+        if(!s_AllowScrollingToBottom)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.0f, 1.0f));
+            ImGui::TextUnformatted(ICON_MDI_PAUSE " Auto-scroll paused");
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            if(ImGui::SmallButton("Resume"))
+                s_AllowScrollingToBottom = true;
+            ImGui::SameLine();
+            if(ImGui::SmallButton(ICON_MDI_ARROW_DOWN " Jump to Bottom"))
+                s_RequestScrollToBottom = true;
+        }
+
         // ImGui::BeginChild("ScrollRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
         if(ImGui::BeginTable("Messages", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg))
         {
 
             ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, MyItemColumnID_Type);
-            // ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, MyItemColumnID_Time);
             ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_NoSort, 0.0f, MyItemColumnID_Message);
             ImGui::TableSetupScrollFreeze(0, 1);
 
@@ -251,17 +317,12 @@ namespace Lumos
                     ImGui::TableNextColumn();
                     ImGui::PushStyleColor(ImGuiCol_Text, GetRenderColour(message->m_Level));
                     auto levelIcon = GetLevelIcon(message->m_Level);
-                    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(levelIcon).x
-                                         - ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
                     ImGui::TextUnformatted(levelIcon);
 
                     if(ImGui::IsItemHovered())
                     {
                         ImGui::SetTooltip("%s", GetLevelName(message->m_Level));
                     }
-
-                    // ImGui::TableNextColumn();
-                    // ImGui::TextUnformatted(message->m_Time.c_str());
 
                     ImGui::TableNextColumn();
                     message->OnImGUIRender();
@@ -358,10 +419,18 @@ namespace Lumos
             ImGui::SetTooltip("%s", m_Source.c_str());
         }
 
+        // Show count badge if message repeated
         if(m_Count > 1)
         {
-            ImGui::SameLine(ImGui::GetContentRegionAvail().x - (m_Count > 99 ? ImGui::GetFontSize() * 1.7f : ImGui::GetFontSize() * 1.5f));
-            ImGui::Text("%d", m_Count);
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 0.8f));
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+            char countLabel[32];
+            snprintf(countLabel, sizeof(countLabel), " %d ", m_Count);
+            ImGui::SmallButton(countLabel);
+            ImGui::PopStyleColor(2);
+            if(ImGui::IsItemHovered())
+                ImGui::SetTooltip("Message repeated %d times", m_Count);
         }
     }
 

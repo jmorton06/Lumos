@@ -4,7 +4,6 @@
 #include "Narrowphase/CollisionDetection.h"
 #include "Broadphase/BruteForceBroadphase.h"
 #include "Broadphase/OctreeBroadphase.h"
-#include "RigidBody3D.h"
 #include "Integration.h"
 #include "Constraints/Constraint.h"
 #include "Utilities/TimeStep.h"
@@ -153,11 +152,6 @@ namespace Lumos
                     sum += m_OverrunHistory[i];
                 m_AvgOverrun = sum / kRollingBufferSize;
 
-                // Only log if 25% behind
-                if(m_AvgOverrun > s_UpdateTimestep * 0.25f)
-                {
-                    LWARN("Physics running behind: avg overrun = %.4f", m_AvgOverrun);
-                }
             }
         }
     }
@@ -165,7 +159,8 @@ namespace Lumos
     void LumosPhysicsEngine::UpdatePhysics()
     {
         m_ManifoldCount = 0;
-        m_Manifolds     = PushArrayNoZero(m_FrameArena, Manifold, 1000);
+        m_MaxManifolds  = 1000;
+        m_Manifolds     = PushArrayNoZero(m_FrameArena, Manifold, m_MaxManifolds);
 
         // Check for collisions
         BroadPhaseCollisions();
@@ -291,7 +286,8 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION_LOW();
 
-        s_UpdateTimestep /= m_PositionIterations;
+        // Use local variable instead of modifying static timestep
+        const float dt = s_UpdateTimestep / m_PositionIterations;
 
         if(!obj->GetIsStatic() && obj->IsAwake())
         {
@@ -299,28 +295,28 @@ namespace Lumos
 
             // Apply gravity
             if(obj->m_InvMass > 0.0f)
-                obj->m_LinearVelocity += m_Gravity * s_UpdateTimestep;
+                obj->m_LinearVelocity += m_Gravity * dt;
 
             switch(m_IntegrationType)
             {
             case IntegrationType::EXPLICIT_EULER:
             {
                 // Update position
-                obj->m_Position += obj->m_LinearVelocity * s_UpdateTimestep;
+                obj->m_Position += obj->m_LinearVelocity * dt;
 
                 // Update linear velocity (v = u + at)
-                obj->m_LinearVelocity += obj->m_Force * obj->m_InvMass * s_UpdateTimestep;
+                obj->m_LinearVelocity += obj->m_Force * obj->m_InvMass * dt;
 
                 // Linear velocity damping
                 obj->m_LinearVelocity = obj->m_LinearVelocity * damping;
 
                 // Update orientation
-                obj->m_Orientation += obj->m_Orientation * Quat(obj->m_AngularVelocity * s_UpdateTimestep);
-                // obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * s_UpdateTimestep * 0.5f) * obj->m_Orientation);
+                obj->m_Orientation += obj->m_Orientation * Quat(obj->m_AngularVelocity * dt);
+                // obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * dt * 0.5f) * obj->m_Orientation);
                 obj->m_Orientation.Normalise();
 
                 // Update angular velocity
-                obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * s_UpdateTimestep;
+                obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * dt;
 
                 // Angular velocity damping
                 obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
@@ -331,21 +327,21 @@ namespace Lumos
             case IntegrationType::SEMI_IMPLICIT_EULER:
             {
                 // Update linear velocity (v = u + at)
-                obj->m_LinearVelocity += obj->m_LinearVelocity * obj->m_InvMass * s_UpdateTimestep;
+                obj->m_LinearVelocity += obj->m_Force * obj->m_InvMass * dt;
 
                 // Linear velocity damping
                 obj->m_LinearVelocity = obj->m_LinearVelocity * damping;
 
                 // Update position
-                obj->m_Position += obj->m_LinearVelocity * s_UpdateTimestep;
+                obj->m_Position += obj->m_LinearVelocity * dt;
 
                 // Update angular velocity
-                obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * s_UpdateTimestep;
+                obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * dt;
 
                 // Angular velocity damping
                 obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
 
-                auto angularVelocity = obj->m_AngularVelocity * s_UpdateTimestep;
+                auto angularVelocity = obj->m_AngularVelocity * dt;
 
                 // Update orientation
                 obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
@@ -358,7 +354,7 @@ namespace Lumos
             {
                 // RK2 integration for linear motion
                 Integration::State state = { obj->m_Position, obj->m_LinearVelocity, obj->m_Force * obj->m_InvMass };
-                Integration::RK2(state, 0.0f, s_UpdateTimestep);
+                Integration::RK2(state, 0.0f, dt);
 
                 obj->m_Position       = state.position;
                 obj->m_LinearVelocity = state.velocity;
@@ -367,12 +363,12 @@ namespace Lumos
                 obj->m_LinearVelocity = obj->m_LinearVelocity * damping;
 
                 // Update angular velocity
-                obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * s_UpdateTimestep;
+                obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * dt;
 
                 // Angular velocity damping
                 obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
 
-                auto angularVelocity = obj->m_AngularVelocity * s_UpdateTimestep * 0.5f;
+                auto angularVelocity = obj->m_AngularVelocity * dt * 0.5f;
 
                 // Update orientation
                 obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
@@ -385,7 +381,7 @@ namespace Lumos
             {
                 // RK4 integration for linear motion
                 Integration::State state = { obj->m_Position, obj->m_LinearVelocity, obj->m_Force * obj->m_InvMass };
-                Integration::RK4(state, 0.0f, s_UpdateTimestep);
+                Integration::RK4(state, 0.0f, dt);
                 obj->m_Position       = state.position;
                 obj->m_LinearVelocity = state.velocity;
 
@@ -393,14 +389,14 @@ namespace Lumos
                 obj->m_LinearVelocity = obj->m_LinearVelocity * damping;
 
                 // Update angular velocity
-                obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * s_UpdateTimestep;
+                obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * dt;
 
                 // Angular velocity damping
                 obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
 
                 // Update orientation
                 // Check order of quat multiplication
-                auto angularVelocity = obj->m_AngularVelocity * s_UpdateTimestep * 0.5f;
+                auto angularVelocity = obj->m_AngularVelocity * dt * 0.5f;
 
                 obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
                 obj->m_Orientation.Normalise();
@@ -416,8 +412,6 @@ namespace Lumos
 
         ASSERT(obj->m_Orientation.IsValid());
         ASSERT(obj->m_Position.IsValid());
-
-        s_UpdateTimestep *= m_PositionIterations;
     }
 
     Quat AngularVelcityToQuaternion(const Vec3& angularVelocity)
@@ -498,13 +492,18 @@ namespace Lumos
 
                     if(okA && okB)
                     {
+                        // Check if we have space for another manifold
+                        if(m_ManifoldCount >= m_MaxManifolds)
+                        {
+                            LWARN("Exceeded max manifold count (%u), skipping collision", m_MaxManifolds);
+                            continue;
+                        }
+
                         // Build full collision manifold that will also handle the collision
                         // response between the two objects in the solver stage
                         ScopedMutex lock(m_ManifoldLock);
                         Manifold& manifold = m_Manifolds[m_ManifoldCount++];
                         manifold.Initiate(cp.pObjectA, cp.pObjectB, m_BaumgarteScalar, m_BaumgarteSlop);
-
-                        ASSERT(m_ManifoldCount < 1000);
                         // Construct contact points that form the perimeter of the collision manifold
                         if(CollisionDetection::Get().BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, &manifold))
                         {

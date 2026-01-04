@@ -201,4 +201,19 @@ namespace Lumos
     {
         return m_Friction;
     }
+
+    RigidBodyParameters RigidBody2D::GetParameters() const
+    {
+        RigidBodyParameters params;
+        params.position             = Vec3(GetPosition(), 0.0f);
+        params.scale                = m_Scale;
+        params.shape                = m_ShapeType;
+        params.mass                 = m_Mass;
+        params.friction             = m_Friction;
+        params.isStatic             = m_Static;
+        params.damping              = m_Damping;
+        params.elasticity           = m_Elasticity;
+        params.customShapePositions = m_CustomShapePositions;
+        return params;
+    }
 }

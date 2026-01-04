@@ -48,6 +48,18 @@
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/ImGui/ImGuiManager.h>
 #include <Lumos/Graphics/RHI/IMGUIRenderer.h>
+
+#include <vector>
+#include <algorithm>
+#include <cctype>
+#include <cstring>
+#if __has_include(<filesystem>)
+#include <filesystem>
+namespace fs = std::filesystem;
+#elif __has_include(<experimental/filesystem>)
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#endif
 #include <Lumos/Scene/Serialisation/SerialisationImplementation.h>
 
 #include <sol/sol.hpp>
@@ -95,15 +107,303 @@ namespace MM
         else
             loaded = true;
 
-        // auto& solEnv         = script.GetSolEnvironment();
-        std::string filePath = script.GetFilePath();
-        // Show and allow editing the file path. Only set it when changed.
-        if(Lumos::ImGuiUtilities::Property("File Path", filePath, Lumos::ImGuiUtilities::PropertyFlag::None))
+        // Get all .lua files from Assets/Scripts directory
+        Lumos::ArenaTemp scratchTemp = Lumos::ScratchBegin(0, 0);
+        Lumos::String8 scriptsPath = Lumos::Str8Lit("//Assets/Scripts");
+        Lumos::String8 physicalScriptsPath;
+
+        std::vector<std::string> luaFiles;
+        std::vector<std::string> luaFilesVirtual;
+
+        if(Lumos::FileSystem::Get().ResolvePhysicalPath(scratchTemp.arena, scriptsPath, &physicalScriptsPath, true))
         {
-            script.SetFilePath(filePath);
+            try
+            {
+                if(fs::exists((const char*)physicalScriptsPath.str) && fs::is_directory((const char*)physicalScriptsPath.str))
+                {
+                    for(const auto& entry : fs::recursive_directory_iterator((const char*)physicalScriptsPath.str))
+                    {
+                        if(entry.is_regular_file() && entry.path().extension() == ".lua")
+                        {
+                            std::string absolutePath = entry.path().string();
+                            luaFiles.push_back(absolutePath);
+
+                            // Convert to //Assets virtual path
+                            Lumos::String8 absPathStr = Lumos::PushStr8Copy(scratchTemp.arena, absolutePath.c_str());
+                            Lumos::String8 virtualPath = Lumos::FileSystem::Get().AbsolutePathToFileSystem(scratchTemp.arena, absPathStr, false);
+                            luaFilesVirtual.push_back(std::string((const char*)virtualPath.str, virtualPath.size));
+                        }
+                    }
+                }
+            }
+            catch(...) {}
         }
+
+        std::string currentFilePath = script.GetFilePath();
+        std::string currentFileName = "None";
+
+        if(!currentFilePath.empty())
+        {
+            size_t lastSlash = currentFilePath.find_last_of("/\\");
+            currentFileName = (lastSlash != std::string::npos) ? currentFilePath.substr(lastSlash + 1) : currentFilePath;
+        }
+
+        ImGui::TextUnformatted("Script");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        if(ImGui::BeginCombo("##ScriptFile", currentFileName.c_str()))
+        {
+            static char searchBuffer[256] = "";
+            ImGui::SetNextItemWidth(-1);
+            if(ImGui::IsWindowAppearing())
+            {
+                ImGui::SetKeyboardFocusHere();
+                searchBuffer[0] = '\0';
+            }
+            ImGui::InputTextWithHint("##ScriptSearch", ICON_MDI_MAGNIFY " Search scripts...", searchBuffer, sizeof(searchBuffer));
+
+            std::string searchStr = searchBuffer;
+            std::transform(searchStr.begin(), searchStr.end(), searchStr.begin(), ::tolower);
+
+            ImGui::Separator();
+
+            // "None" option to clear the script
+            if(searchStr.empty() || std::string("none").find(searchStr) != std::string::npos)
+            {
+                if(ImGui::Selectable("None", currentFilePath.empty()))
+                {
+                    script.SetFilePath("");
+                    searchBuffer[0] = '\0';
+                }
+            }
+
+            for(size_t i = 0; i < luaFilesVirtual.size(); i++)
+            {
+                const auto& virtualPath = luaFilesVirtual[i];
+
+                size_t lastSlash = virtualPath.find_last_of("/");
+                std::string displayName = (lastSlash != std::string::npos) ? virtualPath.substr(lastSlash + 1) : virtualPath;
+
+                if(!searchStr.empty())
+                {
+                    std::string lowerDisplayName = displayName;
+                    std::string lowerVirtualPath = virtualPath;
+                    std::transform(lowerDisplayName.begin(), lowerDisplayName.end(), lowerDisplayName.begin(), ::tolower);
+                    std::transform(lowerVirtualPath.begin(), lowerVirtualPath.end(), lowerVirtualPath.begin(), ::tolower);
+
+                    if(lowerDisplayName.find(searchStr) == std::string::npos &&
+                       lowerVirtualPath.find(searchStr) == std::string::npos)
+                    {
+                        continue;
+                    }
+                }
+
+                // Show relative path in tooltip
+                bool isSelected = (currentFilePath == virtualPath || currentFilePath == luaFiles[i]);
+                if(ImGui::Selectable(displayName.c_str(), isSelected))
+                {
+                    script.SetFilePath(virtualPath);
+                    script.Reload();
+                    hasReloaded = true;
+                    searchBuffer[0] = '\0';
+                }
+
+                if(ImGui::IsItemHovered())
+                {
+                    ImGui::SetTooltip("%s", virtualPath.c_str());
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
         ImGui::Columns(1);
-        // Allow dragging an asset file onto the inspector to set the script path
+
+        Lumos::ScratchEnd(scratchTemp);
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        {
+            const char* statusIcon = ICON_MDI_ALERT_CIRCLE;
+            ImVec4 statusColor = ImVec4(0.8f, 0.8f, 0.1f, 1.0f);
+            const char* statusText = "No script";
+
+            if(!currentFilePath.empty())
+            {
+                if(script.Loaded())
+                {
+                    statusIcon = ICON_MDI_CHECK_CIRCLE;
+                    statusColor = ImVec4(0.3f, 0.8f, 0.3f, 1.0f);
+                    statusText = "Loaded";
+                }
+                else
+                {
+                    statusIcon = ICON_MDI_ALERT_CIRCLE;
+                    statusColor = ImVec4(1.0f, 0.3f, 0.3f, 1.0f);
+                    statusText = "Failed to load";
+                }
+            }
+
+            ImGui::TextColored(statusColor, "%s", statusIcon);
+            ImGui::SameLine();
+            ImGui::TextColored(statusColor, "%s", statusText);
+
+            if(script.Loaded() && !currentFilePath.empty())
+            {
+                Lumos::ArenaTemp infoScratch = Lumos::ScratchBegin(0, 0);
+                Lumos::String8 virtualPath = Lumos::PushStr8Copy(infoScratch.arena, currentFilePath.c_str());
+                Lumos::String8 physicalPath;
+                if(Lumos::FileSystem::Get().ResolvePhysicalPath(infoScratch.arena, virtualPath, &physicalPath, false))
+                {
+                    int64_t fileSize = Lumos::FileSystem::GetFileSize(physicalPath);
+                    if(fileSize >= 0)
+                    {
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("|");
+                        ImGui::SameLine();
+
+                        if(fileSize < 1024)
+                            ImGui::TextDisabled("%lld bytes", fileSize);
+                        else if(fileSize < 1024 * 1024)
+                            ImGui::TextDisabled("%.1f KB", fileSize / 1024.0f);
+                        else
+                            ImGui::TextDisabled("%.1f MB", fileSize / (1024.0f * 1024.0f));
+                    }
+                }
+                Lumos::ScratchEnd(infoScratch);
+            }
+        }
+
+        ImGui::Spacing();
+
+        Lumos::ArenaTemp Scratch = Lumos::ScratchBegin(0, 0);
+
+        float buttonWidth = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x * 2) / 3.0f;
+
+        {
+            if(ImGui::Button(ICON_MDI_FILE_PLUS " New", ImVec2(buttonWidth, 0.0f)))
+            {
+                Lumos::String8 newFilePath = Lumos::Str8Lit("//Assets/Scripts");
+                Lumos::String8 physicalPath;
+                if(!Lumos::FileSystem::Get().ResolvePhysicalPath(Scratch.arena, newFilePath, &physicalPath, true))
+                {
+                    LERROR("Failed to Create Lua script %s", (const char*)physicalPath.str);
+                }
+                else
+                {
+                    Lumos::String8 defaultScript = Lumos::Str8Lit(
+                        R"(-- Lua Script
+
+function OnInit()
+    -- Called when script is initialized
+    Log.Info("Script initialized")
+end
+
+function OnUpdate(dt)
+    -- Called every frame
+    -- dt = delta time in seconds
+end
+
+function OnCleanUp()
+    -- Called when script is destroyed
+end
+)");
+                    Lumos::ArenaTemp scratch = Lumos::ScratchBegin(nullptr, 0);
+                    Lumos::String8 newScriptFileName = Lumos::Str8Lit("NewScript");
+                    int fileIndex = 0;
+
+                    Lumos::String8 Path = Lumos::PushStr8FillByte(scratch.arena, 260, 0);
+                    Path = Lumos::Str8F(Path, "%s/%s.lua", (const char*)physicalPath.str, (const char*)newScriptFileName.str);
+
+                    while(Lumos::FileSystem::FileExists(Path))
+                    {
+                        fileIndex++;
+                        Path = Lumos::Str8F(Path, "%s/%s%i.lua", (const char*)physicalPath.str, (const char*)newScriptFileName.str, fileIndex);
+                    }
+
+                    Lumos::FileSystem::WriteTextFile(Path, defaultScript);
+
+                    Lumos::String8 pathStr = Lumos::PushStr8Copy(scratch.arena, ToStdString(Path).c_str());
+                    Lumos::String8 virtualScriptPath = Lumos::FileSystem::Get().AbsolutePathToFileSystem(scratch.arena, pathStr, false);
+
+                    script.SetFilePath(std::string((const char*)virtualScriptPath.str, virtualScriptPath.size));
+                    script.Reload();
+                    hasReloaded = true;
+
+                    Lumos::ScratchEnd(scratch);
+                }
+            }
+            if(ImGui::IsItemHovered()) ImGui::SetTooltip("Create a new Lua script file");
+
+            ImGui::SameLine();
+
+            bool hasFile = !currentFilePath.empty();
+            if(!hasFile) ImGui::BeginDisabled();
+
+            if(ImGui::Button(ICON_MDI_FILE_DOCUMENT_EDIT " Edit", ImVec2(buttonWidth, 0.0f)))
+            {
+                if(!script.GetFilePath().empty())
+                {
+                    Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath(), [&]
+                    {
+                        script.Reload();
+                        hasReloaded = true;
+                        auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
+                        if(textEditPanel)
+                            ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
+                    });
+
+                    auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
+                    if(textEditPanel)
+                        ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
+                }
+            }
+            if(!hasFile) ImGui::EndDisabled();
+            if(ImGui::IsItemHovered()) ImGui::SetTooltip("Edit script in text editor");
+
+            ImGui::SameLine();
+
+            if(!hasFile) ImGui::BeginDisabled();
+
+            if(ImGui::Button(ICON_MDI_REFRESH " Reload", ImVec2(buttonWidth, 0.0f)))
+            {
+                script.Reload();
+                hasReloaded = true;
+            }
+            if(!hasFile) ImGui::EndDisabled();
+            if(ImGui::IsItemHovered()) ImGui::SetTooltip("Reload script from file (Ctrl+R)");
+        }
+
+        {
+            float secondaryButtonWidth = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) / 2.0f;
+
+            if(ImGui::Button(ICON_MDI_FOLDER_OPEN " Browse...", ImVec2(secondaryButtonWidth, 0.0f)))
+            {
+                Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(std::bind(&Lumos::LuaScriptComponent::LoadScript, &script, std::placeholders::_1));
+            }
+            if(ImGui::IsItemHovered()) ImGui::SetTooltip("Browse for a Lua script file");
+
+            ImGui::SameLine();
+
+            bool hasFileToCopy = !currentFilePath.empty();
+            if(!hasFileToCopy) ImGui::BeginDisabled();
+
+            if(ImGui::Button(ICON_MDI_CONTENT_COPY " Copy Path", ImVec2(secondaryButtonWidth, 0.0f)))
+            {
+                ImGui::SetClipboardText(currentFilePath.c_str());
+            }
+            if(!hasFileToCopy) ImGui::EndDisabled();
+            if(ImGui::IsItemHovered()) ImGui::SetTooltip("Copy virtual path to clipboard");
+        }
+
+        ScratchEnd(Scratch);
+
         if(const ImGuiPayload* payload = ImGui::GetDragDropPayload())
         {
             if(payload->IsDataType("AssetFile"))
@@ -122,129 +422,135 @@ namespace MM
             }
         }
 
-        // static char objName[INPUT_BUF_SIZE];
-        // strcpy(objName, filePath.c_str());
-        // ImGui::PushItemWidth(-1);
-        // if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
-        //     script.SetFilePath(objName);
-
-        Lumos::ArenaTemp Scratch = Lumos::ScratchBegin(0, 0);
-
-        // Buttons: New / Edit / Open / Reload / Load
-        ImGui::BeginGroup();
-        if(ImGui::Button("New File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+        if(!script.Loaded() && !script.GetFilePath().empty())
         {
-            Lumos::String8 newFilePath = Lumos::Str8Lit("//Assets/Scripts");
-            Lumos::String8 physicalPath;
-            if(!Lumos::FileSystem::Get().ResolvePhysicalPath(Scratch.arena, newFilePath, &physicalPath, true))
-            {
-                LERROR("Failed to Create Lua script %s", (const char*)physicalPath.str);
-            }
-            else
-            {
-                Lumos::String8 defaultScript = Lumos::Str8Lit(
-                    R"(--Default Lua Script
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
 
-function OnInit()
-end
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.3f, 0.1f, 0.1f, 0.3f));
+            ImGui::BeginChild("ErrorBanner", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysAutoResize);
 
-function OnUpdate(dt)
-end
+            ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), ICON_MDI_ALERT_OCTAGON " Script Load Failed");
 
-function OnCleanUp()
-end
-)");
-                Lumos::ArenaTemp scratch         = Lumos::ScratchBegin(nullptr, 0);
-                Lumos::String8 newScriptFileName = Lumos::Str8Lit("Script");
-                int fileIndex                    = 0;
-
-                Lumos::String8 Path = Lumos::PushStr8FillByte(scratch.arena, 260, 0);
-                Path                = Lumos::Str8F(Path, "%s/%s.lua", (const char*)physicalPath.str, ((const char*)newScriptFileName.str));
-
-                while(Lumos::FileSystem::FileExists(Path))
-                {
-                    fileIndex++;
-                    Path = Lumos::Str8F(Path, "%s/%s(%i).lua", (const char*)physicalPath.str, ((const char*)newScriptFileName.str), fileIndex);
-                }
-
-                Lumos::FileSystem::WriteTextFile(Path, defaultScript);
-                script.SetFilePath(ToStdString(Path));
-                script.Reload();
-                hasReloaded = true;
-
-                Lumos::ScratchEnd(scratch);
-            }
-        }
-
-        if(ImGui::Button("Edit File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
-        {
-            if(!script.GetFilePath().empty())
-            {
-                Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath(), [&]
-                                                         {
-                                                             script.Reload();
-                                                             hasReloaded = true;
-
-                                                             auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
-                                                             if(textEditPanel)
-                                                                 ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors()); });
-
-                auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
-                if(textEditPanel)
-                    ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
-            }
-        }
-
-        if(ImGui::Button("Open File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
-        {
-            Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
-            Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(std::bind(&Lumos::LuaScriptComponent::LoadScript, &script, std::placeholders::_1));
-        }
-
-        if(ImGui::Button("Reload", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
-        {
-            script.Reload();
-            hasReloaded = true;
-        }
-
-        // If not loaded, provide a Load button as well
-        if(!script.Loaded())
-        {
-            if(ImGui::Button("Load", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
-            {
-                script.Reload();
-                hasReloaded = true;
-            }
-        }
-
-        ImGui::EndGroup();
-
-        ScratchEnd(Scratch);
-
-        // If script failed to load, show status and errors and don't proceed further
-        if(!script.Loaded())
-        {
-            // Show load status
-            if(script.GetFilePath().empty())
-                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.1f, 1.0f), "No script file set");
-            else
-                ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Script failed to load: %s", script.GetFilePath().c_str());
-
-            // Show errors if available
             const auto& errors = script.GetErrors();
             if(!errors.empty())
             {
-                if(ImGui::TreeNode("Errors"))
+                ImGui::Spacing();
+                ImGui::TextWrapped("The script contains errors and could not be loaded:");
+                ImGui::Spacing();
+
+                for(const auto& err : errors)
                 {
-                    for(const auto& err : errors)
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.6f, 0.6f, 1.0f));
+                    ImGui::BulletText("Line %d: %s", err.first, err.second.c_str());
+                    ImGui::PopStyleColor();
+                }
+
+                ImGui::Spacing();
+
+                if(ImGui::Button(ICON_MDI_FILE_DOCUMENT_EDIT " Open and Fix", ImVec2(-1, 0)))
+                {
+                    if(!script.GetFilePath().empty())
                     {
-                        ImGui::TextUnformatted(err.second.c_str());
+                        Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath(), [&]
+                        {
+                            script.Reload();
+                            auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
+                            if(textEditPanel)
+                                ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
+                        });
+
+                        auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
+                        if(textEditPanel)
+                            ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
                     }
-                    ImGui::TreePop();
                 }
             }
+            else
+            {
+                ImGui::Spacing();
+                ImGui::TextWrapped("The script file could not be loaded. The file may not exist or may have incorrect syntax.");
+            }
+
+            ImGui::EndChild();
+            ImGui::PopStyleColor();
 
             return;
+        }
+
+        if(script.Loaded())
+        {
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
+            if(ImGui::TreeNodeEx(ICON_MDI_INFORMATION " Script Info"))
+            {
+                ImGui::Indent();
+
+                ImGui::TextDisabled("Path:");
+                ImGui::SameLine();
+                ImGui::TextWrapped("%s", currentFilePath.c_str());
+
+                Lumos::ArenaTemp funcScratch = Lumos::ScratchBegin(0, 0);
+                Lumos::String8 virtualPath = Lumos::PushStr8Copy(funcScratch.arena, currentFilePath.c_str());
+                Lumos::String8 physicalPath;
+
+                if(Lumos::FileSystem::Get().ResolvePhysicalPath(funcScratch.arena, virtualPath, &physicalPath, false))
+                {
+                    Lumos::String8 scriptContent = Lumos::FileSystem::ReadTextFile(funcScratch.arena, physicalPath);
+                    if(scriptContent.size > 0)
+                    {
+                        std::vector<std::string> functions;
+                        const char* content = (const char*)scriptContent.str;
+                        const char* pos = content;
+
+                        while(pos && *pos)
+                        {
+                            const char* funcPos = strstr(pos, "function ");
+                            if(!funcPos) break;
+
+                            funcPos += 9;
+
+                            while(*funcPos == ' ' || *funcPos == '\t') funcPos++;
+
+                            const char* nameStart = funcPos;
+                            while(*funcPos && (*funcPos == '_' || isalnum(*funcPos))) funcPos++;
+
+                            if(funcPos > nameStart)
+                            {
+                                std::string funcName(nameStart, funcPos - nameStart);
+                                if(!funcName.empty())
+                                    functions.push_back(funcName);
+                            }
+
+                            pos = funcPos;
+                        }
+
+                        if(!functions.empty())
+                        {
+                            ImGui::TextDisabled("Functions:");
+                            ImGui::SameLine();
+                            ImGui::Text("%d detected", functions.size());
+
+                            if(ImGui::TreeNode("Function List"))
+                            {
+                                for(const auto& func : functions)
+                                {
+                                    ImGui::BulletText("%s()", func.c_str());
+                                }
+                                ImGui::TreePop();
+                            }
+                        }
+                    }
+                }
+
+                Lumos::ScratchEnd(funcScratch);
+
+                ImGui::Unindent();
+                ImGui::TreePop();
+            }
         }
     }
 
@@ -695,6 +1001,58 @@ end
 
         if(Lumos::ImGuiUtilities::Property("Angular Factor", angularFactor))
             phys.GetRigidBody()->SetAngularFactor(angularFactor);
+
+        // Collision Layer UI
+        auto collisionLayer = phys.GetRigidBody()->GetCollisionLayer();
+        auto collisionMask  = phys.GetRigidBody()->GetCollisionMask();
+
+        const char* layerNames[16] = {
+            "Layer 0 (Default)", "Layer 1 (Static)", "Layer 2 (Dynamic)", "Layer 3 (Player)",
+            "Layer 4 (Enemy)", "Layer 5 (Trigger)", "Layer 6 (Projectile)", "Layer 7",
+            "Layer 8", "Layer 9", "Layer 10", "Layer 11",
+            "Layer 12", "Layer 13", "Layer 14", "Layer 15"
+        };
+
+        int layerIndex = (int)collisionLayer;
+        if(Lumos::ImGuiUtilities::PropertyDropdown("Collision Layer", layerNames, 16, &layerIndex))
+            phys.GetRigidBody()->SetCollisionLayer((u16)layerIndex);
+
+        // Collision Mask as checkboxes for each layer
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Collision Mask");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        bool maskChanged = false;
+        u16 newMask      = collisionMask;
+
+        // Show checkboxes in a compact grid layout
+        for(int i = 0; i < 16; i++)
+        {
+            bool layerEnabled = (collisionMask & (1 << i)) != 0;
+            
+            char label[32];
+            snprintf(label, sizeof(label), "L%d##mask%d", i, i);
+            
+            if(ImGui::Checkbox(label, &layerEnabled))
+            {
+                if(layerEnabled)
+                    newMask |= (1 << i);
+                else
+                    newMask &= ~(1 << i);
+                maskChanged = true;
+            }
+
+            // 4 checkboxes per row
+            if((i + 1) % 4 != 0 && i < 15)
+                ImGui::SameLine();
+        }
+
+        if(maskChanged)
+            phys.GetRigidBody()->SetCollisionMask(newMask);
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
         ImGui::Columns(1);
         ImGui::Separator();

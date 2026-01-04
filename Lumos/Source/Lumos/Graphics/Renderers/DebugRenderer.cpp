@@ -581,7 +581,7 @@ namespace Lumos
             float z = Maths::Cos(step * i) * radius;
             float x = Maths::Sin(step * i) * radius;
 
-            Vec3 offset = rotation * Vec4(x, 0.0f, z, 0.0f);
+            Vec3 offset = rotation * Vec3(x, 0.0f, z);
             DrawHairLine(bottomSphereCentre + offset, topSphereCentre + offset, false, colour);
 
             if(i < 10)
@@ -589,7 +589,7 @@ namespace Lumos
                 float z2 = Maths::Cos(step * (i + 10)) * radius;
                 float x2 = Maths::Sin(step * (i + 10)) * radius;
 
-                Vec3 offset2 = rotation * Vec4(x2, 0.0f, z2, 0.0f);
+                Vec3 offset2 = rotation * Vec3(x2, 0.0f, z2);
                 // Top Hemishpere
                 DebugDrawArc(20, radius, topSphereCentre + offset, topSphereCentre + offset2, rotation, colour);
                 // Bottom Hemisphere
