@@ -242,6 +242,7 @@ namespace Lumos
         m_UIArena = ArenaAlloc(Megabytes(8));
 
         InitialiseUI(m_UIArena);
+        UIApplyDarkTheme();
 
         GetUIState()->DPIScale = Application::Get().GetWindow()->GetDPIScale();
 
@@ -410,6 +411,23 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_FRAMEMARKER();
 
+        auto& ts    = Engine::GetTimeStep();
+        auto& stats = Engine::Get().Statistics();
+        {
+            LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
+            ts.OnUpdate();
+
+            ImGuiIO& io  = ImGui::GetIO();
+            io.DeltaTime = (float)ts.GetSeconds();
+
+            stats.FrameTime = ts.GetRawMillis(); // Use raw time for stats display
+        }
+
+        // Process Input events AFTER time sampling (per Unity's recommendations for lower latency)
+        // Input processed here will be used in this frame's Update()
+        Input::Get().ResetPressed();
+        m_Window->ProcessInput();
+
         ArenaClear(m_FrameArena);
 
         if(m_SceneManager->GetSwitchingScene())
@@ -420,16 +438,14 @@ namespace Lumos
             return m_CurrentState != AppState::Closing;
         }
 
-        double now  = m_Timer->GetElapsedSD();
-        auto& stats = Engine::Get().Statistics();
-        auto& ts    = Engine::GetTimeStep();
+        double now = m_Timer->GetElapsedSD();
 
         static int s_NumContiguousLargeFrames = 0;
         const int maxContiguousLargeFrames    = 2;
 
-        if(ts.GetSeconds() > 5)
+        if(ts.GetRawSeconds() > 5)
         {
-            LWARN("Large frame time %.2f", ts.GetSeconds());
+            LWARN("Large frame time %.2f", ts.GetRawSeconds());
 
             s_NumContiguousLargeFrames++;
 #ifdef LUMOS_DISABLE_LARGE_FRAME_TIME
@@ -445,20 +461,6 @@ namespace Lumos
             s_NumContiguousLargeFrames = 0;
 
         ExecuteMainThreadQueue();
-
-        {
-            LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
-            ts.OnUpdate();
-
-            ImGuiIO& io  = ImGui::GetIO();
-            io.DeltaTime = (float)ts.GetSeconds();
-
-            stats.FrameTime = ts.GetMillis();
-        }
-
-        // Process Input events before ImGui::NewFrame
-        Input::Get().ResetPressed();
-        m_Window->ProcessInput();
 
         {
             LUMOS_PROFILE_SCOPE("ImGui::NewFrame");
@@ -606,12 +608,17 @@ namespace Lumos
         m_SystemManager->OnDebugDraw();
     }
 
+    void Application::ExitApp()
+    {
+        SetAppState(Lumos::AppState::Closing);
+    }
+
     void Application::TestUI()
     {
         {
-            UIPushStyle(StyleVar_BackgroundColor, { 0.1f, 0.1f, 0.1f, 0.4f });
-            UIPushStyle(StyleVar_BorderColor, { 0.4f, 0.4f, 0.4f, 0.6f });
-            UIPushStyle(StyleVar_TextColor, { 0.8f, 0.8f, 0.8f, 1.0f });
+            // UIPushStyle(StyleVar_BackgroundColor, { 0.1f, 0.1f, 0.1f, 0.4f });
+            // UIPushStyle(StyleVar_BorderColor, { 0.4f, 0.4f, 0.4f, 0.6f });
+            // UIPushStyle(StyleVar_TextColor, { 0.8f, 0.8f, 0.8f, 1.0f });
 
             // UIPushStyle(StyleVar_FontSize, { 24.0f, 1.0f, 1.0f, 1.0f });
             static bool value                   = false;
@@ -653,9 +660,9 @@ namespace Lumos
                 UIEndPanel();
             }
 
-            UIPopStyle(StyleVar_TextColor);
-            UIPopStyle(StyleVar_BorderColor);
-            UIPopStyle(StyleVar_BackgroundColor);
+            //UIPopStyle(StyleVar_TextColor);
+            //UIPopStyle(StyleVar_BorderColor);
+            //UIPopStyle(StyleVar_BackgroundColor);
             // UIPopStyle(StyleVar_FontSize);
         }
     }

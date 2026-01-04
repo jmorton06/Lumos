@@ -14,6 +14,7 @@
 #include "EditorSettingsPanel.h"
 #include "ProjectSettingsPanel.h"
 #include "FileBrowserPanel.h"
+#include "ScriptConsolePanel.h"
 #include "PreviewDraw.h"
 #include "EditorPanel.h"
 
@@ -311,6 +312,8 @@ namespace Lumos
 #ifndef LUMOS_PLATFORM_IOS
         m_Panels.emplace_back(CreateSharedPtr<ResourcePanel>());
 #endif
+        m_Panels.emplace_back(CreateSharedPtr<ScriptConsolePanel>());
+        m_Panels.back()->SetActive(false);
 
         for(auto& panel : m_Panels)
             panel->SetEditor(this);
@@ -2028,7 +2031,7 @@ namespace Lumos
         if(m_EditorState == EditorState::Play)
             autoSaveTimer = 0.0f;
 
-        if(Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape) && GetEditorState() != EditorState::Preview)
+        if(Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape) && GetEditorState() != EditorState::Preview || m_QueuedScenePreviewEnd)
         {
             Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(true);
             Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(true);
@@ -2037,11 +2040,11 @@ namespace Lumos
             Application::Get().GetSystem<AudioManager>()->SetPaused(true);
             Application::Get().SetEditorState(EditorState::Preview);
 
-            // m_SelectedEntity = entt::null;
             m_SelectedEntities.clear();
             ImGui::SetWindowFocus("###scene");
             LoadCachedScene();
             SetEditorState(EditorState::Preview);
+            m_QueuedScenePreviewEnd = false;
         }
 
         if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || Input::Get().GetKeyHeld(InputCode::Key::LeftControl))
@@ -2054,7 +2057,6 @@ namespace Lumos
         {
             auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 
-            // if(Application::Get().GetSceneActive())
             {
                 const Vec2 mousePos = Input::Get().GetMousePosition();
                 m_EditorCameraController.SetCamera(m_EditorCamera);
@@ -2516,6 +2518,19 @@ namespace Lumos
                 }
             }
     }
+
+    void Editor::ExitApp()
+    {
+        if(m_EditorState != EditorState::Play)
+        {
+            SetAppState(Lumos::AppState::Closing);
+        }
+        else
+        {
+            m_QueuedScenePreviewEnd = true;
+        }
+    }
+
 
     void Editor::SelectObject(const Maths::Ray& ray, bool hoveredOnly)
     {

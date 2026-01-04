@@ -16,7 +16,7 @@ namespace Lumos
     void BindMathsLua(sol::state& state)
     {
         LUMOS_PROFILE_FUNCTION();
-        auto Vector2type = state.new_usertype<Vec2>("Vector2", sol::constructors<Vec2(float, float)>());
+        auto Vec2type = state.new_usertype<Vec2>("Vec2", sol::constructors<Vec2(float, float)>());
 
         auto mult_overloads_vec2 = sol::overload(
             [](const Vec2& v1, const Vec2& v2) -> Vec2
@@ -26,41 +26,41 @@ namespace Lumos
             [](float f, const Vec2& v1) -> Vec2
             { return f * v1; });
 
-        Vector2type[sol::meta_function::multiplication] = mult_overloads_vec2;
+        Vec2type[sol::meta_function::multiplication] = mult_overloads_vec2;
 
         // Fields
-        Vector2type["x"] = &Vec2::x;
-        Vector2type["y"] = &Vec2::y;
+        Vec2type["x"] = &Vec2::x;
+        Vec2type["y"] = &Vec2::y;
 
         // Meta functions
-        Vector2type[sol::meta_function::addition] = [](const Vec2& a, const Vec2& b)
+        Vec2type[sol::meta_function::addition] = [](const Vec2& a, const Vec2& b)
         {
             return a + b;
         };
 
-        Vector2type[sol::meta_function::subtraction] = [](const Vec2& a, const Vec2& b)
+        Vec2type[sol::meta_function::subtraction] = [](const Vec2& a, const Vec2& b)
         {
             return a - b;
         };
-        Vector2type[sol::meta_function::division] = [](const Vec2& a, const Vec2& b)
+        Vec2type[sol::meta_function::division] = [](const Vec2& a, const Vec2& b)
         {
             return a / b;
         };
-        Vector2type[sol::meta_function::equal_to] = [](const Vec2& a, const Vec2& b)
+        Vec2type[sol::meta_function::equal_to] = [](const Vec2& a, const Vec2& b)
         {
             return a == b;
         };
 
         // Methods
-        Vector2type["Length"] = [](const Vec2& v)
+        Vec2type["Length"] = [](const Vec2& v)
         {
             return Maths::Length(v);
         };
-        Vector2type["Distance"] = [](const Vec2& a, const Vec2& b)
+        Vec2type["Distance"] = [](const Vec2& a, const Vec2& b)
         {
             return Maths::Distance(a, b);
         };
-        Vector2type["Distance2"] = [](const Vec2& a, const Vec2& b)
+        Vec2type["Distance2"] = [](const Vec2& a, const Vec2& b)
         {
             return Maths::Distance2(a, b);
         };
@@ -73,77 +73,77 @@ namespace Lumos
             [](float f, const Vec3& v1) -> Vec3
             { return f * v1; });
 
-        auto Vector3type = state.new_usertype<Vec3>("Vector3", sol::constructors<Vec3(), Vec3(float, float, float)>());
+        auto Vec3type = state.new_usertype<Vec3>("Vec3", sol::constructors<Vec3(), Vec3(float, float, float)>());
 
         // Fields
-        Vector3type["x"] = &Vec3::x;
-        Vector3type["y"] = &Vec3::y;
-        Vector3type["z"] = &Vec3::z;
+        Vec3type["x"] = &Vec3::x;
+        Vec3type["y"] = &Vec3::y;
+        Vec3type["z"] = &Vec3::z;
 
         // Meta functions
-        Vector3type[sol::meta_function::addition] = [](const Vec3& a, const Vec3& b)
+        Vec3type[sol::meta_function::addition] = [](const Vec3& a, const Vec3& b)
         {
             return a + b;
         };
 
-        Vector3type[sol::meta_function::multiplication] = mult_overloads;
+        Vec3type[sol::meta_function::multiplication] = mult_overloads;
 
-        Vector3type[sol::meta_function::subtraction] = [](const Vec3& a, const Vec3& b)
+        Vec3type[sol::meta_function::subtraction] = [](const Vec3& a, const Vec3& b)
         {
             return a - b;
         };
 
-        Vector3type[sol::meta_function::unary_minus] = [](Vec3& v) -> Vec3
+        Vec3type[sol::meta_function::unary_minus] = [](Vec3& v) -> Vec3
         {
             return -v;
         };
 
-        Vector3type[sol::meta_function::division] = [](const Vec3& a, const Vec3& b)
+        Vec3type[sol::meta_function::division] = [](const Vec3& a, const Vec3& b)
         {
             return a / b;
         };
 
-        Vector3type[sol::meta_function::equal_to] = [](const Vec3& a, const Vec3& b)
+        Vec3type[sol::meta_function::equal_to] = [](const Vec3& a, const Vec3& b)
         {
             return a == b;
         };
 
         // Methods
-        Vector3type["Normalise"] = [](Vec3& v)
+        Vec3type["Normalise"] = [](Vec3& v)
         {
             return v.Normalised();
         };
 
-        Vector3type["Length"] = [](const Vec3& v)
+        Vec3type["Length"] = [](const Vec3& v)
         {
             return Maths::Length(v);
         };
 
-        Vector3type["Distance"] = [](const Vec3& a, const Vec3& b)
+        Vec3type["Distance"] = [](const Vec3& a, const Vec3& b)
         {
             return Maths::Distance(a, b);
         };
 
-        Vector3type["Distance2"] = [](const Vec3& a, const Vec3& b)
+        Vec3type["Distance2"] = [](const Vec3& a, const Vec3& b)
         {
             return Maths::Distance2(a, b);
         };
 
-        auto Vector4type = state.new_usertype<Vec4>("Vector4", sol::constructors<Vec4(), Vec4(float, float, float, float)>());
+        auto Vec4type = state.new_usertype<Vec4>("Vec4", sol::constructors<Vec4(), Vec4(float, float, float, float)>());
 
         // Fields
-        Vector4type["x"] = &Vec4::x;
-        Vector4type["y"] = &Vec4::y;
-        Vector4type["z"] = &Vec4::z;
-        Vector4type["w"] = &Vec4::w;
+        Vec4type["x"] = &Vec4::x;
+        Vec4type["y"] = &Vec4::y;
+        Vec4type["z"] = &Vec4::z;
+        Vec4type["w"] = &Vec4::w;
 
         // Meta functions
-        Vector4type[sol::meta_function::addition] = [](const Vec4& a, const Vec4& b)
+        Vec4type[sol::meta_function::addition] = [](const Vec4& a, const Vec4& b)
         {
             return a + b;
         };
 
-        Vector4type[sol::meta_function::multiplication] = sol::overload(
+        Vec4type[sol::meta_function::multiplication] = sol::overload(
             [](const Vec4& v1, const Vec4& v2) -> Vec4
             {
                 return v1 * v2;
@@ -157,43 +157,43 @@ namespace Lumos
                 return f * v1;
             });
 
-        Vector4type[sol::meta_function::subtraction] = [](const Vec4& a, const Vec4& b)
+        Vec4type[sol::meta_function::subtraction] = [](const Vec4& a, const Vec4& b)
         {
             return a - b;
         };
 
-        Vector4type[sol::meta_function::division] = [](const Vec4& a, const Vec4& b)
+        Vec4type[sol::meta_function::division] = [](const Vec4& a, const Vec4& b)
         {
             return a / b;
         };
 
-        Vector4type[sol::meta_function::equal_to] = [](const Vec4& a, const Vec4& b)
+        Vec4type[sol::meta_function::equal_to] = [](const Vec4& a, const Vec4& b)
         {
             return a == b;
         };
 
         // Methods
-        Vector4type["Normalise"] = [](Vec4& v)
+        Vec4type["Normalise"] = [](Vec4& v)
         {
             return v.Normalise();
         };
 
-        Vector4type["Length"] = [](const Vec4& v)
+        Vec4type["Length"] = [](const Vec4& v)
         {
             return Maths::Length(v);
         };
 
-        Vector4type["Distance"] = [](const Vec4& a, const Vec4& b)
+        Vec4type["Distance"] = [](const Vec4& a, const Vec4& b)
         {
             return Maths::Distance(a, b);
         };
 
-        Vector4type["Distance2"] = [](const Vec4& a, const Vec4& b)
+        Vec4type["Distance2"] = [](const Vec4& a, const Vec4& b)
         {
             return Maths::Distance2(a, b);
         };
 
-        auto QuaternionType = state.new_usertype<Quat>("Quaternion", sol::constructors<Quat(float, float, float, float), Quat(Vec3)>());
+        auto QuaternionType = state.new_usertype<Quat>("Quat", sol::constructors<Quat(float, float, float, float), Quat(Vec3), Quat(float, float, float)>());
 
         // Fields
         QuaternionType["x"] = &Quat::x;

@@ -4,6 +4,7 @@
 #include "Scene/Component/RigidBody3DComponent.h"
 #include "Core/Application.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h"
 
 #include <box2d/box2d.h>
 #include <sol/sol.hpp>
@@ -81,6 +82,8 @@ namespace Lumos
         physics3D_type.set_function("GetPosition", &RigidBody3D::GetPosition);
         physics3D_type.set_function("GetFriction", &RigidBody3D::GetFriction);
         physics3D_type.set_function("GetIsStatic", &RigidBody3D::GetIsStatic);
+        physics3D_type.set_function("SetIsStatic", &RigidBody3D::SetIsStatic);
+        physics3D_type.set_function("SetCollisionShape", static_cast<void (RigidBody3D::*)(CollisionShapeType)>(&RigidBody3D::SetCollisionShape));
 
         std::initializer_list<std::pair<sol::string_view, Shape>> shapes = {
             { "Square", Shape::Square },
@@ -88,6 +91,15 @@ namespace Lumos
             { "Custom", Shape::Custom }
         };
         state.new_enum<Shape, false>("Shape", shapes);
+
+        std::initializer_list<std::pair<sol::string_view, CollisionShapeType>> shapes3D = {
+            { "Cuboid", CollisionShapeType::CollisionCuboid },
+            { "Sphere", CollisionShapeType::CollisionSphere },
+            { "Pyramid", CollisionShapeType::CollisionPyramid },
+            { "Capsule", CollisionShapeType::CollisionCapsule },
+            { "Hull", CollisionShapeType::CollisionHull }
+        };
+        state.new_enum<CollisionShapeType, false>("CollisionShapeType", shapes3D);
 
         sol::usertype<RigidBody2D> physics2D_type = state.new_usertype<RigidBody2D>("RigidBody2D", sol::constructors<RigidBody2D(const RigidBodyParameters&)>());
         physics2D_type.set_function("SetForce", &RigidBody2D::SetForce);

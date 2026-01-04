@@ -160,6 +160,7 @@ namespace Lumos
         Manifold* m_Manifolds;                // Contact constraints between pairs of objects
 
         u32 m_ManifoldCount   = 0;
+        u32 m_MaxManifolds    = 0;
         u32 m_ConstraintCount = 0;
         u32 m_RigidBodyCount  = 0;
 

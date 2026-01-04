@@ -19,6 +19,63 @@ namespace Lumos
 
     enum CollisionShapeType : unsigned int;
 
+    // Collision layer system constants (16 layers, 0-15)
+    namespace CollisionLayer
+    {
+        constexpr u16 Layer0  = 0;
+        constexpr u16 Layer1  = 1;
+        constexpr u16 Layer2  = 2;
+        constexpr u16 Layer3  = 3;
+        constexpr u16 Layer4  = 4;
+        constexpr u16 Layer5  = 5;
+        constexpr u16 Layer6  = 6;
+        constexpr u16 Layer7  = 7;
+        constexpr u16 Layer8  = 8;
+        constexpr u16 Layer9  = 9;
+        constexpr u16 Layer10 = 10;
+        constexpr u16 Layer11 = 11;
+        constexpr u16 Layer12 = 12;
+        constexpr u16 Layer13 = 13;
+        constexpr u16 Layer14 = 14;
+        constexpr u16 Layer15 = 15;
+    }
+
+    namespace CollisionMask
+    {
+        constexpr u16 All  = 0xFFFF;
+        constexpr u16 None = 0x0000;
+
+        inline constexpr u16 FromLayer(u16 layer)
+        {
+            return 1 << layer;
+        }
+
+        template<typename... Layers>
+        inline constexpr u16 FromLayers(u16 first, Layers... rest)
+        {
+            if constexpr(sizeof...(rest) == 0)
+                return FromLayer(first);
+            else
+                return FromLayer(first) | FromLayers(rest...);
+        }
+
+        inline constexpr u16 AddLayer(u16 mask, u16 layer)
+        {
+            return mask | (1 << layer);
+        }
+
+        inline constexpr u16 RemoveLayer(u16 mask, u16 layer)
+        {
+            return mask & ~(1 << layer);
+        }
+
+        // Check if a mask includes a specific layer
+        inline constexpr bool HasLayer(u16 mask, u16 layer)
+        {
+            return (mask & (1 << layer)) != 0;
+        }
+    }
+
     // Callback function called whenever a collision is detected between two objects
     // Params:
     //	RigidBody3D* this_obj			- The current object class that contains the callback
@@ -45,6 +102,8 @@ namespace Lumos
         float Friction       = 0.5f;
         bool AtRest          = false;
         bool isTrigger       = false;
+        u16 CollisionLayer   = 0;
+        u16 CollisionMask    = 0xFFFF;
         SharedPtr<CollisionShape> Shape;
     };
 
@@ -187,6 +246,16 @@ namespace Lumos
         uint16_t GetCollisionLayer() const { return m_CollisionLayer; }
         void SetCollisionLayer(u16 layer) { m_CollisionLayer = layer; }
 
+        uint16_t GetCollisionMask() const { return m_CollisionMask; }
+        void SetCollisionMask(u16 mask) { m_CollisionMask = mask; }
+
+        // Check if this object can collide with another based on layers
+        bool CanCollideWith(const RigidBody3D* other) const
+        {
+            return (m_CollisionMask & (1 << other->m_CollisionLayer)) != 0 &&
+                   (other->m_CollisionMask & (1 << m_CollisionLayer)) != 0;
+        }
+
         RigidBody3DProperties GetProperties();
 
         bool GetIsValid() const { return m_IsValid; }
@@ -218,6 +287,7 @@ namespace Lumos
         float m_InvMass;
         bool m_Trigger       = false;
         u16 m_CollisionLayer = 0;
+        u16 m_CollisionMask  = 0xFFFF;
         bool m_IsValid       = true;
 
         Quat m_Orientation;

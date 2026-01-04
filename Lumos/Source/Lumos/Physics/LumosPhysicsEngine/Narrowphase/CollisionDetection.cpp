@@ -35,7 +35,7 @@ namespace Lumos
     bool CollisionDetection::CheckCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        ASSERT(((shape1->GetType() | shape2->GetType()) < m_MaxSize), "Invalid collision func %i, %i, %i, %i", (int)shape1->GetType(), (int)shape2->GetType(), (int)shape2->GetType() | (int)shape2->GetType(), m_MaxSize);
+        ASSERT(((shape1->GetType() | shape2->GetType()) < m_MaxSize), "Invalid collision func %i, %i, %i, %i", (int)shape1->GetType(), (int)shape2->GetType(), (int)shape1->GetType() | (int)shape2->GetType(), m_MaxSize);
         return CALL_MEMBER_FN(*this, m_CollisionCheckFunctions[shape1->GetType() | shape2->GetType()])(obj1, obj2, shape1, shape2, out_coldata);
     }
 
@@ -69,7 +69,7 @@ namespace Lumos
         return true;
     }
 
-    void AddPossibleCollisionAxis(Vec3& axis, Vec3* possibleCollisionAxes, uint32_t& possibleCollisionAxesCount)
+    void AddPossibleCollisionAxis(Vec3& axis, Vec3* possibleCollisionAxes, uint32_t& possibleCollisionAxesCount, uint32_t maxAxes)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
         if(Maths::Length2(axis) < Maths::M_EPSILON)
@@ -84,6 +84,13 @@ namespace Lumos
             const Vec3& p_axis = possibleCollisionAxes[i];
             if(Maths::Abs(Maths::Dot(axis, p_axis)) >= value)
                 return;
+        }
+
+        // Bounds check to prevent buffer overflow
+        if(possibleCollisionAxesCount >= maxAxes)
+        {
+            LWARN("Collision axes limit reached (%u), skipping axis", maxAxes);
+            return;
         }
 
         possibleCollisionAxes[possibleCollisionAxesCount++] = axis;
@@ -122,20 +129,26 @@ namespace Lumos
         Vec3 p_t = sphereObj->GetPosition() - p;
         p_t.Normalise();
 
-        static const int MAX_COLLISION_AXES = 100;
-        static Vec3 possibleCollisionAxes[MAX_COLLISION_AXES];
+        const int MAX_COLLISION_AXES = 100;
+        Vec3 possibleCollisionAxes[MAX_COLLISION_AXES];
 
         uint32_t possibleCollisionAxesCount = 0;
         for(const Vec3& axis : shapeCollisionAxes)
         {
+            if(possibleCollisionAxesCount >= MAX_COLLISION_AXES)
+            {
+                LWARN("Collision axes limit reached in CheckPolyhedronSphereCollision");
+                break;
+            }
             possibleCollisionAxes[possibleCollisionAxesCount++] = axis;
         }
 
-        AddPossibleCollisionAxis(p_t, possibleCollisionAxes, possibleCollisionAxesCount);
+        AddPossibleCollisionAxis(p_t, possibleCollisionAxes, possibleCollisionAxesCount, MAX_COLLISION_AXES);
 
         for(uint32_t i = 0; i < possibleCollisionAxesCount; i++)
         {
             const Vec3& axis = possibleCollisionAxes[i];
+            // Early termination: if separation axis found, no collision exists
             if(!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &cur_colData))
                 return false;
 
@@ -159,17 +172,27 @@ namespace Lumos
         TDArray<Vec3>& shape1CollisionAxes         = shape1->GetCollisionAxes(obj1);
         TDArray<Vec3>& shape2PossibleCollisionAxes = shape2->GetCollisionAxes(obj2);
 
-        static const int MAX_COLLISION_AXES = 100;
-        static Vec3 possibleCollisionAxes[MAX_COLLISION_AXES];
+        const int MAX_COLLISION_AXES = 100;
+        Vec3 possibleCollisionAxes[MAX_COLLISION_AXES];
 
         uint32_t possibleCollisionAxesCount = 0;
         for(const Vec3& axis : shape1CollisionAxes)
         {
+            if(possibleCollisionAxesCount >= MAX_COLLISION_AXES)
+            {
+                LWARN("Collision axes limit reached in CheckPolyhedronCollision (shape1)");
+                break;
+            }
             possibleCollisionAxes[possibleCollisionAxesCount++] = axis;
         }
 
         for(const Vec3& axis : shape2PossibleCollisionAxes)
         {
+            if(possibleCollisionAxesCount >= MAX_COLLISION_AXES)
+            {
+                LWARN("Collision axes limit reached in CheckPolyhedronCollision (shape2)");
+                break;
+            }
             possibleCollisionAxes[possibleCollisionAxesCount++] = axis;
         }
 
@@ -179,6 +202,7 @@ namespace Lumos
         for(uint32_t i = 0; i < possibleCollisionAxesCount; i++)
         {
             const Vec3& axis = possibleCollisionAxes[i];
+            // Early termination: if separation axis found, no collision exists
             if(!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &cur_colData))
                 return false;
 
@@ -236,9 +260,6 @@ namespace Lumos
         Vec3 p1 = obj1->GetPosition();
         Vec3 p2 = obj2->GetPosition();
 
-        Vec3 d     = p2 - p1;
-        float dist = Maths::Length(d);
-
         float height1 = capsuleShape1->GetHeight();
         float height2 = capsuleShape2->GetHeight();
 
@@ -260,6 +281,28 @@ namespace Lumos
         // The two inner capsule segments
         const Vec3 seg1  = capsule1SegB - capsule1SegA;
         const Vec3 seg2  = capsule2SegB - capsule2SegA;
+        
+        // Check for degenerate (zero-length) segments
+        float seg1LengthSq = Maths::Length2(seg1);
+        float seg2LengthSq = Maths::Length2(seg2);
+        if(seg1LengthSq < Maths::M_EPSILON * Maths::M_EPSILON || seg2LengthSq < Maths::M_EPSILON * Maths::M_EPSILON)
+        {
+            // Degenerate capsule(s), treat as sphere-sphere collision
+            Vec3 axis = p2 - p1;
+            float distSq = Maths::Length2(axis);
+            if(distSq > radiusSum * radiusSum)
+                return false;
+                
+            float dist = Maths::Sqrt(distSq);
+            best_colData.normal = dist > Maths::M_EPSILON ? axis / dist : Vec3(0.0f, 1.0f, 0.0f);
+            best_colData.penetration = radiusSum - dist;
+            best_colData.pointOnPlane = p1 + axis * 0.5f;
+            
+            if(out_coldata)
+                *out_coldata = best_colData;
+            return true;
+        }
+        
         bool areParallel = Maths::AreVectorsParallel(seg1, seg2);
 
         if(areParallel)
@@ -268,11 +311,13 @@ namespace Lumos
             if(segmentsPerpendicularDistance > radiusSum)
                 return false;
 
-            float d1 = Maths::Dot(seg1, Vec3(capsule1SegA));
-            float d2 = -Maths::Dot(seg1, Vec3(capsule1SegB));
+            // Calculate plane distances correctly using normalized direction
+            Vec3 seg1Norm = seg1.Normalised();
+            float d1 = Maths::Dot(seg1Norm, Vec3(capsule1SegA));
+            float d2 = Maths::Dot(seg1Norm, Vec3(capsule1SegB));
 
-            float t1 = PlaneSegmentIntersection(capsule2SegB, capsule2SegA, d1, seg1);
-            float t2 = PlaneSegmentIntersection(capsule2SegA, capsule2SegB, d2, -seg1);
+            float t1 = PlaneSegmentIntersection(capsule2SegB, capsule2SegA, d1, seg1Norm);
+            float t2 = PlaneSegmentIntersection(capsule2SegA, capsule2SegB, d2, seg1Norm);
 
             if(t1 > 0.0f && t2 > 0.0f)
             {
@@ -321,22 +366,13 @@ namespace Lumos
                 float penetrationDepth = radiusSum - segmentsPerpendicularDistance;
 
                 Vec3 normalWorld = Mat4(obj2->GetOrientation()) * Vec4(normalCapsule2SpaceNormalized, 1.0f);
-                // Vec3 normalWorld = obj2->GetOrientation() * normalCapsule2SpaceNormalized;
 
-                float correlation1 = Maths::Dot(normalWorld, Vec3(contactPointACapsule1Local));
-                float correlation2 = Maths::Dot(normalWorld, Vec3(contactPointBCapsule1Local));
-
-                static bool flipNormal = false;
-                // flipNormal = !flipNormal;
-                // if(correlation1 <= correlation2)
-                //  if(Maths::Length(normalWorld, p2 - p1) < 0.0f)
-                //  {
-                //      normalWorld = -normalWorld;
-                //  }
-
-                // Flip Normal if needed
-                if(Maths::Dot(normalWorld, p2 - p1) < 0.0f)
-                // if(flipNormal)
+                // Ensure normal points from obj1 to obj2 (using contact points for consistency)
+                Vec3 contactPoint1World = obj1->GetWorldSpaceTransform() * Vec4(contactPointACapsule1Local, 1.0f);
+                Vec3 contactPoint2World = obj2->GetWorldSpaceTransform() * Vec4(contactPointACapsule2Local, 1.0f);
+                Vec3 contactDelta = contactPoint2World - contactPoint1World;
+                
+                if(Maths::Dot(normalWorld, contactDelta) < 0.0f)
                 {
                     normalWorld = -normalWorld;
                 }
@@ -370,18 +406,15 @@ namespace Lumos
                 const Vec3 contactPointCapsule1Local = Mat4::Inverse(capsule1ToCapsule2SpaceTransform) * (closestPointCapsule1Seg + closestPointsSeg1ToSeg2 * capsule1Radius);
                 const Vec3 contactPointCapsule2Local = closestPointCapsule2Seg - closestPointsSeg1ToSeg2 * capsule2Radius;
 
-                // const Vec3 normalWorld = obj2->GetOrientation() * closestPointsSeg1ToSeg2;
                 Vec3 normalWorld = Mat4(obj2->GetOrientation()) * Vec4(closestPointsSeg1ToSeg2, 1.0f);
 
                 float penetrationDepth = radiusSum - closestPointsDistance;
 
-                // Create the contact info object
-
-                float correlation1 = Maths::Dot(normalWorld, Vec3(contactPointCapsule1Local));
-                float correlation2 = Maths::Dot(normalWorld, Vec3(contactPointCapsule2Local));
-
-                // if(correlation1 <= correlation2)
-                if(Maths::Dot(normalWorld, p2 - p1) < 0.0f)
+                // Ensure normal points from obj1 to obj2 (should point from capsule1 to capsule2)
+                // closestPointsSeg1ToSeg2 already points from seg1 to seg2 in capsule2 space
+                // After rotation to world space, verify it points from obj1 to obj2
+                Vec3 obj1ToObj2 = p2 - p1;
+                if(Maths::Dot(normalWorld, obj1ToObj2) < 0.0f)
                 {
                     normalWorld = -normalWorld;
                 }
@@ -408,18 +441,30 @@ namespace Lumos
                     const Vec3 contactPointCapsule1Local = Mat4::Inverse(capsule1ToCapsule2SpaceTransform) * (closestPointCapsule1Seg + normalCapsuleSpace2 * capsule1Radius);
                     const Vec3 contactPointCapsule2Local = closestPointCapsule2Seg - normalCapsuleSpace2 * capsule2Radius;
 
-                    // const Vec3 normalWorld = obj2->GetOrientation() * Vec4(normalCapsuleSpace2, 1.0f);
                     Vec3 normalWorld = Mat4(obj2->GetOrientation()) * Vec4(normalCapsuleSpace2, 1.0f);
 
-                    float correlation1 = Maths::Dot(normalWorld, Vec3(contactPointCapsule1Local));
-                    float correlation2 = Maths::Dot(normalWorld, Vec3(contactPointCapsule2Local));
-
-                    // if(correlation1 <= correlation2)
-                    if(Maths::Dot(normalWorld, p2 - p1) < 0.0f)
+                    // Ensure normal points from obj1 to obj2
+                    Vec3 obj1ToObj2 = p2 - p1;
+                    if(Maths::Length2(obj1ToObj2) > Maths::M_EPSILON)
                     {
-                        normalWorld = -normalWorld;
+                        // Use center-to-center if available
+                        if(Maths::Dot(normalWorld, obj1ToObj2) < 0.0f)
+                        {
+                            normalWorld = -normalWorld;
+                        }
                     }
-                    // Create the contact info object
+                    else
+                    {
+                        // Centers are nearly coincident, use contact point direction
+                        Vec3 contactPoint1World = obj1->GetWorldSpaceTransform() * Vec4(contactPointCapsule1Local, 1.0f);
+                        Vec3 contactPoint2World = obj2->GetWorldSpaceTransform() * Vec4(contactPointCapsule2Local, 1.0f);
+                        Vec3 contactDelta = contactPoint2World - contactPoint1World;
+                        if(Maths::Dot(normalWorld, contactDelta) < 0.0f)
+                        {
+                            normalWorld = -normalWorld;
+                        }
+                    }
+
                     best_colData.normal       = normalWorld.Normalised();
                     best_colData.penetration  = radiusSum;
                     best_colData.pointOnPlane = obj1->GetWorldSpaceTransform() * Vec4(contactPointCapsule1Local, 1.0f);
@@ -437,16 +482,27 @@ namespace Lumos
                     const Vec3 contactPointCapsule1Local = Mat4::Inverse(capsule1ToCapsule2SpaceTransform) * (closestPointCapsule1Seg + normalCapsuleSpace2 * capsule1Radius);
                     const Vec3 contactPointCapsule2Local = closestPointCapsule2Seg - normalCapsuleSpace2 * capsule2Radius;
 
-                    // const Vec3 normalWorld = obj2->GetOrientation() * Vec4(normalCapsuleSpace2, 1.0f);
                     Vec3 normalWorld = Mat4(obj2->GetOrientation()) * Vec4(normalCapsuleSpace2, 1.0f);
 
-                    float correlation1 = Maths::Dot(normalWorld, Vec3(contactPointCapsule1Local));
-                    float correlation2 = Maths::Dot(normalWorld, Vec3(contactPointCapsule2Local));
-
-                    // if(correlation1 <= correlation2)
-                    if(Maths::Dot(normalWorld, p2 - p1) < 0.0f)
+                    // Ensure normal points from obj1 to obj2
+                    Vec3 obj1ToObj2 = p2 - p1;
+                    if(Maths::Length2(obj1ToObj2) > Maths::M_EPSILON)
                     {
-                        normalWorld = -normalWorld;
+                        if(Maths::Dot(normalWorld, obj1ToObj2) < 0.0f)
+                        {
+                            normalWorld = -normalWorld;
+                        }
+                    }
+                    else
+                    {
+                        // Centers coincident, use contact points
+                        Vec3 contactPoint1World = obj1->GetWorldSpaceTransform() * Vec4(contactPointCapsule1Local, 1.0f);
+                        Vec3 contactPoint2World = obj2->GetWorldSpaceTransform() * Vec4(contactPointCapsule2Local, 1.0f);
+                        Vec3 contactDelta = contactPoint2World - contactPoint1World;
+                        if(Maths::Dot(normalWorld, contactDelta) < 0.0f)
+                        {
+                            normalWorld = -normalWorld;
+                        }
                     }
 
                     best_colData.normal       = normalWorld.Normalised();
@@ -526,8 +582,8 @@ namespace Lumos
         {
             float penetrationDepth;
             Vec3 normalWorld;
-            Vec3 contactPointSphereLocal;
-            Vec3 contactPointCapsuleLocal;
+            Vec3 contactPointSphereWorld;
+            Vec3 contactPointCapsuleWorld;
 
             // If the sphere center is not on the capsule inner segment
             if(sphereSegmentDistanceSquare > Maths::M_EPSILON)
@@ -535,15 +591,22 @@ namespace Lumos
                 float sphereSegmentDistance = Maths::Sqrt(sphereSegmentDistanceSquare);
                 sphereCenterToSegment /= sphereSegmentDistance;
 
-                contactPointSphereLocal  = Mat4::Inverse(sphereToCapsuleSpaceTransform) * Vec4(sphereToCapsuleSpacePos + sphereCenterToSegment * sphereRadius, 1.0f);
-                contactPointCapsuleLocal = closestPointOnSegment - sphereCenterToSegment * capsuleRadius;
+                // Calculate contact points in world space
+                contactPointCapsuleWorld = capsuleTransform * Vec4(closestPointOnSegment - sphereCenterToSegment * capsuleRadius, 1.0f);
+                contactPointSphereWorld  = sphereTransform * Vec4(Mat4::Inverse(sphereToCapsuleSpaceTransform) * Vec4(sphereToCapsuleSpacePos + sphereCenterToSegment * sphereRadius, 1.0f), 1.0f);
 
+                // Normal in capsule space points from segment to sphere center
+                // Transform to world space
                 normalWorld = Mat4(capsuleObj->GetOrientation()) * Vec4(sphereCenterToSegment, 1.0f);
 
                 penetrationDepth = sumRadius - sphereSegmentDistance;
 
-                if(obj1 != sphereObj)
+                // Ensure normal always points from obj1 to obj2
+                Vec3 obj1ToObj2 = obj2->GetPosition() - obj1->GetPosition();
+                if(Maths::Dot(normalWorld, obj1ToObj2) < 0.0f)
+                {
                     normalWorld = -normalWorld;
+                }
             }
             else
             {
@@ -565,9 +628,9 @@ namespace Lumos
                 Vec3 normalCapsuleSpace = cosA1 < cosA2 ? Maths::Cross(capsuleSegment, vec1) : Maths::Cross(capsuleSegment, vec2);
                 normalWorld             = Mat4(capsuleObj->GetOrientation()) * Vec4(normalCapsuleSpace, 1.0f);
 
-                // Compute the two local contact points
-                contactPointSphereLocal  = Mat4::Inverse(sphereToCapsuleSpaceTransform) * Vec4(sphereToCapsuleSpacePos + normalCapsuleSpace * sphereRadius, 1.0f);
-                contactPointCapsuleLocal = sphereToCapsuleSpacePos - normalCapsuleSpace * capsuleRadius;
+                // Compute contact points in world space
+                contactPointSphereWorld  = sphereTransform * Vec4(Mat4::Inverse(sphereToCapsuleSpaceTransform) * Vec4(sphereToCapsuleSpacePos + normalCapsuleSpace * sphereRadius, 1.0f), 1.0f);
+                contactPointCapsuleWorld = capsuleTransform * Vec4(sphereToCapsuleSpacePos - normalCapsuleSpace * capsuleRadius, 1.0f);
             }
 
             if(penetrationDepth <= 0.0f)
@@ -575,7 +638,8 @@ namespace Lumos
 
             colData.normal       = normalWorld.Normalised();
             colData.penetration  = penetrationDepth;
-            colData.pointOnPlane = contactPointSphereLocal;
+            // Use the contact point in world space
+            colData.pointOnPlane = contactPointSphereWorld;
 
             if(out_coldata)
                 *out_coldata = colData;
@@ -620,30 +684,26 @@ namespace Lumos
         Vec3 p_t = capsuleObj->GetPosition() - p;
         p_t.Normalise();
 
-        static const int MAX_COLLISION_AXES = 100;
-        static Vec3 possibleCollisionAxes[MAX_COLLISION_AXES];
+        const int MAX_COLLISION_AXES = 100;
+        Vec3 possibleCollisionAxes[MAX_COLLISION_AXES];
 
         uint32_t possibleCollisionAxesCount = 0;
         for(const Vec3& axis : shapeCollisionAxes)
         {
+            if(possibleCollisionAxesCount >= MAX_COLLISION_AXES)
+            {
+                LWARN("Collision axes limit reached in CheckPolyhedronCapsuleCheckCollision");
+                break;
+            }
             possibleCollisionAxes[possibleCollisionAxesCount++] = axis;
         }
 
-        AddPossibleCollisionAxis(p_t, possibleCollisionAxes, possibleCollisionAxesCount);
-
-        Vec3 capsulePos = capsuleObj->GetPosition();
-        Vec4 forward    = Vec4(0.0f, 0.0f, 1.0f, 0.0f);
-        Vec3 capsuleDir = capsuleObj->GetWorldSpaceTransform() * forward;
-
-        float capsuleRadius = capsuleShape->GetRadius();
-        float capsuleHeight = capsuleShape->GetHeight();
-
-        float capsuleTop    = capsulePos.y + capsuleHeight * 0.5f;
-        float capsuleBottom = capsulePos.y - capsuleHeight * 0.5f;
+        AddPossibleCollisionAxis(p_t, possibleCollisionAxes, possibleCollisionAxesCount, MAX_COLLISION_AXES);
 
         for(uint32_t i = 0; i < possibleCollisionAxesCount; i++)
         {
             const Vec3& axis = possibleCollisionAxes[i];
+            // Early termination: if separation axis found, no collision exists
             if(!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &cur_colData))
                 return false;
 
@@ -651,8 +711,12 @@ namespace Lumos
                 best_colData = cur_colData;
         }
 
-        if(Maths::Dot(best_colData.normal, capsuleDir) < 0.0f)
+        // Ensure normal always points from obj1 to obj2 for consistency
+        Vec3 obj1ToObj2 = obj2->GetPosition() - obj1->GetPosition();
+        if(Maths::Dot(best_colData.normal, obj1ToObj2) < 0.0f)
+        {
             best_colData.normal = -best_colData.normal;
+        }
 
         if(out_coldata)
             *out_coldata = best_colData;

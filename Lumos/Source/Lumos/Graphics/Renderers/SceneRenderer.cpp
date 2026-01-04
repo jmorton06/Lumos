@@ -2070,30 +2070,34 @@ namespace Lumos::Graphics
 
     void SceneRenderer::draw_ui(UI_Widget* widget)
     {
+        // Apply easing to transitions for smoother visual feedback
+        float easedHotTransition    = widget->HotTransition > 0.0f ? (1.0f - powf(1.0f - widget->HotTransition, 3.0f)) : 0.0f;
+        float easedActiveTransition = widget->ActiveTransition > 0.0f ? (1.0f - powf(1.0f - widget->ActiveTransition, 3.0f)) : 0.0f;
+        
         Vec4 border_color     = widget->style_vars[StyleVar_BorderColor];
         Vec4 background_color = widget->style_vars[StyleVar_BackgroundColor];
         Vec4 text_color       = widget->style_vars[StyleVar_TextColor];
 
-        if(widget->HotTransition > 0.0f)
+        if(easedHotTransition > 0.0f)
         {
             Vec4 hotBorderColor     = widget->style_vars[StyleVar_HotBorderColor];
             Vec4 hotBackgroundColor = widget->style_vars[StyleVar_HotBackgroundColor];
             Vec4 hotTextColor       = widget->style_vars[StyleVar_HotTextColor];
 
-            border_color     = border_color.Lerp(hotBorderColor, widget->HotTransition);
-            background_color = background_color.Lerp(hotBackgroundColor, widget->HotTransition);
-            text_color       = text_color.Lerp(hotTextColor, widget->HotTransition);
+            border_color     = border_color.Lerp(hotBorderColor, easedHotTransition);
+            background_color = background_color.Lerp(hotBackgroundColor, easedHotTransition);
+            text_color       = text_color.Lerp(hotTextColor, easedHotTransition);
         }
 
-        if(widget->ActiveTransition > 0.0f)
+        if(easedActiveTransition > 0.0f)
         {
             Vec4 activeBorderColor     = widget->style_vars[StyleVar_ActiveBorderColor];
             Vec4 activeBackgroundColor = widget->style_vars[StyleVar_ActiveBackgroundColor];
             Vec4 activeTextColor       = widget->style_vars[StyleVar_ActiveTextColor];
 
-            border_color     = border_color.Lerp(activeBorderColor, widget->ActiveTransition);
-            background_color = background_color.Lerp(activeBackgroundColor, widget->ActiveTransition);
-            text_color       = text_color.Lerp(activeTextColor, widget->ActiveTransition);
+            border_color     = border_color.Lerp(activeBorderColor, easedActiveTransition);
+            background_color = background_color.Lerp(activeBackgroundColor, easedActiveTransition);
+            text_color       = text_color.Lerp(activeTextColor, easedActiveTransition);
         }
 
         if(widget->flags & WidgetFlags_DrawBorder)
@@ -2177,11 +2181,11 @@ namespace Lumos::Graphics
         if(widget->flags & WidgetFlags_DrawBackground)
         {
             Vec2 border = widget->style_vars[StyleVar_Border].ToVector2();
-            Vec2 size   = widget->size - 2.0f * border;
-            Vec2 p      = widget->position + border; /* + size * 0.5f */
-            ;
-            // size *= 4.0f;
-            p.y = m_MainTexture->GetHeight() - p.y; //- size.y;
+            // Inset background by border width for proper layering
+            Vec2 size   = widget->size - border * 2.0f;
+            Vec2 p      = widget->position + border;
+            
+            p.y = m_MainTexture->GetHeight() - p.y;
 
             if(m_CurrentUIText)
             {
@@ -2260,7 +2264,6 @@ namespace Lumos::Graphics
 
             Vec2 size = widget->size;
             Vec2 p    = widget->position;
-            // size *= 4.0f;
 
             if(widget->TextAlignment & UI_Text_Alignment_Center_X)
             {
@@ -3482,6 +3485,20 @@ namespace Lumos::Graphics
         {
             const auto& [textComp, trans] = textGroup.get<TextComponent, Maths::Transform>(entity);
 
+            auto font = textComp.FontHandle ? textComp.FontHandle : Font::GetDefaultFont();
+            if(!font || !font->GetFontAtlas())
+                continue;
+
+            Vec2 textSize = font->CalculateTextSize(textComp.TextString, 1.0f);
+
+            Maths::BoundingBox textBB;
+            textBB.Merge(Vec3(0.0f, -textSize.y, 0.0f));
+            textBB.Merge(Vec3(textSize.x, textSize.y, 0.0f));
+            textBB.Transform(trans.GetWorldMatrix());
+
+            if(!m_ForwardData.m_Frustum.IsInside(textBB))
+                continue;
+
             Mat4 transform = trans.GetWorldMatrix();
             m_Stats.NumRenderedObjects++;
 
@@ -3490,7 +3507,6 @@ namespace Lumos::Graphics
 
             int textureIndex       = -1;
             auto& string           = textComp.TextString;
-            auto font              = textComp.FontHandle ? textComp.FontHandle : Font::GetDefaultFont();
             float lineHeightOffset = 0.0f;
             float kerningOffset    = 0.0f;
 
@@ -3502,8 +3518,6 @@ namespace Lumos::Graphics
             auto outlineWidth  = textComp.OutlineWidth;
 
             SharedPtr<Texture2D> fontAtlas = font->GetFontAtlas();
-            if(!fontAtlas)
-                continue;
 
             for(uint32_t i = 0; i < m_TextRendererData.m_TextureCount; i++)
             {

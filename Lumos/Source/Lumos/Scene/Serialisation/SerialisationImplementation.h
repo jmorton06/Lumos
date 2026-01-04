@@ -169,11 +169,12 @@ namespace Lumos
     {
         auto shape = std::unique_ptr<CollisionShape>(rigidBody.m_CollisionShape.get());
 
-        const int Version = 2;
+        const int Version = 3;
 
         archive(cereal::make_nvp("Version", Version));
         archive(cereal::make_nvp("Position", rigidBody.m_Position), cereal::make_nvp("Orientation", rigidBody.m_Orientation), cereal::make_nvp("LinearVelocity", rigidBody.m_LinearVelocity), cereal::make_nvp("Force", rigidBody.m_Force), cereal::make_nvp("Mass", 1.0f / rigidBody.m_InvMass), cereal::make_nvp("AngularVelocity", rigidBody.m_AngularVelocity), cereal::make_nvp("Torque", rigidBody.m_Torque), cereal::make_nvp("Static", rigidBody.m_Static), cereal::make_nvp("Friction", rigidBody.m_Friction), cereal::make_nvp("Elasticity", rigidBody.m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", rigidBody.m_Trigger), cereal::make_nvp("AngularFactor", rigidBody.m_AngularFactor));
         archive(cereal::make_nvp("UUID", (uint64_t)rigidBody.m_UUID));
+        archive(cereal::make_nvp("CollisionLayer", rigidBody.m_CollisionLayer), cereal::make_nvp("CollisionMask", rigidBody.m_CollisionMask));
         shape.release();
     }
 
@@ -193,6 +194,9 @@ namespace Lumos
 
         if(Version > 1)
             archive(cereal::make_nvp("UUID", (uint64_t)rigidBody.m_UUID));
+        
+        if(Version > 2)
+            archive(cereal::make_nvp("CollisionLayer", rigidBody.m_CollisionLayer), cereal::make_nvp("CollisionMask", rigidBody.m_CollisionMask));
     }
 
     template <typename Archive>

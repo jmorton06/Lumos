@@ -76,6 +76,10 @@ namespace Lumos
         StyleVar_ActiveBackgroundColor,
         StyleVar_ActiveTextColor,
         StyleVar_FontSize,
+        StyleVar_CornerRadius,
+        StyleVar_ShadowColor,
+        StyleVar_ShadowOffset,
+        StyleVar_ShadowBlur,
         StyleVar_Count
     };
 
@@ -144,6 +148,12 @@ namespace Lumos
         Style_Variable* first_free;
     };
 
+    enum UITheme
+    {
+        UITheme_Light,
+        UITheme_Dark
+    };
+
     struct UI_State
     {
         Arena* UIArena;
@@ -167,6 +177,8 @@ namespace Lumos
         u64 FrameIndex;
         f32 AnimationRate = 10.0f;
         f32 AnimationRateDT = 10.0f;
+        
+        UITheme CurrentTheme = UITheme_Light;
     };
 
     UI_State* GetUIState();
@@ -228,4 +240,9 @@ namespace Lumos
 
     void RefreshUI();
     void DearIMGUIDebugPanel();
+    
+    // Theme management
+    void UISetTheme(UITheme theme);
+    void UIApplyLightTheme();
+    void UIApplyDarkTheme();
 }
