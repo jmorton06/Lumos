@@ -97,6 +97,7 @@ namespace Lumos
         Window* GetWindow() const { return m_Window.get(); }
         AppState GetState() const { return m_CurrentState; }
         EditorState GetEditorState() const { return m_EditorState; }
+        AppType GetAppType() const { return m_AppType; }
         SystemManager* GetSystemManager() const { return m_SystemManager.get(); }
         Scene* GetCurrentScene() const;
         ImGuiManager* GetImGuiManager() const { return m_ImGuiManager.get(); }

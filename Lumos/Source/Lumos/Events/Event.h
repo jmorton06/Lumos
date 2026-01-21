@@ -21,7 +21,11 @@ namespace Lumos
         MouseButtonReleased,
         MouseMoved,
         MouseScrolled,
-        MouseEntered
+        MouseEntered,
+        GesturePinch,
+        GesturePan,
+        GestureSwipe,
+        GestureLongPress
     };
 
     enum EventCategory
@@ -31,7 +35,8 @@ namespace Lumos
         EventCategoryInput       = BIT(1),
         EventCategoryKeyboard    = BIT(2),
         EventCategoryMouse       = BIT(3),
-        EventCategoryMouseButton = BIT(4)
+        EventCategoryMouseButton = BIT(4),
+        EventCategoryGesture     = BIT(5)
     };
 
 #define BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }

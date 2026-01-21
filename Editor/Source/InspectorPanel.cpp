@@ -3346,7 +3346,27 @@ namespace Lumos
             }
 
             auto& registry = currentScene->GetRegistry();
-            if(selectedEntities.size() != 1 || !registry.valid(selectedEntities.front()))
+
+            // Handle no selection
+            if(selectedEntities.empty())
+            {
+                ImGui::TextDisabled("No entity selected");
+                ImGuiUtilities::PopID();
+                ImGui::End();
+                return;
+            }
+
+            // Handle multiple entity selection
+            if(selectedEntities.size() > 1)
+            {
+                DrawMultiEntityInspector(currentScene, selectedEntities);
+                ImGuiUtilities::PopID();
+                ImGui::End();
+                return;
+            }
+
+            // Single entity selection - validate
+            if(!registry.valid(selectedEntities.front()))
             {
                 m_Editor->SetSelected({});
                 ImGuiUtilities::PopID();
@@ -3542,6 +3562,259 @@ namespace Lumos
             ImGuiUtilities::PopID();
         }
         ImGui::End();
+    }
+
+    void InspectorPanel::DrawMultiEntityInspector(Scene* scene, const std::vector<Entity>& entities)
+    {
+        auto& registry = scene->GetRegistry();
+
+        // Header showing selection count
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.8f, 1.0f, 1.0f));
+        ImGui::Text(ICON_MDI_SELECT_ALL " %zu entities selected", entities.size());
+        ImGui::PopStyleColor();
+        ImGui::Separator();
+
+        // Count valid entities with transforms
+        int validCount = 0;
+        for(auto entity : entities)
+        {
+            if(entity.Valid() && entity.HasComponent<Maths::Transform>())
+                validCount++;
+        }
+
+        if(validCount == 0)
+        {
+            ImGui::TextDisabled("No valid entities with transforms");
+            return;
+        }
+
+        // Transform editing section
+        if(ImGui::CollapsingHeader(ICON_MDI_VECTOR_LINE " Transform", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::Indent();
+            ImGui::TextDisabled("Changes apply to all selected entities");
+            ImGui::Spacing();
+
+            // Position offset
+            static Vec3 positionOffset = Vec3(0.0f);
+            ImGui::Text("Position Offset");
+            bool posChanged = false;
+            posChanged |= ImGui::DragFloat("X##PosOffset", &positionOffset.x, 0.1f);
+            ImGui::SameLine();
+            posChanged |= ImGui::DragFloat("Y##PosOffset", &positionOffset.y, 0.1f);
+            ImGui::SameLine();
+            posChanged |= ImGui::DragFloat("Z##PosOffset", &positionOffset.z, 0.1f);
+            ImGui::SameLine();
+            if(ImGui::Button("Apply##Pos"))
+            {
+                for(auto entity : entities)
+                {
+                    if(!entity.Valid())
+                        continue;
+                    if(entity.HasComponent<EditorLockComponent>())
+                        continue;
+                    auto transform = entity.TryGetComponent<Maths::Transform>();
+                    if(transform)
+                    {
+                        transform->SetLocalPosition(transform->GetLocalPosition() + positionOffset);
+                    }
+                }
+                positionOffset = Vec3(0.0f);
+            }
+
+            ImGui::Spacing();
+
+            // Rotation offset (in degrees)
+            static Vec3 rotationOffset = Vec3(0.0f);
+            ImGui::Text("Rotation Offset (degrees)");
+            bool rotChanged = false;
+            rotChanged |= ImGui::DragFloat("X##RotOffset", &rotationOffset.x, 1.0f);
+            ImGui::SameLine();
+            rotChanged |= ImGui::DragFloat("Y##RotOffset", &rotationOffset.y, 1.0f);
+            ImGui::SameLine();
+            rotChanged |= ImGui::DragFloat("Z##RotOffset", &rotationOffset.z, 1.0f);
+            ImGui::SameLine();
+            if(ImGui::Button("Apply##Rot"))
+            {
+                for(auto entity : entities)
+                {
+                    if(!entity.Valid())
+                        continue;
+                    if(entity.HasComponent<EditorLockComponent>())
+                        continue;
+                    auto transform = entity.TryGetComponent<Maths::Transform>();
+                    if(transform)
+                    {
+                        Vec3 currentRot = transform->GetLocalOrientation().ToEuler();
+                        transform->SetLocalOrientation(Quat(currentRot + rotationOffset));
+                    }
+                }
+                rotationOffset = Vec3(0.0f);
+            }
+
+            ImGui::Spacing();
+
+            // Scale multiplier
+            static Vec3 scaleMultiplier = Vec3(1.0f);
+            ImGui::Text("Scale Multiplier");
+            bool scaleChanged = false;
+            scaleChanged |= ImGui::DragFloat("X##ScaleMult", &scaleMultiplier.x, 0.01f, 0.01f, 100.0f);
+            ImGui::SameLine();
+            scaleChanged |= ImGui::DragFloat("Y##ScaleMult", &scaleMultiplier.y, 0.01f, 0.01f, 100.0f);
+            ImGui::SameLine();
+            scaleChanged |= ImGui::DragFloat("Z##ScaleMult", &scaleMultiplier.z, 0.01f, 0.01f, 100.0f);
+            ImGui::SameLine();
+            if(ImGui::Button("Apply##Scale"))
+            {
+                for(auto entity : entities)
+                {
+                    if(!entity.Valid())
+                        continue;
+                    if(entity.HasComponent<EditorLockComponent>())
+                        continue;
+                    auto transform = entity.TryGetComponent<Maths::Transform>();
+                    if(transform)
+                    {
+                        transform->SetLocalScale(transform->GetLocalScale() * scaleMultiplier);
+                    }
+                }
+                scaleMultiplier = Vec3(1.0f);
+            }
+
+            ImGui::Spacing();
+
+            // Uniform scale
+            static float uniformScale = 1.0f;
+            ImGui::Text("Uniform Scale");
+            ImGui::DragFloat("##UniformScale", &uniformScale, 0.01f, 0.01f, 100.0f);
+            ImGui::SameLine();
+            if(ImGui::Button("Apply##UniformScale"))
+            {
+                for(auto entity : entities)
+                {
+                    if(!entity.Valid())
+                        continue;
+                    if(entity.HasComponent<EditorLockComponent>())
+                        continue;
+                    auto transform = entity.TryGetComponent<Maths::Transform>();
+                    if(transform)
+                    {
+                        transform->SetLocalScale(transform->GetLocalScale() * uniformScale);
+                    }
+                }
+                uniformScale = 1.0f;
+            }
+
+            ImGui::Unindent();
+        }
+
+        ImGui::Separator();
+
+        // Quick actions
+        if(ImGui::CollapsingHeader(ICON_MDI_FLASH " Quick Actions", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::Indent();
+
+            if(ImGui::Button(ICON_MDI_RESTART " Reset Position"))
+            {
+                for(auto entity : entities)
+                {
+                    if(!entity.Valid())
+                        continue;
+                    if(entity.HasComponent<EditorLockComponent>())
+                        continue;
+                    auto transform = entity.TryGetComponent<Maths::Transform>();
+                    if(transform)
+                        transform->SetLocalPosition(Vec3(0.0f));
+                }
+            }
+            ImGui::SameLine();
+
+            if(ImGui::Button(ICON_MDI_RESTART " Reset Rotation"))
+            {
+                for(auto entity : entities)
+                {
+                    if(!entity.Valid())
+                        continue;
+                    if(entity.HasComponent<EditorLockComponent>())
+                        continue;
+                    auto transform = entity.TryGetComponent<Maths::Transform>();
+                    if(transform)
+                        transform->SetLocalOrientation(Quat());
+                }
+            }
+            ImGui::SameLine();
+
+            if(ImGui::Button(ICON_MDI_RESTART " Reset Scale"))
+            {
+                for(auto entity : entities)
+                {
+                    if(!entity.Valid())
+                        continue;
+                    if(entity.HasComponent<EditorLockComponent>())
+                        continue;
+                    auto transform = entity.TryGetComponent<Maths::Transform>();
+                    if(transform)
+                        transform->SetLocalScale(Vec3(1.0f));
+                }
+            }
+
+            ImGui::Unindent();
+        }
+
+        ImGui::Separator();
+
+        // Show shared component types
+        if(ImGui::CollapsingHeader(ICON_MDI_PUZZLE " Shared Components"))
+        {
+            ImGui::Indent();
+            ImGui::TextDisabled("Components present on all selected entities:");
+            ImGui::Spacing();
+
+            // Check for common components
+            bool allHaveTransform  = true;
+            bool allHaveModel      = true;
+            bool allHaveSprite     = true;
+            bool allHaveLight      = true;
+            bool allHaveRigidBody  = true;
+            bool allHaveCamera     = true;
+
+            for(auto entity : entities)
+            {
+                if(!entity.Valid())
+                    continue;
+                if(!entity.HasComponent<Maths::Transform>())
+                    allHaveTransform = false;
+                if(!entity.HasComponent<Graphics::ModelComponent>())
+                    allHaveModel = false;
+                if(!entity.HasComponent<Graphics::Sprite>())
+                    allHaveSprite = false;
+                if(!entity.HasComponent<Graphics::Light>())
+                    allHaveLight = false;
+                if(!entity.HasComponent<RigidBody3DComponent>() && !entity.HasComponent<RigidBody2DComponent>())
+                    allHaveRigidBody = false;
+                if(!entity.HasComponent<Camera>())
+                    allHaveCamera = false;
+            }
+
+            if(allHaveTransform)
+                ImGui::BulletText(ICON_MDI_AXIS_ARROW " Transform");
+            if(allHaveModel)
+                ImGui::BulletText(ICON_MDI_CUBE " Model");
+            if(allHaveSprite)
+                ImGui::BulletText(ICON_MDI_IMAGE " Sprite");
+            if(allHaveLight)
+                ImGui::BulletText(ICON_MDI_LIGHTBULB " Light");
+            if(allHaveRigidBody)
+                ImGui::BulletText(ICON_MDI_SOCCER " RigidBody");
+            if(allHaveCamera)
+                ImGui::BulletText(ICON_MDI_CAMERA " Camera");
+
+            if(!allHaveTransform && !allHaveModel && !allHaveSprite && !allHaveLight && !allHaveRigidBody && !allHaveCamera)
+                ImGui::TextDisabled("No common components found");
+
+            ImGui::Unindent();
+        }
     }
 
     void InspectorPanel::SetDebugMode(bool mode)

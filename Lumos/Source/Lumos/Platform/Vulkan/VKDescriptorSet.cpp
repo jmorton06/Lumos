@@ -3,6 +3,7 @@
 #include "VKPipeline.h"
 #include "VKUtilities.h"
 #include "VKUniformBuffer.h"
+#include "VKStorageBuffer.h"
 #include "VKTexture.h"
 #include "VKDevice.h"
 #include "VKRenderer.h"
@@ -233,7 +234,7 @@ namespace Lumos
                         descriptorWritesCount++;
                     }
 
-                    else if(imageInfo.Desc.type == DescriptorType::UNIFORM_BUFFER)
+                    else if(imageInfo.Desc.type == DescriptorType::UNIFORM_BUFFER || imageInfo.Desc.type == DescriptorType::UNIFORM_BUFFER_DYNAMIC)
                     {
                         VKUniformBuffer* vkUniformBuffer = m_UniformBuffers[currentFrame][imageInfo.Desc.binding].As<VKUniformBuffer>().get();
                         bufferInfos[index].buffer        = *vkUniformBuffer->GetBuffer();
@@ -253,6 +254,28 @@ namespace Lumos
                         descriptorWritesCount++;
 
                         if(imageInfo.Desc.type == DescriptorType::UNIFORM_BUFFER_DYNAMIC)
+                            m_Dynamic = true;
+                    }
+                    else if((imageInfo.Desc.type == DescriptorType::STORAGE_BUFFER || imageInfo.Desc.type == DescriptorType::STORAGE_BUFFER_DYNAMIC) && imageInfo.Desc.storageBuffer)
+                    {
+                        VKStorageBuffer* vkStorageBuffer = static_cast<VKStorageBuffer*>(imageInfo.Desc.storageBuffer);
+                        bufferInfos[index].buffer        = *(VkBuffer*)vkStorageBuffer->GetBuffer();
+                        bufferInfos[index].offset        = imageInfo.Desc.offset;
+                        bufferInfos[index].range         = imageInfo.Desc.size > 0 ? imageInfo.Desc.size : vkStorageBuffer->GetSize();
+
+                        VkWriteDescriptorSet writeDescriptorSet = {};
+                        writeDescriptorSet.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                        writeDescriptorSet.dstSet               = m_DescriptorSet[currentFrame];
+                        writeDescriptorSet.descriptorType       = VKUtilities::DescriptorTypeToVK(imageInfo.Desc.type);
+                        writeDescriptorSet.dstBinding           = imageInfo.Desc.binding;
+                        writeDescriptorSet.pBufferInfo          = &bufferInfos[index];
+                        writeDescriptorSet.descriptorCount      = 1;
+
+                        writeDescriptorSets[descriptorWritesCount] = writeDescriptorSet;
+                        index++;
+                        descriptorWritesCount++;
+
+                        if(imageInfo.Desc.type == DescriptorType::STORAGE_BUFFER_DYNAMIC)
                             m_Dynamic = true;
                     }
                 }
@@ -635,6 +658,44 @@ namespace Lumos
             }
 
             LWARN("Uniform not found %d", int(binding));
+        }
+
+        void VKDescriptorSet::SetStorageBuffer(const std::string& name, StorageBuffer* buffer)
+        {
+            LUMOS_PROFILE_FUNCTION();
+
+            for(auto& descriptor : m_DescriptorData)
+            {
+                if(descriptor.valid && (descriptor.Desc.type == DescriptorType::STORAGE_BUFFER || descriptor.Desc.type == DescriptorType::STORAGE_BUFFER_DYNAMIC) && descriptor.Desc.name == name)
+                {
+                    descriptor.Desc.storageBuffer = buffer;
+
+                    m_DescriptorDirty[0] = true;
+                    m_DescriptorDirty[1] = true;
+                    m_DescriptorDirty[2] = true;
+                    return;
+                }
+            }
+
+            LWARN("Storage buffer not found %s", name.c_str());
+        }
+
+        void VKDescriptorSet::SetStorageBuffer(u8 binding, StorageBuffer* buffer)
+        {
+            LUMOS_PROFILE_FUNCTION();
+
+            auto& descriptor = m_DescriptorData[binding];
+            if(descriptor.valid && (descriptor.Desc.type == DescriptorType::STORAGE_BUFFER || descriptor.Desc.type == DescriptorType::STORAGE_BUFFER_DYNAMIC))
+            {
+                descriptor.Desc.storageBuffer = buffer;
+
+                m_DescriptorDirty[0] = true;
+                m_DescriptorDirty[1] = true;
+                m_DescriptorDirty[2] = true;
+                return;
+            }
+
+            LWARN("Storage buffer not found at binding %d", int(binding));
         }
     }
 }

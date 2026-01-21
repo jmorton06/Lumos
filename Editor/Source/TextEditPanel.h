@@ -23,6 +23,9 @@ namespace Lumos
         std::function<void()> m_OnSaveCallback;
 
         bool m_TextUnsaved = false;
+        bool m_FocusMode = false;
+        bool m_PreviousFocusMode = false;
+        uint32_t m_SavedDockID = 0;
 
         float m_SavedTimer = -1.0f;
     };

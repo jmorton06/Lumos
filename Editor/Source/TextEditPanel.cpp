@@ -64,9 +64,41 @@ namespace Lumos
     void TextEditPanel::OnImGui()
     {
         auto cpos = editor.GetCursorPosition();
-        ImGui::SetWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
+
+        // Detect focus mode changes
+        if(m_FocusMode && !m_PreviousFocusMode)
+        {
+            // Entering focus mode - save dock state
+            ImGuiWindow* window = ImGui::FindWindowByName(m_Name.c_str());
+            if(window)
+            {
+                m_SavedDockID = window->DockId;
+            }
+        }
+        m_PreviousFocusMode = m_FocusMode;
+
+        // Focus mode - full screen
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar;
+        if(m_FocusMode)
+        {
+            ImGuiViewport* viewport = ImGui::GetMainViewport();
+            ImGui::SetNextWindowPos(viewport->WorkPos);
+            ImGui::SetNextWindowSize(viewport->WorkSize);
+            ImGui::SetNextWindowDockID(0, ImGuiCond_Always); // Undock
+            windowFlags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking;
+        }
+        else
+        {
+            // Restore dock state when exiting focus mode
+            if(m_SavedDockID != 0)
+            {
+                ImGui::SetNextWindowDockID(m_SavedDockID, ImGuiCond_Appearing);
+            }
+            ImGui::SetWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
+        }
+
         std::string& windowName = m_TextUnsaved ? m_ChangedName : m_Name;
-        if(ImGui::Begin(windowName.c_str(), &m_Active, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar))
+        if(ImGui::Begin(windowName.c_str(), &m_Active, windowFlags))
         {
             if(ImGui::BeginMenuBar())
             {
@@ -125,6 +157,11 @@ namespace Lumos
 
                 if(ImGui::BeginMenu("View"))
                 {
+                    if(ImGui::MenuItem("Focus Mode", "F11", m_FocusMode))
+                        m_FocusMode = !m_FocusMode;
+
+                    ImGui::Separator();
+
                     if(ImGui::MenuItem("Dark palette"))
                         editor.SetPalette(TextEditor::GetDarkPalette());
                     if(ImGui::MenuItem("Light palette"))
@@ -145,6 +182,7 @@ namespace Lumos
 
             if(ImGui::IsWindowFocused(ImGuiHoveredFlags_ChildWindows))
             {
+                // Save shortcut
                 if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || Input::Get().GetKeyHeld(InputCode::Key::LeftControl)) && Input::Get().GetKeyPressed(InputCode::Key::S))
                 {
                     auto textToSave = editor.GetText();
@@ -153,6 +191,12 @@ namespace Lumos
                         m_OnSaveCallback();
 
                     m_TextUnsaved = false;
+                }
+
+                // Focus mode toggle (F11)
+                if(Input::Get().GetKeyPressed(InputCode::Key::F11))
+                {
+                    m_FocusMode = !m_FocusMode;
                 }
             }
             JustOpenedFile = false;

@@ -60,7 +60,11 @@ namespace Lumos
                 { '+', Lumos::InputCode::Key::Equal },
                 { 0x33, Lumos::InputCode::Key::Backspace },
                 { 0x24, Lumos::InputCode::Key::Enter },
-                { ',', Lumos::InputCode::Key::Comma }
+                { ',', Lumos::InputCode::Key::Comma },
+                { 0x30, Lumos::InputCode::Key::Tab },
+                { '\t', Lumos::InputCode::Key::Tab },
+                { '\r', Lumos::InputCode::Key::Enter },
+                { '\n', Lumos::InputCode::Key::Enter }
             };
 
             return keyMap[key];

@@ -6,6 +6,13 @@
 
 namespace Lumos
 {
+    struct ScriptExample
+    {
+        const char* Name;
+        const char* Description;
+        const char* Code;
+    };
+
     class ScriptConsolePanel : public EditorPanel
     {
     public:
@@ -18,10 +25,14 @@ namespace Lumos
     private:
         void ExecuteScript();
         void ClearOutput();
+        void DrawExamplesDropdown();
 
         TextEditor m_Editor;
         std::vector<std::string> m_OutputHistory;
         bool m_AutoScroll = true;
         Scene* m_CurrentScene = nullptr;
+        int m_SelectedExample = 0;
+
+        static const std::vector<ScriptExample> s_Examples;
     };
 }

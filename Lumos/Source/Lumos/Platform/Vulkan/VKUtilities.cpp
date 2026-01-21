@@ -566,6 +566,10 @@ namespace Lumos
                 return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             case DescriptorType::IMAGE_STORAGE:
                 return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+            case DescriptorType::STORAGE_BUFFER:
+                return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            case DescriptorType::STORAGE_BUFFER_DYNAMIC:
+                return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
             }
 
             LINFO("Unsupported Descriptor Type");

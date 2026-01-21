@@ -16,11 +16,10 @@ namespace Lumos
     struct Arena
     {
         uint64_t Position;
-        uint64_t CommitPosition;
         uint64_t Align;
         uint64_t Size;
         Arena* Ptr;
-        uint64_t _unused_[3];
+        uint64_t _unused_[4];
     };
 
     struct ArenaTemp

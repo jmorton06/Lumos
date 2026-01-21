@@ -426,6 +426,7 @@ namespace Lumos
         // Process Input events AFTER time sampling (per Unity's recommendations for lower latency)
         // Input processed here will be used in this frame's Update()
         Input::Get().ResetPressed();
+        Input::Get().ResetGestures();
         m_Window->ProcessInput();
 
         ArenaClear(m_FrameArena);

@@ -98,9 +98,17 @@ namespace Lumos
 		}
 	}
 
-    void iOSOS::OnKeyPressed(char keycode, bool down)
+    void iOSOS::OnKeyPressed(char keycode, bool down, bool cmd, bool shift, bool alt, bool ctrl)
     {
-        ((iOSWindow*)Application::Get().GetWindow())->OnKeyEvent((Lumos::InputCode::Key)Lumos::iOSKeyCodes::iOSKeyToLumos(keycode), down);
+        Lumos::InputCode::Key lumosKey = Lumos::iOSKeyCodes::iOSKeyToLumos(keycode);
+
+        iOSWindow* window = (iOSWindow*)Application::Get().GetWindow();
+        if (cmd) window->OnKeyEvent(Lumos::InputCode::Key::LeftSuper, down);
+        if (shift) window->OnKeyEvent(Lumos::InputCode::Key::LeftShift, down);
+        if (alt) window->OnKeyEvent(Lumos::InputCode::Key::LeftAlt, down);
+        if (ctrl) window->OnKeyEvent(Lumos::InputCode::Key::LeftControl, down);
+
+        window->OnKeyEvent(lumosKey, down);
     }
 
     void iOSOS::OnScreenPressed(uint32_t x, uint32_t y, uint32_t count, bool down)
@@ -119,6 +127,26 @@ namespace Lumos
         ((iOSWindow*)Application::Get().GetWindow())->OnResizeEvent(width, height);
     }
 
+    void iOSOS::OnGesturePinch(float scale, float velocity, uint32_t x, uint32_t y, GestureState state)
+    {
+        ((iOSWindow*)Application::Get().GetWindow())->OnGesturePinchEvent(scale, velocity, x, y, state);
+    }
+
+    void iOSOS::OnGesturePan(float tx, float ty, float vx, float vy, uint32_t touches, GestureState state)
+    {
+        ((iOSWindow*)Application::Get().GetWindow())->OnGesturePanEvent(tx, ty, vx, vy, touches, state);
+    }
+
+    void iOSOS::OnGestureSwipe(SwipeDirection direction, uint32_t touches)
+    {
+        ((iOSWindow*)Application::Get().GetWindow())->OnGestureSwipeEvent(direction, touches);
+    }
+
+    void iOSOS::OnGestureLongPress(uint32_t x, uint32_t y, GestureState state)
+    {
+        ((iOSWindow*)Application::Get().GetWindow())->OnGestureLongPressEvent(x, y, state);
+    }
+
     std::string iOSOS::GetExecutablePath()
     {
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
@@ -131,6 +159,27 @@ namespace Lumos
         @autoreleasepool
         {
             AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+        }
+    }
+
+    iOSOS::iOSDeviceType iOSOS::GetDeviceType() const
+    {
+        @autoreleasepool
+        {
+            if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
+            {
+                return iOSDeviceType::iPad;
+            }
+            return iOSDeviceType::iPhone;
+        }
+    }
+
+    bool iOSOS::IsLandscape() const
+    {
+        @autoreleasepool
+        {
+            UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
+            return UIInterfaceOrientationIsLandscape(orientation);
         }
     }
 
@@ -178,7 +227,17 @@ namespace Lumos
 
     void iOSOS::ShowKeyboard(bool bShow)
     {
-        //bShow ? KeyboardBridge_ShowKeyboard() : KeyboardBridge_HideKeyboard();
+        dispatch_async(dispatch_get_main_queue(), ^{
+            UIViewController *rootVC = [[[UIApplication sharedApplication] delegate] window].rootViewController;
+            if ([rootVC respondsToSelector:@selector(setKeyboardRequested:)]) {
+                [(id)rootVC setKeyboardRequested:bShow];
+                if (bShow) {
+                    [rootVC becomeFirstResponder];
+                } else {
+                    [rootVC resignFirstResponder];
+                }
+            }
+        });
     }
 
     bool iOSOS::HasWifiConnection()
@@ -227,7 +286,7 @@ namespace Lumos
 @property(nonatomic, assign) int drawableWidth;
 @property(nonatomic, assign) int drawableHeight;
 @property(nonatomic, assign) BOOL surfaceCreatedNotified;
-@property(nonatomic, assign) BOOL requestResize;
+@property(nonatomic, strong) NSMutableArray<NSValue*> *resizeQueue;
 
 @end
 
@@ -258,6 +317,7 @@ namespace Lumos
     {
 		NSLog(@"LumosMetalView is being initialised.");
         self.contentScaleFactor = contentScaleFactor;
+        self.resizeQueue = [NSMutableArray array];
         self.delegate = self;
         self.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
         self.depthStencilPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
@@ -281,7 +341,11 @@ namespace Lumos
 }
 
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
-
+    if (size.width > 0 && size.height > 0) {
+        self.drawableWidth = (int)size.width;
+        self.drawableHeight = (int)size.height;
+        [self.resizeQueue addObject:[NSValue valueWithCGSize:size]];
+    }
 }
 
 - (void)drawInMTKView:(MTKView *)view {
@@ -299,7 +363,7 @@ namespace Lumos
     {
         self.drawableWidth = newDrawableWidth;
         self.drawableHeight = newDrawableHeight;
-        self.requestResize = YES;
+        [self.resizeQueue addObject:[NSValue valueWithCGSize:CGSizeMake(newDrawableWidth, newDrawableHeight)]];
     }
 
    Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
@@ -307,12 +371,15 @@ namespace Lumos
    {
 	   os->OnQuit();
    }
-   
-   if(self.requestResize)
+
+   if(self.resizeQueue.count > 0)
    {
 	Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
-    os->OnScreenResize(self.drawableWidth, self.drawableHeight);
-    self.requestResize = NO;
+    for (NSValue *sizeValue in self.resizeQueue) {
+        CGSize size = [sizeValue CGSizeValue];
+        os->OnScreenResize((int)size.width, (int)size.height);
+    }
+    [self.resizeQueue removeAllObjects];
     }
 }
 
@@ -345,7 +412,7 @@ CALayer* layer;
 
 #pragma mark - LumosViewController
 
-@interface LumosViewController : UIViewController<UIKeyInput, UITextInputTraits> {
+@interface LumosViewController : UIViewController<UIKeyInput, UITextInputTraits, UIPointerInteractionDelegate, UIGestureRecognizerDelegate> {
     const void *activeTouches[MAX_SIMULTANEOUS_TOUCHES];
 }
 
@@ -353,6 +420,16 @@ CALayer* layer;
 @property(nonatomic, assign) BOOL multipleTouchEnabled;
 @property(nonatomic, assign) BOOL keyboardRequested;
 @property(nonatomic, assign) BOOL keyboardVisible;
+@property(nonatomic, strong) UIPinchGestureRecognizer *pinchGesture;
+@property(nonatomic, strong) UIPanGestureRecognizer *panGesture;
+
+// Single-finger selection tracking
+@property(nonatomic, assign) BOOL singleTouchValid;         // True if single touch hasn't become multi-touch
+@property(nonatomic, assign) CGPoint singleTouchStartPos;   // Position where single touch began
+@property(nonatomic, assign) BOOL wasMultiTouch;            // True if we've had multi-touch this gesture
+
+// Pinch gesture tracking
+@property(nonatomic, assign) CGFloat lastPinchScale;        // Previous frame's pinch scale
 @end
 
 @implementation LumosViewController
@@ -440,6 +517,66 @@ CALayer* layer;
     [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(keyboardFrameChanged:)
                                                name:UIKeyboardWillChangeFrameNotification
                                              object:self.view.window];
+
+    // Add pointer interaction for iPad editor (iOS 13.4+)
+    if (@available(iOS 13.4, *)) {
+        if (Lumos::Application::Get().GetAppType() == Lumos::AppType::Editor) {
+            UIPointerInteraction *pointerInteraction = [[UIPointerInteraction alloc] initWithDelegate:self];
+            [self.view addInteraction:pointerInteraction];
+        }
+    }
+
+    // Add hover gesture for cursor movement (iOS 13.0+) - only for trackpad/pencil
+    if (@available(iOS 13.0, *)) {
+        if (Lumos::Application::Get().GetAppType() == Lumos::AppType::Editor) {
+            UIHoverGestureRecognizer *hoverGesture = [[UIHoverGestureRecognizer alloc]
+                initWithTarget:self action:@selector(handleHover:)];
+            // Only allow indirect pointer (trackpad), not direct touches
+            if (@available(iOS 13.4, *)) {
+                hoverGesture.allowedTouchTypes = @[];  // No touch input
+            }
+            [self.view addGestureRecognizer:hoverGesture];
+        }
+    }
+
+    // Add pinch gesture for zoom
+    self.pinchGesture = [[UIPinchGestureRecognizer alloc]
+        initWithTarget:self action:@selector(handlePinch:)];
+    self.pinchGesture.delegate = self;
+    self.pinchGesture.delaysTouchesBegan = NO;
+    self.pinchGesture.delaysTouchesEnded = NO;
+    self.pinchGesture.cancelsTouchesInView = NO;
+    [self.view addGestureRecognizer:self.pinchGesture];
+
+    // Add pan gesture (2 fingers only)
+    self.panGesture = [[UIPanGestureRecognizer alloc]
+        initWithTarget:self action:@selector(handlePan:)];
+    self.panGesture.delegate = self;
+    self.panGesture.minimumNumberOfTouches = 2;
+    self.panGesture.maximumNumberOfTouches = 2;
+    self.panGesture.delaysTouchesBegan = NO;
+    self.panGesture.delaysTouchesEnded = NO;
+    self.panGesture.cancelsTouchesInView = NO;
+    [self.view addGestureRecognizer:self.panGesture];
+
+    // Add swipe gestures (3 fingers) for undo/redo
+    NSArray *swipeDirections = @[@(UISwipeGestureRecognizerDirectionLeft),
+                                  @(UISwipeGestureRecognizerDirectionRight)];
+    for (NSNumber *dirNum in swipeDirections) {
+        UISwipeGestureRecognizer *swipe = [[UISwipeGestureRecognizer alloc]
+            initWithTarget:self action:@selector(handleSwipe:)];
+        swipe.direction = [dirNum integerValue];
+        swipe.numberOfTouchesRequired = 3;
+        swipe.delaysTouchesBegan = NO;
+        [self.view addGestureRecognizer:swipe];
+    }
+
+    // Add long-press gesture for context menus
+    UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc]
+        initWithTarget:self action:@selector(handleLongPress:)];
+    longPress.minimumPressDuration = 0.5;
+    longPress.delaysTouchesBegan = NO;
+    [self.view addGestureRecognizer:longPress];
 #endif
 
 	if (![self.view.layer isKindOfClass:[CAMetalLayer class]]) {
@@ -448,7 +585,28 @@ CALayer* layer;
 }
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-    return UIInterfaceOrientationMaskAll;
+    Lumos::iOSOS* iosOS = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
+    BOOL isEditor = Lumos::Application::Get().GetAppType() == Lumos::AppType::Editor;
+
+    if (iosOS->GetDeviceType() == Lumos::iOSOS::iOSDeviceType::iPad)
+    {
+        // iPad editor: allow all orientations, runtime: prefer landscape
+        return isEditor ? UIInterfaceOrientationMaskAll : UIInterfaceOrientationMaskLandscape;
+    }
+    else
+    {
+        // iPhone editor: landscape for more space, runtime: flexible
+        return isEditor ? UIInterfaceOrientationMaskLandscape : UIInterfaceOrientationMaskAllButUpsideDown;
+    }
+}
+
+- (void)viewWillTransition:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator {
+    [super viewWillTransition:size withTransitionCoordinator:coordinator];
+    [coordinator animateAlongsideTransition:nil completion:^(id<UIViewControllerTransitionCoordinatorContext> context) {
+        CGSize newSize = self.view.bounds.size;
+        CGFloat scale = self.view.contentScaleFactor;
+        Lumos::iOSOS::Get()->OnScreenResize(newSize.width * scale, newSize.height * scale);
+    }];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -464,12 +622,186 @@ CALayer* layer;
 #endif
 }
 
+#pragma mark - UIPointerInteractionDelegate
+
+- (UIPointerStyle *)pointerInteraction:(UIPointerInteraction *)interaction
+                        styleForRegion:(UIPointerRegion *)region API_AVAILABLE(ios(13.4)) {
+    if (Lumos::Application::Get().GetAppType() == Lumos::AppType::Editor) {
+        return [UIPointerStyle hiddenPointerStyle]; // Let ImGui draw cursor
+    }
+    return nil; // Default pointer
+}
+
+- (UIPointerRegion *)pointerInteraction:(UIPointerInteraction *)interaction
+                      regionForRequest:(UIPointerRegionRequest *)request
+                         defaultRegion:(UIPointerRegion *)defaultRegion API_AVAILABLE(ios(13.4)) {
+    return defaultRegion;
+}
+
+- (void)handleHover:(UIHoverGestureRecognizer *)gesture API_AVAILABLE(ios(13.0)) {
+    if (Lumos::Application::Get().GetAppType() != Lumos::AppType::Editor) return;
+
+    CGPoint location = [gesture locationInView:self.view];
+    location.x *= self.view.contentScaleFactor;
+    location.y *= self.view.contentScaleFactor;
+
+    if (gesture.state == UIGestureRecognizerStateBegan ||
+        gesture.state == UIGestureRecognizerStateChanged) {
+        Lumos::iOSOS::Get()->OnMouseMovedEvent(location.x, location.y);
+    }
+}
+
+#pragma mark - Gesture Handlers
+
+- (Lumos::GestureState)gestureStateFromUIKit:(UIGestureRecognizerState)state {
+    switch (state) {
+        case UIGestureRecognizerStateBegan: return Lumos::GestureState::Began;
+        case UIGestureRecognizerStateChanged: return Lumos::GestureState::Changed;
+        case UIGestureRecognizerStateEnded: return Lumos::GestureState::Ended;
+        case UIGestureRecognizerStateCancelled: return Lumos::GestureState::Cancelled;
+        default: return Lumos::GestureState::Ended;
+    }
+}
+
+- (void)handlePinch:(UIPinchGestureRecognizer *)gesture {
+    // Haptic feedback on gesture start and reset tracking
+    if (gesture.state == UIGestureRecognizerStateBegan) {
+        self.lastPinchScale = 1.0f;
+        if (@available(iOS 10.0, *)) {
+            UIImpactFeedbackGenerator *haptic = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleLight];
+            [haptic impactOccurred];
+        }
+    }
+
+    CGPoint location = [gesture locationInView:self.view];
+    location.x *= self.view.contentScaleFactor;
+    location.y *= self.view.contentScaleFactor;
+
+    // Calculate per-frame scale delta (relative to last frame, not gesture start)
+    CGFloat scaleDelta = gesture.scale / self.lastPinchScale;
+    self.lastPinchScale = gesture.scale;
+
+    Lumos::GestureState state = [self gestureStateFromUIKit:gesture.state];
+    Lumos::iOSOS::Get()->OnGesturePinch(scaleDelta, gesture.velocity,
+                                         location.x, location.y, state);
+}
+
+- (void)handlePan:(UIPanGestureRecognizer *)gesture {
+    // Haptic feedback on gesture start
+    if (gesture.state == UIGestureRecognizerStateBegan) {
+        if (@available(iOS 10.0, *)) {
+            UIImpactFeedbackGenerator *haptic = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleLight];
+            [haptic impactOccurred];
+        }
+    }
+
+    CGPoint translation = [gesture translationInView:self.view];
+    CGPoint velocity = [gesture velocityInView:self.view];
+    translation.x *= self.view.contentScaleFactor;
+    translation.y *= self.view.contentScaleFactor;
+
+    // Reset translation after reading so we get per-frame delta
+    [gesture setTranslation:CGPointZero inView:self.view];
+
+    Lumos::GestureState state = [self gestureStateFromUIKit:gesture.state];
+    Lumos::iOSOS::Get()->OnGesturePan(translation.x, translation.y,
+                                       velocity.x, velocity.y,
+                                       (uint32_t)gesture.numberOfTouches, state);
+}
+
+- (void)handleSwipe:(UISwipeGestureRecognizer *)gesture {
+    // Haptic feedback for swipe (medium impact for undo/redo)
+    if (@available(iOS 10.0, *)) {
+        UIImpactFeedbackGenerator *haptic = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
+        [haptic impactOccurred];
+    }
+
+    Lumos::SwipeDirection dir = Lumos::SwipeDirection::Left;
+    if (gesture.direction == UISwipeGestureRecognizerDirectionRight)
+        dir = Lumos::SwipeDirection::Right;
+    else if (gesture.direction == UISwipeGestureRecognizerDirectionUp)
+        dir = Lumos::SwipeDirection::Up;
+    else if (gesture.direction == UISwipeGestureRecognizerDirectionDown)
+        dir = Lumos::SwipeDirection::Down;
+
+    Lumos::iOSOS::Get()->OnGestureSwipe(dir, (uint32_t)gesture.numberOfTouches);
+}
+
+- (void)handleLongPress:(UILongPressGestureRecognizer *)gesture {
+    // Haptic feedback on long-press recognition
+    if (gesture.state == UIGestureRecognizerStateBegan) {
+        if (@available(iOS 10.0, *)) {
+            UIImpactFeedbackGenerator *haptic = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
+            [haptic impactOccurred];
+        }
+    }
+
+    CGPoint location = [gesture locationInView:self.view];
+    location.x *= self.view.contentScaleFactor;
+    location.y *= self.view.contentScaleFactor;
+
+    Lumos::GestureState state = [self gestureStateFromUIKit:gesture.state];
+    Lumos::iOSOS::Get()->OnGestureLongPress(location.x, location.y, state);
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
+    shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+    // Allow pinch + pan simultaneously
+    if (([gestureRecognizer isKindOfClass:[UIPinchGestureRecognizer class]] &&
+         [otherGestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]]) ||
+        ([gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]] &&
+         [otherGestureRecognizer isKindOfClass:[UIPinchGestureRecognizer class]])) {
+        return YES;
+    }
+    return NO;
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
+    // Always allow single touches through for ImGui (menu bar, popups, etc.)
+    // Only pan gesture requires 2 fingers, so single touches should work normally
+    if ([gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]]) {
+        // Pan gesture needs multiple touches
+        return YES;
+    }
+    // Pinch needs multiple touches too
+    if ([gestureRecognizer isKindOfClass:[UIPinchGestureRecognizer class]]) {
+        return YES;
+    }
+    // Other gestures can receive all touches
+    return YES;
+}
+
 #pragma mark - UIResponder
 
 - (void)clearTouches {
     for (int i = 0; i < MAX_SIMULTANEOUS_TOUCHES; i++) {
         activeTouches[i] = NULL;
     }
+}
+
+- (int)countActiveTouches {
+    int count = 0;
+    for (int i = 0; i < MAX_SIMULTANEOUS_TOUCHES; i++) {
+        if (activeTouches[i] != NULL) {
+            count++;
+        }
+    }
+    return count;
+}
+
+- (BOOL)isMultiFingerGestureActive {
+    // Check if pinch or pan gestures are currently recognizing
+    if (self.pinchGesture &&
+        (self.pinchGesture.state == UIGestureRecognizerStateBegan ||
+         self.pinchGesture.state == UIGestureRecognizerStateChanged)) {
+        return YES;
+    }
+    if (self.panGesture &&
+        (self.panGesture.state == UIGestureRecognizerStateBegan ||
+         self.panGesture.state == UIGestureRecognizerStateChanged)) {
+        return YES;
+    }
+    return NO;
 }
 
 
@@ -542,27 +874,97 @@ typedef enum {
 
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-    for (UITouch *touch in touches) {
-        [self addTouchEvent:touch withType:TouchPhaseBegan];
+    NSUInteger totalTouches = event.allTouches.count;
+
+    if(totalTouches == 1 && !self.wasMultiTouch)
+    {
+        UITouch *touch = [touches anyObject];
+        CGPoint location = [touch locationInView:self.view];
+        location.x *= self.view.contentScaleFactor;
+        location.y *= self.view.contentScaleFactor;
+
+        self.singleTouchValid = YES;
+        self.singleTouchStartPos = location;
+
+        // Send mouse move + down for UI interaction
+        Lumos::iOSOS::Get()->OnMouseMovedEvent(location.x, location.y);
+        Lumos::iOSOS::Get()->OnScreenPressed(location.x, location.y, 0, true);
+    }
+    else
+    {
+        // Multi-touch started - release any held mouse button and invalidate
+        if(self.singleTouchValid)
+        {
+            Lumos::iOSOS::Get()->OnScreenPressed(self.singleTouchStartPos.x, self.singleTouchStartPos.y, 0, false);
+        }
+        self.singleTouchValid = NO;
+        self.wasMultiTouch = YES;
     }
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
-    for (UITouch *touch in touches) {
-        [self addTouchEvent:touch withType:TouchPhaseMoved];
+    NSUInteger totalTouches = event.allTouches.count;
+
+    // If multi-touch active, don't send single-finger events
+    if(totalTouches > 1 || self.wasMultiTouch || [self isMultiFingerGestureActive])
+    {
+        if(self.singleTouchValid)
+        {
+            // Release mouse button when transitioning to multi-touch
+            Lumos::iOSOS::Get()->OnScreenPressed(self.singleTouchStartPos.x, self.singleTouchStartPos.y, 0, false);
+            self.singleTouchValid = NO;
+        }
+        self.wasMultiTouch = YES;
+        return;
+    }
+
+    // Single-finger move - update mouse position
+    if(totalTouches == 1 && self.singleTouchValid)
+    {
+        UITouch *touch = [touches anyObject];
+        CGPoint location = [touch locationInView:self.view];
+        location.x *= self.view.contentScaleFactor;
+        location.y *= self.view.contentScaleFactor;
+
+        Lumos::iOSOS::Get()->OnMouseMovedEvent(location.x, location.y);
     }
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-    for (UITouch *touch in touches) {
-        [self addTouchEvent:touch withType:TouchPhaseEnded];
+    NSUInteger remainingTouches = 0;
+    for(UITouch *touch in event.allTouches)
+    {
+        if(touch.phase != UITouchPhaseEnded && touch.phase != UITouchPhaseCancelled)
+            remainingTouches++;
+    }
+
+    // Single-finger ended - send mouse up
+    if(self.singleTouchValid && !self.wasMultiTouch && ![self isMultiFingerGestureActive])
+    {
+        UITouch *touch = [touches anyObject];
+        CGPoint location = [touch locationInView:self.view];
+        location.x *= self.view.contentScaleFactor;
+        location.y *= self.view.contentScaleFactor;
+
+        Lumos::iOSOS::Get()->OnScreenPressed(location.x, location.y, 0, false);
+    }
+
+    // Reset when all fingers lifted
+    if(remainingTouches == 0)
+    {
+        self.singleTouchValid = NO;
+        self.wasMultiTouch = NO;
     }
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
-    for (UITouch *touch in touches) {
-        [self addTouchEvent:touch withType:TouchPhaseCancelled];
+    // Release mouse button and reset state
+    if(self.singleTouchValid)
+    {
+        Lumos::iOSOS::Get()->OnScreenPressed(self.singleTouchStartPos.x, self.singleTouchStartPos.y, 0, false);
     }
+    self.singleTouchValid = NO;
+    self.wasMultiTouch = NO;
 }
 
 #pragma mark - UIKeyInput
@@ -593,21 +995,32 @@ typedef enum {
 - (NSArray<UIKeyCommand *> *)keyCommands {
     static NSArray<UIKeyCommand *> *keyCommands = NULL;
     if (!keyCommands) {
-        keyCommands = @[ [UIKeyCommand keyCommandWithInput:UIKeyInputUpArrow
-                                             modifierFlags:(UIKeyModifierFlags)0
-                                                    action:@selector(keyPressed:)],
-                         [UIKeyCommand keyCommandWithInput:UIKeyInputDownArrow
-                                             modifierFlags:(UIKeyModifierFlags)0
-                                                    action:@selector(keyPressed:)],
-                         [UIKeyCommand keyCommandWithInput:UIKeyInputLeftArrow
-                                             modifierFlags:(UIKeyModifierFlags)0
-                                                    action:@selector(keyPressed:)],
-                         [UIKeyCommand keyCommandWithInput:UIKeyInputRightArrow
-                                             modifierFlags:(UIKeyModifierFlags)0
-                                                    action:@selector(keyPressed:)],
-                         [UIKeyCommand keyCommandWithInput:UIKeyInputEscape
-                                             modifierFlags:(UIKeyModifierFlags)0
-                                                    action:@selector(keyPressed:)] ];
+        keyCommands = @[
+            // Navigation
+            [UIKeyCommand keyCommandWithInput:UIKeyInputUpArrow modifierFlags:0 action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:UIKeyInputDownArrow modifierFlags:0 action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:UIKeyInputLeftArrow modifierFlags:0 action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:UIKeyInputRightArrow modifierFlags:0 action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:UIKeyInputEscape modifierFlags:0 action:@selector(keyPressed:)],
+
+            // Editor shortcuts (cmd+)
+            [UIKeyCommand keyCommandWithInput:@"s" modifierFlags:UIKeyModifierCommand action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:@"z" modifierFlags:UIKeyModifierCommand action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:@"z" modifierFlags:UIKeyModifierCommand|UIKeyModifierShift action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:@"c" modifierFlags:UIKeyModifierCommand action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:@"v" modifierFlags:UIKeyModifierCommand action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:@"x" modifierFlags:UIKeyModifierCommand action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:@"a" modifierFlags:UIKeyModifierCommand action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:@"d" modifierFlags:UIKeyModifierCommand action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:@"n" modifierFlags:UIKeyModifierCommand action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:@"o" modifierFlags:UIKeyModifierCommand action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:@"w" modifierFlags:UIKeyModifierCommand action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:@"f" modifierFlags:UIKeyModifierCommand action:@selector(keyPressed:)],
+
+            // Tab
+            [UIKeyCommand keyCommandWithInput:@"\t" modifierFlags:0 action:@selector(keyPressed:)],
+            [UIKeyCommand keyCommandWithInput:@"\t" modifierFlags:UIKeyModifierShift action:@selector(keyPressed:)]
+        ];
 #if !__has_feature(objc_arc)
         [keyCommands retain];
 #endif
@@ -617,7 +1030,24 @@ typedef enum {
 }
 
 - (void)keyPressed:(UIKeyCommand *)keyCommand {
-    Lumos::iOSOS::Get()->OnKeyPressed('d', true);
+    NSString *input = keyCommand.input;
+    UIKeyModifierFlags modifiers = keyCommand.modifierFlags;
+
+    char keycode = 0;
+    if ([input isEqualToString:UIKeyInputUpArrow]) keycode = 0x7E;
+    else if ([input isEqualToString:UIKeyInputDownArrow]) keycode = 0x7D;
+    else if ([input isEqualToString:UIKeyInputLeftArrow]) keycode = 0x7B;
+    else if ([input isEqualToString:UIKeyInputRightArrow]) keycode = 0x7C;
+    else if ([input isEqualToString:UIKeyInputEscape]) keycode = 0x35;
+    else if ([input isEqualToString:@"\t"]) keycode = 0x30;
+    else if (input.length > 0) keycode = [input characterAtIndex:0];
+
+    BOOL hasCmd = (modifiers & UIKeyModifierCommand) != 0;
+    BOOL hasShift = (modifiers & UIKeyModifierShift) != 0;
+    BOOL hasAlt = (modifiers & UIKeyModifierAlternate) != 0;
+    BOOL hasCtrl = (modifiers & UIKeyModifierControl) != 0;
+
+    Lumos::iOSOS::Get()->OnKeyPressed(keycode, true, hasCmd, hasShift, hasAlt, hasCtrl);
 }
 
 // Toggle the display of the virtual keyboard
@@ -639,11 +1069,6 @@ typedef enum {
 // Handle keyboard input
 -(void) handleKeyboardInput: (unichar) keycode {
     Lumos::iOSOS::Get()->OnKeyPressed(keycode, true);
-}
-
--( void )layoutSubviews
-{
-    Lumos::iOSOS::Get()->OnScreenResize(self.view.bounds.size.width * self.view.contentScaleFactor, self.view.bounds.size.height * self.view.contentScaleFactor);
 }
 
 - (BOOL)hasNotch
