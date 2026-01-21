@@ -4,12 +4,204 @@
 #include <Lumos/Scene/Scene.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Core/OS/Input.h>
+#include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 
 #include <imgui/imgui.h>
 #include <sol/sol.hpp>
 
 namespace Lumos
 {
+    const std::vector<ScriptExample> ScriptConsolePanel::s_Examples = {
+        {
+            "-- Select Example --",
+            "Choose an example script",
+            ""
+        },
+        {
+            "List All Entities",
+            "Print all entities in scene",
+            R"(-- List all entities in scene
+local count = 0
+for entity in EachEntity() do
+    local name = entity:GetName()
+    print(count .. ": " .. name)
+    count = count + 1
+end
+print("Total entities: " .. count))"
+        },
+        {
+            "Find Entity By Name",
+            "Find and select entity",
+            R"(-- Find entity by name
+local name = "Player"  -- Change this
+local entity = scene:GetEntityByName(name)
+if entity:Valid() then
+    print("Found: " .. entity:GetName())
+else
+    print("Entity not found: " .. name)
+end)"
+        },
+        {
+            "Create Cube",
+            "Spawn a cube entity",
+            R"(-- Create a cube entity
+local entity = AddCubeEntity("NewCube")
+local transform = entity:GetTransform()
+transform:SetLocalPosition(Vec3.new(0, 2, 0))
+print("Created cube: " .. entity:GetName()))"
+        },
+        {
+            "Create Sphere",
+            "Spawn a sphere entity",
+            R"(-- Create a sphere entity
+local entity = AddSphereEntity("NewSphere")
+local transform = entity:GetTransform()
+transform:SetLocalPosition(Vec3.new(0, 2, 0))
+print("Created sphere: " .. entity:GetName()))"
+        },
+        {
+            "Create Light",
+            "Add a point light",
+            R"(-- Create a point light
+local entity = AddLightCubeEntity("NewLight")
+local transform = entity:GetTransform()
+transform:SetLocalPosition(Vec3.new(0, 5, 0))
+local light = entity:GetLight()
+light.Intensity = 2.0
+print("Created light: " .. entity:GetName()))"
+        },
+        {
+            "Move All Entities",
+            "Translate all entities up",
+            R"(-- Move all entities up by 1 unit
+for entity in EachEntity() do
+    local transform = entity:GetTransform()
+    if transform then
+        local pos = transform:GetLocalPosition()
+        transform:SetLocalPosition(Vec3.new(pos.x, pos.y + 1, pos.z))
+    end
+end
+print("Moved all entities up"))"
+        },
+        {
+            "Random Colors",
+            "Randomize sprite colors",
+            R"(-- Randomize sprite colors
+math.randomseed(os.time())
+for entity in EachEntity() do
+    local sprite = entity:TryGetSprite()
+    if sprite then
+        sprite.Colour = Vec4.new(
+            math.random(),
+            math.random(),
+            math.random(),
+            1.0
+        )
+    end
+end
+print("Randomized sprite colors"))"
+        },
+        {
+            "Scene Stats",
+            "Print scene statistics",
+            R"(-- Print scene statistics
+local entities = 0
+local transforms = 0
+local sprites = 0
+local models = 0
+local lights = 0
+
+for entity in EachEntity() do
+    entities = entities + 1
+    if entity:HasTransform() then transforms = transforms + 1 end
+    if entity:HasSprite() then sprites = sprites + 1 end
+    if entity:HasModel() then models = models + 1 end
+    if entity:HasLight() then lights = lights + 1 end
+end
+
+print("=== Scene Stats ===")
+print("Entities: " .. entities)
+print("Transforms: " .. transforms)
+print("Sprites: " .. sprites)
+print("Models: " .. models)
+print("Lights: " .. lights))"
+        },
+        {
+            "Delete By Name",
+            "Delete entities matching name",
+            R"(-- Delete entities containing name
+local pattern = "Cube"  -- Change this
+local deleted = 0
+for entity in EachEntity() do
+    if string.find(entity:GetName(), pattern) then
+        entity:Destroy()
+        deleted = deleted + 1
+    end
+end
+print("Deleted " .. deleted .. " entities"))"
+        },
+        {
+            "Gravity Toggle",
+            "Toggle physics gravity",
+            R"(-- Toggle 2D physics gravity
+local current = GetB2DGravity()
+if current.y < 0 then
+    SetB2DGravity(Vec2.new(0, 0))
+    print("Gravity OFF")
+else
+    SetB2DGravity(Vec2.new(0, -9.8))
+    print("Gravity ON")
+end)"
+        },
+        {
+            "Input Test",
+            "Test keyboard input",
+            R"(-- Check input state (run multiple times)
+print("=== Input State ===")
+print("Space: " .. tostring(Input.GetKeyHeld(Key.Space)))
+print("W: " .. tostring(Input.GetKeyHeld(Key.W)))
+print("Mouse L: " .. tostring(Input.GetMouseHeld(MouseButton.Left)))
+local pos = Input.GetMousePosition()
+print("Mouse: " .. pos.x .. ", " .. pos.y))"
+        },
+        {
+            "Timer Utility",
+            "Create a timer function",
+            R"(-- Define a reusable timer (stores in global)
+Timer = Timer or {}
+Timer.start = os.clock()
+
+function Timer.elapsed()
+    return os.clock() - Timer.start
+end
+
+function Timer.reset()
+    Timer.start = os.clock()
+    print("Timer reset")
+end
+
+print("Elapsed: " .. string.format("%.2f", Timer.elapsed()) .. "s")
+print("Call Timer.reset() to restart"))"
+        },
+        {
+            "UI Panel Example",
+            "Create a simple UI panel",
+            R"(-- Create a UI panel (run in game mode)
+UIBeginPanel("My Panel", 200, 100, 250, 200)
+
+if UIButton("Click Me", 10, 10, 100, 30) then
+    print("Button clicked!")
+end
+
+UILabel("Hello World", 10, 50)
+
+local value = UISlider("Speed", 10, 80, 150, 0, 100, 50)
+print("Slider: " .. value)
+
+UIEndPanel())"
+        }
+    };
+
     ScriptConsolePanel::ScriptConsolePanel()
     {
         m_Name       = "Script Console###scriptconsole";
@@ -65,17 +257,22 @@ namespace Lumos
                 ImGui::EndMenuBar();
             }
 
-            if(ImGui::Button("Run Script"))
+            if(ImGui::Button(ICON_MDI_PLAY " Run"))
             {
                 ExecuteScript();
             }
             ImGui::SameLine();
-            if(ImGui::Button("Clear Output"))
+            if(ImGui::Button(ICON_MDI_DELETE " Clear"))
             {
                 ClearOutput();
             }
             ImGui::SameLine();
             ImGui::Checkbox("Auto-scroll", &m_AutoScroll);
+
+            ImGui::SameLine();
+            ImGui::Spacing();
+            ImGui::SameLine();
+            DrawExamplesDropdown();
 
             ImGui::Separator();
 
@@ -206,5 +403,37 @@ namespace Lumos
     void ScriptConsolePanel::ClearOutput()
     {
         m_OutputHistory.clear();
+    }
+
+    void ScriptConsolePanel::DrawExamplesDropdown()
+    {
+        ImGui::SetNextItemWidth(180);
+        if(ImGui::BeginCombo("##Examples", ICON_MDI_CODE_TAGS " Examples"))
+        {
+            for(int i = 1; i < (int)s_Examples.size(); i++)
+            {
+                bool selected = (m_SelectedExample == i);
+                if(ImGui::Selectable(s_Examples[i].Name, selected))
+                {
+                    m_SelectedExample = i;
+                    m_Editor.SetText(s_Examples[i].Code);
+                }
+
+                if(ImGui::IsItemHovered())
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Text("%s", s_Examples[i].Description);
+                    ImGui::EndTooltip();
+                }
+            }
+            ImGui::EndCombo();
+        }
+
+        if(ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::Text("Load example scripts");
+            ImGui::EndTooltip();
+        }
     }
 }

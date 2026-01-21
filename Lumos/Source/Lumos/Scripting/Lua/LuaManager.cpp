@@ -214,9 +214,12 @@ namespace Lumos
             "SetActive",
             "Active",
             "GetEntityByName",
+            "GetAllEntities",
+            "EachEntity",
             "AddPyramidEntity",
             "AddSphereEntity",
             "AddLightCubeEntity",
+            "AddPlatform",
             "NameComponent",
             "GetNameComponent",
             "GetCurrentEntity",
@@ -336,6 +339,64 @@ namespace Lumos
         if(e == entt::null)
             LWARN("Failed to find entity %s", name.c_str());
         return { e, scene };
+    }
+
+    sol::table GetAllEntities(sol::this_state s)
+    {
+        sol::state_view lua(s);
+        sol::table result = lua.create_table();
+
+        Scene* scene = Application::Get().GetCurrentScene();
+        if(scene)
+        {
+            auto& registry = scene->GetRegistry();
+            int i = 1;
+            registry.each([&](entt::entity e) {
+                result[i++] = Entity(e, scene);
+            });
+        }
+        return result;
+    }
+
+    std::tuple<sol::object, sol::object, sol::object> EachEntity(sol::this_state s)
+    {
+        sol::state_view lua(s);
+        Scene* scene = Application::Get().GetCurrentScene();
+
+        sol::object nilObj = sol::make_object(lua, sol::lua_nil);
+
+        if(!scene)
+            return std::make_tuple(nilObj, nilObj, nilObj);
+
+        auto entities = std::make_shared<std::vector<entt::entity>>();
+        scene->GetRegistry().each([&](entt::entity e) {
+            entities->push_back(e);
+        });
+
+        Scene* scenePtr = scene;
+
+        sol::function iterator = lua.script(R"(
+            return function(state, _)
+                local idx = state.index
+                if idx > #state.entities then
+                    return nil
+                end
+                state.index = idx + 1
+                return state.entities[idx]
+            end
+        )");
+
+        sol::table state = lua.create_table();
+        sol::table entitiesTable = lua.create_table();
+        int i = 1;
+        for(auto e : *entities)
+        {
+            entitiesTable[i++] = Entity(e, scenePtr);
+        }
+        state["entities"] = entitiesTable;
+        state["index"] = 1;
+
+        return std::make_tuple(sol::make_object(lua, iterator), sol::make_object(lua, state), nilObj);
     }
 
     void LuaManager::BindLogLua(sol::state& state)
@@ -534,10 +595,13 @@ namespace Lumos
         entityType.set_function("Active", &Entity::Active);
 
         state.set_function("GetEntityByName", &GetEntityByName);
+        state.set_function("GetAllEntities", &GetAllEntities);
+        state.set_function("EachEntity", &EachEntity);
 
         state.set_function("AddPyramidEntity", &EntityFactory::AddPyramid);
         state.set_function("AddSphereEntity", &EntityFactory::AddSphere);
         state.set_function("AddLightCubeEntity", &EntityFactory::AddLightCube);
+        state.set_function("AddPlatform", &EntityFactory::AddPlatform);
 
         sol::usertype<NameComponent> nameComponent_type = state.new_usertype<NameComponent>("NameComponent");
         nameComponent_type["name"]                      = &NameComponent::name;
@@ -818,7 +882,7 @@ namespace Lumos
 
     static void ExitApp()
     {
-        Application::Get().SetAppState(Lumos::AppState::Closing);
+        Application::Get().ExitApp();
     }
 
     void LuaManager::BindAppLua(sol::state& state)

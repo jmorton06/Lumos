@@ -81,5 +81,18 @@ namespace Lumos
         SharedPtr<Graphics::Texture2D> m_GameViewTexture = nullptr;
         Scene* m_CurrentScene                            = nullptr;
         uint32_t m_Width, m_Height;
+
+        // Context menu state
+        Vec3 m_ContextMenuWorldPos = Vec3(0.0f);
+        bool m_ContextMenuPending  = false;
+
+        // Distance measurement tool
+        bool m_MeasurementMode       = false;
+        int m_MeasurementPointIndex  = 0;  // 0 = selecting first point, 1 = selecting second point, 2 = measurement complete
+        Vec3 m_MeasurementPoint1     = Vec3(0.0f);
+        Vec3 m_MeasurementPoint2     = Vec3(0.0f);
+
+        void DrawContextMenu(Scene* scene);
+        void DrawMeasurementTool(float width, float height, float xpos, float ypos, Scene* scene);
     };
 }

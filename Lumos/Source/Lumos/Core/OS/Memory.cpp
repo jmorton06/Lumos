@@ -6,11 +6,19 @@ namespace Lumos
 #ifndef LUMOS_PRODUCTION
     static Arena* s_Arenas[256]; // For Stats
     static int s_CurrentArenaCount = 0;
+    static std::atomic_flag s_ArenaLock = ATOMIC_FLAG_INIT;
+
+    struct ArenaLockGuard
+    {
+        ArenaLockGuard() { while(s_ArenaLock.test_and_set(std::memory_order_acquire)) {} }
+        ~ArenaLockGuard() { s_ArenaLock.clear(std::memory_order_release); }
+    };
 #endif
 
     int GetArenaCount()
     {
 #ifndef LUMOS_PRODUCTION
+        ArenaLockGuard lock;
         return s_CurrentArenaCount;
 #else
         return 0;
@@ -20,6 +28,7 @@ namespace Lumos
     Arena* GetArena(int index)
     {
 #ifndef LUMOS_PRODUCTION
+        ArenaLockGuard lock;
         return s_Arenas[index];
 #else
         return nullptr;
@@ -77,16 +86,18 @@ namespace Lumos
     // Arenas
     Arena* ArenaAlloc(uint64_t size)
     {
-        Arena* arena          = (Arena*)malloc(sizeof(Arena) + size);
-        arena->Position       = sizeof(Arena);
-        arena->CommitPosition = sizeof(Arena);
-        arena->Align          = alignof(std::max_align_t);
-        arena->Size           = size;
-        arena->Ptr            = arena;
+        Arena* arena    = (Arena*)malloc(sizeof(Arena) + size);
+        arena->Position = sizeof(Arena);
+        arena->Align    = alignof(std::max_align_t);
+        arena->Size     = sizeof(Arena) + size;
+        arena->Ptr      = arena;
 
 #ifndef LUMOS_PRODUCTION
-        if(s_CurrentArenaCount < 256)
-            s_Arenas[s_CurrentArenaCount++] = arena;
+        {
+            ArenaLockGuard lock;
+            if(s_CurrentArenaCount < 256)
+                s_Arenas[s_CurrentArenaCount++] = arena;
+        }
 #endif
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE) && LUMOS_TRACK_MEMORY
         TracyAlloc(arena, size);
@@ -104,14 +115,23 @@ namespace Lumos
     {
         if(arena)
         {
-#ifndef LUMOS_PRODUCTION
-            s_CurrentArenaCount--;
-#endif
-            free(arena);
-
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE) && LUMOS_TRACK_MEMORY
             TracyFree(arena);
 #endif
+#ifndef LUMOS_PRODUCTION
+            {
+                ArenaLockGuard lock;
+                for(int i = 0; i < s_CurrentArenaCount; i++)
+                {
+                    if(s_Arenas[i] == arena)
+                    {
+                        s_Arenas[i] = s_Arenas[--s_CurrentArenaCount];
+                        break;
+                    }
+                }
+            }
+#endif
+            free(arena);
         }
     }
 
@@ -179,13 +199,14 @@ namespace Lumos
     void ArenaPopToPointer(Arena* arena, u8* ptr)
     {
         ASSERT(arena != nullptr);
-        arena->Position = u8(ptr - (u8*)arena->Ptr);
+        ASSERT(ptr >= (u8*)arena->Ptr + sizeof(Arena) && ptr <= (u8*)arena->Ptr + arena->Position);
+        arena->Position = uint64_t(ptr - (u8*)arena->Ptr);
     }
 
     void ArenaPop(Arena* arena, uint64_t size)
     {
         ASSERT(arena != nullptr);
-        ASSERT(size <= arena->Position);
+        ASSERT(size <= arena->Position - sizeof(Arena));
         arena->Position -= size;
     }
 

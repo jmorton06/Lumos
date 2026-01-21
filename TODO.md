@@ -1,8 +1,5 @@
 # TODO
 
-* Fix rotation on iOS - Causes a blackscreen / vk crash
-* Frustum Cull Text
-* Add missing Lua bindings
 * Add instance rendering
 * Support shared materials
 * Pack Assets
@@ -17,6 +14,3 @@
  * Fix Capsule Shape
  * Physics materials
  * Terrain Collision
-
-* Improve Box2D integration
- * Add density and enableContactEvents to RigidBodyParameters

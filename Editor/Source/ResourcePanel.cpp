@@ -839,6 +839,7 @@ namespace Lumos
             Graphics::Texture2D* textureId = m_FolderIcon;
 
             auto cursorPos = ImGui::GetCursorPos();
+            auto cursorScreenPos = ImGui::GetCursorScreenPos();
 
             if(CurrentEnty->IsFile)
             {
@@ -1092,13 +1093,17 @@ namespace Lumos
             ImGui::SetCursorPosX(cursorPos.x + padding);
             ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(Graphics::Material::GetDefaultTexture())), typeColorFrameSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f), !CurrentEnty->IsFile ? ImVec4(0.0f, 0.0f, 0.0f, 0.0f) : CurrentEnty->FileTypeColour);
 
-            const ImVec2 rectMin  = ImGui::GetItemRectMin() + ImVec2(0.0f, 8.0f);
-            const ImVec2 rectSize = ImGui::GetItemRectSize() + ImVec2(0.0f, 4.0f);
-            const ImRect clipRect = ImRect({ rectMin.x + padding * 2.0f, rectMin.y + padding * 4.0f },
-                                           { rectMin.x + rectSize.x, rectMin.y + scaledThumbnailSizeX - ImGui::GetIO().Fonts->Fonts[2]->FontSize - padding * 4.0f });
+            const float smallFontSize = ImGui::GetIO().Fonts->Fonts[2]->FontSize;
+            const float dpiScale = (float)m_Editor->GetWindow()->GetDPIScale();
+            const bool smallIcons = m_GridSize < 140 * dpiScale;
+            const float bottomLabelsHeight = CurrentEnty->IsFile ? (smallIcons ? smallFontSize * 1.2f : smallFontSize * 2.2f) : 0.0f;
+            const float textTopY = cursorScreenPos.y + thumbnailSize + thumbnailPadding + typeColorFrameSize.y + padding * 3.0f;
+
+            const ImRect clipRect = ImRect({ cursorScreenPos.x + padding * 2.0f, textTopY },
+                                           { cursorScreenPos.x + backgroundThumbnailSize.x - padding * 2.0f, cursorScreenPos.y + backgroundThumbnailSize.y - bottomLabelsHeight - padding });
 
             {
-                if(m_GridSize < 140 * (float)m_Editor->GetWindow()->GetDPIScale())
+                if(smallIcons)
                 {
                     ImGuiUtilities::ScopedFont smallFont(ImGui::GetIO().Fonts->Fonts[2]);
                     ImGuiUtilities::ClippedText(clipRect.Min, clipRect.Max, (const char*)(StringUtilities::GetFileName(CurrentEnty->AssetPath, !CurrentEnty->IsFile).str), nullptr, nullptr, { 0, 0 }, nullptr, clipRect.GetSize().x);
@@ -1111,24 +1116,45 @@ namespace Lumos
 
             if(CurrentEnty->IsFile)
             {
-                ImGui::SetCursorPos({ cursorPos.x + padding * (float)m_Editor->GetWindow()->GetDPIScale(), cursorPos.y + backgroundThumbnailSize.y - (ImGui::GetIO().Fonts->Fonts[2]->FontSize - padding * (float)m_Editor->GetWindow()->GetDPIScale()) * 3.3f });
                 ImGui::BeginDisabled();
                 ImGuiUtilities::ScopedFont smallFont(ImGui::GetIO().Fonts->Fonts[2]);
-                ImGui::Indent();
 
-                String8 fileTypeString       = s_FileTypesToString.at(FileType::Unknown);
-                const auto& fileStringTypeIt = s_FileTypesToString.find(CurrentEnty->Type);
-                if(fileStringTypeIt != s_FileTypesToString.end())
-                    fileTypeString = fileStringTypeIt->second;
+                const float labelPadding = padding * dpiScale;
+                const float labelHeight = smallFontSize;
 
-                ImGui::TextUnformatted((const char*)(fileTypeString).str);
-                ImGui::Unindent();
-                cursorPos = ImGui::GetCursorPos();
-                ImGui::SetCursorPos({ cursorPos.x + padding * (float)m_Editor->GetWindow()->GetDPIScale(), cursorPos.y - (ImGui::GetIO().Fonts->Fonts[2]->FontSize * 0.8f - padding * (float)m_Editor->GetWindow()->GetDPIScale()) });
-                ImGui::Indent();
+                if(smallIcons)
+                {
+                    // Only show file type when icons are small
+                    ImGui::SetCursorPos({ cursorPos.x + labelPadding, cursorPos.y + backgroundThumbnailSize.y - labelHeight - labelPadding });
+                    ImGui::Indent();
 
-                ImGui::TextUnformatted(StringUtilities::BytesToString(CurrentEnty->FileSize).c_str());
-                ImGui::Unindent();
+                    String8 fileTypeString       = s_FileTypesToString.at(FileType::Unknown);
+                    const auto& fileStringTypeIt = s_FileTypesToString.find(CurrentEnty->Type);
+                    if(fileStringTypeIt != s_FileTypesToString.end())
+                        fileTypeString = fileStringTypeIt->second;
+
+                    ImGui::TextUnformatted((const char*)(fileTypeString).str);
+                    ImGui::Unindent();
+                }
+                else
+                {
+                    // Show both file type and size when icons are larger
+                    ImGui::SetCursorPos({ cursorPos.x + labelPadding, cursorPos.y + backgroundThumbnailSize.y - labelHeight * 2.0f - labelPadding });
+                    ImGui::Indent();
+
+                    String8 fileTypeString       = s_FileTypesToString.at(FileType::Unknown);
+                    const auto& fileStringTypeIt = s_FileTypesToString.find(CurrentEnty->Type);
+                    if(fileStringTypeIt != s_FileTypesToString.end())
+                        fileTypeString = fileStringTypeIt->second;
+
+                    ImGui::TextUnformatted((const char*)(fileTypeString).str);
+                    ImGui::Unindent();
+
+                    ImGui::SetCursorPos({ cursorPos.x + labelPadding, cursorPos.y + backgroundThumbnailSize.y - labelHeight - labelPadding });
+                    ImGui::Indent();
+                    ImGui::TextUnformatted(StringUtilities::BytesToString(CurrentEnty->FileSize).c_str());
+                    ImGui::Unindent();
+                }
 
                 ImGui::EndDisabled();
             }
@@ -1242,5 +1268,32 @@ namespace Lumos
 
         assetPath    = StringUtilities::AbsolutePathToRelativeFileSystemPath(arena, thumbnailPath, Str8Lit("//Assets"), Str8Lit("//Assets/Cache"));
         AbsolutePath = StringUtilities::AbsolutePathToRelativeFileSystemPath(arena, assetPath, Str8Lit("//Assets"), m_BasePath);
+    }
+
+    void ResourcePanel::GetAllAssets(std::vector<std::string>& outAssets)
+    {
+        std::string basePath = ToStdString(m_BasePath);
+        if(!std::filesystem::exists(basePath))
+            return;
+
+        for(auto& entry : std::filesystem::recursive_directory_iterator(basePath))
+        {
+            if(entry.is_regular_file())
+            {
+                std::string path = entry.path().string();
+                // Convert to asset path (//Assets/...)
+                if(path.size() > basePath.size())
+                {
+                    std::string relativePath = "//Assets" + path.substr(basePath.size());
+                    // Skip hidden files and cache
+                    if(relativePath.find("/.") == std::string::npos &&
+                       relativePath.find("/Cache/") == std::string::npos)
+                    {
+                        outAssets.push_back(relativePath);
+                    }
+                }
+            }
+        }
+        std::sort(outAssets.begin(), outAssets.end());
     }
 }

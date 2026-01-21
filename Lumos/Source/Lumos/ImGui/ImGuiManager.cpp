@@ -15,6 +15,10 @@
 #include "Lumos/Platform/GLFW/GLFWWindow.h"
 #endif
 
+#ifdef LUMOS_PLATFORM_IOS
+#include "Lumos/Platform/iOS/iOSOS.h"
+#endif
+
 #include <imgui/imgui.h>
 #include <imgui/Plugins/ImGuizmo.h>
 #include <imgui/Plugins/ImGuiAl/fonts/MaterialDesign.inl>
@@ -31,6 +35,13 @@
 #include <GLFW/glfw3.h>
 #endif
 
+#ifdef LUMOS_PLATFORM_IOS
+static void ImGui_iOS_SetPlatformImeDataFn(ImGuiViewport* viewport, ImGuiPlatformImeData* data)
+{
+    Lumos::OS::Get().ShowKeyboard(data->WantVisible);
+}
+#endif
+
 namespace Lumos
 {
     ImGuiManager::ImGuiManager(bool clearScreen)
@@ -39,7 +50,15 @@ namespace Lumos
         m_FontSize    = 16.0f;
 
 #ifdef LUMOS_PLATFORM_IOS
-        m_FontSize *= 2.0f;
+        iOSOS* iosOS = (iOSOS*)Lumos::OS::GetPtr();
+        if (iosOS->GetDeviceType() == iOSOS::iOSDeviceType::iPad)
+        {
+            m_FontSize = 48.0f;
+        }
+        else
+        {
+            m_FontSize = 50.0f;
+        }
 #endif
     }
 
@@ -87,6 +106,9 @@ namespace Lumos
 
 #ifdef LUMOS_PLATFORM_IOS
         io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
+        io.MouseSource = ImGuiMouseSource_TouchScreen;
+        ImGui::GetStyle().TouchExtraPadding = ImVec2(8.0f, 8.0f);
+
 #endif
 
 #ifdef LUMOS_PLATFORM_MACOS
@@ -105,10 +127,24 @@ namespace Lumos
         SetImGuiStyle();
 
 #ifdef LUMOS_PLATFORM_IOS
-        ImGui::GetStyle().ScaleAllSizes(1.5f);
+        iOSOS* iosOS = (iOSOS*)Lumos::OS::GetPtr();
         ImGuiStyle& style = ImGui::GetStyle();
 
-        style.ScrollbarSize = 20;
+        if (iosOS->GetDeviceType() == iOSOS::iOSDeviceType::iPad)
+        {
+            // iPad scaling
+            ImGui::GetStyle().ScaleAllSizes(iosOS->IsLandscape() ? 1.8f : 2.0f);
+            style.ScrollbarSize = 24;
+            style.TouchExtraPadding = ImVec2(6, 6);
+            style.ItemSpacing = ImVec2(8, 4);
+        }
+        else
+        {
+            // iPhone scaling
+            ImGui::GetStyle().ScaleAllSizes(1.5f);
+            style.ScrollbarSize = 18;
+            style.TouchExtraPadding = ImVec2(4, 4);
+        }
 #endif
 #ifdef LUMOS_PLATFORM_MACOS
         ImGui::GetStyle().ScaleAllSizes(m_DPIScale);
@@ -123,6 +159,10 @@ namespace Lumos
         io.SetClipboardTextFn = ImGui_ImplGlfw_SetClipboardText;
         io.GetClipboardTextFn = ImGui_ImplGlfw_GetClipboardText;
 #endif
+
+#ifdef LUMOS_PLATFORM_IOS
+        io.SetPlatformImeDataFn = ImGui_iOS_SetPlatformImeDataFn;
+#endif
     }
 
     void ImGuiManager::OnUpdate(const TimeStep& dt, Scene* scene)
@@ -131,11 +171,6 @@ namespace Lumos
         ImGuizmo::BeginFrame();
 
         Application::Get().OnImGui();
-
-        if(ImGui::GetIO().WantTextInput)
-        {
-            OS::Get().ShowKeyboard(true);
-        }
     }
 
     void ImGuiManager::OnEvent(Event& event)

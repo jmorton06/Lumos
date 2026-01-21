@@ -391,7 +391,8 @@ namespace Lumos
 
         if(m_DetailedPanelOpen)
         {
-            if(ImGui::BeginPopupModal("Message", &m_DetailedPanelOpen, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+            // Use BeginPopup instead of BeginPopupModal to allow closing on outside click
+            if(ImGui::BeginPopup("Message", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
             {
                 ImGui::TextWrapped("Message : %s", m_Message.c_str());
 
@@ -411,6 +412,11 @@ namespace Lumos
                 ImGui::Text("Type : %s", GetLevelName(m_Level));
 
                 ImGui::EndPopup();
+            }
+            else
+            {
+                // Popup was closed (clicked outside)
+                m_DetailedPanelOpen = false;
             }
         }
 

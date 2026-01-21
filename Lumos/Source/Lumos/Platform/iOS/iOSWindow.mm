@@ -136,4 +136,28 @@ namespace Lumos
         WindowResizeEvent* event = new WindowResizeEvent(width, height);
         m_QueuedEvents.PushBack(event);
     }
+
+    void iOSWindow::OnGesturePinchEvent(float scale, float velocity, uint32_t x, uint32_t y, GestureState state)
+    {
+        GesturePinchEvent* event = new GesturePinchEvent(scale, velocity, Vec2(x, y), state);
+        m_QueuedEvents.PushBack(event);
+    }
+
+    void iOSWindow::OnGesturePanEvent(float tx, float ty, float vx, float vy, uint32_t touches, GestureState state)
+    {
+        GesturePanEvent* event = new GesturePanEvent(Vec2(tx, ty), Vec2(vx, vy), touches, state);
+        m_QueuedEvents.PushBack(event);
+    }
+
+    void iOSWindow::OnGestureSwipeEvent(SwipeDirection direction, uint32_t touches)
+    {
+        GestureSwipeEvent* event = new GestureSwipeEvent(direction, touches);
+        m_QueuedEvents.PushBack(event);
+    }
+
+    void iOSWindow::OnGestureLongPressEvent(uint32_t x, uint32_t y, GestureState state)
+    {
+        GestureLongPressEvent* event = new GestureLongPressEvent(Vec2(x, y), state);
+        m_QueuedEvents.PushBack(event);
+    }
 }

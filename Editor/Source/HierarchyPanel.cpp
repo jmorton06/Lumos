@@ -448,8 +448,34 @@ namespace Lumos
                     activeComponent.active = !active;
                 }
                 ImGui::PopStyleColor();
+
+                if(ImGui::IsItemHovered())
+                    ImGui::SetTooltip(active ? "Hide entity" : "Show entity");
             }
 #endif
+            // Lock toggle button
+            {
+                bool isLocked = node.HasComponent<EditorLockComponent>();
+                ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize(ICON_MDI_LOCK).x * 4.0f);
+
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                if(isLocked)
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.5f, 1.0f));
+                else
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 0.5f));
+
+                if(ImGui::SmallButton(isLocked ? ICON_MDI_LOCK : ICON_MDI_LOCK_OPEN_OUTLINE))
+                {
+                    if(isLocked)
+                        node.RemoveComponent<EditorLockComponent>();
+                    else
+                        node.AddComponent<EditorLockComponent>();
+                }
+                ImGui::PopStyleColor(2);
+
+                if(ImGui::IsItemHovered())
+                    ImGui::SetTooltip(isLocked ? "Unlock entity" : "Lock entity");
+            }
 
             if(nodeOpen == false)
             {

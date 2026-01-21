@@ -1497,7 +1497,8 @@ namespace Lumos::Graphics
             cascadeSplits[i] = (d - nearClip) / clipRange;
         }
 
-       // cascadeSplits[3]    = 0.35f;
+        // TODO: Fix need for this
+        cascadeSplits[3]    = 0.35f;
         float lastSplitDist = 0.0f;
         Mat4 CameraProj     = Mat4::Perspective(nearClip, farClip, m_Camera->GetAspectRatio(), m_Camera->GetFOV());
 
@@ -2073,7 +2074,7 @@ namespace Lumos::Graphics
         // Apply easing to transitions for smoother visual feedback
         float easedHotTransition    = widget->HotTransition > 0.0f ? (1.0f - powf(1.0f - widget->HotTransition, 3.0f)) : 0.0f;
         float easedActiveTransition = widget->ActiveTransition > 0.0f ? (1.0f - powf(1.0f - widget->ActiveTransition, 3.0f)) : 0.0f;
-        
+
         Vec4 border_color     = widget->style_vars[StyleVar_BorderColor];
         Vec4 background_color = widget->style_vars[StyleVar_BackgroundColor];
         Vec4 text_color       = widget->style_vars[StyleVar_TextColor];
@@ -2184,7 +2185,7 @@ namespace Lumos::Graphics
             // Inset background by border width for proper layering
             Vec2 size   = widget->size - border * 2.0f;
             Vec2 p      = widget->position + border;
-            
+
             p.y = m_MainTexture->GetHeight() - p.y;
 
             if(m_CurrentUIText)

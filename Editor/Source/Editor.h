@@ -23,6 +23,7 @@ namespace Lumos
     class FileBrowserPanel;
     class PreviewDraw;
     class EditorPanel;
+    class ResourcePanel;
     class Camera;
 
     namespace Graphics
@@ -311,6 +312,8 @@ namespace Lumos
         std::unordered_map<size_t, const char*> m_ComponentIconMap;
 
         FileBrowserPanel* m_FileBrowserPanel;
+        ResourcePanel* m_ResourcePanel = nullptr;
+        std::vector<std::string> m_CachedAssetPaths;
         PreviewDraw* m_PreviewDraw;
 
         Camera* m_CurrentCamera = nullptr;

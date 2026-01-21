@@ -18,6 +18,7 @@ namespace Lumos
             virtual void SetTexture(const std::string& name, Texture** texture, uint32_t textureCount, TextureType textureType = TextureType(0)) = 0;
             virtual void SetTexture(const std::string& name, Texture* texture, uint32_t mipIndex = 0, TextureType textureType = TextureType(0))  = 0;
             virtual void SetBuffer(const std::string& name, UniformBuffer* buffer)                                                               = 0;
+            virtual void SetStorageBuffer(const std::string& name, StorageBuffer* buffer)                                                        = 0;
             virtual Graphics::UniformBuffer* GetUniformBuffer(const std::string& name)                                                           = 0;
             virtual void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data)                                   = 0;
             virtual void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data, uint32_t size)                    = 0;
@@ -26,6 +27,7 @@ namespace Lumos
             virtual void SetTexture(u8 binding, Texture* texture, uint32_t mipIndex = 0, TextureType textureType = TextureType(0))  = 0;
             virtual void SetTexture(u8 binding, Texture** texture, uint32_t textureCount, TextureType textureType = TextureType(0)) = 0;
             virtual void SetBuffer(u8 binding, UniformBuffer* buffer)                                                               = 0;
+            virtual void SetStorageBuffer(u8 binding, StorageBuffer* buffer)                                                        = 0;
             virtual void SetUniform(u8 binding, const std::string& uniformName, void* data)                                         = 0;
             virtual void SetUniform(u8 binding, const std::string& uniformName, void* data, uint32_t size)                          = 0;
             virtual void SetUniformBufferData(u8 binding, void* data)                                                               = 0;

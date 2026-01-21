@@ -32,6 +32,9 @@ namespace Lumos
 
         void UpdateScroll(Maths::Transform& transform, float offset, float dt) override;
 
+        void HandleGesturePinch(Maths::Transform& transform, float scale, float velocity, float dt);
+        void HandleGesturePan(Maths::Transform& transform, const Vec2& delta, const Vec2& velocity);
+
         void StopMovement();
         void SetSpeed(float speed) { m_CameraSpeed = speed; }
         float GetSpeed() const { return m_CameraSpeed; }
