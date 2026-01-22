@@ -126,7 +126,7 @@ namespace Lumos
         const Vec3 local_axis = Maths::Transpose(wsTransform) * Vec4(axis, 1.0f);
 
         int vMin, vMax;
-        if(!m_Hull)
+        if(!m_Hull || m_Hull->GetNumVertices() == 0)
         {
             if(out_min)
                 *out_min = Vec3(0.0f);
@@ -149,6 +149,10 @@ namespace Lumos
                                                          ReferencePolygon& refPolygon) const
     {
         LUMOS_PROFILE_FUNCTION_LOW();
+
+        if(m_Hull->GetNumVertices() == 0)
+            return;
+
         Mat4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
 
         const Mat3 invNormalMatrix = Mat4::Inverse(wsTransform);

@@ -259,6 +259,7 @@ namespace Lumos
                 }
             }
 
+            if(Input::Get().IsControllerPresent(0))
             {
                 // Controller
                 {
@@ -421,6 +422,59 @@ namespace Lumos
                     transform.SetLocalPosition(pos);
                 }
             }
+        }
+    }
+
+    void EditorCameraController::HandleGesturePinch(Maths::Transform& transform, float scale, float velocity, float dt)
+    {
+        // scale is per-frame delta (1.0 = no change, >1 = zoom out, <1 = zoom in)
+        if(m_CameraMode == EditorCameraMode::TWODIM)
+        {
+            // Orthographic: multiply camera scale by pinch delta
+            if(m_Camera)
+            {
+                float newScale = m_Camera->GetScale() * scale;
+                m_Camera->SetScale(Maths::Clamp(newScale, 0.1f, 100.0f));
+            }
+        }
+        else
+        {
+            // 3D mode: move camera forward/backward
+            // Convert scale delta to movement (invert: pinch in = move forward)
+            float zoomAmount = (1.0f - scale) * 50.0f;
+            Vec3 pos = transform.GetLocalPosition();
+            pos += transform.GetForwardDirection() * zoomAmount;
+            transform.SetLocalPosition(pos);
+        }
+    }
+
+    void EditorCameraController::HandleGesturePan(Maths::Transform& transform, const Vec2& delta, const Vec2& velocity)
+    {
+        // Two-finger drag = camera rotation
+        // Scale delta for touch (tune with user testing)
+        Vec2 scaledDelta = delta * 0.002f;
+
+        if(m_CameraMode == EditorCameraMode::TWODIM)
+        {
+            // 2D mode: pan instead of rotate
+            Vec3 right = transform.GetRightDirection();
+            Vec3 up = transform.GetUpDirection();
+            m_PositionDelta += right * scaledDelta.x * 5.0f + up * -scaledDelta.y * 5.0f;
+        }
+        else
+        {
+            // 3D mode: rotate camera directly (apply rotation immediately)
+            const float yawSign = transform.GetUpDirection().y < 0.0f ? -1.0f : 1.0f;
+            float yawDelta = yawSign * scaledDelta.x * RotationSpeed();
+            float pitchDelta = scaledDelta.y * RotationSpeed();
+
+            Quat rotation  = transform.GetLocalOrientation();
+            Quat rotationX = Quat::Rotation(-pitchDelta, Vec3(1.0f, 0.0f, 0.0f));
+            Quat rotationY = Quat::Rotation(-yawDelta, Vec3(0.0f, 1.0f, 0.0f));
+
+            rotation = rotationY * rotation;
+            rotation = rotation * rotationX;
+            transform.SetLocalOrientation(rotation);
         }
     }
 

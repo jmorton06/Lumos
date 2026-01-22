@@ -10,6 +10,7 @@
 #include "Core/Application.h"
 #include "Core/OS/Window.h"
 #include "VKInitialisers.h"
+#include "vulkan/vulkan_core.h"
 
 namespace Lumos
 {
@@ -33,8 +34,7 @@ namespace Lumos
 
         uint32_t VKUtilities::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
         {
-            VkPhysicalDeviceMemoryProperties memProperties;
-            vkGetPhysicalDeviceMemoryProperties(VKDevice::Get().GetGPU(), &memProperties);
+            const VkPhysicalDeviceMemoryProperties& memProperties = VKDevice::Get().GetPhysicalDevice()->GetMemoryProperties();
 
             for(uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
             {
@@ -46,46 +46,6 @@ namespace Lumos
 
             LERROR("Failed to find suitable memory type!");
             return 0;
-        }
-
-        void VKUtilities::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
-                                       VkDeviceMemory& bufferMemory, VmaAllocator allocator, VmaAllocation allocation)
-        {
-            VkBufferCreateInfo bufferInfo = {};
-            bufferInfo.sType              = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-            bufferInfo.size               = size;
-            bufferInfo.usage              = usage;
-            bufferInfo.sharingMode        = VK_SHARING_MODE_EXCLUSIVE;
-
-#ifdef USE_VMA_ALLOCATOR
-            if(allocator != nullptr)
-            {
-                VmaAllocationCreateInfo vmaAllocInfo = {};
-                vmaAllocInfo.usage                   = VMA_MEMORY_USAGE_GPU_ONLY;
-                vmaCreateBuffer(allocator, &bufferInfo, &vmaAllocInfo, &buffer, &allocation, nullptr);
-            }
-            else
-            {
-                vkCreateBuffer(VKDevice::Get().GetDevice(), &bufferInfo, nullptr, &buffer);
-            }
-#else
-            vkCreateBuffer(VKDevice::Get().GetDevice(), &bufferInfo, nullptr, &buffer);
-#endif
-            VkMemoryRequirements memRequirements;
-            vkGetBufferMemoryRequirements(VKDevice::Get().GetDevice(), buffer, &memRequirements);
-
-            VkMemoryAllocateInfo allocInfo = {};
-            allocInfo.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-            allocInfo.allocationSize       = memRequirements.size;
-            allocInfo.memoryTypeIndex      = FindMemoryType(memRequirements.memoryTypeBits, properties);
-
-            VkResult result = vkAllocateMemory(VKDevice::Get().GetDevice(), &allocInfo, nullptr, &bufferMemory);
-            if(result != VK_SUCCESS)
-            {
-                LERROR("Failed to allocate buffer memory!");
-            }
-
-            vkBindBufferMemory(VKDevice::Get().GetDevice(), buffer, bufferMemory, 0);
         }
 
         VkCommandBuffer VKUtilities::BeginSingleTimeCommands()
@@ -112,6 +72,10 @@ namespace Lumos
         {
             VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffer));
 
+            VkFence fence;
+            VkFenceCreateInfo fenceInfo { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+            VK_CHECK_RESULT(vkCreateFence(VKDevice::Get().GetDevice(), &fenceInfo, nullptr, &fence));
+
             VkSubmitInfo submitInfo;
             submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
             submitInfo.commandBufferCount   = 1;
@@ -122,8 +86,10 @@ namespace Lumos
             submitInfo.signalSemaphoreCount = 0;
             submitInfo.waitSemaphoreCount   = 0;
 
-            VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
-            VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Get().GetGraphicsQueue()));
+            VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, fence));
+
+            VK_CHECK_RESULT(vkWaitForFences(VKDevice::Get().GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX));
+            vkDestroyFence(VKDevice::Get().GetDevice(), fence, nullptr);
 
             vkFreeCommandBuffers(VKDevice::Get().GetDevice(),
                                  VKDevice::Get().GetCommandPool()->GetHandle(), 1, &commandBuffer);
@@ -271,22 +237,19 @@ namespace Lumos
                     break;
 
                 case VK_ACCESS_MEMORY_READ_BIT:
-                    break;
-
                 case VK_ACCESS_MEMORY_WRITE_BIT:
-                    break;
-
                 default:
                     LERROR("Unknown access flag");
+                    stages |= VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
                     break;
                 }
             }
             return stages;
         }
 
-        VkPipelineStageFlags LayoutToAccessMask(const VkImageLayout layout, const bool isDestination)
+        VkAccessFlags LayoutToAccessMask(const VkImageLayout layout, const bool isDestination)
         {
-            VkPipelineStageFlags accessMask = 0;
+            VkAccessFlags accessMask = 0;
 
             switch(layout)
             {
@@ -345,7 +308,7 @@ namespace Lumos
                 break;
 
             case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
-                accessMask = VK_ACCESS_2_NONE;
+                accessMask = 0;
                 break;
 
             default:
@@ -463,23 +426,18 @@ namespace Lumos
         }
 
         VkFormat VKUtilities::FindSupportedFormat(const TDArray<VkFormat>& candidates, VkImageTiling tiling,
-                                                  VkFormatFeatureFlags features)
+                                                  VkFormatFeatureFlags requiredFeatures)
         {
-            for(VkFormat format : candidates)
+            VkPhysicalDevice phys = VKDevice::Get().GetGPU();
+            for (VkFormat format : candidates)
             {
                 VkFormatProperties props;
-                vkGetPhysicalDeviceFormatProperties(VKDevice::Get().GetGPU(), format, &props);
+                vkGetPhysicalDeviceFormatProperties(phys, format, &props);
 
-                if(!(props.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT))
-                {
-                    continue;
-                }
+                VkFormatFeatureFlags features = (tiling == VK_IMAGE_TILING_LINEAR) ? props.linearTilingFeatures
+                                                                                    : props.optimalTilingFeatures;
 
-                if(tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
-                {
-                    return format;
-                }
-                else if(tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
+                if ((features & requiredFeatures) == requiredFeatures)
                 {
                     return format;
                 }
@@ -489,16 +447,37 @@ namespace Lumos
             return VK_FORMAT_UNDEFINED;
         }
 
-        VkFormat VKUtilities::FindDepthFormat()
+        VkFormat VKUtilities::FindDepthFormat(bool bNeedSampling)
         {
-            return FindSupportedFormat(
-                { VK_FORMAT_D32_SFLOAT_S8_UINT,
-                  VK_FORMAT_D32_SFLOAT,
-                  VK_FORMAT_D24_UNORM_S8_UINT,
-                  VK_FORMAT_D16_UNORM_S8_UINT,
-                  VK_FORMAT_D16_UNORM },
-                VK_IMAGE_TILING_OPTIMAL,
-                VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+            TDArray<VkFormat> candidates;
+            if (bNeedSampling)
+            {
+                candidates =
+                {
+                    VK_FORMAT_D32_SFLOAT,
+                    VK_FORMAT_D16_UNORM,
+                    VK_FORMAT_D32_SFLOAT_S8_UINT,
+                    VK_FORMAT_D24_UNORM_S8_UINT,
+                    VK_FORMAT_D16_UNORM_S8_UINT
+                };
+            }
+            else
+            {
+                candidates =
+                {
+                    VK_FORMAT_D32_SFLOAT_S8_UINT,
+                    VK_FORMAT_D32_SFLOAT,
+                    VK_FORMAT_D24_UNORM_S8_UINT,
+                    VK_FORMAT_D16_UNORM_S8_UINT,
+                    VK_FORMAT_D16_UNORM
+                };
+            }
+
+            VkFormatFeatureFlags required = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+            if (bNeedSampling)
+                required |= VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT;
+
+            return FindSupportedFormat(candidates, VK_IMAGE_TILING_OPTIMAL, required);
         }
 
         std::string VKUtilities::ErrorString(VkResult errorCode)
@@ -587,6 +566,10 @@ namespace Lumos
                 return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             case DescriptorType::IMAGE_STORAGE:
                 return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+            case DescriptorType::STORAGE_BUFFER:
+                return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            case DescriptorType::STORAGE_BUFFER_DYNAMIC:
+                return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
             }
 
             LINFO("Unsupported Descriptor Type");
@@ -803,8 +786,6 @@ namespace Lumos
                 LERROR("Unsupported Vulkan format");
                 return 4;
             }
-
-            return 4;
         }
 
         VkShaderStageFlagBits VKUtilities::ShaderTypeToVK(const ShaderType& shaderName)
@@ -886,29 +867,23 @@ namespace Lumos
             VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
             if(!vsync)
             {
-                if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_IMMEDIATE_KHR))
+                if (IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_MAILBOX_KHR))
+                {
+                    presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+                }
+                else if (IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_IMMEDIATE_KHR))
                 {
                     presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
                 }
-                else if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_FIFO_KHR))
+                else if (IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_FIFO_RELAXED_KHR))
                 {
-                    presentMode = VK_PRESENT_MODE_FIFO_KHR;
+                    presentMode = VK_PRESENT_MODE_FIFO_RELAXED_KHR;
                 }
                 else
                 {
-                    LERROR("Failed to find supported presentation mode.");
+                    LINFO("No MAILBOX/IMMEDIATE/FIFO_RELAXED present mode supported, using FIFO.");
                 }
             }
-
-            // Modes
-            //  if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_FIFO_RELAXED_KHR))
-            //  {
-            //      presentMode = VK_PRESENT_MODE_FIFO_RELAXED_KHR;
-            //  }
-            //  else if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_MAILBOX_KHR))
-            //  {
-            //      presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-            //  }
 
             return presentMode;
         }

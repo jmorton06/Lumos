@@ -26,11 +26,11 @@ namespace Lumos
 
     class ParticleEmitter
     {
-		template <typename Archive>
-		friend void save(Archive& archive, const ParticleEmitter& particleManager);
+        template <typename Archive>
+        friend void save(Archive& archive, const ParticleEmitter& particleManager);
 
-		template <typename Archive>
-		friend void load(Archive& archive, ParticleEmitter& particleManager);
+        template <typename Archive>
+        friend void load(Archive& archive, ParticleEmitter& particleManager);
 
     public:
         ParticleEmitter();

@@ -16,6 +16,7 @@
 <a href=""><img alt="stars" src="https://img.shields.io/github/stars/jmorton06/Lumos?style=flat-square"/></a>
 <a href="https://ko-fi.com/Jmorton06"><img alt="kofi" src="https://img.shields.io/badge/Ko--fi-FF6433?logo=kofi&logoColor=fff&style=flat"/></a>
 <a href="https://github.com/jmorton06/Lumos/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/jmorton06/Lumos?style=flat-square"/></a>
+<a href="https://github.com/jmorton06/Lumos/releases"><img alt="downloads" src="https://img.shields.io/github/downloads/jmorton06/Lumos/total?color=green&style=flat-square"></a>
 <a href="https://discord.gg/n9PDrNjJwt"><img alt="Discord" src="https://img.shields.io/badge/chat-on_discord-7389D8.svg?logo=discord&logoColor=ffffff&labelColor=6A7EC2&style=flat-square"/></a>
 <br/>
 </p>
@@ -43,7 +44,7 @@ Install Vulkan SDK (https://vulkan.lunarg.com/)
 sudo apt-get install -y g++-11 libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libopenal-dev mesa-common-dev
 cd Lumos
 Tools/linux/premake5 gmake2
-make -j8 # config=release
+make -j$(nproc) # config=release
 ```
 #### Windows
 Run Scripts/GenerateVS.bat to generate a visual studio project.

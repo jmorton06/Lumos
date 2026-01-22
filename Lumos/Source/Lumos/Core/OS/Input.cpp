@@ -29,6 +29,20 @@ namespace Lumos
         m_ScrollOffsetX = 0.0f;
     }
 
+    void Input::ResetGestures()
+    {
+        // Don't reset active state - it's set by gesture events (Began/Changed -> true, Ended/Cancelled -> false)
+        // Only reset per-frame values
+        m_GesturePinchScale = 1.0f;
+        m_GesturePinchVelocity = 0.0f;
+
+        m_GesturePanTranslation = Vec2(0.0f, 0.0f);
+        m_GesturePanVelocity = Vec2(0.0f, 0.0f);
+
+        // Keep m_GesturePanTouchCount - it's set by events
+        // Keep m_GestureLongPressLocation - it's set by events
+    }
+
     void Input::OnEvent(Event& e)
     {
         EventDispatcher dispatcher(e);
@@ -39,6 +53,10 @@ namespace Lumos
         dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(Input::OnMouseScrolled));
         dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FN(Input::OnMouseMoved));
         dispatcher.Dispatch<MouseEnterEvent>(BIND_EVENT_FN(Input::OnMouseEnter));
+        dispatcher.Dispatch<GesturePinchEvent>(BIND_EVENT_FN(Input::OnGesturePinch));
+        dispatcher.Dispatch<GesturePanEvent>(BIND_EVENT_FN(Input::OnGesturePan));
+        dispatcher.Dispatch<GestureSwipeEvent>(BIND_EVENT_FN(Input::OnGestureSwipe));
+        dispatcher.Dispatch<GestureLongPressEvent>(BIND_EVENT_FN(Input::OnGestureLongPress));
     }
 
     bool Input::OnKeyPressed(KeyPressedEvent& e)
@@ -85,6 +103,36 @@ namespace Lumos
     bool Input::OnMouseEnter(MouseEnterEvent& e)
     {
         SetMouseOnScreen(e.GetEntered());
+        return false;
+    }
+
+    bool Input::OnGesturePinch(GesturePinchEvent& e)
+    {
+        m_GesturePinchActive = (e.GetState() == GestureState::Began || e.GetState() == GestureState::Changed);
+        m_GesturePinchScale = e.GetScale();
+        m_GesturePinchVelocity = e.GetVelocity();
+        return false;
+    }
+
+    bool Input::OnGesturePan(GesturePanEvent& e)
+    {
+        m_GesturePanActive = (e.GetState() == GestureState::Began || e.GetState() == GestureState::Changed);
+        m_GesturePanTranslation = e.GetTranslation();
+        m_GesturePanVelocity = e.GetVelocity();
+        m_GesturePanTouchCount = e.GetNumTouches();
+        return false;
+    }
+
+    bool Input::OnGestureSwipe(GestureSwipeEvent& e)
+    {
+        // Swipe events are one-shot, no active state tracking needed
+        return false;
+    }
+
+    bool Input::OnGestureLongPress(GestureLongPressEvent& e)
+    {
+        m_GestureLongPressActive = (e.GetState() == GestureState::Began || e.GetState() == GestureState::Changed);
+        m_GestureLongPressLocation = e.GetLocation();
         return false;
     }
 

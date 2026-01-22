@@ -17,9 +17,10 @@
 #include "Core/DataStructures/TArray.h"
 #include "stb_image_write.h"
 #include "Maths/MathsUtilities.h"
+#include "vulkan/vulkan_core.h"
 #include <filesystem>
 
-#define DELETION_QUEUE_CAPACITY 3 // 12
+#define DELETION_QUEUE_CAPACITY 12
 #define DESCRIPTOR_POOL_CAPACITY 100
 namespace Lumos
 {
@@ -77,21 +78,27 @@ namespace Lumos
                 VkClearDepthStencilValue clear_depth_stencil = { 1.0f, 1 };
 
                 subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+                VkImageLayout layout        = ((VKTextureDepth*)texture)->GetImageLayout();
                 ((VKTextureDepth*)texture)->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VKCommandBuffer*)commandBuffer);
                 vkCmdClearDepthStencilImage(((VKCommandBuffer*)commandBuffer)->GetHandle(), static_cast<VKTextureDepth*>(texture)->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clear_depth_stencil, 1, &subresourceRange);
+                ((VKTextureDepth*)texture)->TransitionImage(layout, (VKCommandBuffer*)commandBuffer);
             }
             else if(texture->GetType() == TextureType::DEPTHARRAY)
             {
-                VkImageLayout layout = ((VKTextureDepthArray*)texture)->GetImageLayout();
-
+                VKTextureDepthArray* VKDepthTexture = ((VKTextureDepthArray*)texture);
+                VkImageLayout layout = VKDepthTexture->GetImageLayout();
                 VkClearDepthStencilValue clear_depth_stencil = { 1.0f, 1 };
 
-                subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+                subresourceRange.aspectMask = Texture::IsDepthFormat(VKDepthTexture->GetFormat()) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+
+                if(Texture::IsStencilFormat(VKDepthTexture->GetFormat()))
+                    subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+
                 subresourceRange.layerCount = static_cast<VKTextureDepthArray*>(texture)->GetCount();
 
-                ((VKTextureDepthArray*)texture)->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VKCommandBuffer*)commandBuffer);
+                VKDepthTexture->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VKCommandBuffer*)commandBuffer);
                 vkCmdClearDepthStencilImage(((VKCommandBuffer*)commandBuffer)->GetHandle(), static_cast<VKTextureDepthArray*>(texture)->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clear_depth_stencil, 1, &subresourceRange);
-                ((VKTextureDepthArray*)texture)->TransitionImage(layout, (VKCommandBuffer*)commandBuffer);
+                VKDepthTexture->TransitionImage(layout, (VKCommandBuffer*)commandBuffer);
             }
         }
 
@@ -146,17 +153,12 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION_LOW();
             SharedPtr<VKSwapChain> swapChain = Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>();
 
+            FrameData& frameData = swapChain->GetCurrentFrameData();
+
             swapChain->End();
             swapChain->QueueSubmit();
-
-            FrameData& frameData  = swapChain->GetCurrentFrameData();
             VkSemaphore semaphore = frameData.MainCommandBuffer->GetSemaphore();
-
-            ArenaTemp scratch = ScratchBegin(nullptr, 0);
-            TDArray<VkSemaphore> semaphores(scratch.arena);
-            semaphores.EmplaceBack(semaphore);
-            swapChain->Present(semaphores);
-            ScratchEnd(scratch);
+            swapChain->Present(semaphore);
         }
 
         const char* VKRenderer::GetTitleInternal() const
@@ -339,9 +341,9 @@ namespace Lumos
             vkGetImageSubresourceLayout(VKDevice::Get().GetDevice(), dstImage, &subResource, &subResourceLayout);
 
             // Map image memory so we can start copying from it
-            const char* data;
-            vkMapMemory(VKDevice::Get().GetDevice(), dstImageMemory, 0, VK_WHOLE_SIZE, 0, (void**)&data);
-            data += subResourceLayout.offset;
+            void* mapped = nullptr;
+            vkMapMemory(VKDevice::Get().GetDevice(), dstImageMemory, 0, VK_WHOLE_SIZE, 0, &mapped);
+            uint8_t* data = static_cast<uint8_t*>(mapped) + subResourceLayout.offset;
 
             /*
 std::ofstream file(path, std::ios::out | std::ios::binary);
@@ -385,7 +387,7 @@ file << "P6\n"
                }
    */
 
-            uint8_t* outputImage = (uint8_t*)data;
+            uint8_t* outputImage = data;
 
             if(Blur)
             {
@@ -433,8 +435,8 @@ file.close();
 
             // Clean up resources
             vkUnmapMemory(VKDevice::Get().GetDevice(), dstImageMemory);
-            vkFreeMemory(VKDevice::Get().GetDevice(), dstImageMemory, nullptr);
             vkDestroyImage(VKDevice::Get().GetDevice(), dstImage, nullptr);
+            vkFreeMemory(VKDevice::Get().GetDevice(), dstImageMemory, nullptr);
         }
 
         void VKRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount)
@@ -443,6 +445,8 @@ file.close();
             uint32_t numDynamicDescriptorSets          = 0;
             uint32_t numDescriptorSets                 = 0;
             VkDescriptorSet lCurrentDescriptorSets[16] = {};
+
+            ASSERT(descriptorCount <= 16, "Too many descriptor sets to bind");
 
             for(uint32_t i = 0; i < descriptorCount; i++)
             {
@@ -535,8 +539,9 @@ file.close();
             renderPassDesc.attachments     = attachments.Data();
             renderPassDesc.clear           = true;
             renderPassDesc.DebugName       = "Splash Screen Pass";
+            renderPassDesc.swapchainTarget = true;
 
-            float clearColour[4] = { 040.0f / 256.0f, 42.0f / 256.0f, 54.0f / 256.0f, 1.0f };
+            float clearColour[4] = { 40.0f / 256.0f, 42.0f / 256.0f, 54.0f / 256.0f, 1.0f };
 
             int32_t width  = Application::Get().GetWindow()->GetWidth();
             int32_t height = Application::Get().GetWindow()->GetHeight();
@@ -556,10 +561,10 @@ file.close();
             renderPass->BeginRenderPass(commandBuffer, clearColour, frameBuffer, SubPassContents::INLINE, width, height);
             renderPass->EndRenderPass(commandBuffer);
 
-            float ratio = float(texture->GetWidth() / texture->GetHeight());
+            float ratio = float(texture->GetWidth()) / float(texture->GetHeight());
             VkImageBlit blit {};
             blit.srcOffsets[0]                 = { 0, 0, 0 };
-            blit.srcOffsets[1]                 = { (int32_t)texture->GetWidth(), (int32_t)texture->GetWidth(), 1 };
+            blit.srcOffsets[1]                 = { (int32_t)texture->GetWidth(), (int32_t)texture->GetHeight(), 1 };
             blit.srcSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
             blit.srcSubresource.mipLevel       = 0;
             blit.srcSubresource.baseArrayLayer = 0;
@@ -591,7 +596,7 @@ file.close();
                            &blit,
                            VK_FILTER_LINEAR);
 
-            ((VKTexture2D*)image)->TransitionImage(layout, (VKCommandBuffer*)commandBuffer);
+            ((VKTexture2D*)image)->TransitionImage(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, (VKCommandBuffer*)commandBuffer);
         }
 
         void VKRenderer::MakeDefault()
@@ -634,7 +639,7 @@ file.close();
             poolCreateInfo.maxSets                    = count;
 
             VkDescriptorPool descriptorPool;
-            vkCreateDescriptorPool(device, &poolCreateInfo, nullptr, &descriptorPool);
+            VK_CHECK_RESULT(vkCreateDescriptorPool(device, &poolCreateInfo, nullptr, &descriptorPool));
             ScratchEnd(scratch);
             return descriptorPool;
         }

@@ -47,19 +47,23 @@ namespace Lumos
         }
 
         style_variable_lists[StyleVar_Padding].first->value               = { 10.0f, 10.0f, 0.0f, 0.0f };
-        style_variable_lists[StyleVar_Border].first->value                = { 1.0f, 1.0f, 0.0f, 0.0f };
-        style_variable_lists[StyleVar_BorderColor].first->value           = { 1.0f, 0.0f, 0.0f, 1.0f };
-        style_variable_lists[StyleVar_BackgroundColor].first->value       = { 1.0f, 1.0f, 1.0f, 1.0f };
-        style_variable_lists[StyleVar_TextColor].first->value             = { 0.0f, 0.0f, 0.0f, 1.0f };
-        style_variable_lists[StyleVar_HotBorderColor].first->value        = { 0.9f, 0.0f, 0.0f, 0.8f };
-        style_variable_lists[StyleVar_HotBackgroundColor].first->value    = { 0.6f, 0.6f, 0.6f, 1.0f };
+        style_variable_lists[StyleVar_Border].first->value                = { 1.5f, 1.5f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_BorderColor].first->value           = { 0.65f, 0.65f, 0.65f, 1.0f };
+        style_variable_lists[StyleVar_BackgroundColor].first->value       = { 0.92f, 0.92f, 0.92f, 1.0f };
+        style_variable_lists[StyleVar_TextColor].first->value             = { 0.15f, 0.15f, 0.15f, 1.0f };
+        style_variable_lists[StyleVar_HotBorderColor].first->value        = { 0.5f, 0.65f, 0.95f, 1.0f };
+        style_variable_lists[StyleVar_HotBackgroundColor].first->value    = { 0.88f, 0.88f, 0.88f, 1.0f };
         style_variable_lists[StyleVar_HotTextColor].first->value          = { 0.1f, 0.1f, 0.1f, 1.0f };
-        style_variable_lists[StyleVar_ActiveBorderColor].first->value     = { 0.5f, 0.0f, 0.0f, 0.8f };
-        style_variable_lists[StyleVar_ActiveBackgroundColor].first->value = { 0.7f, 0.7f, 0.7f, 1.0f };
-        style_variable_lists[StyleVar_ActiveTextColor].first->value       = { 0.5f, 0.0f, 0.0f, 1.0f };
+        style_variable_lists[StyleVar_ActiveBorderColor].first->value     = { 0.4f, 0.55f, 0.9f, 1.0f };
+        style_variable_lists[StyleVar_ActiveBackgroundColor].first->value = { 0.82f, 0.82f, 0.82f, 1.0f };
+        style_variable_lists[StyleVar_ActiveTextColor].first->value       = { 0.05f, 0.05f, 0.05f, 1.0f };
         style_variable_lists[StyleVar_FontSize].first->value              = { 28.0f, 0.0f, 0.0f, 1.0f };
+        style_variable_lists[StyleVar_CornerRadius].first->value          = { 4.0f, 0.0f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_ShadowColor].first->value           = { 0.0f, 0.0f, 0.0f, 0.3f };
+        style_variable_lists[StyleVar_ShadowOffset].first->value          = { 2.0f, 2.0f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_ShadowBlur].first->value            = { 4.0f, 0.0f, 0.0f, 0.0f };
 
-#ifdef LUMOS_PLATFORM_MACOS
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
         style_variable_lists[StyleVar_FontSize].first->value = { 48.0f, 0.0f, 0.0f, 1.0f };
 #endif
 
@@ -224,6 +228,11 @@ namespace Lumos
         UI_Interaction interaction = {};
         interaction.widget         = widget;
 
+        if(!(widget->flags & WidgetFlags_Clickable) && !(widget->flags & WidgetFlags_Draggable) && !(widget->flags & WidgetFlags_DragParent))
+        {
+            return interaction;
+        }
+
         const Vec2& position = widget->position;
         const Vec2& size     = widget->size;
         const Vec2& mouse    = Input::Get().GetMousePosition() * s_UIState->DPIScale - s_UIState->InputOffset; // Needs to take Quality setting render scale into accoutn too
@@ -231,8 +240,16 @@ namespace Lumos
         bool hovering = mouse.x >= position.x && mouse.x <= position.x + size.x && mouse.y >= position.y && mouse.y <= position.y + size.y;
         if(hovering)
         {
-            s_UIState->next_hot_widget = widget->hash;
-            interaction.hovering       = true;
+            // If this widget is marked to drag/forward interaction to its parent, forward the hot widget to parent
+            if((widget->flags & WidgetFlags_DragParent) && widget->parent)
+            {
+                s_UIState->next_hot_widget = widget->parent->hash;
+            }
+            else
+            {
+                s_UIState->next_hot_widget = widget->hash;
+            }
+            interaction.hovering = true;
         }
 
         interaction.clicked  = widget->clicked;
@@ -410,6 +427,11 @@ namespace Lumos
         return text;
     }
 
+    UI_Interaction UIBeginPanel(const char* str)
+    {
+        return UIBeginPanel(str, SizeKind_MaxChild, 1.0f, SizeKind_ChildSum, 1.0f, 0);
+    }
+
     UI_Interaction UIBeginPanel(const char* str, u32 extraFlags)
     {
         return UIBeginPanel(str, SizeKind_MaxChild, 1.0f, SizeKind_ChildSum, 1.0f, extraFlags);
@@ -423,23 +445,55 @@ namespace Lumos
         String8 WindowText = PushStr8F(s_UIState->UIFrameArena, "Window###window%s", (char*)text.str);
         u64 hashWindow;
         String8 WindowText2 = HandleUIString((char*)WindowText.str, &hashWindow);
-        UI_Widget* window   = PushWidget(WidgetFlags_DrawBackground | extraFlags,
+        UI_Widget* window   = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | extraFlags,
                                          WindowText2,
                                          hashWindow,
                                          { sizeKindX, xValue },
                                          { sizeKindY, yValue });
+        
+        // Enhanced panel appearance - theme aware
+        window->style_vars[StyleVar_CornerRadius] = Vec4(8.0f, 0.0f, 0.0f, 0.0f);
+        window->style_vars[StyleVar_Border]       = Vec4(1.5f, 1.5f, 0.0f, 0.0f);
+        window->style_vars[StyleVar_ShadowColor]  = Vec4(0.0f, 0.0f, 0.0f, 0.4f);
+        window->style_vars[StyleVar_ShadowOffset] = Vec4(3.0f, 3.0f, 0.0f, 0.0f);
+        window->style_vars[StyleVar_ShadowBlur]   = Vec4(6.0f, 0.0f, 0.0f, 0.0f);
+        
+        if(s_UIState->CurrentTheme == UITheme_Dark)
+        {
+            window->style_vars[StyleVar_BackgroundColor] = Vec4(0.15f, 0.15f, 0.15f, 0.98f);
+            window->style_vars[StyleVar_BorderColor]     = Vec4(0.35f, 0.35f, 0.35f, 1.0f);
+        }
+        else
+        {
+            window->style_vars[StyleVar_BackgroundColor] = Vec4(0.95f, 0.95f, 0.95f, 0.98f);
+            window->style_vars[StyleVar_BorderColor]     = Vec4(0.7f, 0.7f, 0.7f, 1.0f);
+        }
+        
         PushParent(window);
 
         String8 HeaderText = PushStr8F(s_UIState->UIFrameArena, "Header###header%s", (char*)text.str);
         u64 hashHeader;
         String8 HeaderText2 = HandleUIString((char*)HeaderText.str, &hashHeader);
         UIPushStyle(StyleVar_Padding, { 0.0f, 0.0f, 0.0f, 0.0f });
-        UI_Widget* header = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_StackVertically,
+        UI_Widget* header = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_StackVertically | WidgetFlags_DragParent,
                                        HeaderText2,
                                        hashHeader,
                                        { SizeKind_PercentOfParent, 1.0f },
                                        { SizeKind_ChildSum, 1.0f });
         UIPopStyle(StyleVar_Padding);
+        
+        // Enhanced header appearance - theme aware
+        if(s_UIState->CurrentTheme == UITheme_Dark)
+        {
+            header->style_vars[StyleVar_BackgroundColor]    = Vec4(0.20f, 0.20f, 0.20f, 1.0f);
+            header->style_vars[StyleVar_HotBackgroundColor] = Vec4(0.24f, 0.24f, 0.24f, 1.0f);
+        }
+        else
+        {
+            header->style_vars[StyleVar_BackgroundColor]    = Vec4(0.82f, 0.82f, 0.82f, 1.0f);
+            header->style_vars[StyleVar_HotBackgroundColor] = Vec4(0.78f, 0.78f, 0.78f, 1.0f);
+        }
+        
         PushParent(header);
 
         UI_Widget* title = PushWidget(WidgetFlags_DrawText,
@@ -447,6 +501,9 @@ namespace Lumos
                                       hash,
                                       { SizeKind_TextContent, 1.0f },
                                       { SizeKind_TextContent, 1.0f });
+        
+        // Enhanced title text appearance
+        title->style_vars[StyleVar_TextColor] = Vec4(0.1f, 0.1f, 0.1f, 1.0f);
 
         PopParent(header);
         return HandleWidgetInteraction(header);
@@ -455,6 +512,11 @@ namespace Lumos
     void UIEndPanel()
     {
         PopParent(GetCurrentParent());
+    }
+
+    UI_Interaction UILabelCStr(const char* str, const char* text)
+    {
+        return UILabel(str, Str8C((char*)text));
     }
 
     UI_Interaction UILabel(const char* str, const String8& text)
@@ -481,6 +543,28 @@ namespace Lumos
                                        hash,
                                        { SizeKind_TextContent, 1.0f },
                                        { SizeKind_TextContent, 1.0f });
+        
+        // Enhanced button appearance - theme aware
+        widget->style_vars[StyleVar_CornerRadius] = Vec4(4.0f, 0.0f, 0.0f, 0.0f);
+        
+        if(s_UIState->CurrentTheme == UITheme_Dark)
+        {
+            widget->style_vars[StyleVar_BackgroundColor]       = Vec4(0.25f, 0.25f, 0.25f, 1.0f);
+            widget->style_vars[StyleVar_HotBackgroundColor]    = Vec4(0.30f, 0.30f, 0.30f, 1.0f);
+            widget->style_vars[StyleVar_ActiveBackgroundColor] = Vec4(0.35f, 0.35f, 0.35f, 1.0f);
+            widget->style_vars[StyleVar_BorderColor]           = Vec4(0.45f, 0.45f, 0.45f, 1.0f);
+            widget->style_vars[StyleVar_HotBorderColor]        = Vec4(0.5f, 0.65f, 0.9f, 1.0f);
+            widget->style_vars[StyleVar_ActiveBorderColor]     = Vec4(0.4f, 0.55f, 0.85f, 1.0f);
+        }
+        else
+        {
+            widget->style_vars[StyleVar_BackgroundColor]       = Vec4(0.85f, 0.85f, 0.85f, 1.0f);
+            widget->style_vars[StyleVar_HotBackgroundColor]    = Vec4(0.75f, 0.75f, 0.75f, 1.0f);
+            widget->style_vars[StyleVar_ActiveBackgroundColor] = Vec4(0.65f, 0.65f, 0.65f, 1.0f);
+            widget->style_vars[StyleVar_BorderColor]           = Vec4(0.6f, 0.6f, 0.6f, 1.0f);
+            widget->style_vars[StyleVar_HotBorderColor]        = Vec4(0.5f, 0.65f, 0.9f, 1.0f);
+            widget->style_vars[StyleVar_ActiveBorderColor]     = Vec4(0.4f, 0.55f, 0.85f, 1.0f);
+        }
 
         return HandleWidgetInteraction(widget);
     }
@@ -504,88 +588,132 @@ namespace Lumos
     UI_Interaction UISlider(const char* str,
                             float* value,
                             float min_value,
-                            float max_value)
+                            float max_value,
+                            float width,
+                            float height,
+                            float handleSizeFraction)
     {
         u64 hash;
         String8 text = HandleUIString(str, &hash);
-
+ 
         String8 spacerText = PushStr8F(s_UIState->UIFrameArena, "spacer###spacer%s", (char*)text.str);
         u64 hashSpacer;
         String8 SpacerText2 = HandleUIString((char*)spacerText.str, &hashSpacer);
-
+ 
         UI_Widget* spacer = PushWidget(WidgetFlags_StackHorizontally,
                                        SpacerText2,
                                        hashSpacer,
                                        { SizeKind_ChildSum, 1.0f },
                                        { SizeKind_MaxChild, 1.0f });
-
+ 
         UI_Interaction slider_interaction = {};
-
+ 
         PushParent(spacer);
         {
-            float lSliderWidth  = 250.0f;
-            float lSliderHeight = 20.0f;
+            float lSliderWidth  = width;
+            float lSliderHeight = height;
             String8 parentText  = PushStr8F(s_UIState->UIFrameArena, "parent###parent%s", (char*)text.str);
-            UI_Widget* parent   = PushWidget(WidgetFlags_Clickable | WidgetFlags_DrawBorder | WidgetFlags_DrawBackground,
+            UI_Widget* parent   = PushWidget(WidgetFlags_Clickable | WidgetFlags_DrawBorder | WidgetFlags_DrawBackground | WidgetFlags_CentreY,
                                              text,
                                              HashUIStr8Name(parentText),
                                              { SizeKind_Pixels, lSliderWidth },
                                              { SizeKind_Pixels, lSliderHeight });
-
-            UI_Interaction parent_interaction = HandleWidgetInteraction(parent);
-            PushParent(parent);
-
-            UI_Widget* slider                    = PushWidget(WidgetFlags_Clickable | WidgetFlags_DrawBorder | WidgetFlags_DrawBackground | WidgetFlags_Floating_X | WidgetFlags_Draggable,
-                                                              text,
-                                                              hash,
-                                                              { SizeKind_PercentOfParent, 0.1f },
-                                                              { SizeKind_PercentOfParent, 1.0f });
-            slider->style_vars[StyleVar_Border]  = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
-            slider->style_vars[StyleVar_Padding] = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
-            slider_interaction                   = HandleWidgetInteraction(slider);
-
-            PopParent(parent);
-
-            slider->drag_constraint_y = true;
-
-            *value         = Maths::Clamp(*value, min_value, max_value);
-            Vec2& slider_p = slider->relative_position;
-
-            f32 slider_x      = slider->position.x;
-            f32 parent_x      = parent->position.x;
-            f32 slider_size_x = slider->size.x;
-            f32 parent_size_x = parent->size.x;
-
-            if(parent_interaction.clicked)
+            
+            // Enhanced slider track appearance - theme aware
+            parent->style_vars[StyleVar_CornerRadius] = Vec4(4.0f, 0.0f, 0.0f, 0.0f);
+            
+            if(s_UIState->CurrentTheme == UITheme_Dark)
             {
-                const Vec2& mouse = Input::Get().GetMousePosition() * s_UIState->DPIScale - s_UIState->InputOffset; // s_UIState->input->mouse_position;
-                f32 t             = (mouse.x - parent_x) / (parent_size_x - slider_size_x);
-                *value            = min_value + (max_value - min_value) * t;
-            }
-
-            f32 t = 0.0f;
-            if(slider->dragging)
-            {
-                t      = (slider_x - parent_x) / (lSliderWidth - 0.1f * lSliderWidth);
-                *value = min_value + (max_value - min_value) * t;
+                parent->style_vars[StyleVar_BackgroundColor] = Vec4(0.25f, 0.25f, 0.25f, 1.0f);
+                parent->style_vars[StyleVar_BorderColor]     = Vec4(0.4f, 0.4f, 0.4f, 1.0f);
             }
             else
             {
-                t          = (*value - min_value) / (max_value - min_value);
-                slider_p.x = t * (lSliderWidth - 0.1f * lSliderWidth);
+                parent->style_vars[StyleVar_BackgroundColor] = Vec4(0.7f, 0.7f, 0.7f, 1.0f);
+                parent->style_vars[StyleVar_BorderColor]     = Vec4(0.5f, 0.5f, 0.5f, 1.0f);
+            }
+ 
+            UI_Interaction parent_interaction = HandleWidgetInteraction(parent);
+            PushParent(parent);
+ 
+            UI_Widget* slider                    = PushWidget(WidgetFlags_Clickable | WidgetFlags_DrawBorder | WidgetFlags_DrawBackground | WidgetFlags_Floating_X | WidgetFlags_Draggable,
+                                                              text,
+                                                              hash,
+                                                              { SizeKind_PercentOfParent, handleSizeFraction },
+                                                              { SizeKind_PercentOfParent, 1.0f });
+            
+            // Enhanced slider handle appearance - theme aware
+            slider->style_vars[StyleVar_Border]       = Vec4(2.0f, 2.0f, 0.0f, 0.0f);
+            slider->style_vars[StyleVar_Padding]      = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+            slider->style_vars[StyleVar_CornerRadius] = Vec4(8.0f, 0.0f, 0.0f, 0.0f);
+            
+            if(s_UIState->CurrentTheme == UITheme_Dark)
+            {
+                slider->style_vars[StyleVar_BorderColor]           = Vec4(0.5f, 0.5f, 0.5f, 1.0f);
+                slider->style_vars[StyleVar_BackgroundColor]       = Vec4(0.35f, 0.35f, 0.35f, 1.0f);
+                slider->style_vars[StyleVar_HotBorderColor]        = Vec4(0.4f, 0.6f, 1.0f, 1.0f);
+                slider->style_vars[StyleVar_HotBackgroundColor]    = Vec4(0.40f, 0.40f, 0.40f, 1.0f);
+                slider->style_vars[StyleVar_ActiveBorderColor]     = Vec4(0.2f, 0.4f, 0.9f, 1.0f);
+                slider->style_vars[StyleVar_ActiveBackgroundColor] = Vec4(0.45f, 0.45f, 0.45f, 1.0f);
+            }
+            else
+            {
+                slider->style_vars[StyleVar_BorderColor]           = Vec4(0.3f, 0.3f, 0.3f, 1.0f);
+                slider->style_vars[StyleVar_BackgroundColor]       = Vec4(0.9f, 0.9f, 0.9f, 1.0f);
+                slider->style_vars[StyleVar_HotBorderColor]        = Vec4(0.4f, 0.6f, 1.0f, 1.0f);
+                slider->style_vars[StyleVar_HotBackgroundColor]    = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+                slider->style_vars[StyleVar_ActiveBorderColor]     = Vec4(0.2f, 0.4f, 0.9f, 1.0f);
+                slider->style_vars[StyleVar_ActiveBackgroundColor] = Vec4(0.95f, 0.95f, 0.95f, 1.0f);
+            }
+            slider_interaction                             = HandleWidgetInteraction(slider);
+ 
+            PopParent(parent);
+ 
+            slider->drag_constraint_y = true;
+ 
+            // Clamp input value first
+            *value = Maths::Clamp(*value, min_value, max_value);
+ 
+            // Use parent size and fraction to compute slider width
+            f32 parent_x      = parent->position.x;
+            f32 parent_size_x = parent->size.x;
+            f32 slider_size_x = parent_size_x * handleSizeFraction;
+
+
+            // Helper: get mouse in UI coords
+            Vec2 mouse = Input::Get().GetMousePosition() * s_UIState->DPIScale - s_UIState->InputOffset;
+
+            // If clicked on the parent track, set value based on mouse position
+            if(parent_interaction.clicked)
+            {
+                f32 t  = (mouse.x - parent_x - slider_size_x * 0.5f) / (parent_size_x - slider_size_x);
+                t      = Maths::Clamp(t, 0.0f, 1.0f);
+                *value = min_value + (max_value - min_value) * t;
             }
 
-            *value = Maths::Clamp(*value, min_value, max_value);
-            t      = Maths::Clamp(t, 0.0f, 1.0f);
+            // Compute t from value, unless dragging, in which case use mouse pos
+            f32 t = (*value - min_value) / (max_value - min_value);
+            if(slider->dragging)
+            {
+                Vec2 dragMouse = Input::Get().GetMousePosition() * s_UIState->DPIScale - s_UIState->InputOffset;
+                t              = (dragMouse.x - parent_x - slider_size_x * 0.5f) / (parent_size_x - slider_size_x);
+            }
 
-            String8 slider_text                 = PushStr8F(s_UIState->UIFrameArena, "%.2f - %s", *value, (const char*)text.str);
-            String8 text                        = HandleUIString((char*)slider_text.str, &hash);
-            slider->relative_position[UIAxis_X] = lSliderWidth * t - (0.1f * lSliderWidth * 0.5f);
-            UI_Widget* widget                   = PushWidget(WidgetFlags_DrawText,
-                                                             text,
-                                                             hash,
-                                                             { SizeKind_TextContent, 1.0f },
-                                                             { SizeKind_TextContent, 1.0f });
+            // Final clamp and apply
+            t      = Maths::Clamp(t, 0.0f, 1.0f);
+            *value = Maths::Clamp(min_value + (max_value - min_value) * t, min_value, max_value);
+
+            // Place the slider so it stays within the parent (relative position)
+            slider->relative_position[UIAxis_X] = t * (parent_size_x - slider_size_x);
+
+            // Render text showing the value
+            String8 slider_text  = PushStr8F(s_UIState->UIFrameArena, "%.2f - %s", *value, (const char*)text.str);
+            String8 slider_label = HandleUIString((char*)slider_text.str, &hash);
+            UI_Widget* widget    = PushWidget(WidgetFlags_DrawText,
+                                              slider_label,
+                                              hash,
+                                              { SizeKind_TextContent, 1.0f },
+                                              { SizeKind_TextContent, 1.0f });
         }
         PopParent(spacer);
 
@@ -619,6 +747,10 @@ namespace Lumos
                                                hash,
                                                { SizeKind_Pixels, text_size },
                                                { SizeKind_Pixels, text_size });
+            
+            // Enhanced toggle appearance
+            toggle_box->style_vars[StyleVar_CornerRadius] = Vec4(4.0f, 0.0f, 0.0f, 0.0f);
+            toggle_box->style_vars[StyleVar_Border]       = Vec4(2.0f, 2.0f, 0.0f, 0.0f);
 
             interaction = HandleWidgetInteraction(toggle_box);
             if(interaction.clicked)
@@ -628,15 +760,35 @@ namespace Lumos
 
             if(*value)
             {
-                toggle_box->style_vars[StyleVar_BackgroundColor]       = { 0.0f, 0.0f, 0.0f, 1.0f };
-                toggle_box->style_vars[StyleVar_HotBackgroundColor]    = { 0.0f, 0.0f, 0.0f, 1.0f };
-                toggle_box->style_vars[StyleVar_ActiveBackgroundColor] = { 0.0f, 0.0f, 0.0f, 1.0f };
+                // Checked state - use accent color (same for both themes)
+                toggle_box->style_vars[StyleVar_BackgroundColor]       = { 0.3f, 0.6f, 0.95f, 1.0f };
+                toggle_box->style_vars[StyleVar_HotBackgroundColor]    = { 0.35f, 0.65f, 1.0f, 1.0f };
+                toggle_box->style_vars[StyleVar_ActiveBackgroundColor] = { 0.25f, 0.55f, 0.9f, 1.0f };
+                toggle_box->style_vars[StyleVar_BorderColor]           = { 0.2f, 0.5f, 0.85f, 1.0f };
+                toggle_box->style_vars[StyleVar_HotBorderColor]        = { 0.25f, 0.55f, 0.9f, 1.0f };
+                toggle_box->style_vars[StyleVar_ActiveBorderColor]     = { 0.15f, 0.45f, 0.8f, 1.0f };
             }
             else
             {
-                toggle_box->style_vars[StyleVar_BackgroundColor]       = { 1.0f, 1.0f, 1.0f, 1.0f };
-                toggle_box->style_vars[StyleVar_HotBackgroundColor]    = { 1.0f, 1.0f, 1.0f, 1.0f };
-                toggle_box->style_vars[StyleVar_ActiveBackgroundColor] = { 1.0f, 1.0f, 1.0f, 1.0f };
+                // Unchecked state - theme aware
+                if(s_UIState->CurrentTheme == UITheme_Dark)
+                {
+                    toggle_box->style_vars[StyleVar_BackgroundColor]       = { 0.25f, 0.25f, 0.25f, 1.0f };
+                    toggle_box->style_vars[StyleVar_HotBackgroundColor]    = { 0.30f, 0.30f, 0.30f, 1.0f };
+                    toggle_box->style_vars[StyleVar_ActiveBackgroundColor] = { 0.35f, 0.35f, 0.35f, 1.0f };
+                    toggle_box->style_vars[StyleVar_BorderColor]           = { 0.5f, 0.5f, 0.5f, 1.0f };
+                    toggle_box->style_vars[StyleVar_HotBorderColor]        = { 0.55f, 0.55f, 0.55f, 1.0f };
+                    toggle_box->style_vars[StyleVar_ActiveBorderColor]     = { 0.6f, 0.6f, 0.6f, 1.0f };
+                }
+                else
+                {
+                    toggle_box->style_vars[StyleVar_BackgroundColor]       = { 0.95f, 0.95f, 0.95f, 1.0f };
+                    toggle_box->style_vars[StyleVar_HotBackgroundColor]    = { 0.9f, 0.9f, 0.9f, 1.0f };
+                    toggle_box->style_vars[StyleVar_ActiveBackgroundColor] = { 0.85f, 0.85f, 0.85f, 1.0f };
+                    toggle_box->style_vars[StyleVar_BorderColor]           = { 0.6f, 0.6f, 0.6f, 1.0f };
+                    toggle_box->style_vars[StyleVar_HotBorderColor]        = { 0.5f, 0.5f, 0.5f, 1.0f };
+                    toggle_box->style_vars[StyleVar_ActiveBorderColor]     = { 0.4f, 0.4f, 0.4f, 1.0f };
+                }
             }
 
             String8 labelText = PushStr8F(s_UIState->UIFrameArena, "label###label%s", (char*)text.str);
@@ -650,6 +802,17 @@ namespace Lumos
         PopParent(spacer);
 
         return interaction;
+    }
+
+    // Easing functions for smooth animations
+    static float EaseOutCubic(float t)
+    {
+        return 1.0f - powf(1.0f - t, 3.0f);
+    }
+
+    static float EaseInOutCubic(float t)
+    {
+        return t < 0.5f ? 4.0f * t * t * t : 1.0f - powf(-2.0f * t + 2.0f, 3.0f) / 2.0f;
     }
 
     Vec2 GetStringSize(String8 text, float size)
@@ -835,8 +998,7 @@ namespace Lumos
                     }
 
                     Child->relative_position[Axis] = LayoutPosition + xOffset;
-
-                    LayoutPosition += (Parent->flags & WidgetFlags_StackHorizontally ? 1 : 0) * (Child->size[Axis] + xOffset);
+                    LayoutPosition += (Parent->flags & WidgetFlags_StackHorizontally ? 1 : 0) * Child->size[Axis];
                 }
                 if(Axis == UIAxis_Y && !(Child->flags & WidgetFlags_Floating_Y))
                 {
@@ -847,7 +1009,7 @@ namespace Lumos
                     }
 
                     Child->relative_position[Axis] = LayoutPosition + yOffset;
-                    LayoutPosition += /*(Axis == Parent->LayoutingAxis)*/ (Parent->flags & WidgetFlags_StackVertically ? 1 : 0) * (Child->size[Axis] + yOffset);
+                    LayoutPosition += (Parent->flags & WidgetFlags_StackVertically ? 1 : 0) * Child->size[Axis];
                 }
 
                 Vec2 padding = Child->style_vars[StyleVar_Padding].ToVector2();
@@ -880,10 +1042,16 @@ namespace Lumos
 
     void UIBeginBuild()
     {
+        LUMOS_PROFILE_FUNCTION();
+        // Mark the beginning of UI building phase
+        // This can be used for validation or setup if needed
     }
 
     void UIEndBuild()
     {
+        LUMOS_PROFILE_FUNCTION();
+        // Mark the end of UI building phase
+        // This can be used for validation or cleanup if needed
     }
 
     void UILayoutRoot(UI_Widget* Root)
@@ -910,6 +1078,9 @@ namespace Lumos
 
     void UIAnimate()
     {
+        LUMOS_PROFILE_FUNCTION();
+        // Animation transitions are handled in UIEndFrame()
+        // This function is kept for future animation features or as a hook point
     }
 
     void RefreshUI()
@@ -1034,4 +1205,57 @@ namespace Lumos
 Lumos::UI_State* Lumos::GetUIState()
 {
     return Lumos::s_UIState;
+}
+
+namespace Lumos
+{
+    void UIApplyLightTheme()
+    {
+        Style_Variable_List* style_variable_lists = s_UIState->style_variable_lists;
+        
+        style_variable_lists[StyleVar_Padding].first->value               = { 10.0f, 10.0f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_Border].first->value                = { 1.5f, 1.5f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_BorderColor].first->value           = { 0.65f, 0.65f, 0.65f, 1.0f };
+        style_variable_lists[StyleVar_BackgroundColor].first->value       = { 0.92f, 0.92f, 0.92f, 1.0f };
+        style_variable_lists[StyleVar_TextColor].first->value             = { 0.15f, 0.15f, 0.15f, 1.0f };
+        style_variable_lists[StyleVar_HotBorderColor].first->value        = { 0.5f, 0.65f, 0.95f, 1.0f };
+        style_variable_lists[StyleVar_HotBackgroundColor].first->value    = { 0.88f, 0.88f, 0.88f, 1.0f };
+        style_variable_lists[StyleVar_HotTextColor].first->value          = { 0.1f, 0.1f, 0.1f, 1.0f };
+        style_variable_lists[StyleVar_ActiveBorderColor].first->value     = { 0.4f, 0.55f, 0.9f, 1.0f };
+        style_variable_lists[StyleVar_ActiveBackgroundColor].first->value = { 0.82f, 0.82f, 0.82f, 1.0f };
+        style_variable_lists[StyleVar_ActiveTextColor].first->value       = { 0.05f, 0.05f, 0.05f, 1.0f };
+        
+        s_UIState->CurrentTheme = UITheme_Light;
+    }
+    
+    void UIApplyDarkTheme()
+    {
+        Style_Variable_List* style_variable_lists = s_UIState->style_variable_lists;
+        
+        style_variable_lists[StyleVar_Padding].first->value               = { 10.0f, 10.0f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_Border].first->value                = { 1.5f, 1.5f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_BorderColor].first->value           = { 0.4f, 0.4f, 0.4f, 1.0f };
+        style_variable_lists[StyleVar_BackgroundColor].first->value       = { 0.18f, 0.18f, 0.18f, 1.0f };
+        style_variable_lists[StyleVar_TextColor].first->value             = { 0.9f, 0.9f, 0.9f, 1.0f };
+        style_variable_lists[StyleVar_HotBorderColor].first->value        = { 0.45f, 0.6f, 0.95f, 1.0f };
+        style_variable_lists[StyleVar_HotBackgroundColor].first->value    = { 0.24f, 0.24f, 0.24f, 1.0f };
+        style_variable_lists[StyleVar_HotTextColor].first->value          = { 0.95f, 0.95f, 0.95f, 1.0f };
+        style_variable_lists[StyleVar_ActiveBorderColor].first->value     = { 0.35f, 0.5f, 0.9f, 1.0f };
+        style_variable_lists[StyleVar_ActiveBackgroundColor].first->value = { 0.28f, 0.28f, 0.28f, 1.0f };
+        style_variable_lists[StyleVar_ActiveTextColor].first->value       = { 1.0f, 1.0f, 1.0f, 1.0f };
+        
+        s_UIState->CurrentTheme = UITheme_Dark;
+    }
+    
+    void UISetTheme(UITheme theme)
+    {
+        if(theme == UITheme_Light)
+        {
+            UIApplyLightTheme();
+        }
+        else if(theme == UITheme_Dark)
+        {
+            UIApplyDarkTheme();
+        }
+    }
 }

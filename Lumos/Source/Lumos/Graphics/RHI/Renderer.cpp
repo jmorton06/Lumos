@@ -171,7 +171,7 @@ namespace Lumos
                 LoadShaderFromFile(Str8Lit("DepthPrePassAnim"), "Shaders/DepthPrePassAnim.shader");
                 LoadShaderFromFile(Str8Lit("DepthPrePassAlphaAnim"), "Shaders/DepthPrePassAlphaAnim.shader")
 
-                if(Renderer::GetCapabilities().SupportCompute)
+                    if(Renderer::GetCapabilities().SupportCompute)
                 {
                     LoadShaderFromFile(Str8Lit("FXAAComp"), "Shaders/FXAACompute.shader");
                     LoadShaderFromFile(Str8Lit("BloomComp"), "Shaders/BloomComp.shader");

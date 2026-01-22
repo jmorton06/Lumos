@@ -61,5 +61,10 @@ namespace Lumos
         {
             return Maths::IsNaN(x) || Maths::IsNaN(y) || Maths::IsNaN(z);
         }
+
+        bool Vector3::IsZero() const
+        {
+            return Maths::IsZero(x) || Maths::IsZero(y) || Maths::IsZero(z);
+        }
     }
 }

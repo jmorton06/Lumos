@@ -13,6 +13,7 @@ inline PFN_vkCmdEndDebugUtilsLabelEXT fpCmdEndDebugUtilsLabelEXT;
 inline PFN_vkSetDebugUtilsObjectNameEXT fpSetDebugUtilsObjectNameEXT;
 
 #ifdef USE_VMA_ALLOCATOR
+
 #ifdef LUMOS_DEBUG
 #define VMA_DEBUG_MARGIN 16
 #define VMA_DEBUG_DETECT_CORRUPTION 1
@@ -37,7 +38,7 @@ static char VMA_LOG_BUFFER[100];
     void(0)
 #endif
 
-#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
+#if defined(CAP_VK_VERSION_12) && (defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS))
 #undef VMA_VULKAN_VERSION
 
 // Cap version to 1.2 for apple devices
@@ -52,5 +53,6 @@ static char VMA_LOG_BUFFER[100];
 #define VMA_VULKAN_VERSION 1000000
 #endif
 #endif
+
 #include <vulkan/vk_mem_alloc.h>
 #endif

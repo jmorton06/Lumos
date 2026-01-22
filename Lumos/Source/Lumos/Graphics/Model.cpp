@@ -8,7 +8,6 @@
 #include "Animation/Animation.h"
 #include "Animation/AnimationController.h"
 #include "Animation/SamplingContext.h"
-#include "AI/AStar.h"
 
 namespace Lumos::Graphics
 {
@@ -51,13 +50,13 @@ namespace Lumos::Graphics
     void Model::LoadModel(const std::string& path)
     {
         LUMOS_PROFILE_FUNCTION();
-		ArenaTemp Scratch = ScratchBegin(0,0);
+        ArenaTemp Scratch = ScratchBegin(0, 0);
 
         String8 physicalPath;
         if(!Lumos::FileSystem::Get().ResolvePhysicalPath(Scratch.arena, Str8StdS(path), &physicalPath))
         {
             LINFO("Failed to load Model - %s", path.c_str());
-			ScratchEnd(Scratch);
+            ScratchEnd(Scratch);
             return;
         }
 
@@ -75,7 +74,7 @@ namespace Lumos::Graphics
             LERROR("Unsupported File Type : %s", fileExtension.c_str());
 
         LINFO("Loaded Model - %s", path.c_str());
-		ScratchEnd(Scratch);
+        ScratchEnd(Scratch);
     }
 
     void Model::UpdateAnimation(const TimeStep& dt)

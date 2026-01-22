@@ -40,8 +40,13 @@ namespace Lumos
 
             if(s_CommandLine.OptionBool(Str8Lit("help")))
             {
-                LINFO("Print this help. This help message is actually so long "
-                      "that it requires a line break!");
+                LINFO(
+                    "Available command-line options:\n"
+                    "  --EnableVulkanValidation   Enable Vulkan API validation layers\n"
+                    "  --CleanEditorIni           Delete the editor’s INI file on startup\n"
+                    "  --help                     Show this help message\n"
+                    "  --disable-spash            Disable Splash Screen\n"
+                    "  --test-maths               Test Maths Library\n");
             }
 
             // Init Jobsystem. Reserve 2 threads for main and render threads

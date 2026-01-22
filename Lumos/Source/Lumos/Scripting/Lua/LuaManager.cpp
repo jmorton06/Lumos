@@ -21,6 +21,7 @@
 #include "Graphics/AnimatedSprite.h"
 #include "Graphics/Light.h"
 #include "Graphics/RHI/Texture.h"
+#include "Graphics/ParticleManager.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Model.h"
 #include "Graphics/Material.h"
@@ -213,9 +214,12 @@ namespace Lumos
             "SetActive",
             "Active",
             "GetEntityByName",
+            "GetAllEntities",
+            "EachEntity",
             "AddPyramidEntity",
             "AddSphereEntity",
             "AddLightCubeEntity",
+            "AddPlatform",
             "NameComponent",
             "GetNameComponent",
             "GetCurrentEntity",
@@ -305,7 +309,7 @@ namespace Lumos
     {
         auto& state = *m_State;
 
-		ArenaTemp Scratch = ScratchBegin(0,0);
+        ArenaTemp Scratch = ScratchBegin(0, 0);
         String8 ScriptsPath;
         FileSystem::Get().ResolvePhysicalPath(Scratch.arena, Str8Lit("//Assets/Scripts"), &ScriptsPath);
 
@@ -317,7 +321,7 @@ namespace Lumos
         std::string currentPaths = state["package"]["path"];
         state["package"]["path"] = std::string(package_path.string()) + currentPaths;
 
-		ScratchEnd(Scratch);
+        ScratchEnd(Scratch);
     }
 
     Entity GetEntityByName(Scene* scene, const std::string& name)
@@ -335,6 +339,64 @@ namespace Lumos
         if(e == entt::null)
             LWARN("Failed to find entity %s", name.c_str());
         return { e, scene };
+    }
+
+    sol::table GetAllEntities(sol::this_state s)
+    {
+        sol::state_view lua(s);
+        sol::table result = lua.create_table();
+
+        Scene* scene = Application::Get().GetCurrentScene();
+        if(scene)
+        {
+            auto& registry = scene->GetRegistry();
+            int i = 1;
+            registry.each([&](entt::entity e) {
+                result[i++] = Entity(e, scene);
+            });
+        }
+        return result;
+    }
+
+    std::tuple<sol::object, sol::object, sol::object> EachEntity(sol::this_state s)
+    {
+        sol::state_view lua(s);
+        Scene* scene = Application::Get().GetCurrentScene();
+
+        sol::object nilObj = sol::make_object(lua, sol::lua_nil);
+
+        if(!scene)
+            return std::make_tuple(nilObj, nilObj, nilObj);
+
+        auto entities = std::make_shared<std::vector<entt::entity>>();
+        scene->GetRegistry().each([&](entt::entity e) {
+            entities->push_back(e);
+        });
+
+        Scene* scenePtr = scene;
+
+        sol::function iterator = lua.script(R"(
+            return function(state, _)
+                local idx = state.index
+                if idx > #state.entities then
+                    return nil
+                end
+                state.index = idx + 1
+                return state.entities[idx]
+            end
+        )");
+
+        sol::table state = lua.create_table();
+        sol::table entitiesTable = lua.create_table();
+        int i = 1;
+        for(auto e : *entities)
+        {
+            entitiesTable[i++] = Entity(e, scenePtr);
+        }
+        state["entities"] = entitiesTable;
+        state["index"] = 1;
+
+        return std::make_tuple(sol::make_object(lua, iterator), sol::make_object(lua, state), nilObj);
     }
 
     void LuaManager::BindLogLua(sol::state& state)
@@ -533,10 +595,13 @@ namespace Lumos
         entityType.set_function("Active", &Entity::Active);
 
         state.set_function("GetEntityByName", &GetEntityByName);
+        state.set_function("GetAllEntities", &GetAllEntities);
+        state.set_function("EachEntity", &EachEntity);
 
         state.set_function("AddPyramidEntity", &EntityFactory::AddPyramid);
         state.set_function("AddSphereEntity", &EntityFactory::AddSphere);
         state.set_function("AddLightCubeEntity", &EntityFactory::AddLightCube);
+        state.set_function("AddPlatform", &EntityFactory::AddPlatform);
 
         sol::usertype<NameComponent> nameComponent_type = state.new_usertype<NameComponent>("NameComponent");
         nameComponent_type["name"]                      = &NameComponent::name;
@@ -587,6 +652,66 @@ namespace Lumos
         lightType.set_function("Angle", &Light::Angle);
 
         REGISTER_COMPONENT_WITH_ECS(state, Light, static_cast<Light& (Entity::*)()>(&Entity::AddComponent<Light>));
+
+        {
+            std::initializer_list<std::pair<sol::string_view, ParticleEmitter::BlendType>> blendItems = {
+                { "Additive", ParticleEmitter::BlendType::Additive },
+                { "Alpha", ParticleEmitter::BlendType::Alpha },
+                { "Off", ParticleEmitter::BlendType::Off }
+            };
+            state.new_enum<ParticleEmitter::BlendType, false>("ParticleBlendType", blendItems);
+
+            std::initializer_list<std::pair<sol::string_view, ParticleEmitter::AlignedType>> alignedItems = {
+                { "Aligned2D", ParticleEmitter::AlignedType::Aligned2D },
+                { "Aligned3D", ParticleEmitter::AlignedType::Aligned3D },
+                { "None", ParticleEmitter::AlignedType::None }
+            };
+            state.new_enum<ParticleEmitter::AlignedType, false>("ParticleAlignedType", alignedItems);
+
+            sol::usertype<ParticleEmitter> particleEmitter_type = state.new_usertype<ParticleEmitter>("ParticleEmitter",
+                                                                                                      sol::constructors<ParticleEmitter(), ParticleEmitter(uint32_t)>());
+
+            particleEmitter_type.set_function("Update", &ParticleEmitter::Update);
+            particleEmitter_type.set_function("SetTextureFromFile", &ParticleEmitter::SetTextureFromFile);
+
+            particleEmitter_type.set_function("GetParticleCount", &ParticleEmitter::GetParticleCount);
+            particleEmitter_type.set_function("GetParticleLife", &ParticleEmitter::GetParticleLife);
+            particleEmitter_type.set_function("GetParticleSize", &ParticleEmitter::GetParticleSize);
+            particleEmitter_type.set_function("GetParticleRate", &ParticleEmitter::GetParticleRate);
+            particleEmitter_type.set_function("GetNumLaunchParticles", &ParticleEmitter::GetNumLaunchParticles);
+            particleEmitter_type.set_function("GetIsAnimated", &ParticleEmitter::GetIsAnimated);
+            particleEmitter_type.set_function("GetAnimatedTextureRows", &ParticleEmitter::GetAnimatedTextureRows);
+            particleEmitter_type.set_function("GetSortParticles", &ParticleEmitter::GetSortParticles);
+            particleEmitter_type.set_function("GetBlendType", &ParticleEmitter::GetBlendType);
+            particleEmitter_type.set_function("GetFadeIn", &ParticleEmitter::GetFadeIn);
+            particleEmitter_type.set_function("GetFadeOut", &ParticleEmitter::GetFadeOut);
+            particleEmitter_type.set_function("GetLifeSpread", &ParticleEmitter::GetLifeSpread);
+            particleEmitter_type.set_function("GetAlignedType", &ParticleEmitter::GetAlignedType);
+            particleEmitter_type.set_function("GetDepthWrite", &ParticleEmitter::GetDepthWrite);
+
+            particleEmitter_type.set_function("SetParticleCount", &ParticleEmitter::SetParticleCount);
+            particleEmitter_type.set_function("SetParticleLife", &ParticleEmitter::SetParticleLife);
+            particleEmitter_type.set_function("SetParticleSize", &ParticleEmitter::SetParticleSize);
+            particleEmitter_type.set_function("SetInitialVelocity", &ParticleEmitter::SetInitialVelocity);
+            particleEmitter_type.set_function("SetInitialColour", &ParticleEmitter::SetInitialColour);
+            particleEmitter_type.set_function("SetSpread", &ParticleEmitter::SetSpread);
+            particleEmitter_type.set_function("SetVelocitySpread", &ParticleEmitter::SetVelocitySpread);
+            particleEmitter_type.set_function("SetGravity", &ParticleEmitter::SetGravity);
+            particleEmitter_type.set_function("SetNextParticleTime", &ParticleEmitter::SetNextParticleTime);
+            particleEmitter_type.set_function("SetParticleRate", &ParticleEmitter::SetParticleRate);
+            particleEmitter_type.set_function("SetNumLaunchParticles", &ParticleEmitter::SetNumLaunchParticles);
+            particleEmitter_type.set_function("SetIsAnimated", &ParticleEmitter::SetIsAnimated);
+            particleEmitter_type.set_function("SetAnimatedTextureRows", &ParticleEmitter::SetAnimatedTextureRows);
+            particleEmitter_type.set_function("SetSortParticles", &ParticleEmitter::SetSortParticles);
+            particleEmitter_type.set_function("SetBlendType", &ParticleEmitter::SetBlendType);
+            particleEmitter_type.set_function("SetFadeIn", &ParticleEmitter::SetFadeIn);
+            particleEmitter_type.set_function("SetFadeOut", &ParticleEmitter::SetFadeOut);
+            particleEmitter_type.set_function("SetLifeSpread", &ParticleEmitter::SetLifeSpread);
+            particleEmitter_type.set_function("SetAlignedType", &ParticleEmitter::SetAlignedType);
+            particleEmitter_type.set_function("SetDepthWrite", &ParticleEmitter::SetDepthWrite);
+        }
+
+        REGISTER_COMPONENT_WITH_ECS(state, ParticleEmitter, static_cast<ParticleEmitter& (Entity::*)()>(&Entity::AddComponent<ParticleEmitter>));
 
         std::initializer_list<std::pair<sol::string_view, Lumos::Graphics::PrimitiveType>> primitives = {
             { "Cube", Lumos::Graphics::PrimitiveType::Cube },
@@ -755,6 +880,11 @@ namespace Lumos
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(flags);
     }
 
+    static void ExitApp()
+    {
+        Application::Get().ExitApp();
+    }
+
     void LuaManager::BindAppLua(sol::state& state)
     {
         sol::usertype<Application> app_type = state.new_usertype<Application>("Application");
@@ -762,6 +892,7 @@ namespace Lumos
         state.set_function("SwitchSceneByName", &SwitchSceneByName);
         state.set_function("SwitchScene", &SwitchScene);
         state.set_function("SetPhysicsDebugFlags", &SetPhysicsDebugFlags);
+        state.set_function("ExitApp", &ExitApp);
 
         std::initializer_list<std::pair<sol::string_view, Lumos::PhysicsDebugFlags>> physicsDebugFlags = {
             { "CONSTRAINT", Lumos::PhysicsDebugFlags::CONSTRAINT },
@@ -796,7 +927,8 @@ namespace Lumos
                      "Floating_X", Lumos::WidgetFlags_Floating_X,
                      "Floating_Y", Lumos::WidgetFlags_Floating_Y,
                      "CentreX", Lumos::WidgetFlags_CentreX,
-                     "CentreY", Lumos::WidgetFlags_CentreY);
+                     "CentreY", Lumos::WidgetFlags_CentreY,
+                     "DragParent", Lumos::WidgetFlags_DragParent);
 
         lua.new_enum("UITextAlignment",
                      "None", Lumos::UI_Text_Alignment_None,
@@ -879,6 +1011,7 @@ namespace Lumos
         lua["UIBeginFrame"]  = &Lumos::UIBeginFrame;
         lua["UIEndFrame"]    = &Lumos::UIEndFrame;
         lua["UIBeginPanel"]  = sol::overload(
+            static_cast<Lumos::UI_Interaction (*)(const char*)>(&Lumos::UIBeginPanel),
             static_cast<Lumos::UI_Interaction (*)(const char*, u32)>(&Lumos::UIBeginPanel),
             static_cast<Lumos::UI_Interaction (*)(const char*, Lumos::SizeKind, float, Lumos::SizeKind, float, u32)>(&Lumos::UIBeginPanel));
         lua["UIEndPanel"]  = &Lumos::UIEndPanel;
@@ -888,13 +1021,19 @@ namespace Lumos
             static_cast<void (*)(Lumos::StyleVar, const Vec3&)>(&Lumos::UIPushStyle),
             static_cast<void (*)(Lumos::StyleVar, const Vec4&)>(&Lumos::UIPushStyle));
 
-        lua["UIPopStyle"]   = &Lumos::UIPopStyle;
-        lua["UILabel"]      = &Lumos::UILabel;
-        lua["UIButton"]     = &Lumos::UIButton;
-        lua["UIImage"]      = &Lumos::UIImage;
-        lua["UISlider"]     = &Lumos::UISlider;
-        lua["UIToggle"]     = &Lumos::UIToggle;
+        lua["UIPopStyle"] = &Lumos::UIPopStyle;
+        lua["UILabel"]    = &Lumos::UILabelCStr;
+        lua["UIButton"]   = &Lumos::UIButton;
+        lua["UIImage"]    = &Lumos::UIImage;
+        lua["UISlider"]   = &Lumos::UISlider;
+        // lua["UIToggle"]     = &Lumos::UIToggle;
         lua["UILayoutRoot"] = &Lumos::UILayoutRoot;
+
+        lua.set_function("UIToggle", [](const char* label, const bool& value)
+                         { 
+                    bool tempValue = value;
+                    Lumos::UIToggle(label, &tempValue);
+                    return tempValue; });
     }
 
 }

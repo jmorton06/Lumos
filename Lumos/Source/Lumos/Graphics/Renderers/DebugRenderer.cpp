@@ -1,24 +1,8 @@
 #include "Precompiled.h"
 #include "DebugRenderer.h"
-#include "Core/OS/Window.h"
-#include "Graphics/RHI/Shader.h"
-#include "Graphics/RHI/Framebuffer.h"
-#include "Graphics/RHI/UniformBuffer.h"
-#include "Graphics/RHI/Renderer.h"
-#include "Graphics/RHI/CommandBuffer.h"
-#include "Graphics/RHI/SwapChain.h"
-#include "Graphics/RHI/RenderPass.h"
-#include "Graphics/RHI/Pipeline.h"
-#include "Graphics/RHI/IndexBuffer.h"
-#include "Graphics/RHI/Texture.h"
-#include "Graphics/Sprite.h"
 #include "Graphics/Light.h"
 #include "Graphics/Camera/Camera.h"
-#include "Scene/Scene.h"
-#include "Core/Application.h"
-#include "SceneRenderer.h"
-#include "Platform/OpenGL/GLDescriptorSet.h"
-#include "Graphics/Renderable2D.h"
+#include "Audio/SoundNode.h"
 #include "Graphics/Camera/Camera.h"
 #include "Maths/Transform.h"
 #include "Maths/Frustum.h"
@@ -26,13 +10,13 @@
 #include "Maths/BoundingSphere.h"
 #include "Maths/Ray.h"
 #include "Maths/MathsUtilities.h"
-#include "Audio/SoundNode.h"
-#include <cstdarg>
 #include "Maths/Vector2.h"
 #include "Maths/Vector3.h"
 #include "Maths/Vector4.h"
 #include "Maths/Matrix4.h"
 #include "Maths/Quaternion.h"
+
+#include <cstdarg>
 #include <stb/stb_sprintf.h>
 
 namespace Lumos
@@ -597,7 +581,7 @@ namespace Lumos
             float z = Maths::Cos(step * i) * radius;
             float x = Maths::Sin(step * i) * radius;
 
-            Vec3 offset = rotation * Vec4(x, 0.0f, z, 0.0f);
+            Vec3 offset = rotation * Vec3(x, 0.0f, z);
             DrawHairLine(bottomSphereCentre + offset, topSphereCentre + offset, false, colour);
 
             if(i < 10)
@@ -605,7 +589,7 @@ namespace Lumos
                 float z2 = Maths::Cos(step * (i + 10)) * radius;
                 float x2 = Maths::Sin(step * (i + 10)) * radius;
 
-                Vec3 offset2 = rotation * Vec4(x2, 0.0f, z2, 0.0f);
+                Vec3 offset2 = rotation * Vec3(x2, 0.0f, z2);
                 // Top Hemishpere
                 DebugDrawArc(20, radius, topSphereCentre + offset, topSphereCentre + offset2, rotation, colour);
                 // Bottom Hemisphere

@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "ImGuiLua.h"
 
+#define BIND_IMGUI_LUA
 #ifdef BIND_IMGUI_LUA
 #include <sol/sol.hpp>
 #include <imgui/imgui.h>
@@ -12,7 +13,7 @@ namespace Lumos
         // imgui bindings=
         sol::table globals = solState.globals();
         sol::table imgui   = solState.create_table();
-        globals["gui"]     = imgui;
+        globals["imgui"]     = imgui;
 
         imgui.new_enum("DrawCornerFlags",
                        "TopLeft",

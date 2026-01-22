@@ -2,6 +2,7 @@
 #include "Events/Event.h"
 #include "Events/KeyEvent.h"
 #include "Events/MouseEvent.h"
+#include "Events/GestureEvent.h"
 #include "Utilities/TSingleton.h"
 #include "Core/OS/KeyCodes.h"
 #include "Core/DataStructures/TArray.h"
@@ -82,8 +83,22 @@ namespace Lumos
         void SetScrollOffsetX(float offset) { m_ScrollOffsetX = offset; }
         float GetScrollOffsetX() const { return m_ScrollOffsetX; }
 
+        // Gesture state
+        bool GetGesturePinchActive() const { return m_GesturePinchActive; }
+        float GetGesturePinchScale() const { return m_GesturePinchScale; }
+        float GetGesturePinchVelocity() const { return m_GesturePinchVelocity; }
+
+        bool GetGesturePanActive() const { return m_GesturePanActive; }
+        const Vec2& GetGesturePanTranslation() const { return m_GesturePanTranslation; }
+        const Vec2& GetGesturePanVelocity() const { return m_GesturePanVelocity; }
+        uint32_t GetGesturePanTouchCount() const { return m_GesturePanTouchCount; }
+
+        bool GetGestureLongPressActive() const { return m_GestureLongPressActive; }
+        const Vec2& GetGestureLongPressLocation() const { return m_GestureLongPressLocation; }
+
         void Reset();
         void ResetPressed();
+        void ResetGestures();
         void OnEvent(Event& e);
 
         MouseMode GetMouseMode() const { return m_MouseMode; }
@@ -111,6 +126,11 @@ namespace Lumos
         bool OnMouseMoved(MouseMovedEvent& e);
         bool OnMouseEnter(MouseEnterEvent& e);
 
+        bool OnGesturePinch(GesturePinchEvent& e);
+        bool OnGesturePan(GesturePanEvent& e);
+        bool OnGestureSwipe(GestureSwipeEvent& e);
+        bool OnGestureLongPress(GestureLongPressEvent& e);
+
         bool m_KeyPressed[MAX_KEYS];
         bool m_KeyHeld[MAX_KEYS];
 
@@ -124,6 +144,19 @@ namespace Lumos
         MouseMode m_MouseMode;
 
         Vec2 m_MousePosition;
+
+        // Gesture state
+        bool m_GesturePinchActive = false;
+        float m_GesturePinchScale = 1.0f;
+        float m_GesturePinchVelocity = 0.0f;
+
+        bool m_GesturePanActive = false;
+        Vec2 m_GesturePanTranslation;
+        Vec2 m_GesturePanVelocity;
+        uint32_t m_GesturePanTouchCount = 0;
+
+        bool m_GestureLongPressActive = false;
+        Vec2 m_GestureLongPressLocation;
 
         Controller m_Controllers[MAX_CONTROLLER_COUNT];
     };

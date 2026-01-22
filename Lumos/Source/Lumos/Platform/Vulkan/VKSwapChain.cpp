@@ -8,6 +8,7 @@
 #include "Core/Application.h"
 #include "Core/Thread.h"
 #include "Maths/MathsUtilities.h"
+#include "vulkan/vulkan_core.h"
 
 namespace Lumos
 {
@@ -23,7 +24,7 @@ namespace Lumos
             m_Surface      = VK_NULL_HANDLE;
 
             // Initialised by first Image Acquire
-            m_CurrentBuffer     = 0; // std::numeric_limits<uint32_t>::max();
+            m_CurrentBuffer     = std::numeric_limits<uint32_t>::max();
             m_AcquireImageIndex = std::numeric_limits<uint32_t>::max();
         }
 
@@ -86,13 +87,13 @@ namespace Lumos
 
             // Swap chain
             VkSurfaceCapabilitiesKHR surfaceCapabilities;
-            vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), m_Surface, &surfaceCapabilities);
+            VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), m_Surface, &surfaceCapabilities));
 
             uint32_t numPresentModes;
-            vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, VK_NULL_HANDLE);
+            VK_CHECK_RESULT(vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, VK_NULL_HANDLE));
 
             TDArray<VkPresentModeKHR> pPresentModes(numPresentModes);
-            vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, pPresentModes.Data());
+            VK_CHECK_RESULT(vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, pPresentModes.Data()));
 
             VkExtent2D swapChainExtent;
 
@@ -214,7 +215,7 @@ namespace Lumos
                 VkImageView imageView;
                 VK_CHECK_RESULT(vkCreateImageView(VKDevice::Get().GetDevice(), &viewCI, VK_NULL_HANDLE, &imageView));
                 VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView, m_ColourFormat, m_Width, m_Height);
-                swapChainBuffer->TransitionImage(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+                swapChainBuffer->TransitionImage(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
                 m_SwapChainBuffers[i] = swapChainBuffer;
             }
@@ -236,11 +237,6 @@ namespace Lumos
         {
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
-                VkSemaphoreCreateInfo semaphoreInfo = {};
-                semaphoreInfo.sType                 = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-                semaphoreInfo.pNext                 = nullptr;
-                semaphoreInfo.flags                 = 0;
-
                 m_Frames[i].ImageAcquireSemaphore = CreateSharedPtr<VKSemaphore>(false);
                 if(!m_Frames[i].MainCommandBuffer)
                 {
@@ -268,10 +264,16 @@ namespace Lumos
             while(FailedCount < 10)
             {
                 LUMOS_PROFILE_SCOPE("vkAcquireNextImageKHR");
-                auto result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_Frames[m_CurrentBuffer].ImageAcquireSemaphore->GetHandle(), VK_NULL_HANDLE, &m_AcquireImageIndex);
+                if(!m_Frames[m_CurrentBuffer].ImageAcquireSemaphore)
+                {
+                    LWARN("No ImageAcquireSemaphore for buffer %u", m_CurrentBuffer);
+                    return false;
+                }
+                VkResult result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_Frames[m_CurrentBuffer].ImageAcquireSemaphore->GetHandle(), VK_NULL_HANDLE, &m_AcquireImageIndex);
 
                 if(result == VK_SUCCESS)
                 {
+                    FailedCount = 0;
                     return true;
                 }
 
@@ -286,6 +288,10 @@ namespace Lumos
                         return false;
 #endif
                     }
+                    else
+                    {
+                        m_NeedRecreate = true;
+                    }
 
                     return true;
                 }
@@ -295,6 +301,10 @@ namespace Lumos
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     FailedCount++;
                     LFATAL("[VULKAN] Failed to acquire swap chain image! - %s", VKUtilities::ErrorString(result).c_str());
+                }
+                else
+                {
+                    VK_CHECK_RESULT(result);
                 }
             }
 
@@ -375,30 +385,18 @@ namespace Lumos
             GetCurrentCommandBuffer()->EndRecording();
         }
 
-        void VKSwapChain::Present(const TDArray<VkSemaphore>& semaphores)
+        void VKSwapChain::Present(VkSemaphore semaphore)
         {
             LUMOS_PROFILE_FUNCTION();
-
-            VkSemaphore vkWaitSemaphores[3] = { nullptr, nullptr, nullptr };
-            uint32_t semaphoreCount         = 0;
-
-            for(auto semaphore : semaphores)
-            {
-                if(semaphoreCount >= 3)
-                    break;
-
-                vkWaitSemaphores[semaphoreCount++] = semaphore;
-            }
-
-            VkPresentInfoKHR present;
+            VkPresentInfoKHR present {};
             present.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-            present.pNext              = VK_NULL_HANDLE;
+            present.pNext              = nullptr;
             present.swapchainCount     = 1;
             present.pSwapchains        = &m_SwapChain;
             present.pImageIndices      = &m_AcquireImageIndex;
-            present.waitSemaphoreCount = semaphoreCount;
-            present.pWaitSemaphores    = vkWaitSemaphores;
-            present.pResults           = VK_NULL_HANDLE;
+            present.waitSemaphoreCount = 1;
+            present.pWaitSemaphores    = &semaphore;
+            present.pResults           = nullptr;
 
             auto error = vkQueuePresentKHR(VKDevice::Get().GetPresentQueue(), &present);
 
@@ -415,7 +413,12 @@ namespace Lumos
                 VK_CHECK_RESULT(error);
             }
 
-            // AcquireNextImage();
+            if(m_NeedRecreate)
+            {
+                vkDeviceWaitIdle(VKDevice::Get().GetDevice());
+                OnResize(m_Width, m_Height, true);
+                m_NeedRecreate = false;
+            }
         }
 
         void VKSwapChain::MakeDefault()

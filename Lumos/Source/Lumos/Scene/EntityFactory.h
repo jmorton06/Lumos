@@ -49,5 +49,6 @@ namespace Lumos
         void AddLightCube(Scene* scene, const Vec3& pos, const Vec3& dir);
         void AddSphere(Scene* scene, const Vec3& pos, const Vec3& dir);
         void AddPyramid(Scene* scene, const Vec3& pos, const Vec3& dir);
+        void AddPlatform(Scene* scene, const Vec3& pos, const Vec3& scale);
     };
 }

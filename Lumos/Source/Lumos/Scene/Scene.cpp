@@ -378,7 +378,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         LINFO("Scene saved - %s", filePath.c_str());
         ArenaTemp scratch = ScratchBegin(0, 0);
-        String8 path = PushStr8F(scratch.arena, "%s%s%s", filePath.c_str(), m_SceneName.c_str(), binary ? Str8Lit(".bin") : Str8Lit(".lsn"));
+        String8 path      = PushStr8F(scratch.arena, "%s%s%s", filePath.c_str(), m_SceneName.c_str(), binary ? (const char*)Str8Lit(".bin").str : (const char*)Str8Lit(".lsn").str);
 
         m_SceneSerialisationVersion = SceneSerialisationVersion;
 
@@ -851,7 +851,7 @@ namespace Lumos
 
         FileSystem::WriteTextFile(Str8StdS(path), Str8StdS(storage.str()));
         String8 relativePath;
-        if (FileSystem::Get().AbsolutePathToFileSystem(scratch.arena, Str8StdS(path), relativePath))
+        if(FileSystem::Get().AbsolutePathToFileSystem(scratch.arena, Str8StdS(path), relativePath))
             entity.GetOrAddComponent<PrefabComponent>(ToStdString(relativePath));
 
         ScratchEnd(scratch);

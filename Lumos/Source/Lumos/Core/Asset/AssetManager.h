@@ -13,8 +13,8 @@
 
 namespace Lumos
 {
-	class StringPool;
-	
+    class StringPool;
+
     namespace Graphics
     {
         class Model;
@@ -45,13 +45,13 @@ namespace Lumos
         SharedPtr<Asset> operator[](UUID name) { return GetAsset(name); }
         SharedPtr<Graphics::Texture2D> LoadTextureAsset(const String8& filePath, bool thread);
 
-		SharedPtr<AssetRegistry> GetAssetRegistry() { return m_AssetRegistry; }
+        SharedPtr<AssetRegistry> GetAssetRegistry() { return m_AssetRegistry; }
 
     protected:
         bool LoadTexture(const String8& filePath, SharedPtr<Graphics::Texture2D>& texture, bool thread);
 
         Arena* m_Arena;
         SharedPtr<AssetRegistry> m_AssetRegistry;
-		SharedPtr<StringPool> m_StringPool;
+        SharedPtr<StringPool> m_StringPool;
     };
 }

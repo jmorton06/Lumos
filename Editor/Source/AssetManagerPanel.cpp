@@ -65,7 +65,7 @@ namespace Lumos
                         String8 name;
 #ifndef LUMOS_PRODUCTION
                         if(!registry.GetName(ID, name))
-						   name = Str8Lit("Unnamed");
+                            name = Str8Lit("Unnamed");
 #endif
                         ImGui::TextUnformatted((const char*)name.str);
 
@@ -73,27 +73,27 @@ namespace Lumos
                         ImGui::TextUnformatted(AssetTypeToString(metaData.Type));
                         ImGui::TableNextColumn();
 
-                        if(!metaData.data)
+                        if(!metaData.Data)
                             ImGui::TextUnformatted("Data Null");
-                        else if(metaData.Type == AssetType::Shader && metaData.data.As<Graphics::Shader>())
-                            ImGui::TextUnformatted(metaData.data.As<Graphics::Shader>()->IsCompiled() ? "Compiled" : "Failed to compile");
+                        else if(metaData.Type == AssetType::Shader && metaData.Data.As<Graphics::Shader>())
+                            ImGui::TextUnformatted(metaData.Data.As<Graphics::Shader>()->IsCompiled() ? "Compiled" : "Failed to compile");
 
                         ImGui::TableNextColumn();
-                        ImGui::Text("%.2f", metaData.lastAccessed);
+                        ImGui::Text("%.2f", metaData.LastAccessed);
 
                         ImGui::TableNextRow();
                     }
                 };
 
-				auto& Registry = registry.m_AssetRegistry;
+                auto& Registry = registry.m_AssetRegistry;
 
-				ForHashMapEach(UUID, AssetMetaData, &Registry, it)
-				{
-					UUID key = *it.key;
-					AssetMetaData& value = *it.value;
+                ForHashMapEach(UUID, AssetMetaData, &Registry, it)
+                {
+                    UUID key             = *it.key;
+                    AssetMetaData& value = *it.value;
 
-					DrawEntry(value, key);
-				}
+                    DrawEntry(value, key);
+                }
 
                 ImGui::EndTable();
             }

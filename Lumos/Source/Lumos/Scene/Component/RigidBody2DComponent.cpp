@@ -21,6 +21,35 @@ namespace Lumos
     {
     }
 
+    RigidBody2DComponent::RigidBody2DComponent(const RigidBody2DComponent& other)
+    {
+        // Create a new physics body with the same properties as the original
+        // This ensures duplicated entities have their own independent rigid body
+        if(other.m_RigidBody)
+        {
+            auto params = other.m_RigidBody->GetParameters();
+            m_RigidBody = CreateSharedPtr<RigidBody2D>(params);
+        }
+    }
+
+    RigidBody2DComponent& RigidBody2DComponent::operator=(const RigidBody2DComponent& other)
+    {
+        if(this != &other)
+        {
+            // Create a new physics body with the same properties
+            if(other.m_RigidBody)
+            {
+                auto params = other.m_RigidBody->GetParameters();
+                m_RigidBody = CreateSharedPtr<RigidBody2D>(params);
+            }
+            else
+            {
+                m_RigidBody = nullptr;
+            }
+        }
+        return *this;
+    }
+
     void RigidBody2DComponent::Update()
     {
     }

@@ -1,7 +1,6 @@
 #pragma once
 #include "Core/Core.h"
-#include "Core/LMLog.h"
-#include <mutex>
+#include "Core/Mutex.h"
 
 namespace Lumos
 {
@@ -113,7 +112,7 @@ namespace Lumos
         static void Init(TArgs... args)
         {
             ASSERT(m_pInstance == nullptr, "Calling Init twice");
-            m_pInstance = new T(std::forward<TArgs>(args)...);
+            m_pInstance = new T(Forward<TArgs>(args)...);
         }
 
         // Provide global access to release/delete this class
@@ -155,8 +154,10 @@ namespace Lumos
         {
             if(!m_pInstance) // This if statement prevents the costly Lock-step being required each time the instance is requested
             {
-                std::lock_guard<std::mutex> lock(m_mConstructed); // Lock is required here though, to prevent multiple threads initialising multiple instances of the class when it turns out it has not been initialised yet
-                if(!m_pInstance)                                  // Check to see if a previous thread has already initialised an instance in the time it took to acquire a lock.
+                m_mConstructed = new Mutex();
+                MutexInit(m_mConstructed);
+                ScopedMutex mutex(m_mConstructed); // Lock is required here though, to prevent multiple threads initialising multiple instances of the class when it turns out it has not been initialised yet
+                if(!m_pInstance)                   // Check to see if a previous thread has already initialised an instance in the time it took to acquire a lock.
                 {
                     m_pInstance = new T();
                 }
@@ -168,11 +169,18 @@ namespace Lumos
         static void Release()
         {
             // Technically this could have another enclosing if statement, but speed is much less of a problem as this should only be called once in the entire program.
-            std::lock_guard<std::mutex> lock(m_mConstructed);
             if(m_pInstance)
             {
+                MutexLock(m_mConstructed);
+
                 delete m_pInstance;
                 m_pInstance = nullptr;
+
+                MutexUnlock(m_mConstructed);
+                MutexDestroy(m_mConstructed);
+
+                delete m_mConstructed;
+                m_mConstructed = nullptr;
             }
         }
 
@@ -189,7 +197,7 @@ namespace Lumos
 
         static T* m_pInstance;
         // Keep a static instance pointer to refer to as required by the rest of the program
-        static std::mutex m_mConstructed;
+        static Mutex* m_mConstructed;
 
     private:
         NONCOPYABLE(ThreadSafeSingleton);
@@ -197,7 +205,7 @@ namespace Lumos
 
     // Finally make sure that the instance is initialised to NULL at the start of the program
     template <class T>
-    std::mutex ThreadSafeSingleton<T>::m_mConstructed;
+    Mutex* ThreadSafeSingleton<T>::m_mConstructed;
     template <class T>
     T* ThreadSafeSingleton<T>::m_pInstance = nullptr;
 }

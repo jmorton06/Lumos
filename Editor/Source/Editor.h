@@ -23,6 +23,7 @@ namespace Lumos
     class FileBrowserPanel;
     class PreviewDraw;
     class EditorPanel;
+    class ResourcePanel;
     class Camera;
 
     namespace Graphics
@@ -66,6 +67,8 @@ namespace Lumos
         void OnDebugDraw() override;
         void OnEvent(Event& e) override;
         void OnQuit() override;
+        
+        void ExitApp() override;
 
         void DrawMenuBar();
         void BeginDockSpace(bool gameFullScreen);
@@ -301,6 +304,7 @@ namespace Lumos
         Vec3 m_CameraDestination;
         bool m_SceneViewActive     = false;
         bool m_NewProjectPopupOpen = false;
+        bool m_GizmoUsing          = false;
 
         EditorSettings m_Settings;
         std::vector<SharedPtr<EditorPanel>> m_Panels;
@@ -308,6 +312,8 @@ namespace Lumos
         std::unordered_map<size_t, const char*> m_ComponentIconMap;
 
         FileBrowserPanel* m_FileBrowserPanel;
+        ResourcePanel* m_ResourcePanel = nullptr;
+        std::vector<std::string> m_CachedAssetPaths;
         PreviewDraw* m_PreviewDraw;
 
         Camera* m_CurrentCamera = nullptr;
@@ -330,5 +336,6 @@ namespace Lumos
         IniFile m_IniFile;
 
         bool m_PreviewScreenshot = false;
+        bool m_QueuedScenePreviewEnd = false;
     };
 }

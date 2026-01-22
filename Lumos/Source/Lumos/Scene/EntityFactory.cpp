@@ -286,4 +286,20 @@ namespace Lumos
 
         sphere.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetLinearVelocity(forward * 30.0f);
     }
+
+    void EntityFactory::AddPlatform(Scene* scene, const Vec3& pos, const Vec3& scale)
+    {
+        auto platform = EntityFactory::BuildCuboidObject(
+            scene,
+            "Platform",
+            pos,
+            scale,
+            true,
+            0.0f, // inverse mass = 0 means infinite mass (static)
+            true,
+            Vec4(0.6f, 0.6f, 0.6f, 1.0f));
+
+        platform.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetIsStatic(true);
+        platform.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetFriction(0.8f);
+    }
 }

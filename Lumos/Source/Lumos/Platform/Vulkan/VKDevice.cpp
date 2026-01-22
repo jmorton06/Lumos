@@ -111,14 +111,14 @@ namespace Lumos
         {
             // GPU
             auto vkInstance = VKContext::GetVKInstance();
-            vkEnumeratePhysicalDevices(vkInstance, &m_GPUCount, VK_NULL_HANDLE);
+            VK_CHECK_RESULT(vkEnumeratePhysicalDevices(vkInstance, &m_GPUCount, VK_NULL_HANDLE));
             if(m_GPUCount == 0)
             {
                 LFATAL("No GPUs found!");
             }
 
             TDArray<VkPhysicalDevice> physicalDevices(m_GPUCount);
-            vkEnumeratePhysicalDevices(vkInstance, &m_GPUCount, physicalDevices.Data());
+            VK_CHECK_RESULT(vkEnumeratePhysicalDevices(vkInstance, &m_GPUCount, physicalDevices.Data()));
             // First select the gpu at the back of the list
             m_Handle = physicalDevices.Back();
 
@@ -162,6 +162,9 @@ namespace Lumos
             vkGetPhysicalDeviceProperties(m_Handle, &m_PhysicalDeviceProperties);
             vkGetPhysicalDeviceMemoryProperties(m_Handle, &m_MemoryProperties);
 
+#ifndef LUMOS_PLATFORM_IOS
+            LINFO("Volk Header Version : %i", VOLK_HEADER_VERSION);
+#endif
             LINFO("Vulkan : %i.%i.%i", VK_API_VERSION_MAJOR(m_PhysicalDeviceProperties.apiVersion), VK_API_VERSION_MINOR(m_PhysicalDeviceProperties.apiVersion), VK_API_VERSION_PATCH(m_PhysicalDeviceProperties.apiVersion));
             LINFO("GPU : %s", m_DeviceInfo.Name.c_str());
             LINFO("Memory : %s mb", StringUtilities::ToString(m_DeviceInfo.Memory).c_str());
@@ -169,7 +172,7 @@ namespace Lumos
             LINFO("Vendor ID : %s", StringUtilities::ToString(m_DeviceInfo.VendorID).c_str());
             LINFO("Device Type : %s", std::string(PhysicalDeviceTypeToString(m_DeviceInfo.Type)).c_str());
             LINFO("Driver Version : %s", m_DeviceInfo.Driver.c_str());
-            LINFO("APi Version : %s", m_DeviceInfo.APIVersion.c_str());
+            LINFO("API Version : %s", m_DeviceInfo.APIVersion.c_str());
 
             auto& caps                        = Renderer::GetCapabilities();
             caps.Vendor                       = m_DeviceInfo.Vendor;
@@ -187,7 +190,7 @@ namespace Lumos
             vkGetPhysicalDeviceQueueFamilyProperties(m_Handle, &queueFamilyCount, m_QueueFamilyProperties.Data());
 
             uint32_t extCount = 0;
-            vkEnumerateDeviceExtensionProperties(m_Handle, nullptr, &extCount, nullptr);
+            VK_CHECK_RESULT(vkEnumerateDeviceExtensionProperties(m_Handle, nullptr, &extCount, nullptr));
             if(extCount > 0)
             {
                 TDArray<VkExtensionProperties> extensions(extCount);
@@ -512,12 +515,8 @@ namespace Lumos
             deviceCreateInfo.enabledLayerCount       = 0;
             deviceCreateInfo.pNext                   = (void*)&indexingFeatures;
 
-            auto result = vkCreateDevice(m_PhysicalDevice->GetHandle(), &deviceCreateInfo, VK_NULL_HANDLE, &m_Device);
-            if(result != VK_SUCCESS)
-            {
-                LFATAL("[VULKAN] vkCreateDevice() failed!");
-                return false;
-            }
+            VK_CHECK_RESULT(vkCreateDevice(m_PhysicalDevice->GetHandle(), &deviceCreateInfo, VK_NULL_HANDLE, &m_Device));
+            LINFO("[VULKAN] Created VKDevice");
 
             vkGetDeviceQueue(m_Device, m_PhysicalDevice->m_QueueFamilyIndices.Graphics, 0, &m_GraphicsQueue);
             vkGetDeviceQueue(m_Device, m_PhysicalDevice->m_QueueFamilyIndices.Graphics, 0, &m_PresentQueue);
@@ -621,15 +620,18 @@ namespace Lumos
 
         void VKDevice::CreatePipelineCache()
         {
+            LINFO("Creating VK Pipeline Cache");
+
             VkPipelineCacheCreateInfo pipelineCacheCI = {};
             pipelineCacheCI.sType                     = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
             pipelineCacheCI.pNext                     = NULL;
-            vkCreatePipelineCache(m_Device, &pipelineCacheCI, VK_NULL_HANDLE, &m_PipelineCache);
+            VK_CHECK_RESULT(vkCreatePipelineCache(m_Device, &pipelineCacheCI, VK_NULL_HANDLE, &m_PipelineCache));
         }
 
         void VKDevice::CreateTracyContext()
         {
 #if LUMOS_PROFILE && defined(TRACY_ENABLE) && LUMOS_PROFILE_GPU_TIMINGS
+            LINFO("Creating Tracy VK Context");
             VkCommandBufferAllocateInfo allocInfo = {};
             allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
             allocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -637,7 +639,7 @@ namespace Lumos
             allocInfo.commandBufferCount          = 1;
 
             VkCommandBuffer tracyBuffer;
-            vkAllocateCommandBuffers(m_Device, &allocInfo, &tracyBuffer);
+            VK_CHECK_RESULT(vkAllocateCommandBuffers(m_Device, &allocInfo, &tracyBuffer));
 
             m_TracyContext.Resize(4);
             for(int i = 0; i < 4; i++)

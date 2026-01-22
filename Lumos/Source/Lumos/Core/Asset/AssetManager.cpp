@@ -14,7 +14,7 @@ namespace Lumos
     AssetManager::AssetManager()
     {
         m_Arena         = ArenaAlloc(Megabytes(4));
-		m_StringPool    = CreateSharedPtr<StringPool>(m_Arena, 260);
+        m_StringPool    = CreateSharedPtr<StringPool>(m_Arena, 260);
         m_AssetRegistry = CreateSharedPtr<AssetRegistry>();
     }
 
@@ -28,8 +28,8 @@ namespace Lumos
         if(m_AssetRegistry->Contains(ID))
         {
             AssetMetaData& metaData = (*m_AssetRegistry)[ID];
-            metaData.lastAccessed   = (float)Engine::GetTimeStep().GetElapsedSeconds();
-            return metaData.data;
+            metaData.LastAccessed   = (float)Engine::GetTimeStep().GetElapsedSeconds();
+            return metaData.Data;
         }
 
         LWARN("Asset not found %" PRIu64, (u64)ID);
@@ -52,8 +52,8 @@ namespace Lumos
         if(m_AssetRegistry->Contains(ID))
         {
             AssetMetaData& metaData = registry[ID];
-            metaData.lastAccessed   = (float)Engine::GetTimeStep().GetElapsedSeconds();
-            metaData.data           = data;
+            metaData.LastAccessed   = (float)Engine::GetTimeStep().GetElapsedSeconds();
+            metaData.Data           = data;
             metaData.Expire         = !keepUnreferenced;
             metaData.Type           = data ? data->GetAssetType() : AssetType::Unkown;
             metaData.IsDataLoaded   = data ? true : false;
@@ -61,10 +61,10 @@ namespace Lumos
         }
 
         AssetMetaData newResource;
-        newResource.data            = data;
-        newResource.timeSinceReload = 0;
-        newResource.onDisk          = true;
-        newResource.lastAccessed    = (float)Engine::GetTimeStep().GetElapsedSeconds();
+        newResource.Data            = data;
+        newResource.TimeSinceReload = 0;
+        newResource.bEmbeddedAsset  = false;
+        newResource.LastAccessed    = (float)Engine::GetTimeStep().GetElapsedSeconds();
         newResource.Type            = data->GetAssetType();
         newResource.Expire          = !keepUnreferenced;
         newResource.IsDataLoaded    = data ? true : false;
@@ -93,7 +93,7 @@ namespace Lumos
 
     SharedPtr<Asset> AssetManager::GetAssetData(const String8& name)
     {
-        return GetAsset(name).data;
+        return GetAsset(name).Data;
     }
 
     void AssetManager::Destroy()

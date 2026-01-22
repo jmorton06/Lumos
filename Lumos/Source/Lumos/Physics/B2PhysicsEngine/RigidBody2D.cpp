@@ -68,6 +68,7 @@ namespace Lumos
         m_Mass      = params.mass;
         m_Scale     = params.scale;
         m_Friction  = params.friction;
+        m_Damping   = params.damping;
 
         b2BodyDef bodyDef = b2DefaultBodyDef();
         if(params.isStatic)
@@ -75,7 +76,7 @@ namespace Lumos
         else
             bodyDef.type = b2_dynamicBody;
 
-        bodyDef.linearDamping = 1.0f;
+        bodyDef.linearDamping = m_Damping;
         bodyDef.position      = { params.position.x, params.position.y };
 
         b2WorldId lWorldID = Application::Get().GetSystem<B2PhysicsEngine>()->GetB2World();
@@ -85,10 +86,12 @@ namespace Lumos
         {
             b2Circle circle = { { 0.0f, 0.0f }, params.scale.x };
 
-            b2ShapeDef shapeDef        = b2DefaultShapeDef();
-            shapeDef.density           = 1.0f;
-            shapeDef.material.friction = m_Friction;
-            shapeDef.enableHitEvents   = true;
+            b2ShapeDef shapeDef           = b2DefaultShapeDef();
+            shapeDef.density              = params.density;
+            shapeDef.material.friction    = m_Friction;
+            shapeDef.enableHitEvents      = params.enableEvents;
+            shapeDef.enableContactEvents  = params.enableEvents;
+            shapeDef.material.restitution = params.elasticity;
 
             b2CreateCircleShape(m_B2Body, &shapeDef, &circle);
         }
@@ -97,10 +100,12 @@ namespace Lumos
             b2Polygon box = b2MakeBox(params.scale.x, params.scale.y);
 
             b2ShapeDef shapeDef                 = b2DefaultShapeDef();
-            shapeDef.density                    = 1.0f;
+            shapeDef.density                    = params.density;
             shapeDef.material.friction          = m_Friction;
-            shapeDef.enableHitEvents            = true;
+            shapeDef.enableHitEvents            = params.enableEvents;
+            shapeDef.enableContactEvents        = params.enableEvents;
             shapeDef.material.rollingResistance = 1.0f;
+            shapeDef.material.restitution       = params.elasticity;
 
             b2CreatePolygonShape(m_B2Body, &shapeDef, &box);
         }
@@ -119,10 +124,12 @@ namespace Lumos
             b2Hull hull             = b2ComputeHull(b2ShapePositions, i32(params.customShapePositions.size()));
             b2Polygon customPolygon = b2MakePolygon(&hull, 0.0f);
 
-            b2ShapeDef shapeDef        = b2DefaultShapeDef();
-            shapeDef.density           = 1.0f;
-            shapeDef.material.friction = m_Friction;
-            shapeDef.enableHitEvents   = true;
+            b2ShapeDef shapeDef           = b2DefaultShapeDef();
+            shapeDef.density              = params.density;
+            shapeDef.material.friction    = m_Friction;
+            shapeDef.enableHitEvents      = params.enableEvents;
+            shapeDef.enableContactEvents  = params.enableEvents;
+            shapeDef.material.restitution = params.elasticity;
 
             b2CreatePolygonShape(m_B2Body, &shapeDef, &customPolygon);
             ScratchEnd(temp);
@@ -160,6 +167,7 @@ namespace Lumos
         params.scale    = m_Scale;
         params.friction = m_Friction;
         params.isStatic = m_Static;
+        params.damping  = m_Damping;
 
         b2DestroyBody(m_B2Body);
 
@@ -192,5 +200,20 @@ namespace Lumos
     float RigidBody2D::GetFriction() const
     {
         return m_Friction;
+    }
+
+    RigidBodyParameters RigidBody2D::GetParameters() const
+    {
+        RigidBodyParameters params;
+        params.position             = Vec3(GetPosition(), 0.0f);
+        params.scale                = m_Scale;
+        params.shape                = m_ShapeType;
+        params.mass                 = m_Mass;
+        params.friction             = m_Friction;
+        params.isStatic             = m_Static;
+        params.damping              = m_Damping;
+        params.elasticity           = m_Elasticity;
+        params.customShapePositions = m_CustomShapePositions;
+        return params;
     }
 }

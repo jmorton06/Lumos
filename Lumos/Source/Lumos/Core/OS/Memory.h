@@ -9,18 +9,17 @@ namespace Lumos
         static void* AlignedAlloc(size_t size, size_t alignment);
         static void AlignedFree(void* data);
 
-        static void* NewFunc(std::size_t size, const char* file, int line);
+        static void* NewFunc(size_t size, const char* file, int line);
         static void DeleteFunc(void* p);
     };
 
     struct Arena
     {
         uint64_t Position;
-        uint64_t CommitPosition;
         uint64_t Align;
         uint64_t Size;
         Arena* Ptr;
-        uint64_t _unused_[3];
+        uint64_t _unused_[4];
     };
 
     struct ArenaTemp
@@ -39,6 +38,7 @@ namespace Lumos
     void* ArenaPushAligner(Arena* arena, uint64_t alignment);
     void* ArenaPush(Arena* arena, uint64_t size);
     void ArenaPopTo(Arena* arena, uint64_t pos);
+    void ArenaPopToPointer(Arena* arena, u8* ptr);
     void ArenaSetAutoAlign(Arena* arena, uint64_t align);
     void ArenaPop(Arena* arena, uint64_t size);
     void ArenaClear(Arena* arena);

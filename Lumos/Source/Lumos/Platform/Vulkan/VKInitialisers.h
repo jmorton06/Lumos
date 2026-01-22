@@ -1,7 +1,6 @@
 #pragma once
 
-#include <vector>
-#include "vulkan/vulkan.h"
+#include "VK.h"
 
 namespace Lumos
 {

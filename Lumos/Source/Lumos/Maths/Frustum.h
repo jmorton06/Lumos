@@ -42,6 +42,12 @@ namespace Lumos
             bool IsInside(const Plane& plane) const;
             bool IsInside(const Ray& ray) const;
 
+            // SIMD-optimized versions
+#ifdef LUMOS_SSE
+            bool IsInsideFast(const BoundingSphere& sphere) const;
+            bool IsInsideFast(const BoundingBox& box) const;
+#endif
+
             const Plane& GetPlane(FrustumPlane plane) const;
             const Plane& GetPlane(int index) const { return m_Planes[index]; }
             Vec3* GetVerticies();

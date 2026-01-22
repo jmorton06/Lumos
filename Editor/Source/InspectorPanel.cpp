@@ -48,6 +48,18 @@
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/ImGui/ImGuiManager.h>
 #include <Lumos/Graphics/RHI/IMGUIRenderer.h>
+
+#include <vector>
+#include <algorithm>
+#include <cctype>
+#include <cstring>
+#if __has_include(<filesystem>)
+#include <filesystem>
+namespace fs = std::filesystem;
+#elif __has_include(<experimental/filesystem>)
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#endif
 #include <Lumos/Scene/Serialisation/SerialisationImplementation.h>
 
 #include <sol/sol.hpp>
@@ -78,8 +90,10 @@ namespace MM
     void ComponentEditorWidget<Lumos::LuaScriptComponent>(entt::registry& reg, entt::registry::entity_type e)
     {
         LUMOS_PROFILE_FUNCTION();
-        auto& script = reg.get<Lumos::LuaScriptComponent>(e);
-        bool loaded  = false;
+        auto& script     = reg.get<Lumos::LuaScriptComponent>(e);
+        bool hasReloaded = false;
+        bool loaded      = false;
+        ImGui::Columns(2);
         if(!script.Loaded())
         {
             ImGui::Text("Script Failed to Load : %s", script.GetFilePath().c_str());
@@ -93,120 +107,451 @@ namespace MM
         else
             loaded = true;
 
-        // auto& solEnv         = script.GetSolEnvironment();
-        std::string filePath = script.GetFilePath();
+        // Get all .lua files from Assets/Scripts directory
+        Lumos::ArenaTemp scratchTemp = Lumos::ScratchBegin(0, 0);
+        Lumos::String8 scriptsPath = Lumos::Str8Lit("//Assets/Scripts");
+        Lumos::String8 physicalScriptsPath;
 
-        static char objName[INPUT_BUF_SIZE];
-        strcpy(objName, filePath.c_str());
-        ImGui::PushItemWidth(-1);
-        if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
-            script.SetFilePath(objName);
+        std::vector<std::string> luaFiles;
+        std::vector<std::string> luaFilesVirtual;
 
-        bool hasReloaded = false;
-
-		Lumos::ArenaTemp Scratch = Lumos::ScratchBegin(0, 0);
-
-        if(ImGui::Button("New File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+        if(Lumos::FileSystem::Get().ResolvePhysicalPath(scratchTemp.arena, scriptsPath, &physicalScriptsPath, true))
         {
-			Lumos::String8 newFilePath = Lumos::Str8Lit("//Assets/Scripts");
-			Lumos::String8 physicalPath;
-            if(!Lumos::FileSystem::Get().ResolvePhysicalPath(Scratch.arena, newFilePath, &physicalPath, true))
+            try
             {
-                LERROR("Failed to Create Lua script %s", (const char*)physicalPath.str);
-            }
-            else
-            {
-                Lumos::String8 defaultScript = Lumos::Str8Lit(
-                    R"(--Default Lua Script
-
-function OnInit()
-end
-
-function OnUpdate(dt)
-end
-
-function OnCleanUp()
-end
-)");
-                Lumos::ArenaTemp scratch         = Lumos::ScratchBegin(nullptr, 0);
-                Lumos::String8 newScriptFileName = Lumos::Str8Lit("Script");
-                int fileIndex                    = 0;
-
-				Lumos::String8 Path = Lumos::PushStr8FillByte(scratch.arena, 260, 0);
-				Path = Lumos::Str8F(Path, "%s/%s.lua", (const char*)physicalPath.str, ((const char*)newScriptFileName.str));
-
-                while(Lumos::FileSystem::FileExists(Path))
+                if(fs::exists((const char*)physicalScriptsPath.str) && fs::is_directory((const char*)physicalScriptsPath.str))
                 {
-                    fileIndex++;
-					Path = Lumos::Str8F(Path, "%s/%s(%i).lua", (const char*)physicalPath.str, ((const char*)newScriptFileName.str), fileIndex);
+                    for(const auto& entry : fs::recursive_directory_iterator((const char*)physicalScriptsPath.str))
+                    {
+                        if(entry.is_regular_file() && entry.path().extension() == ".lua")
+                        {
+                            std::string absolutePath = entry.path().string();
+                            luaFiles.push_back(absolutePath);
+
+                            // Convert to //Assets virtual path
+                            Lumos::String8 absPathStr = Lumos::PushStr8Copy(scratchTemp.arena, absolutePath.c_str());
+                            Lumos::String8 virtualPath = Lumos::FileSystem::Get().AbsolutePathToFileSystem(scratchTemp.arena, absPathStr, false);
+                            luaFilesVirtual.push_back(std::string((const char*)virtualPath.str, virtualPath.size));
+                        }
+                    }
+                }
+            }
+            catch(...) {}
+        }
+
+        std::string currentFilePath = script.GetFilePath();
+        std::string currentFileName = "None";
+
+        if(!currentFilePath.empty())
+        {
+            size_t lastSlash = currentFilePath.find_last_of("/\\");
+            currentFileName = (lastSlash != std::string::npos) ? currentFilePath.substr(lastSlash + 1) : currentFilePath;
+        }
+
+        ImGui::TextUnformatted("Script");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        if(ImGui::BeginCombo("##ScriptFile", currentFileName.c_str()))
+        {
+            static char searchBuffer[256] = "";
+            ImGui::SetNextItemWidth(-1);
+            if(ImGui::IsWindowAppearing())
+            {
+                ImGui::SetKeyboardFocusHere();
+                searchBuffer[0] = '\0';
+            }
+            ImGui::InputTextWithHint("##ScriptSearch", ICON_MDI_MAGNIFY " Search scripts...", searchBuffer, sizeof(searchBuffer));
+
+            std::string searchStr = searchBuffer;
+            std::transform(searchStr.begin(), searchStr.end(), searchStr.begin(), ::tolower);
+
+            ImGui::Separator();
+
+            // "None" option to clear the script
+            if(searchStr.empty() || std::string("none").find(searchStr) != std::string::npos)
+            {
+                if(ImGui::Selectable("None", currentFilePath.empty()))
+                {
+                    script.SetFilePath("");
+                    searchBuffer[0] = '\0';
+                }
+            }
+
+            for(size_t i = 0; i < luaFilesVirtual.size(); i++)
+            {
+                const auto& virtualPath = luaFilesVirtual[i];
+
+                size_t lastSlash = virtualPath.find_last_of("/");
+                std::string displayName = (lastSlash != std::string::npos) ? virtualPath.substr(lastSlash + 1) : virtualPath;
+
+                if(!searchStr.empty())
+                {
+                    std::string lowerDisplayName = displayName;
+                    std::string lowerVirtualPath = virtualPath;
+                    std::transform(lowerDisplayName.begin(), lowerDisplayName.end(), lowerDisplayName.begin(), ::tolower);
+                    std::transform(lowerVirtualPath.begin(), lowerVirtualPath.end(), lowerVirtualPath.begin(), ::tolower);
+
+                    if(lowerDisplayName.find(searchStr) == std::string::npos &&
+                       lowerVirtualPath.find(searchStr) == std::string::npos)
+                    {
+                        continue;
+                    }
                 }
 
-                Lumos::FileSystem::WriteTextFile(Path, defaultScript);
-                script.SetFilePath(ToStdString(Path));
-                script.Reload();
-                hasReloaded = true;
+                // Show relative path in tooltip
+                bool isSelected = (currentFilePath == virtualPath || currentFilePath == luaFiles[i]);
+                if(ImGui::Selectable(displayName.c_str(), isSelected))
+                {
+                    script.SetFilePath(virtualPath);
+                    script.Reload();
+                    hasReloaded = true;
+                    searchBuffer[0] = '\0';
+                }
 
-                Lumos::ScratchEnd(scratch);
+                if(ImGui::IsItemHovered())
+                {
+                    ImGui::SetTooltip("%s", virtualPath.c_str());
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+        ImGui::Columns(1);
+
+        Lumos::ScratchEnd(scratchTemp);
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        {
+            const char* statusIcon = ICON_MDI_ALERT_CIRCLE;
+            ImVec4 statusColor = ImVec4(0.8f, 0.8f, 0.1f, 1.0f);
+            const char* statusText = "No script";
+
+            if(!currentFilePath.empty())
+            {
+                if(script.Loaded())
+                {
+                    statusIcon = ICON_MDI_CHECK_CIRCLE;
+                    statusColor = ImVec4(0.3f, 0.8f, 0.3f, 1.0f);
+                    statusText = "Loaded";
+                }
+                else
+                {
+                    statusIcon = ICON_MDI_ALERT_CIRCLE;
+                    statusColor = ImVec4(1.0f, 0.3f, 0.3f, 1.0f);
+                    statusText = "Failed to load";
+                }
+            }
+
+            ImGui::TextColored(statusColor, "%s", statusIcon);
+            ImGui::SameLine();
+            ImGui::TextColored(statusColor, "%s", statusText);
+
+            if(script.Loaded() && !currentFilePath.empty())
+            {
+                Lumos::ArenaTemp infoScratch = Lumos::ScratchBegin(0, 0);
+                Lumos::String8 virtualPath = Lumos::PushStr8Copy(infoScratch.arena, currentFilePath.c_str());
+                Lumos::String8 physicalPath;
+                if(Lumos::FileSystem::Get().ResolvePhysicalPath(infoScratch.arena, virtualPath, &physicalPath, false))
+                {
+                    int64_t fileSize = Lumos::FileSystem::GetFileSize(physicalPath);
+                    if(fileSize >= 0)
+                    {
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("|");
+                        ImGui::SameLine();
+
+                        if(fileSize < 1024)
+                            ImGui::TextDisabled("%lld bytes", fileSize);
+                        else if(fileSize < 1024 * 1024)
+                            ImGui::TextDisabled("%.1f KB", fileSize / 1024.0f);
+                        else
+                            ImGui::TextDisabled("%.1f MB", fileSize / (1024.0f * 1024.0f));
+                    }
+                }
+                Lumos::ScratchEnd(infoScratch);
             }
         }
 
-        if(loaded)
+        ImGui::Spacing();
+
+        Lumos::ArenaTemp Scratch = Lumos::ScratchBegin(0, 0);
+
+        float buttonWidth = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x * 2) / 3.0f;
+
         {
-            if(ImGui::Button("Edit File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+            if(ImGui::Button(ICON_MDI_FILE_PLUS " New", ImVec2(buttonWidth, 0.0f)))
             {
-                Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath(), [&]
-                                                         {
-                                                             script.Reload();
-                                                             hasReloaded = true;
+                Lumos::String8 newFilePath = Lumos::Str8Lit("//Assets/Scripts");
+                Lumos::String8 physicalPath;
+                if(!Lumos::FileSystem::Get().ResolvePhysicalPath(Scratch.arena, newFilePath, &physicalPath, true))
+                {
+                    LERROR("Failed to Create Lua script %s", (const char*)physicalPath.str);
+                }
+                else
+                {
+                    Lumos::String8 defaultScript = Lumos::Str8Lit(
+                        R"(-- Lua Script
 
-                                                             auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
-                                                             if(textEditPanel)
-                                                             ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors()); });
+function OnInit()
+    -- Called when script is initialized
+    Log.Info("Script initialized")
+end
 
-                auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
-                if(textEditPanel)
-                    ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
+function OnUpdate(dt)
+    -- Called every frame
+    -- dt = delta time in seconds
+end
+
+function OnCleanUp()
+    -- Called when script is destroyed
+end
+)");
+                    Lumos::ArenaTemp scratch = Lumos::ScratchBegin(nullptr, 0);
+                    Lumos::String8 newScriptFileName = Lumos::Str8Lit("NewScript");
+                    int fileIndex = 0;
+
+                    Lumos::String8 Path = Lumos::PushStr8FillByte(scratch.arena, 260, 0);
+                    Path = Lumos::Str8F(Path, "%s/%s.lua", (const char*)physicalPath.str, (const char*)newScriptFileName.str);
+
+                    while(Lumos::FileSystem::FileExists(Path))
+                    {
+                        fileIndex++;
+                        Path = Lumos::Str8F(Path, "%s/%s%i.lua", (const char*)physicalPath.str, (const char*)newScriptFileName.str, fileIndex);
+                    }
+
+                    Lumos::FileSystem::WriteTextFile(Path, defaultScript);
+
+                    Lumos::String8 pathStr = Lumos::PushStr8Copy(scratch.arena, ToStdString(Path).c_str());
+                    Lumos::String8 virtualScriptPath = Lumos::FileSystem::Get().AbsolutePathToFileSystem(scratch.arena, pathStr, false);
+
+                    script.SetFilePath(std::string((const char*)virtualScriptPath.str, virtualScriptPath.size));
+                    script.Reload();
+                    hasReloaded = true;
+
+                    Lumos::ScratchEnd(scratch);
+                }
             }
+            if(ImGui::IsItemHovered()) ImGui::SetTooltip("Create a new Lua script file");
 
-            if(ImGui::Button("Open File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+            ImGui::SameLine();
+
+            bool hasFile = !currentFilePath.empty();
+            if(!hasFile) ImGui::BeginDisabled();
+
+            if(ImGui::Button(ICON_MDI_FILE_DOCUMENT_EDIT " Edit", ImVec2(buttonWidth, 0.0f)))
+            {
+                if(!script.GetFilePath().empty())
+                {
+                    Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath(), [&]
+                    {
+                        script.Reload();
+                        hasReloaded = true;
+                        auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
+                        if(textEditPanel)
+                            ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
+                    });
+
+                    auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
+                    if(textEditPanel)
+                        ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
+                }
+            }
+            if(!hasFile) ImGui::EndDisabled();
+            if(ImGui::IsItemHovered()) ImGui::SetTooltip("Edit script in text editor");
+
+            ImGui::SameLine();
+
+            if(!hasFile) ImGui::BeginDisabled();
+
+            if(ImGui::Button(ICON_MDI_REFRESH " Reload", ImVec2(buttonWidth, 0.0f)))
+            {
+                script.Reload();
+                hasReloaded = true;
+            }
+            if(!hasFile) ImGui::EndDisabled();
+            if(ImGui::IsItemHovered()) ImGui::SetTooltip("Reload script from file (Ctrl+R)");
+        }
+
+        {
+            float secondaryButtonWidth = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) / 2.0f;
+
+            if(ImGui::Button(ICON_MDI_FOLDER_OPEN " Browse...", ImVec2(secondaryButtonWidth, 0.0f)))
             {
                 Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                 Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(std::bind(&Lumos::LuaScriptComponent::LoadScript, &script, std::placeholders::_1));
             }
+            if(ImGui::IsItemHovered()) ImGui::SetTooltip("Browse for a Lua script file");
 
-            if(ImGui::Button("Reload", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+            ImGui::SameLine();
+
+            bool hasFileToCopy = !currentFilePath.empty();
+            if(!hasFileToCopy) ImGui::BeginDisabled();
+
+            if(ImGui::Button(ICON_MDI_CONTENT_COPY " Copy Path", ImVec2(secondaryButtonWidth, 0.0f)))
             {
-                script.Reload();
-                hasReloaded = true;
+                ImGui::SetClipboardText(currentFilePath.c_str());
+            }
+            if(!hasFileToCopy) ImGui::EndDisabled();
+            if(ImGui::IsItemHovered()) ImGui::SetTooltip("Copy virtual path to clipboard");
+        }
+
+        ScratchEnd(Scratch);
+
+        if(const ImGuiPayload* payload = ImGui::GetDragDropPayload())
+        {
+            if(payload->IsDataType("AssetFile"))
+            {
+                if(ImGui::BeginDragDropTarget())
+                {
+                    if(ImGui::AcceptDragDropPayload("AssetFile"))
+                    {
+                        auto filePathDropped = std::string(reinterpret_cast<const char*>(payload->Data));
+                        script.SetFilePath(filePathDropped);
+                        script.Reload();
+                        hasReloaded = true;
+                    }
+                    ImGui::EndDragDropTarget();
+                }
             }
         }
-        else
+
+        if(!script.Loaded() && !script.GetFilePath().empty())
         {
-            if(ImGui::Button("Load", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.3f, 0.1f, 0.1f, 0.3f));
+            ImGui::BeginChild("ErrorBanner", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysAutoResize);
+
+            ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), ICON_MDI_ALERT_OCTAGON " Script Load Failed");
+
+            const auto& errors = script.GetErrors();
+            if(!errors.empty())
             {
-                script.Reload();
-                hasReloaded = true;
+                ImGui::Spacing();
+                ImGui::TextWrapped("The script contains errors and could not be loaded:");
+                ImGui::Spacing();
+
+                for(const auto& err : errors)
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.6f, 0.6f, 1.0f));
+                    ImGui::BulletText("Line %d: %s", err.first, err.second.c_str());
+                    ImGui::PopStyleColor();
+                }
+
+                ImGui::Spacing();
+
+                if(ImGui::Button(ICON_MDI_FILE_DOCUMENT_EDIT " Open and Fix", ImVec2(-1, 0)))
+                {
+                    if(!script.GetFilePath().empty())
+                    {
+                        Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath(), [&]
+                        {
+                            script.Reload();
+                            auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
+                            if(textEditPanel)
+                                ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
+                        });
+
+                        auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
+                        if(textEditPanel)
+                            ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
+                    }
+                }
             }
-        }
+            else
+            {
+                ImGui::Spacing();
+                ImGui::TextWrapped("The script file could not be loaded. The file may not exist or may have incorrect syntax.");
+            }
 
-		ScratchEnd(Scratch);
+            ImGui::EndChild();
+            ImGui::PopStyleColor();
 
-        if(!script.Loaded() || hasReloaded || !loaded)
-        {
             return;
         }
 
-        // ImGui::TextUnformatted("Loaded Functions : ");
+        if(script.Loaded())
+        {
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
 
-        /*     ImGui::Indent();
-             for(auto&& function : solEnv)
-             {
-                 if(function.second.is<sol::function>())
-                 {
-                     ImGui::TextUnformatted(function.first.as<std::string>().c_str());
-                 }
-             }
-             ImGui::Unindent();*/
+            if(ImGui::TreeNodeEx(ICON_MDI_INFORMATION " Script Info"))
+            {
+                ImGui::Indent();
+
+                ImGui::TextDisabled("Path:");
+                ImGui::SameLine();
+                ImGui::TextWrapped("%s", currentFilePath.c_str());
+
+                Lumos::ArenaTemp funcScratch = Lumos::ScratchBegin(0, 0);
+                Lumos::String8 virtualPath = Lumos::PushStr8Copy(funcScratch.arena, currentFilePath.c_str());
+                Lumos::String8 physicalPath;
+
+                if(Lumos::FileSystem::Get().ResolvePhysicalPath(funcScratch.arena, virtualPath, &physicalPath, false))
+                {
+                    Lumos::String8 scriptContent = Lumos::FileSystem::ReadTextFile(funcScratch.arena, physicalPath);
+                    if(scriptContent.size > 0)
+                    {
+                        std::vector<std::string> functions;
+                        const char* content = (const char*)scriptContent.str;
+                        const char* pos = content;
+
+                        while(pos && *pos)
+                        {
+                            const char* funcPos = strstr(pos, "function ");
+                            if(!funcPos) break;
+
+                            funcPos += 9;
+
+                            while(*funcPos == ' ' || *funcPos == '\t') funcPos++;
+
+                            const char* nameStart = funcPos;
+                            while(*funcPos && (*funcPos == '_' || isalnum(*funcPos))) funcPos++;
+
+                            if(funcPos > nameStart)
+                            {
+                                std::string funcName(nameStart, funcPos - nameStart);
+                                if(!funcName.empty())
+                                    functions.push_back(funcName);
+                            }
+
+                            pos = funcPos;
+                        }
+
+                        if(!functions.empty())
+                        {
+                            ImGui::TextDisabled("Functions:");
+                            ImGui::SameLine();
+                            ImGui::Text("%d detected", functions.size());
+
+                            if(ImGui::TreeNode("Function List"))
+                            {
+                                for(const auto& func : functions)
+                                {
+                                    ImGui::BulletText("%s()", func.c_str());
+                                }
+                                ImGui::TreePop();
+                            }
+                        }
+                    }
+                }
+
+                Lumos::ScratchEnd(funcScratch);
+
+                ImGui::Unindent();
+                ImGui::TreePop();
+            }
+        }
     }
 
     template <>
@@ -657,6 +1002,58 @@ end
         if(Lumos::ImGuiUtilities::Property("Angular Factor", angularFactor))
             phys.GetRigidBody()->SetAngularFactor(angularFactor);
 
+        // Collision Layer UI
+        auto collisionLayer = phys.GetRigidBody()->GetCollisionLayer();
+        auto collisionMask  = phys.GetRigidBody()->GetCollisionMask();
+
+        const char* layerNames[16] = {
+            "Layer 0 (Default)", "Layer 1 (Static)", "Layer 2 (Dynamic)", "Layer 3 (Player)",
+            "Layer 4 (Enemy)", "Layer 5 (Trigger)", "Layer 6 (Projectile)", "Layer 7",
+            "Layer 8", "Layer 9", "Layer 10", "Layer 11",
+            "Layer 12", "Layer 13", "Layer 14", "Layer 15"
+        };
+
+        int layerIndex = (int)collisionLayer;
+        if(Lumos::ImGuiUtilities::PropertyDropdown("Collision Layer", layerNames, 16, &layerIndex))
+            phys.GetRigidBody()->SetCollisionLayer((u16)layerIndex);
+
+        // Collision Mask as checkboxes for each layer
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Collision Mask");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        bool maskChanged = false;
+        u16 newMask      = collisionMask;
+
+        // Show checkboxes in a compact grid layout
+        for(int i = 0; i < 16; i++)
+        {
+            bool layerEnabled = (collisionMask & (1 << i)) != 0;
+            
+            char label[32];
+            snprintf(label, sizeof(label), "L%d##mask%d", i, i);
+            
+            if(ImGui::Checkbox(label, &layerEnabled))
+            {
+                if(layerEnabled)
+                    newMask |= (1 << i);
+                else
+                    newMask &= ~(1 << i);
+                maskChanged = true;
+            }
+
+            // 4 checkboxes per row
+            if((i + 1) % 4 != 0 && i < 15)
+                ImGui::SameLine();
+        }
+
+        if(maskChanged)
+            phys.GetRigidBody()->SetCollisionMask(newMask);
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
         ImGui::Columns(1);
         ImGui::Separator();
         ImGui::PopStyleVar();
@@ -724,13 +1121,13 @@ end
         LUMOS_PROFILE_FUNCTION();
         auto& phys = reg.get<Lumos::RigidBody2DComponent>(e);
 
-        auto pos      = phys.GetRigidBody()->GetPosition();
-        auto scale    = phys.GetRigidBody()->GetScale();
-        auto angle    = phys.GetRigidBody()->GetAngle();
-        auto friction = phys.GetRigidBody()->GetFriction();
-        auto isStatic = phys.GetRigidBody()->GetIsStatic();
-        auto isRest   = phys.GetRigidBody()->GetIsAtRest();
-
+        auto pos        = phys.GetRigidBody()->GetPosition();
+        auto scale      = phys.GetRigidBody()->GetScale();
+        auto angle      = phys.GetRigidBody()->GetAngle();
+        auto friction   = phys.GetRigidBody()->GetFriction();
+        auto isStatic   = phys.GetRigidBody()->GetIsStatic();
+        auto isRest     = phys.GetRigidBody()->GetIsAtRest();
+        auto damping    = phys.GetRigidBody()->GetDamping();
         auto elasticity = phys.GetRigidBody()->GetElasticity();
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
@@ -773,6 +1170,16 @@ end
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Friction", &friction))
             phys.GetRigidBody()->SetFriction(friction);
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Damping");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if(ImGui::DragFloat("##Damping", &damping))
+            phys.GetRigidBody()->SetDamping(damping);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -927,10 +1334,10 @@ end
                     if(ImGui::AcceptDragDropPayload("AssetFile"))
                     {
                         Lumos::String8 physicalPath;
-						Lumos::ArenaTemp scratch         = Lumos::ScratchBegin(nullptr, 0);
+                        Lumos::ArenaTemp scratch = Lumos::ScratchBegin(nullptr, 0);
                         Lumos::FileSystem::Get().ResolvePhysicalPath(scratch.arena, Lumos::Str8StdS(filePath), &physicalPath);
                         auto newSound = Lumos::Sound::Create(std::string((const char*)physicalPath.str, physicalPath.size), Lumos::StringUtilities::GetFilePathExtension(std::string((const char*)physicalPath.str, physicalPath.size)));
-						Lumos::ArenaTempEnd(scratch);
+                        Lumos::ArenaTempEnd(scratch);
                         soundNode->SetSound(newSound);
                     }
 
@@ -2296,8 +2703,8 @@ end
                     if(ImGui::Button("Save to file"))
                     {
 
-						Lumos::ArenaTemp scratch         = Lumos::ScratchBegin(nullptr, 0);
-                        Lumos::String8 filePath = Lumos::Str8Lit("//Assets/Materials/"); // +matName + ".lmat";
+                        Lumos::ArenaTemp scratch = Lumos::ScratchBegin(nullptr, 0);
+                        Lumos::String8 filePath  = Lumos::Str8Lit("//Assets/Materials/"); // +matName + ".lmat";
                         Lumos::String8 physicalPath;
                         if(FileSystem::Get().ResolvePhysicalPath(scratch.arena, filePath, &physicalPath, true))
                         {
@@ -2310,7 +2717,7 @@ end
 
                             FileSystem::WriteTextFile(fullPath, Str8StdS(storage.str()));
                         }
-						Lumos::ArenaTempEnd(scratch);
+                        Lumos::ArenaTempEnd(scratch);
                     }
 
                     if(Lumos::ImGuiUtilities::InputText(matName, "##materialName"))
@@ -2939,7 +3346,27 @@ namespace Lumos
             }
 
             auto& registry = currentScene->GetRegistry();
-            if(selectedEntities.size() != 1 || !registry.valid(selectedEntities.front()))
+
+            // Handle no selection
+            if(selectedEntities.empty())
+            {
+                ImGui::TextDisabled("No entity selected");
+                ImGuiUtilities::PopID();
+                ImGui::End();
+                return;
+            }
+
+            // Handle multiple entity selection
+            if(selectedEntities.size() > 1)
+            {
+                DrawMultiEntityInspector(currentScene, selectedEntities);
+                ImGuiUtilities::PopID();
+                ImGui::End();
+                return;
+            }
+
+            // Single entity selection - validate
+            if(!registry.valid(selectedEntities.front()))
             {
                 m_Editor->SetSelected({});
                 ImGuiUtilities::PopID();
@@ -3041,13 +3468,13 @@ namespace Lumos
 
                 if(ImGui::Button("OK", ImVec2(120, 0)))
                 {
-					Lumos::ArenaTemp scratch         = Lumos::ScratchBegin(nullptr, 0);
+                    Lumos::ArenaTemp scratch = Lumos::ScratchBegin(nullptr, 0);
                     Lumos::String8 physicalPath;
                     FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(prefabNamePath), &physicalPath, true);
                     std::string FullPath = std::string((const char*)physicalPath.str, physicalPath.size) + prefabName + std::string(".lprefab");
                     Application::Get().GetSceneManager()->GetCurrentScene()->SavePrefab({ selected, Application::Get().GetSceneManager()->GetCurrentScene() }, FullPath);
                     ImGui::CloseCurrentPopup();
-					ArenaTempEnd(scratch);
+                    ArenaTempEnd(scratch);
                 }
                 ImGui::SetItemDefaultFocus();
                 ImGui::SameLine();
@@ -3135,6 +3562,259 @@ namespace Lumos
             ImGuiUtilities::PopID();
         }
         ImGui::End();
+    }
+
+    void InspectorPanel::DrawMultiEntityInspector(Scene* scene, const std::vector<Entity>& entities)
+    {
+        auto& registry = scene->GetRegistry();
+
+        // Header showing selection count
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.8f, 1.0f, 1.0f));
+        ImGui::Text(ICON_MDI_SELECT_ALL " %zu entities selected", entities.size());
+        ImGui::PopStyleColor();
+        ImGui::Separator();
+
+        // Count valid entities with transforms
+        int validCount = 0;
+        for(auto entity : entities)
+        {
+            if(entity.Valid() && entity.HasComponent<Maths::Transform>())
+                validCount++;
+        }
+
+        if(validCount == 0)
+        {
+            ImGui::TextDisabled("No valid entities with transforms");
+            return;
+        }
+
+        // Transform editing section
+        if(ImGui::CollapsingHeader(ICON_MDI_VECTOR_LINE " Transform", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::Indent();
+            ImGui::TextDisabled("Changes apply to all selected entities");
+            ImGui::Spacing();
+
+            // Position offset
+            static Vec3 positionOffset = Vec3(0.0f);
+            ImGui::Text("Position Offset");
+            bool posChanged = false;
+            posChanged |= ImGui::DragFloat("X##PosOffset", &positionOffset.x, 0.1f);
+            ImGui::SameLine();
+            posChanged |= ImGui::DragFloat("Y##PosOffset", &positionOffset.y, 0.1f);
+            ImGui::SameLine();
+            posChanged |= ImGui::DragFloat("Z##PosOffset", &positionOffset.z, 0.1f);
+            ImGui::SameLine();
+            if(ImGui::Button("Apply##Pos"))
+            {
+                for(auto entity : entities)
+                {
+                    if(!entity.Valid())
+                        continue;
+                    if(entity.HasComponent<EditorLockComponent>())
+                        continue;
+                    auto transform = entity.TryGetComponent<Maths::Transform>();
+                    if(transform)
+                    {
+                        transform->SetLocalPosition(transform->GetLocalPosition() + positionOffset);
+                    }
+                }
+                positionOffset = Vec3(0.0f);
+            }
+
+            ImGui::Spacing();
+
+            // Rotation offset (in degrees)
+            static Vec3 rotationOffset = Vec3(0.0f);
+            ImGui::Text("Rotation Offset (degrees)");
+            bool rotChanged = false;
+            rotChanged |= ImGui::DragFloat("X##RotOffset", &rotationOffset.x, 1.0f);
+            ImGui::SameLine();
+            rotChanged |= ImGui::DragFloat("Y##RotOffset", &rotationOffset.y, 1.0f);
+            ImGui::SameLine();
+            rotChanged |= ImGui::DragFloat("Z##RotOffset", &rotationOffset.z, 1.0f);
+            ImGui::SameLine();
+            if(ImGui::Button("Apply##Rot"))
+            {
+                for(auto entity : entities)
+                {
+                    if(!entity.Valid())
+                        continue;
+                    if(entity.HasComponent<EditorLockComponent>())
+                        continue;
+                    auto transform = entity.TryGetComponent<Maths::Transform>();
+                    if(transform)
+                    {
+                        Vec3 currentRot = transform->GetLocalOrientation().ToEuler();
+                        transform->SetLocalOrientation(Quat(currentRot + rotationOffset));
+                    }
+                }
+                rotationOffset = Vec3(0.0f);
+            }
+
+            ImGui::Spacing();
+
+            // Scale multiplier
+            static Vec3 scaleMultiplier = Vec3(1.0f);
+            ImGui::Text("Scale Multiplier");
+            bool scaleChanged = false;
+            scaleChanged |= ImGui::DragFloat("X##ScaleMult", &scaleMultiplier.x, 0.01f, 0.01f, 100.0f);
+            ImGui::SameLine();
+            scaleChanged |= ImGui::DragFloat("Y##ScaleMult", &scaleMultiplier.y, 0.01f, 0.01f, 100.0f);
+            ImGui::SameLine();
+            scaleChanged |= ImGui::DragFloat("Z##ScaleMult", &scaleMultiplier.z, 0.01f, 0.01f, 100.0f);
+            ImGui::SameLine();
+            if(ImGui::Button("Apply##Scale"))
+            {
+                for(auto entity : entities)
+                {
+                    if(!entity.Valid())
+                        continue;
+                    if(entity.HasComponent<EditorLockComponent>())
+                        continue;
+                    auto transform = entity.TryGetComponent<Maths::Transform>();
+                    if(transform)
+                    {
+                        transform->SetLocalScale(transform->GetLocalScale() * scaleMultiplier);
+                    }
+                }
+                scaleMultiplier = Vec3(1.0f);
+            }
+
+            ImGui::Spacing();
+
+            // Uniform scale
+            static float uniformScale = 1.0f;
+            ImGui::Text("Uniform Scale");
+            ImGui::DragFloat("##UniformScale", &uniformScale, 0.01f, 0.01f, 100.0f);
+            ImGui::SameLine();
+            if(ImGui::Button("Apply##UniformScale"))
+            {
+                for(auto entity : entities)
+                {
+                    if(!entity.Valid())
+                        continue;
+                    if(entity.HasComponent<EditorLockComponent>())
+                        continue;
+                    auto transform = entity.TryGetComponent<Maths::Transform>();
+                    if(transform)
+                    {
+                        transform->SetLocalScale(transform->GetLocalScale() * uniformScale);
+                    }
+                }
+                uniformScale = 1.0f;
+            }
+
+            ImGui::Unindent();
+        }
+
+        ImGui::Separator();
+
+        // Quick actions
+        if(ImGui::CollapsingHeader(ICON_MDI_FLASH " Quick Actions", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::Indent();
+
+            if(ImGui::Button(ICON_MDI_RESTART " Reset Position"))
+            {
+                for(auto entity : entities)
+                {
+                    if(!entity.Valid())
+                        continue;
+                    if(entity.HasComponent<EditorLockComponent>())
+                        continue;
+                    auto transform = entity.TryGetComponent<Maths::Transform>();
+                    if(transform)
+                        transform->SetLocalPosition(Vec3(0.0f));
+                }
+            }
+            ImGui::SameLine();
+
+            if(ImGui::Button(ICON_MDI_RESTART " Reset Rotation"))
+            {
+                for(auto entity : entities)
+                {
+                    if(!entity.Valid())
+                        continue;
+                    if(entity.HasComponent<EditorLockComponent>())
+                        continue;
+                    auto transform = entity.TryGetComponent<Maths::Transform>();
+                    if(transform)
+                        transform->SetLocalOrientation(Quat());
+                }
+            }
+            ImGui::SameLine();
+
+            if(ImGui::Button(ICON_MDI_RESTART " Reset Scale"))
+            {
+                for(auto entity : entities)
+                {
+                    if(!entity.Valid())
+                        continue;
+                    if(entity.HasComponent<EditorLockComponent>())
+                        continue;
+                    auto transform = entity.TryGetComponent<Maths::Transform>();
+                    if(transform)
+                        transform->SetLocalScale(Vec3(1.0f));
+                }
+            }
+
+            ImGui::Unindent();
+        }
+
+        ImGui::Separator();
+
+        // Show shared component types
+        if(ImGui::CollapsingHeader(ICON_MDI_PUZZLE " Shared Components"))
+        {
+            ImGui::Indent();
+            ImGui::TextDisabled("Components present on all selected entities:");
+            ImGui::Spacing();
+
+            // Check for common components
+            bool allHaveTransform  = true;
+            bool allHaveModel      = true;
+            bool allHaveSprite     = true;
+            bool allHaveLight      = true;
+            bool allHaveRigidBody  = true;
+            bool allHaveCamera     = true;
+
+            for(auto entity : entities)
+            {
+                if(!entity.Valid())
+                    continue;
+                if(!entity.HasComponent<Maths::Transform>())
+                    allHaveTransform = false;
+                if(!entity.HasComponent<Graphics::ModelComponent>())
+                    allHaveModel = false;
+                if(!entity.HasComponent<Graphics::Sprite>())
+                    allHaveSprite = false;
+                if(!entity.HasComponent<Graphics::Light>())
+                    allHaveLight = false;
+                if(!entity.HasComponent<RigidBody3DComponent>() && !entity.HasComponent<RigidBody2DComponent>())
+                    allHaveRigidBody = false;
+                if(!entity.HasComponent<Camera>())
+                    allHaveCamera = false;
+            }
+
+            if(allHaveTransform)
+                ImGui::BulletText(ICON_MDI_AXIS_ARROW " Transform");
+            if(allHaveModel)
+                ImGui::BulletText(ICON_MDI_CUBE " Model");
+            if(allHaveSprite)
+                ImGui::BulletText(ICON_MDI_IMAGE " Sprite");
+            if(allHaveLight)
+                ImGui::BulletText(ICON_MDI_LIGHTBULB " Light");
+            if(allHaveRigidBody)
+                ImGui::BulletText(ICON_MDI_SOCCER " RigidBody");
+            if(allHaveCamera)
+                ImGui::BulletText(ICON_MDI_CAMERA " Camera");
+
+            if(!allHaveTransform && !allHaveModel && !allHaveSprite && !allHaveLight && !allHaveRigidBody && !allHaveCamera)
+                ImGui::TextDisabled("No common components found");
+
+            ImGui::Unindent();
+        }
     }
 
     void InspectorPanel::SetDebugMode(bool mode)

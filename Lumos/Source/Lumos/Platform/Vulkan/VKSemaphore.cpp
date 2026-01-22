@@ -48,7 +48,7 @@ namespace Lumos
             semaphoreWaitInfo.pSemaphores         = &m_Handle;
             semaphoreWaitInfo.pValues             = &value;
 
-            ASSERT(vkWaitSemaphores(VKDevice::Get().GetDevice(), &semaphoreWaitInfo, timeout), "Failed to wait for semaphore");
+            VK_CHECK_RESULT(vkWaitSemaphores(VKDevice::Get().GetDevice(), &semaphoreWaitInfo, timeout));
 #endif
         }
 

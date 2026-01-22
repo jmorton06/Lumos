@@ -3,6 +3,7 @@
 #include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/SceneManager.h>
+#include <Lumos/Scene/EntityFactory.h>
 #include <Lumos/Core/Engine.h>
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/Graphics/RHI/GraphicsContext.h>
@@ -10,7 +11,10 @@
 #include <Lumos/Graphics/RHI/SwapChain.h>
 #include <Lumos/Graphics/Renderers/SceneRenderer.h>
 #include <Lumos/Graphics/Light.h>
+#include <Lumos/Graphics/Model.h>
 #include <Lumos/Scene/Component/SoundComponent.h>
+#include <Lumos/Scene/Component/ModelComponent.h>
+#include <Lumos/Scripting/Lua/LuaScriptComponent.h>
 #include <Lumos/Graphics/Renderers/GridRenderer.h>
 #include <Lumos/Physics/LumosPhysicsEngine/LumosPhysicsEngine.h>
 #include <Lumos/Physics/B2PhysicsEngine/B2PhysicsEngine.h>
@@ -21,10 +25,13 @@
 #include <Lumos/Graphics/Camera/EditorCamera.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Events/ApplicationEvent.h>
+#include <Lumos/Graphics/Sprite.h>
 
 #include <box2d/box2d.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/Plugins/ImGuizmo.h>
+#include <sol/sol.hpp>
+
 namespace Lumos
 {
     SceneViewPanel::SceneViewPanel()
@@ -138,13 +145,50 @@ namespace Lumos
 
         if(ImGui::IsWindowFocused() && updateCamera && !ImGuizmo::IsUsing() && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft))
         {
-            LUMOS_PROFILE_SCOPE("Select Object");
-
             float dpi     = Application::Get().GetWindowDPI();
             auto clickPos = Input::Get().GetMousePosition() - Vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
 
             Maths::Ray ray = m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
-            m_Editor->SelectObject(ray);
+
+            // Handle measurement mode click
+            if(m_MeasurementMode)
+            {
+                LUMOS_PROFILE_SCOPE("Measurement Click");
+                Vec3 clickWorldPos;
+
+                if(m_MeasurementPointIndex >= 2)
+                {
+                    m_MeasurementPointIndex = 0;
+                }
+
+                if(camera->IsOrthographic())
+                {
+                    clickWorldPos   = ray.Origin;
+                    clickWorldPos.z = 0.0f;
+                }
+                else
+                {
+                    // For 3D mode, place at a fixed distance or use entity under cursor
+                    float distance  = 10.0f;
+                    clickWorldPos   = ray.Origin + ray.Direction * distance;
+                }
+
+                if(m_MeasurementPointIndex == 0)
+                {
+                    m_MeasurementPoint1 = clickWorldPos;
+                    m_MeasurementPointIndex = 1;
+                }
+                else if(m_MeasurementPointIndex == 1)
+                {
+                    m_MeasurementPoint2 = clickWorldPos;
+                    m_MeasurementPointIndex = 2;
+                }
+            }
+            else
+            {
+                LUMOS_PROFILE_SCOPE("Select Object");
+                m_Editor->SelectObject(ray);
+            }
         }
 
         if(ImGui::IsWindowFocused() && updateCamera && !ImGuizmo::IsUsing() && ImGui::IsItemHovered() && Input::Get().GetMouseMode() == MouseMode::Visible)
@@ -168,6 +212,80 @@ namespace Lumos
             ImGui::EndTooltip();
         }
 
+        // Right-click context menu
+        if(ImGui::IsWindowFocused() && updateCamera && !ImGuizmo::IsUsing() && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonRight))
+        {
+            float dpi     = Application::Get().GetWindowDPI();
+            auto clickPos = Input::Get().GetMousePosition() - Vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
+
+            Maths::Ray ray = m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
+
+            // Calculate world position based on camera mode
+            if(camera->IsOrthographic())
+            {
+                // For 2D mode, project onto z=0 plane
+                m_ContextMenuWorldPos = ray.Origin;
+                m_ContextMenuWorldPos.z = 0.0f;
+            }
+            else
+            {
+                // For 3D mode, place at a fixed distance from camera
+                float distance = 10.0f;
+                m_ContextMenuWorldPos = ray.Origin + ray.Direction * distance;
+            }
+
+            m_ContextMenuPending = true;
+            ImGui::OpenPopup("SceneViewContextMenu");
+        }
+
+        // Handle pinch gesture for zoom (less restrictive for touch - gestures are 2+ fingers so won't conflict with UI)
+        if(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && Input::Get().GetGesturePinchActive())
+        {
+            float scale = Input::Get().GetGesturePinchScale();
+            float velocity = Input::Get().GetGesturePinchVelocity();
+            m_Editor->GetEditorCameraController().HandleGesturePinch(
+                m_Editor->GetEditorCameraTransform(), scale, velocity, (float)Engine::Get().GetTimeStep().GetSeconds());
+        }
+
+        // Handle two-finger pan gesture for rotation (less restrictive for touch)
+        if(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && Input::Get().GetGesturePanActive() && Input::Get().GetGesturePanTouchCount() == 2)
+        {
+            Vec2 translation = Input::Get().GetGesturePanTranslation();
+            Vec2 velocity = Input::Get().GetGesturePanVelocity();
+            m_Editor->GetEditorCameraController().HandleGesturePan(
+                m_Editor->GetEditorCameraTransform(), translation, velocity);
+        }
+
+        // Handle long-press gesture for context menu
+        if(ImGui::IsWindowFocused() && updateCamera && !ImGuizmo::IsUsing() && !ImGui::GetIO().WantCaptureMouse && Input::Get().GetGestureLongPressActive())
+        {
+            Vec2 pressLocation = Input::Get().GetGestureLongPressLocation();
+            float dpi = Application::Get().GetWindowDPI();
+            auto clickPos = pressLocation - Vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
+
+            if(clickPos.x >= 0 && clickPos.y >= 0 && clickPos.x < sceneViewSize.x && clickPos.y < sceneViewSize.y)
+            {
+                Maths::Ray ray = m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
+
+                // Calculate world position based on camera mode
+                if(camera->IsOrthographic())
+                {
+                    m_ContextMenuWorldPos = ray.Origin;
+                    m_ContextMenuWorldPos.z = 0.0f;
+                }
+                else
+                {
+                    float distance = 10.0f;
+                    m_ContextMenuWorldPos = ray.Origin + ray.Direction * distance;
+                }
+
+                m_ContextMenuPending = true;
+                ImGui::OpenPopup("SceneViewContextMenu");
+            }
+        }
+
+        DrawContextMenu(m_CurrentScene);
+
         const ImGuiPayload* payload = ImGui::GetDragDropPayload();
 
         if(ImGui::BeginDragDropTarget())
@@ -182,7 +300,10 @@ namespace Lumos
         }
 
         if(app.GetSceneManager()->GetCurrentScene())
+        {
             DrawGizmos(sceneViewSize.x, sceneViewSize.y, offset.x, offset.y, app.GetSceneManager()->GetCurrentScene());
+            DrawMeasurementTool(sceneViewSize.x, sceneViewSize.y, offset.x, offset.y, app.GetSceneManager()->GetCurrentScene());
+        }
 
         ImGui::GetWindowDrawList()->PopClipRect();
         ImGui::End();
@@ -202,6 +323,74 @@ namespace Lumos
         ShowComponentGizmo<Graphics::Light>(width, height, xpos, ypos, viewProj, f, registry);
         ShowComponentGizmo<Camera>(width, height, xpos, ypos, viewProj, f, registry);
         ShowComponentGizmo<SoundComponent>(width, height, xpos, ypos, viewProj, f, registry);
+    }
+
+    void SceneViewPanel::DrawMeasurementTool(float width, float height, float xpos, float ypos, Scene* scene)
+    {
+        if(!m_MeasurementMode && m_MeasurementPointIndex == 0)
+            return;
+
+        Camera* camera                    = m_Editor->GetCamera();
+        Maths::Transform& cameraTransform = m_Editor->GetEditorCameraTransform();
+        Mat4 view                         = cameraTransform.GetWorldMatrix().Inverse();
+        Mat4 proj                         = camera->GetProjectionMatrix();
+        Mat4 viewProj                     = proj * view;
+
+        ImDrawList* drawList = ImGui::GetWindowDrawList();
+        const ImU32 lineColor = IM_COL32(255, 200, 50, 255);
+        const ImU32 pointColor = IM_COL32(50, 255, 100, 255);
+        const ImU32 textBgColor = IM_COL32(0, 0, 0, 180);
+        const float lineThickness = 2.0f;
+        const float pointRadius = 6.0f;
+
+        // Draw first point if selected
+        if(m_MeasurementPointIndex >= 1)
+        {
+            Vec2 screenPos1 = Maths::WorldToScreen(m_MeasurementPoint1, viewProj, width, height, xpos, ypos);
+            drawList->AddCircleFilled(ImVec2(screenPos1.x, screenPos1.y), pointRadius, pointColor);
+            drawList->AddCircle(ImVec2(screenPos1.x, screenPos1.y), pointRadius + 1, IM_COL32(255, 255, 255, 200), 0, 1.5f);
+
+            // Draw label "P1"
+            drawList->AddText(ImVec2(screenPos1.x + 10, screenPos1.y - 8), IM_COL32(255, 255, 255, 255), "P1");
+        }
+
+        // Draw second point and line if both selected
+        if(m_MeasurementPointIndex >= 2)
+        {
+            Vec2 screenPos1 = Maths::WorldToScreen(m_MeasurementPoint1, viewProj, width, height, xpos, ypos);
+            Vec2 screenPos2 = Maths::WorldToScreen(m_MeasurementPoint2, viewProj, width, height, xpos, ypos);
+
+            // Draw line
+            drawList->AddLine(ImVec2(screenPos1.x, screenPos1.y), ImVec2(screenPos2.x, screenPos2.y), lineColor, lineThickness);
+
+            // Draw second point
+            drawList->AddCircleFilled(ImVec2(screenPos2.x, screenPos2.y), pointRadius, pointColor);
+            drawList->AddCircle(ImVec2(screenPos2.x, screenPos2.y), pointRadius + 1, IM_COL32(255, 255, 255, 200), 0, 1.5f);
+
+            // Draw label "P2"
+            drawList->AddText(ImVec2(screenPos2.x + 10, screenPos2.y - 8), IM_COL32(255, 255, 255, 255), "P2");
+
+            // Calculate and display distance at midpoint
+            float distance = Maths::Distance(m_MeasurementPoint1, m_MeasurementPoint2);
+            Vec2 midScreen = (screenPos1 + screenPos2) * 0.5f;
+
+            char distText[64];
+            snprintf(distText, sizeof(distText), "%.3f", distance);
+
+            ImVec2 textSize = ImGui::CalcTextSize(distText);
+            ImVec2 padding = ImVec2(4, 2);
+
+            // Draw background box for text
+            drawList->AddRectFilled(
+                ImVec2(midScreen.x - textSize.x / 2 - padding.x, midScreen.y - 12 - textSize.y - padding.y),
+                ImVec2(midScreen.x + textSize.x / 2 + padding.x, midScreen.y - 12 + padding.y),
+                textBgColor, 3.0f);
+
+            // Draw distance text
+            drawList->AddText(
+                ImVec2(midScreen.x - textSize.x / 2, midScreen.y - 12 - textSize.y),
+                IM_COL32(255, 200, 50, 255), distText);
+        }
     }
 
     void SceneViewPanel::ToolBar()
@@ -568,6 +757,48 @@ namespace Lumos
         if(selected)
             ImGui::PopStyleColor();
 
+        ImGui::SameLine();
+        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine();
+
+        // Measurement tool toggle
+        {
+            selected = m_MeasurementMode;
+            if(selected)
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
+            if(ImGui::Button(ICON_MDI_RULER))
+            {
+                m_MeasurementMode = !m_MeasurementMode;
+                if(m_MeasurementMode)
+                {
+                    m_MeasurementPointIndex = 0;  // Reset to start fresh
+                }
+            }
+            if(selected)
+                ImGui::PopStyleColor();
+            ImGuiUtilities::Tooltip("Measure Distance (click two points)");
+        }
+
+        // Show measurement status if active
+        if(m_MeasurementMode)
+        {
+            ImGui::SameLine();
+            if(m_MeasurementPointIndex == 0)
+                ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.3f, 1.0f), "Click first point");
+            else if(m_MeasurementPointIndex == 1)
+                ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.3f, 1.0f), "Click second point");
+            else
+            {
+                float distance = Maths::Distance(m_MeasurementPoint1, m_MeasurementPoint2);
+                ImGui::TextColored(ImVec4(0.3f, 1.0f, 0.5f, 1.0f), "Distance: %.3f units", distance);
+                ImGui::SameLine();
+                if(ImGui::SmallButton("Clear"))
+                {
+                    m_MeasurementPointIndex = 0;
+                }
+            }
+        }
+
         ImGui::PopStyleColor();
         ImGui::Unindent();
     }
@@ -630,6 +861,159 @@ namespace Lumos
 
             // Should be just build texture and scene renderer set render target
             // Renderer::GetGraphicsContext()->WaitIdle();
+        }
+    }
+
+    void SceneViewPanel::DrawContextMenu(Scene* scene)
+    {
+        if(!scene)
+            return;
+
+        auto editor = m_Editor;
+        Vec3 pos    = m_ContextMenuWorldPos;
+
+        auto CreateEntityAtPosition = [scene, editor, pos](const std::string& name) -> Entity {
+            auto entity = scene->CreateEntity(name);
+            entity.GetOrAddComponent<Maths::Transform>().SetLocalPosition(pos);
+            editor->ClearSelected();
+            editor->SetSelected(entity);
+            return entity;
+        };
+
+        if(ImGui::BeginPopup("SceneViewContextMenu"))
+        {
+            if(ImGui::MenuItem(ICON_MDI_CUBE_OUTLINE " Empty Entity"))
+            {
+                CreateEntityAtPosition("Entity");
+            }
+
+            ImGui::Separator();
+
+            if(ImGui::BeginMenu(ICON_MDI_SHAPE " 3D Object"))
+            {
+                if(ImGui::MenuItem("Cube"))
+                {
+                    auto entity = CreateEntityAtPosition("Cube");
+                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
+                }
+                if(ImGui::MenuItem("Sphere"))
+                {
+                    auto entity = CreateEntityAtPosition("Sphere");
+                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Sphere);
+                }
+                if(ImGui::MenuItem("Plane"))
+                {
+                    auto entity = CreateEntityAtPosition("Plane");
+                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Plane);
+                }
+                if(ImGui::MenuItem("Cylinder"))
+                {
+                    auto entity = CreateEntityAtPosition("Cylinder");
+                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cylinder);
+                }
+                if(ImGui::MenuItem("Capsule"))
+                {
+                    auto entity = CreateEntityAtPosition("Capsule");
+                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Capsule);
+                }
+                if(ImGui::MenuItem("Pyramid"))
+                {
+                    auto entity = CreateEntityAtPosition("Pyramid");
+                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Pyramid);
+                }
+                ImGui::EndMenu();
+            }
+
+            if(ImGui::BeginMenu(ICON_MDI_IMAGE " 2D Object"))
+            {
+                if(ImGui::MenuItem("Sprite"))
+                {
+                    auto entity = CreateEntityAtPosition("Sprite");
+                    entity.AddComponent<Graphics::Sprite>();
+                }
+                ImGui::EndMenu();
+            }
+
+            if(ImGui::BeginMenu(ICON_MDI_LIGHTBULB " Light"))
+            {
+                if(ImGui::MenuItem("Point Light"))
+                {
+                    auto entity = CreateEntityAtPosition("Point Light");
+                    auto& light = entity.AddComponent<Graphics::Light>();
+                    light.Type  = (float)Graphics::LightType::PointLight;
+                }
+                if(ImGui::MenuItem("Directional Light"))
+                {
+                    auto entity = CreateEntityAtPosition("Directional Light");
+                    auto& light = entity.AddComponent<Graphics::Light>();
+                    light.Type  = (float)Graphics::LightType::DirectionalLight;
+                }
+                if(ImGui::MenuItem("Spot Light"))
+                {
+                    auto entity = CreateEntityAtPosition("Spot Light");
+                    auto& light = entity.AddComponent<Graphics::Light>();
+                    light.Type  = (float)Graphics::LightType::SpotLight;
+                }
+                ImGui::EndMenu();
+            }
+
+            if(ImGui::MenuItem(ICON_MDI_CAMERA " Camera"))
+            {
+                auto entity = CreateEntityAtPosition("Camera");
+                entity.AddComponent<Camera>();
+            }
+
+            if(ImGui::MenuItem(ICON_MDI_VOLUME_HIGH " Audio Source"))
+            {
+                auto entity = CreateEntityAtPosition("Audio Source");
+                entity.AddComponent<SoundComponent>();
+            }
+
+            if(ImGui::MenuItem(ICON_MDI_SCRIPT " Lua Script"))
+            {
+                auto entity = CreateEntityAtPosition("Lua Script");
+                entity.AddComponent<LuaScriptComponent>();
+            }
+
+            ImGui::Separator();
+
+            const auto& copiedEntities = m_Editor->GetCopiedEntity();
+            if(!copiedEntities.empty())
+            {
+                if(ImGui::MenuItem(ICON_MDI_CONTENT_PASTE " Paste"))
+                {
+                    bool wasCutOperation = m_Editor->GetCutCopyEntity();
+                    editor->ClearSelected();
+
+                    for(auto copiedEntity : copiedEntities)
+                    {
+                        if(copiedEntity.Valid())
+                        {
+                            Entity newEntity = scene->CreateEntity();
+                            scene->DuplicateEntity(copiedEntity, newEntity);
+                            newEntity.GetOrAddComponent<Maths::Transform>().SetLocalPosition(pos);
+                            editor->SetSelected(newEntity);
+
+                            if(wasCutOperation)
+                            {
+                                scene->DestroyEntity(copiedEntity);
+                            }
+                        }
+                    }
+
+                    if(wasCutOperation)
+                    {
+                        m_Editor->SetCopiedEntity({});
+                    }
+                }
+            }
+            else
+            {
+                ImGui::TextDisabled(ICON_MDI_CONTENT_PASTE " Paste");
+            }
+
+            ImGui::EndPopup();
+            m_ContextMenuPending = false;
         }
     }
 }

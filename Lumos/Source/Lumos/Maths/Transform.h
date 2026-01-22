@@ -39,6 +39,7 @@ namespace Lumos
 
             const Vec3 GetWorldPosition();
             const Quat GetWorldOrientation();
+            const Vec3 GetWorldScale();
 
             const Vec3& GetLocalPosition() const;
             const Vec3& GetLocalScale() const;

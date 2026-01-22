@@ -68,7 +68,7 @@ namespace Lumos
                 uint32_t stride = m_Shader.As<VKShader>()->GetVertexInputStride();
 
                 // Vertex layout
-                VkVertexInputBindingDescription vertexBindingDescription;
+                VkVertexInputBindingDescription vertexBindingDescription = {};
 
                 if(stride > 0)
                 {
@@ -101,9 +101,9 @@ namespace Lumos
                 rs.depthClampEnable        = VK_TRUE;
                 rs.rasterizerDiscardEnable = VK_FALSE;
                 rs.depthBiasEnable         = (pipelineDesc.depthBiasEnabled ? VK_TRUE : VK_FALSE);
-                rs.depthBiasConstantFactor = pipelineDesc.depthBiasConstantFactor;
+                rs.depthBiasConstantFactor = pipelineDesc.depthBiasEnabled ? pipelineDesc.depthBiasConstantFactor : 0.0f;
                 rs.depthBiasClamp          = 0;
-                rs.depthBiasSlopeFactor    = pipelineDesc.depthBiasSlopeFactor;
+                rs.depthBiasSlopeFactor    = pipelineDesc.depthBiasEnabled ? pipelineDesc.depthBiasSlopeFactor : 0.0f;
 
                 if(Renderer::GetCapabilities().WideLines)
                     rs.lineWidth = pipelineDesc.lineWidth;
@@ -490,10 +490,7 @@ namespace Lumos
 
             if(m_Description.swapchainTarget)
             {
-                for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
-                {
-                    ((VKTexture2D*)Renderer::GetMainSwapChain()->GetImage(i))->TransitionImage(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, (VKCommandBuffer*)commandBuffer);
-                }
+                ((VKTexture2D*)Renderer::GetMainSwapChain()->GetImage(Renderer::GetMainSwapChain()->GetCurrentImageIndex()))->TransitionImage(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, (VKCommandBuffer*)commandBuffer);
             }
 
             if(m_Description.depthArrayTarget)

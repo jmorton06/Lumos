@@ -16,6 +16,7 @@
 #include "Scripting/Lua/LuaScriptComponent.h"
 #include "Core/Application.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
+#include "Physics/B2PhysicsEngine/RigidBody2D.h"
 #include "Core/Asset/Asset.h"
 #include "Core/Asset/AssetRegistry.h"
 #include "Audio/AudioManager.h"
@@ -29,30 +30,30 @@
 namespace Lumos
 {
 
-	template<class Archive>
-		std::string save_minimal(Archive & ar, String8 const & str)
-	{
-			// Save number of chars + the data
-		//ar( str.size );
+    template <class Archive>
+    std::string save_minimal(Archive& ar, String8 const& str)
+    {
+        // Save number of chars + the data
+        // ar( str.size );
 
-		return str.size > 0 ? ToStdString(str) : std::string();
-		//ar( cereal::binary_data((char*)str.str, static_cast<std::size_t>(str.size * sizeof(u8))) );
-	}
+        return str.size > 0 ? ToStdString(str) : std::string();
+        // ar( cereal::binary_data((char*)str.str, static_cast<std::size_t>(str.size * sizeof(u8))) );
+    }
 
-	template<class Archive>
-	void load_minimal(Archive& ar, String8& str, const std::string& value)
-	{
-		//u64 size;
-		//ar( size );
+    template <class Archive>
+    void load_minimal(Archive& ar, String8& str, const std::string& value)
+    {
+        // u64 size;
+        // ar( size );
 
-		//std::string stringCopy = ToStdString(str);
-		//ar( value);
+        // std::string stringCopy = ToStdString(str);
+        // ar( value);
 
-		if(!value.empty())
-			str = PushStr8Copy(Application::Get().GetFrameArena(), value.c_str());
-		//PushStr8FillByte(Application::Get().GetFrameArena(), size, 0);
-		//ar( cereal::binary_data( (char*)str.str, static_cast<std::size_t>(size * sizeof(u8)) ) );
-	}
+        if(!value.empty())
+            str = PushStr8Copy(Application::Get().GetFrameArena(), value.c_str());
+        // PushStr8FillByte(Application::Get().GetFrameArena(), size, 0);
+        // ar( cereal::binary_data( (char*)str.str, static_cast<std::size_t>(size * sizeof(u8)) ) );
+    }
 
     template <typename Archive>
     void save(Archive& archive, const Listener& listener)
@@ -168,11 +169,12 @@ namespace Lumos
     {
         auto shape = std::unique_ptr<CollisionShape>(rigidBody.m_CollisionShape.get());
 
-        const int Version = 2;
+        const int Version = 3;
 
         archive(cereal::make_nvp("Version", Version));
         archive(cereal::make_nvp("Position", rigidBody.m_Position), cereal::make_nvp("Orientation", rigidBody.m_Orientation), cereal::make_nvp("LinearVelocity", rigidBody.m_LinearVelocity), cereal::make_nvp("Force", rigidBody.m_Force), cereal::make_nvp("Mass", 1.0f / rigidBody.m_InvMass), cereal::make_nvp("AngularVelocity", rigidBody.m_AngularVelocity), cereal::make_nvp("Torque", rigidBody.m_Torque), cereal::make_nvp("Static", rigidBody.m_Static), cereal::make_nvp("Friction", rigidBody.m_Friction), cereal::make_nvp("Elasticity", rigidBody.m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", rigidBody.m_Trigger), cereal::make_nvp("AngularFactor", rigidBody.m_AngularFactor));
         archive(cereal::make_nvp("UUID", (uint64_t)rigidBody.m_UUID));
+        archive(cereal::make_nvp("CollisionLayer", rigidBody.m_CollisionLayer), cereal::make_nvp("CollisionMask", rigidBody.m_CollisionMask));
         shape.release();
     }
 
@@ -192,13 +194,46 @@ namespace Lumos
 
         if(Version > 1)
             archive(cereal::make_nvp("UUID", (uint64_t)rigidBody.m_UUID));
+        
+        if(Version > 2)
+            archive(cereal::make_nvp("CollisionLayer", rigidBody.m_CollisionLayer), cereal::make_nvp("CollisionMask", rigidBody.m_CollisionMask));
+    }
+
+    template <typename Archive>
+    void save(Archive& archive, const RigidBody2D& rigidBody)
+    {
+        archive(cereal::make_nvp("Position", rigidBody.GetPosition()), cereal::make_nvp("Friction", rigidBody.m_Friction), cereal::make_nvp("Angle", rigidBody.GetAngle()), cereal::make_nvp("Static", rigidBody.GetIsStatic()), cereal::make_nvp("Mass", rigidBody.m_Mass), cereal::make_nvp("Scale", rigidBody.m_Scale),
+                cereal::make_nvp("Shape", rigidBody.m_ShapeType), cereal::make_nvp("CustomShapePos", rigidBody.m_CustomShapePositions));
+
+        archive(rigidBody.m_Damping);
+    }
+
+    template <typename Archive>
+    void load(Archive& archive, RigidBody2D& rigidBody)
+    {
+        RigidBodyParameters params;
+        float angle;
+        Vec2 pos;
+        archive(cereal::make_nvp("Position", pos), cereal::make_nvp("Friction", rigidBody.m_Friction), cereal::make_nvp("Angle", angle), cereal::make_nvp("Static", rigidBody.m_Static), cereal::make_nvp("Mass", rigidBody.m_Mass), cereal::make_nvp("Scale", params.scale), cereal::make_nvp("Shape", rigidBody.m_ShapeType), cereal::make_nvp("CustomShapePos", params.customShapePositions));
+
+        if(Serialisation::CurrentSceneVersion > 26)
+            archive(params.damping);
+
+        params.shape    = rigidBody.m_ShapeType;
+        params.position = Vec3(pos, 1.0f);
+        params.isStatic = rigidBody.m_Static;
+        params.mass     = rigidBody.m_Mass;
+        params.friction = rigidBody.m_Friction;
+
+        rigidBody.Init(params);
+        rigidBody.SetOrientation(angle);
     }
 
     template <typename Archive>
     void save(Archive& archive, const TextComponent& textComponent)
     {
-		String8 path;
-		FileSystem::Get().AbsolutePathToFileSystem(Application::Get().GetFrameArena(), textComponent.FontHandle ? Str8StdS(textComponent.FontHandle->GetFilePath()) : Str8Lit(""), path);
+        String8 path;
+        FileSystem::Get().AbsolutePathToFileSystem(Application::Get().GetFrameArena(), textComponent.FontHandle ? Str8StdS(textComponent.FontHandle->GetFilePath()) : Str8Lit(""), path);
 
         archive(cereal::make_nvp("TextString", textComponent.TextString), cereal::make_nvp("Path", path), cereal::make_nvp("Colour", textComponent.Colour), cereal::make_nvp("LineSpacing", textComponent.LineSpacing), cereal::make_nvp("Kerning", textComponent.Kerning),
                 cereal::make_nvp("MaxWidth", textComponent.MaxWidth), cereal::make_nvp("OutlineColour", textComponent.OutlineColour), cereal::make_nvp("OutlineWidth", textComponent.OutlineWidth));
@@ -240,228 +275,224 @@ namespace Lumos
     template <typename Archive>
     void save(Archive& archive, const AssetRegistry& registry)
     {
-		std::vector<std::pair<std::string, UUID>> elems;
+        std::vector<std::pair<std::string, UUID>> elems;
 
-			// Fill elems from m_NameMap
-		ForHashMapEach(u64, UUID, &registry.m_NameMap, it)
-		{
-			u64 nameHash = *it.key;
-			UUID uuid = *it.value;
+        // Fill elems from m_NameMap
+        ForHashMapEach(u64, UUID, &registry.m_NameMap, it)
+        {
+            u64 nameHash = *it.key;
+            UUID uuid    = *it.value;
 
-			String8 name;
-			if(!registry.GetName(uuid, name))
-				continue;
+            String8 name;
+            if(!registry.GetName(uuid, name))
+                continue;
 
-			if(name.size == 0 || !name.str)
-				continue;
+            if(name.size == 0 || !name.str)
+                continue;
 
-			std::string nameStr = ToStdString(name);
+            std::string nameStr = ToStdString(name);
 
-			if (!StringUtilities::StringContains(nameStr, "Cache/"))
-			{
-				elems.emplace_back(nameStr, uuid);
-			}
-		}
+            if(!StringUtilities::StringContains(nameStr, "Cache/"))
+            {
+                elems.emplace_back(nameStr, uuid);
+            }
+        }
 
-		std::sort(elems.begin(), elems.end(), [](const auto& a, const auto& b)
-		{
-			return a.second < b.second;
-		});
+        std::sort(elems.begin(), elems.end(), [](const auto& a, const auto& b)
+                  { return a.second < b.second; });
 
-		archive(cereal::make_nvp("Version", AssetRegistrySerialisationVersion));
-		archive(cereal::make_nvp("Count", (int)elems.size()));
+        archive(cereal::make_nvp("Version", AssetRegistrySerialisationVersion));
+        archive(cereal::make_nvp("Count", (int)elems.size()));
 
-		for (auto& entry : elems)
-		{
-			uint16_t assetType = 0;
-			AssetMetaData meta;
-			if (HashMapFind(&registry.m_AssetRegistry, entry.second, &meta))
-			{
-				assetType = (uint16_t)meta.Type;
-			}
+        for(auto& entry : elems)
+        {
+            uint16_t assetType = 0;
+            AssetMetaData meta;
+            if(HashMapFind(&registry.m_AssetRegistry, entry.second, &meta))
+            {
+                assetType = (uint16_t)meta.Type;
+            }
 
-			archive(
-					cereal::make_nvp("Name", entry.first),
-					cereal::make_nvp("UUID", (uint64_t)entry.second),
-					cereal::make_nvp("AssetType", assetType)
-					);
-		}
-
+            archive(
+                cereal::make_nvp("Name", entry.first),
+                cereal::make_nvp("UUID", (uint64_t)entry.second),
+                cereal::make_nvp("AssetType", assetType));
+        }
     }
 
-	template <typename Archive>
-	void load(Archive& archive, AssetRegistry& registry)
-	{
-		int version;
-		int count;
-		archive(cereal::make_nvp("Version", version));
-		archive(cereal::make_nvp("Count", count));
+    template <typename Archive>
+    void load(Archive& archive, AssetRegistry& registry)
+    {
+        int version;
+        int count;
+        archive(cereal::make_nvp("Version", version));
+        archive(cereal::make_nvp("Count", count));
 
-		for(int i = 0; i < count; i++)
-		{
-			String8 key;
-			uint64_t value;
-			uint16_t type = 0;
+        for(int i = 0; i < count; i++)
+        {
+            String8 key;
+            uint64_t value;
+            uint16_t type = 0;
 
-			if(version <= 1)
-				archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value));
-			else
-				archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value), cereal::make_nvp("AssetType", type));
+            if(version <= 1)
+                archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value));
+            else
+                archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value), cereal::make_nvp("AssetType", type));
 
-			UUID uuid = (UUID)value;
-			registry.AddName(key, uuid);
+            UUID uuid = (UUID)value;
+            registry.AddName(key, uuid);
 
-			if(type)
-			{
-				UUID currentID;
-				if(registry.GetID(key, currentID))
-				{
-					if(uuid != currentID)
-					{
-						registry.ReplaceID(currentID, uuid);
-					}
-				}
+            if(type)
+            {
+                UUID currentID;
+                if(registry.GetID(key, currentID))
+                {
+                    if(uuid != currentID)
+                    {
+                        registry.ReplaceID(currentID, uuid);
+                    }
+                }
 
-				AssetMetaData* existingMeta = (AssetMetaData*)HashMapFindPtr(&registry.m_AssetRegistry, uuid);
-				if(!existingMeta)
-				{
-					AssetMetaData metaData;
-					metaData.IsDataLoaded = false;
-					metaData.Type = (AssetType)type;
-					HashMapInsert(&registry.m_AssetRegistry, uuid, metaData);
-				}
-			}
-		}
-	}
+                AssetMetaData* existingMeta = (AssetMetaData*)HashMapFindPtr(&registry.m_AssetRegistry, uuid);
+                if(!existingMeta)
+                {
+                    AssetMetaData metaData;
+                    metaData.IsDataLoaded = false;
+                    metaData.Type         = (AssetType)type;
+                    HashMapInsert(&registry.m_AssetRegistry, uuid, metaData);
+                }
+            }
+        }
+    }
 
-	template <typename Archive>
-	void save(Archive& archive, const ParticleEmitter& particleEmitter)
-	{
-		archive(particleEmitter.m_ParticleCount);
-		archive(particleEmitter.m_ParticleLife);
-		archive(particleEmitter.m_ParticleSize);
-		archive(particleEmitter.m_InitialVelocity);
-		archive(particleEmitter.m_InitialColour);
-		archive(particleEmitter.m_Spread);
-		archive(particleEmitter.m_VelocitySpread);
-		archive(particleEmitter.m_FadeIn);
-		archive(particleEmitter.m_FadeOut);
-		archive(particleEmitter.m_NextParticleTime);
-		archive(particleEmitter.m_ParticleRate);
-		archive(particleEmitter.m_NumLaunchParticles);
-		archive(particleEmitter.m_IsAnimated);
-		archive(particleEmitter.m_Gravity);
-		archive(particleEmitter.m_AnimatedTextureRows);
+    template <typename Archive>
+    void save(Archive& archive, const ParticleEmitter& particleEmitter)
+    {
+        archive(particleEmitter.m_ParticleCount);
+        archive(particleEmitter.m_ParticleLife);
+        archive(particleEmitter.m_ParticleSize);
+        archive(particleEmitter.m_InitialVelocity);
+        archive(particleEmitter.m_InitialColour);
+        archive(particleEmitter.m_Spread);
+        archive(particleEmitter.m_VelocitySpread);
+        archive(particleEmitter.m_FadeIn);
+        archive(particleEmitter.m_FadeOut);
+        archive(particleEmitter.m_NextParticleTime);
+        archive(particleEmitter.m_ParticleRate);
+        archive(particleEmitter.m_NumLaunchParticles);
+        archive(particleEmitter.m_IsAnimated);
+        archive(particleEmitter.m_Gravity);
+        archive(particleEmitter.m_AnimatedTextureRows);
 
-		ArenaTemp temp = ScratchBegin(nullptr, 0);
-		String8 newPath;
-		if(particleEmitter.m_Texture)
-		{
-			FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(particleEmitter.m_Texture->GetFilepath()), newPath);
-		}
-		archive(std::string((const char*)newPath.str));
+        ArenaTemp temp = ScratchBegin(nullptr, 0);
+        String8 newPath;
+        if(particleEmitter.m_Texture)
+        {
+            FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(particleEmitter.m_Texture->GetFilepath()), newPath);
+        }
+        archive(std::string((const char*)newPath.str));
 
-		archive(particleEmitter.m_LifeSpread);
-		archive(particleEmitter.m_SortParticles);
-		archive(particleEmitter.m_DepthWrite);
-		archive((uint8_t)particleEmitter.m_BlendType);
-		archive((uint8_t)particleEmitter.m_AlignedType);
-		ScratchEnd(temp);
-	}
+        archive(particleEmitter.m_LifeSpread);
+        archive(particleEmitter.m_SortParticles);
+        archive(particleEmitter.m_DepthWrite);
+        archive((uint8_t)particleEmitter.m_BlendType);
+        archive((uint8_t)particleEmitter.m_AlignedType);
+        ScratchEnd(temp);
+    }
 
-	template <typename Archive>
-	void load(Archive& archive, ParticleEmitter& particleEmitter)
-	{
-		archive(particleEmitter.m_ParticleCount);
-		archive(particleEmitter.m_ParticleLife);
-		archive(particleEmitter.m_ParticleSize);
-		archive(particleEmitter.m_InitialVelocity);
-		archive(particleEmitter.m_InitialColour);
-		archive(particleEmitter.m_Spread);
-		archive(particleEmitter.m_VelocitySpread);
-		archive(particleEmitter.m_FadeIn);
-		archive(particleEmitter.m_FadeOut);
-		archive(particleEmitter.m_NextParticleTime);
-		archive(particleEmitter.m_ParticleRate);
-		archive(particleEmitter.m_NumLaunchParticles);
-		archive(particleEmitter.m_IsAnimated);
-		archive(particleEmitter.m_Gravity);
-		archive(particleEmitter.m_AnimatedTextureRows);
+    template <typename Archive>
+    void load(Archive& archive, ParticleEmitter& particleEmitter)
+    {
+        archive(particleEmitter.m_ParticleCount);
+        archive(particleEmitter.m_ParticleLife);
+        archive(particleEmitter.m_ParticleSize);
+        archive(particleEmitter.m_InitialVelocity);
+        archive(particleEmitter.m_InitialColour);
+        archive(particleEmitter.m_Spread);
+        archive(particleEmitter.m_VelocitySpread);
+        archive(particleEmitter.m_FadeIn);
+        archive(particleEmitter.m_FadeOut);
+        archive(particleEmitter.m_NextParticleTime);
+        archive(particleEmitter.m_ParticleRate);
+        archive(particleEmitter.m_NumLaunchParticles);
+        archive(particleEmitter.m_IsAnimated);
+        archive(particleEmitter.m_Gravity);
+        archive(particleEmitter.m_AnimatedTextureRows);
 
-		std::string textureFilePath;
-		archive(textureFilePath);
+        std::string textureFilePath;
+        archive(textureFilePath);
 
-		if(!textureFilePath.empty())
-		{
-			Graphics::TextureDesc desc;
-			desc.minFilter = Graphics::TextureFilter::LINEAR;
-			desc.magFilter = Graphics::TextureFilter::LINEAR;
-			desc.wrap      = Graphics::TextureWrap::CLAMP;
-			particleEmitter.m_Texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("particle", textureFilePath, desc));
-		}
-		else
-			particleEmitter.m_Texture = nullptr;
+        if(!textureFilePath.empty())
+        {
+            Graphics::TextureDesc desc;
+            desc.minFilter            = Graphics::TextureFilter::LINEAR;
+            desc.magFilter            = Graphics::TextureFilter::LINEAR;
+            desc.wrap                 = Graphics::TextureWrap::CLAMP;
+            particleEmitter.m_Texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("particle", textureFilePath, desc));
+        }
+        else
+            particleEmitter.m_Texture = nullptr;
 
-		if(SceneSerialisationVersion > 23)
-		{
-			archive(particleEmitter.m_LifeSpread);
-			archive(particleEmitter.m_SortParticles);
-			archive(particleEmitter.m_DepthWrite);
-			uint8_t value;
-			archive(value);
-			particleEmitter.m_BlendType = (ParticleEmitter::BlendType)value;
-			archive(value);
-			particleEmitter.m_AlignedType = (ParticleEmitter::AlignedType)value;
-		}
+        if(SceneSerialisationVersion > 23)
+        {
+            archive(particleEmitter.m_LifeSpread);
+            archive(particleEmitter.m_SortParticles);
+            archive(particleEmitter.m_DepthWrite);
+            uint8_t value;
+            archive(value);
+            particleEmitter.m_BlendType = (ParticleEmitter::BlendType)value;
+            archive(value);
+            particleEmitter.m_AlignedType = (ParticleEmitter::AlignedType)value;
+        }
 
-		particleEmitter.Init();
-	}
+        particleEmitter.Init();
+    }
 
-	template <typename Archive>
-	void save(Archive& archive, const LuaScriptComponent& luaComponent)
-	{
-		ArenaTemp temp = ScratchBegin(nullptr, 0);
-		String8 newPath;
-		FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(luaComponent.m_FileName), newPath);
-		archive(cereal::make_nvp("FilePath", ToStdString(newPath)));
-		ScratchEnd(temp);
-	}
+    template <typename Archive>
+    void save(Archive& archive, const LuaScriptComponent& luaComponent)
+    {
+        ArenaTemp temp = ScratchBegin(nullptr, 0);
+        String8 newPath;
+        FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(luaComponent.m_FileName), newPath);
+        archive(cereal::make_nvp("FilePath", ToStdString(newPath)));
+        ScratchEnd(temp);
+    }
 
-	template <typename Archive>
-	void load(Archive& archive, LuaScriptComponent& luaComponent)
-	{
-		luaComponent.m_Scene = Application::Get().GetCurrentScene();
-		archive(cereal::make_nvp("FilePath", luaComponent.m_FileName));
+    template <typename Archive>
+    void load(Archive& archive, LuaScriptComponent& luaComponent)
+    {
+        luaComponent.m_Scene = Application::Get().GetCurrentScene();
+        archive(cereal::make_nvp("FilePath", luaComponent.m_FileName));
 
-		ArenaTemp temp = ScratchBegin(nullptr, 0);
-		String8 newPath;
-		FileSystem::Get().ResolvePhysicalPath(temp.arena, Str8StdS(luaComponent.m_FileName), &newPath);
-		luaComponent.m_FileName = ToStdString(newPath);
-		luaComponent.Init();
+        ArenaTemp temp = ScratchBegin(nullptr, 0);
+        String8 newPath;
+        FileSystem::Get().ResolvePhysicalPath(temp.arena, Str8StdS(luaComponent.m_FileName), &newPath);
+        luaComponent.m_FileName = ToStdString(newPath);
+        luaComponent.Init();
 
-		ScratchEnd(temp);
-	}
+        ScratchEnd(temp);
+    }
 
     namespace Graphics
     {
         template <typename Archive>
         void save(Archive& archive, const Graphics::Material& material)
         {
-			ArenaTemp temp = ScratchBegin(nullptr, 0);
+            ArenaTemp temp = ScratchBegin(nullptr, 0);
 
             String8 shaderPath;
 
-			String8 albedoFilePath = material.m_PBRMaterialTextures.albedo ? FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(material.m_PBRMaterialTextures.albedo->GetFilepath())) : String8();
-			String8 normalFilePath    = material.m_PBRMaterialTextures.normal ? FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(material.m_PBRMaterialTextures.normal->GetFilepath())) : String8();
-			String8 metallicFilePath  = material.m_PBRMaterialTextures.metallic ? FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(material.m_PBRMaterialTextures.metallic->GetFilepath())) : String8();
-			String8 roughnessFilePath = material.m_PBRMaterialTextures.roughness ? FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(material.m_PBRMaterialTextures.roughness->GetFilepath())) : String8();
-			String8 emissiveFilePath  = material.m_PBRMaterialTextures.emissive ? FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(material.m_PBRMaterialTextures.emissive->GetFilepath())) : String8();
-			String8 aoFilePath        = material.m_PBRMaterialTextures.ao ? FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(material.m_PBRMaterialTextures.ao->GetFilepath())) : String8();
+            String8 albedoFilePath    = material.m_PBRMaterialTextures.albedo ? FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(material.m_PBRMaterialTextures.albedo->GetFilepath())) : String8();
+            String8 normalFilePath    = material.m_PBRMaterialTextures.normal ? FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(material.m_PBRMaterialTextures.normal->GetFilepath())) : String8();
+            String8 metallicFilePath  = material.m_PBRMaterialTextures.metallic ? FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(material.m_PBRMaterialTextures.metallic->GetFilepath())) : String8();
+            String8 roughnessFilePath = material.m_PBRMaterialTextures.roughness ? FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(material.m_PBRMaterialTextures.roughness->GetFilepath())) : String8();
+            String8 emissiveFilePath  = material.m_PBRMaterialTextures.emissive ? FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(material.m_PBRMaterialTextures.emissive->GetFilepath())) : String8();
+            String8 aoFilePath        = material.m_PBRMaterialTextures.ao ? FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(material.m_PBRMaterialTextures.ao->GetFilepath())) : String8();
 
             if(material.m_Shader)
             {
-				//std::string path = std::string(material.m_Shader->GetFilePath()) + std::string(material.m_Shader->GetName());
-               //FileSystem::Get().AbsolutePathToFileSystem(temo.arena, Str8StdS(path), *shaderPath);
+                // std::string path = std::string(material.m_Shader->GetFilePath()) + std::string(material.m_Shader->GetName());
+                // FileSystem::Get().AbsolutePathToFileSystem(temo.arena, Str8StdS(path), *shaderPath);
             }
 
             archive(cereal::make_nvp("Albedo", albedoFilePath),
@@ -485,7 +516,7 @@ namespace Lumos
                     cereal::make_nvp("shader", shaderPath));
 
             archive(cereal::make_nvp("Reflectance", material.m_MaterialProperties->reflectance));
-			ScratchEnd(temp);
+            ScratchEnd(temp);
         }
 
         template <typename Archive>
@@ -575,7 +606,7 @@ namespace Lumos
         template <typename Archive>
         void save(Archive& archive, const Graphics::Sprite& sprite)
         {
-			ArenaTemp temp = ScratchBegin(nullptr, 0);
+            ArenaTemp temp = ScratchBegin(nullptr, 0);
 
             String8 newPath;
             if(sprite.m_Texture)
@@ -583,27 +614,27 @@ namespace Lumos
                 FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(sprite.m_Texture->GetFilepath()), newPath);
             }
 
-            archive(cereal::make_nvp("TexturePath", newPath),
+            archive(cereal::make_nvp("TexturePath", ToStdString(newPath)),
                     cereal::make_nvp("Position", sprite.m_Position),
                     cereal::make_nvp("Scale", sprite.m_Scale),
                     cereal::make_nvp("Colour", sprite.m_Colour));
 
             archive(sprite.UsingSpriteSheet, sprite.SpriteSheetTileSizeX);
             archive(sprite.SpriteSheetTileSizeY);
-			ScratchEnd(temp);
+            ScratchEnd(temp);
         }
 
         template <typename Archive>
         void load(Archive& archive, Graphics::Sprite& sprite)
         {
-            String8 textureFilePath;
+            std::string textureFilePath;
             archive(cereal::make_nvp("TexturePath", textureFilePath),
                     cereal::make_nvp("Position", sprite.m_Position),
                     cereal::make_nvp("Scale", sprite.m_Scale),
                     cereal::make_nvp("Colour", sprite.m_Colour));
 
-            if(textureFilePath.size != 0)
-                sprite.m_Texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("sprite", ToStdString(textureFilePath)));
+            if(textureFilePath.size() != 0)
+                sprite.m_Texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("sprite", textureFilePath));
 
             if(Serialisation::CurrentSceneVersion > 21 && Serialisation::CurrentSceneVersion < 26)
             {
@@ -673,7 +704,7 @@ namespace Lumos
         {
             if(model.m_Meshes.Size() > 0)
             {
-				ArenaTemp temp = ScratchBegin(nullptr, 0);
+                ArenaTemp temp = ScratchBegin(nullptr, 0);
 
                 String8 newPath;
                 FileSystem::Get().AbsolutePathToFileSystem(temp.arena, Str8StdS(model.m_FilePath), newPath);
@@ -681,7 +712,7 @@ namespace Lumos
                 auto material = std::unique_ptr<Material>(model.m_Meshes.Front()->GetMaterial().get());
                 archive(cereal::make_nvp("PrimitiveType", model.m_PrimitiveType), cereal::make_nvp("FilePath", newPath), cereal::make_nvp("Material", material));
                 material.release();
-				ScratchEnd(temp);
+                ScratchEnd(temp);
             }
         }
 
@@ -715,7 +746,7 @@ namespace Lumos
             if(!component.ModelRef || component.ModelRef->GetMeshes().Size() == 0)
                 return;
 
-			ArenaTemp temp = ScratchBegin(nullptr, 0);
+            ArenaTemp temp = ScratchBegin(nullptr, 0);
             {
                 String8 newPath;
 
@@ -729,8 +760,7 @@ namespace Lumos
                 archive(cereal::make_nvp("PrimitiveType", component.ModelRef->GetPrimitiveType()), cereal::make_nvp("FilePath", newPath), cereal::make_nvp("Material", material));
                 material.release();
             }
-			ScratchEnd(temp);
-
+            ScratchEnd(temp);
         }
 
         template <typename Archive>

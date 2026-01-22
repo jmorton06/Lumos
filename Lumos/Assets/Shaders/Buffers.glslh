@@ -52,7 +52,7 @@ layout(set = 2, binding = 1) uniform samplerCube uEnvMap;
 layout(set = 2, binding = 2) uniform samplerCube uIrrMap;
 layout(set = 2, binding = 3) uniform sampler2D uBRDFLUT;
 layout(set = 2, binding = 4) uniform sampler2D uSSAOMap;
-layout(set = 2, binding = 5) uniform UniformSceneData
+layout(std140, set = 2, binding = 5) uniform UniformSceneData
 {
 	Light lights[MAX_LIGHTS];
 	mat4 ShadowTransform[MAX_SHADOWMAPS];
@@ -60,7 +60,6 @@ layout(set = 2, binding = 5) uniform UniformSceneData
 	mat4 LightView;
 	mat4 BiasMatrix;
 	vec4 cameraPosition;
-	vec4 SplitDepths[MAX_SHADOWMAPS];
 	float LightSize;
 	float MaxShadowDist;
 	float ShadowFade;
@@ -69,10 +68,16 @@ layout(set = 2, binding = 5) uniform UniformSceneData
 	int ShadowCount;
 	int Mode;
 	int EnvMipCount;
+	vec4 SplitDepths;
 	float InitialBias;
 	float Width;
 	float Height;
-	int shadowEnabled;
+	int ShadowEnabled;
+	int BlendShadows;
+	int PCFSamples;
+	int VogelOffset;
+	int FilterShadows;
+	
 } u_SceneData;
 
 layout (std140, set = 3, binding = 0) uniform BoneTransforms

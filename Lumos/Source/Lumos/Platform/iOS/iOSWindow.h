@@ -3,6 +3,7 @@
 #include "Core/OS/Window.h"
 #include "Core/OS/KeyCodes.h"
 #include "Events/Event.h"
+#include "Lumos/Events/GestureEvent.h"
 #include "Core/DataStructures/TDArray.h"
 
 #include <vulkan/vulkan_metal.h>
@@ -67,6 +68,11 @@ namespace Lumos
         void OnTouchEvent(uint32_t xPos, uint32_t yPos, uint32_t count, bool down);
         void OnMouseMovedEvent(uint32_t xPos, uint32_t yPos);
         void OnResizeEvent(uint32_t width, uint32_t height);
+
+        void OnGesturePinchEvent(float scale, float velocity, uint32_t x, uint32_t y, GestureState state);
+        void OnGesturePanEvent(float tx, float ty, float vx, float vy, uint32_t touches, GestureState state);
+        void OnGestureSwipeEvent(SwipeDirection direction, uint32_t touches);
+        void OnGestureLongPressEvent(uint32_t x, uint32_t y, GestureState state);
 
         std::string GetTitle() const override
         {

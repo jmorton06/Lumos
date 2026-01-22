@@ -13,11 +13,6 @@
 
 #include <MoltenVK/vk_mvk_moltenvk.h>
 
-//Copied from newer versions of mvk
-#define MVK_STRINGIFY_IMPL_COPY(val) #val
-#define MVK_STRINGIFY_COPY(val)       MVK_STRINGIFY_IMPL_COPY(val)
-#define MVK_VERSION_STRING_COPY       (MVK_STRINGIFY_COPY(MVK_VERSION_MAJOR) "." MVK_STRINGIFY_COPY(MVK_VERSION_MINOR) "." MVK_STRINGIFY_COPY(MVK_VERSION_PATCH))
-
 
 extern "C" void* GetCAMetalLayer(void* handle)
 {
@@ -38,49 +33,55 @@ namespace Lumos
 {
 	VkSurfaceKHR Graphics::VKSwapChain::CreatePlatformSurface(VkInstance vkInstance, Window* window)
 	{
-		VkSurfaceKHR surface;
-#if defined(VK_USE_PLATFORM_METAL_EXT)
+	    auto* cocoaWin = static_cast<GLFWwindow*>(window->GetHandle());
+        void* layer = GetCAMetalLayer(glfwGetCocoaWindow(cocoaWin));
 
-        VkMetalSurfaceCreateInfoEXT surfaceInfo;
-        surfaceInfo.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
-        surfaceInfo.pNext = NULL;
-        surfaceInfo.flags = 0;
-        surfaceInfo.pLayer = (CAMetalLayer*)GetCAMetalLayer((void*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(window->GetHandle())));
-        vkCreateMetalSurfaceEXT(vkInstance, &surfaceInfo, nullptr, &surface);
+        VkSurfaceKHR surface = VK_NULL_HANDLE;
+#if defined(VK_USE_PLATFORM_METAL_EXT)
+        VkMetalSurfaceCreateInfoEXT info{};
+        info.sType  = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
+        info.pLayer = static_cast<CAMetalLayer*>(layer);
+        VkResult res = vkCreateMetalSurfaceEXT(vkInstance, &info, nullptr, &surface);
 #elif defined(VK_USE_PLATFORM_MACOS_MVK)
-        VkMacOSSurfaceCreateInfoMVK surfaceInfo;
-        surfaceInfo.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
-        surfaceInfo.pNext = NULL;
-        surfaceInfo.flags = 0;
-        surfaceInfo.pView = GetCAMetalLayer((void*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(window->GetHandle())));
-        vkCreateMacOSSurfaceMVK(vkInstance, &surfaceInfo, nullptr, &surface);
+        VkMacOSSurfaceCreateInfoMVK info{};
+        info.sType  = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
+        info.pView  = layer;
+        VkResult res = vkCreateMacOSSurfaceMVK(vkInstance, &info, nullptr, &surface);
 #endif
 
-		auto libMoltenVK = dlopen("/usr/local/lib/libMoltenVK.dylib", RTLD_NOW | RTLD_LOCAL);
+        if (res != VK_SUCCESS || surface == VK_NULL_HANDLE)
+        LFATAL("Failed to create Vulkan surface: %s",std::to_string(res).c_str());
+
+        void* libMoltenVK = dlopen("/usr/local/lib/libMoltenVK.dylib", RTLD_NOW | RTLD_LOCAL);
+        if (!libMoltenVK)
+            LERROR("dlopen failed: %s", dlerror());
+
 		auto getMoltenVKConfigurationMVK = (PFN_vkGetMoltenVKConfigurationMVK)
 			dlsym(libMoltenVK, "vkGetMoltenVKConfigurationMVK");
 		auto setMoltenVKConfigurationMVK = (PFN_vkSetMoltenVKConfigurationMVK)
 			dlsym(libMoltenVK, "vkSetMoltenVKConfigurationMVK");
 
+		if (!getMoltenVKConfigurationMVK || !setMoltenVKConfigurationMVK)
+            LERROR("MoltenVK config entrypoints not found");
+
 		MVKConfiguration mvkConfig;
         size_t pConfigurationSize = sizeof(MVKConfiguration);
         getMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
 		#ifndef LUMOS_PLATFORM_PRODUCTION
-        //mvkConfig.debugMode = true;
+        mvkConfig.debugMode = true;
 		#endif
 
 		//mvkConfig.traceVulkanCalls = MVK_CONFIG_TRACE_VULKAN_CALLS_DURATION;
 		mvkConfig.performanceTracking = false;
         mvkConfig.synchronousQueueSubmits = false;
-        //mvkConfig.presentWithCommandBuffer = false;
+        mvkConfig.presentWithCommandBuffer = true;
         //mvkConfig.prefillMetalCommandBuffers = true;
-
 		//mvkConfig.useMetalArgumentBuffers = MVKUseMetalArgumentBuffers::MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS_ALWAYS;
         mvkConfig.resumeLostDevice = true;
 
         setMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
-#ifdef MVK_VERSION_STRING_COPY
-        LINFO("MVK Version %s", MVK_VERSION_STRING_COPY);
+#ifdef MVK_VERSION_STRING
+        LINFO("MVK Version %s", MVK_VERSION_STRING);
 #endif
 		return surface;
 	}

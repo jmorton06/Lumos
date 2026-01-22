@@ -1,13 +1,9 @@
 #pragma once
 
-#include <cereal/cereal.hpp>
-#include <cereal/types/vector.hpp>
 #include "Maths/Vector2.h"
 #include "Maths/Vector3.h"
 #include "Core/UUID.h"
 #include <box2d/id.h>
-
-class Object;
 
 namespace Lumos
 {
@@ -18,16 +14,20 @@ namespace Lumos
         Custom = 2
     };
 
-    struct LUMOS_EXPORT RigidBodyParameters
+    struct RigidBodyParameters
     {
         RigidBodyParameters()
         {
-            mass     = 1.0f;
-            shape    = Shape::Square;
-            position = Vec3(0.0f);
-            scale    = Vec3(1.0f);
-            isStatic = false;
-            friction = 0.7f;
+            mass         = 1.0f;
+            shape        = Shape::Square;
+            position     = Vec3(0.0f);
+            scale        = Vec3(1.0f);
+            isStatic     = false;
+            friction     = 0.7f;
+            damping      = 1.0f;
+            density      = 1.0f;
+            enableEvents = true;
+            elasticity   = 0.0f;
         }
 
         float mass;
@@ -37,10 +37,20 @@ namespace Lumos
         Shape shape;
         std::vector<Vec2> customShapePositions;
         float friction;
+        float damping;
+        float density;
+        bool enableEvents;
+        float elasticity;
     };
 
-    class LUMOS_EXPORT RigidBody2D
+    class RigidBody2D
     {
+        template <typename Archive>
+        friend void save(Archive& archive, const RigidBody2D& rigidBody);
+
+        template <typename Archive>
+        friend void load(Archive& archive, RigidBody2D& rigidBody);
+
     public:
         RigidBody2D();
         explicit RigidBody2D(const RigidBodyParameters& params);
@@ -74,9 +84,11 @@ namespace Lumos
         bool GetIsAtRest() const { return m_AtRest; }
         float GetElasticity() const { return m_Elasticity; }
         float GetFriction() const;
+        float GetDamping() const { return m_Damping; }
         bool IsAwake() const { return !m_AtRest; }
         void SetElasticity(const float elasticity) { m_Elasticity = elasticity; }
         void SetFriction(const float friction) { m_Friction = friction; }
+        void SetDamping(const float damping) { m_Damping = damping; }
         void SetIsAtRest(const bool isAtRest) { m_AtRest = isAtRest; }
         void SetLinearDamping(float dampening);
         void SetScale(const Vec3& scale) { m_Scale = scale; }
@@ -85,28 +97,7 @@ namespace Lumos
 
         void RebuildShape();
 
-        template <typename Archive>
-        void save(Archive& archive) const
-        {
-            archive(cereal::make_nvp("Position", GetPosition()), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Angle", GetAngle()), cereal::make_nvp("Static", GetIsStatic()), cereal::make_nvp("Mass", m_Mass), cereal::make_nvp("Scale", m_Scale),
-                    cereal::make_nvp("Shape", m_ShapeType), cereal::make_nvp("CustomShapePos", m_CustomShapePositions));
-        }
-
-        template <typename Archive>
-        void load(Archive& archive)
-        {
-            RigidBodyParameters params;
-            float angle;
-            Vec2 pos;
-            archive(cereal::make_nvp("Position", pos), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Angle", angle), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Mass", m_Mass), cereal::make_nvp("Scale", params.scale), cereal::make_nvp("Shape", m_ShapeType), cereal::make_nvp("CustomShapePos", params.customShapePositions));
-            params.shape    = m_ShapeType;
-            params.position = Vec3(pos, 1.0f);
-            params.isStatic = m_Static;
-            params.mass     = m_Mass;
-            params.friction = m_Friction;
-            Init(params);
-            SetOrientation(angle);
-        }
+        RigidBodyParameters GetParameters() const;
 
     protected:
         b2BodyId m_B2Body;
@@ -119,6 +110,7 @@ namespace Lumos
         bool m_Static;
         float m_Elasticity;
         float m_Friction;
+        float m_Damping;
         bool m_AtRest;
         UUID m_UUID;
     };

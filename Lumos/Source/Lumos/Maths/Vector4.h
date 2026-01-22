@@ -271,6 +271,10 @@ namespace Lumos
                 return (v.x == x && v.y == y && v.z == z && v.w == w) ? false : true;
             }
 #endif
+            float& operator [](size_t i)
+            {
+                return GetPointer()[i];
+            }
         };
 
         inline Vector4 operator+(float f, const Vector4& v)
