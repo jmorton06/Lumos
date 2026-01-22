@@ -14,6 +14,7 @@ namespace Lumos
         class Pipeline;
         class Shader;
         class UniformBuffer;
+        class StorageBuffer;
         class Framebuffer;
         class RenderPass;
         class GraphicsContext;
@@ -24,7 +25,7 @@ namespace Lumos
         class TextureDepthArray;
 
         static constexpr uint8_t MAX_RENDER_TARGETS = 8;
-        static constexpr uint8_t SHADOWMAP_MAX      = 16;
+        static constexpr uint8_t SHADOWMAP_MAX      = 4;
         static constexpr uint8_t MAX_MIPS           = 32;
 
         // Descriptor set limits
@@ -133,7 +134,9 @@ namespace Lumos
             UNIFORM_BUFFER,
             UNIFORM_BUFFER_DYNAMIC,
             IMAGE_SAMPLER,
-            IMAGE_STORAGE
+            IMAGE_STORAGE,
+            STORAGE_BUFFER,
+            STORAGE_BUFFER_DYNAMIC
         };
 
         enum class ShaderDataType : uint8_t
@@ -314,6 +317,7 @@ namespace Lumos
             Texture** textures;
             Texture* texture;
             UniformBuffer* buffer;
+            StorageBuffer* storageBuffer = nullptr;
 
             uint32_t offset;
             uint32_t size;

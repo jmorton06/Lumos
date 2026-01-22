@@ -14,7 +14,7 @@
 #define LINFO(...) ::Lumos::Debug::Log::LogOutput(::Lumos::LogLevel::Info, __FILE__, __LINE__, __VA_ARGS__)
 #define LWARN(...) ::Lumos::Debug::Log::LogOutput(::Lumos::LogLevel::Warning, __FILE__, __LINE__, __VA_ARGS__)
 #define LERROR(...) ::Lumos::Debug::Log::LogOutput(::Lumos::LogLevel::Error, __FILE__, __LINE__, __VA_ARGS__)
-#define LFATAL(...) ::Lumos::Debug::Log::LogOutput(::Lumos::LogLevel::FATAL, __FILE__, __LINE__, __VA_ARGS__)
+#define LFATAL(...) ::Lumos::Debug::Log::LogOutput(::Lumos::LogLevel::Fatal, __FILE__, __LINE__, __VA_ARGS__)
 
 #else
 #define LTRACE(...) ((void)0)
@@ -33,7 +33,7 @@ namespace Lumos
         Trace   = 1,
         Warning = 2,
         Error   = 3,
-        FATAL   = 4
+        Fatal   = 4
     };
 
     typedef void (*LoggerFunction)(LogLevel level, const char* message, const char* file, int line);

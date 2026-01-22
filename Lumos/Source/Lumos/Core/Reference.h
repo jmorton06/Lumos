@@ -271,7 +271,7 @@ namespace Lumos
     private:
         inline void ref(const Reference& p_from)
         {
-            if (!p_from.GetCounter() && !p_from.get())
+            if(!p_from.GetCounter() && !p_from.get())
                 return;
 
             if(p_from.m_Ptr == m_Ptr)

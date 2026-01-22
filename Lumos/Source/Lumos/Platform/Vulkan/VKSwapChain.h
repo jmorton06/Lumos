@@ -34,7 +34,7 @@ namespace Lumos
             void CreateFrameData();
             bool AcquireNextImage();
             void QueueSubmit();
-            void Present(const TDArray<VkSemaphore>& semaphore);
+            void Present(VkSemaphore semaphore);
             bool Begin();
             void End();
             void OnResize(uint32_t width, uint32_t height, bool forceResize = false, Window* windowHandle = nullptr);
@@ -73,6 +73,7 @@ namespace Lumos
             uint32_t m_QueueNodeIndex = UINT32_MAX;
             uint32_t m_SwapChainBufferCount;
             bool m_VSyncEnabled = false;
+            bool m_NeedRecreate = false;
 
             VkSwapchainKHR m_SwapChain;
             VkSwapchainKHR m_OldSwapChain;

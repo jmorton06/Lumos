@@ -19,8 +19,8 @@ namespace Lumos
 
     void DeserialiseAssetRegistry(const String8& path, AssetRegistry& registry)
     {
-		ArenaTemp temp = ScratchBegin(nullptr, 0);
-        String8 data = FileSystem::ReadTextFile(temp.arena, path);
+        ArenaTemp temp = ScratchBegin(nullptr, 0);
+        String8 data   = FileSystem::ReadTextFile(temp.arena, path);
         std::istringstream istr;
         istr.str((const char*)data.str);
         try
@@ -32,6 +32,6 @@ namespace Lumos
         {
             LWARN("Failed to load asset registry %s", (const char*)path.str);
         }
-		ScratchEnd(temp);
+        ScratchEnd(temp);
     }
 }

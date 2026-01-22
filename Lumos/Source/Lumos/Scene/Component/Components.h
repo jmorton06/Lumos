@@ -34,4 +34,12 @@ namespace Lumos
 
         std::string Path;
     };
+
+    // Editor-only component to prevent selection and modification of entities
+    struct EditorLockComponent
+    {
+        EditorLockComponent()                               = default;
+        EditorLockComponent(const EditorLockComponent&)     = default;
+        bool Locked                                         = true;
+    };
 }

@@ -58,7 +58,7 @@ project "Runtime"
 		warnings "Off"
 
 	filter 'architecture:x86_64'
-		defines { "USE_VMA_ALLOCATOR", "LUMOS_SSE"  }
+		defines { "LUMOS_SSE"  }
 
 	filter "system:windows"
 		cppdialect "C++17"
@@ -75,7 +75,8 @@ project "Runtime"
 			"_CRT_SECURE_NO_WARNINGS",
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
-			"LUMOS_VOLK"
+			"LUMOS_VOLK",
+			"USE_VMA_ALLOCATOR"
 		}
 
 		libdirs
@@ -109,16 +110,16 @@ project "Runtime"
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
 			['CODE_SIGN_IDENTITY'] = ''
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
-}
+        }
 
-if settings.enable_signing then
-xcodebuildsettings
-{
-	['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
-	['CODE_SIGN_IDENTITY'] = 'Mac Developer',
-	['DEVELOPMENT_TEAM'] = settings.developer_team
-}
-end
+        if settings.enable_signing then
+            xcodebuildsettings
+            {
+               	['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
+               	['CODE_SIGN_IDENTITY'] = 'Mac Developer',
+               	['DEVELOPMENT_TEAM'] = settings.developer_team
+            }
+        end
 
 		defines
 		{
@@ -211,14 +212,14 @@ end
 	        ['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
         }
 
-if settings.enable_signing then
-xcodebuildsettings
-{
-	['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
-	['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
-	['DEVELOPMENT_TEAM'] = settings.developer_team
-}
-end
+        if settings.enable_signing then
+            xcodebuildsettings
+            {
+               	['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
+               	['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
+               	['DEVELOPMENT_TEAM'] = settings.developer_team
+            }
+        end
 
 		if _OPTIONS["teamid"] then
 			xcodebuildsettings {
@@ -240,19 +241,27 @@ end
 		{
 			("**.DS_Store")
 		}
-		
+
 		xcodebuildresources
 		{
-			"../Lumos/Source/Platform/iOS/Client",
-			"Assets.xcassets",
-            "Shaders",
-            "ExampleProject"
+			"../Resources/AppIcons/Assets.xcassets",
+			"../Lumos/Assets/Shaders",
+			--"../Lumos/Source/Lumos/Platform/iOS/Client/**",
+			"../ExampleProject/"
             -- "Meshes",
             -- "Scenes",
             -- "Scripts",
             -- "Sounds",
             -- "Textures",
 			--"Example.lmproj"
+		}
+
+			xcodebuildresources
+		{
+			"../Lumos/Source/Platform/iOS/Client",
+			"Assets.xcassets",
+            "Shaders",
+            "ExampleProject"
 		}
 
 	filter "system:linux"
@@ -267,7 +276,8 @@ end
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
 			"LUMOS_IMGUI",
-			"LUMOS_VOLK"
+			"LUMOS_VOLK",
+			"USE_VMA_ALLOCATOR"
 		}
 
 		buildoptions
@@ -290,13 +300,13 @@ end
 			}
 
 	filter "configurations:Debug"
-defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE_ENABLED","TRACY_ON_DEMAND" }
+        defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE_ENABLED","TRACY_ON_DEMAND" }
 		symbols "On"
 		runtime "Debug"
 		optimize "Off"
 
 	filter "configurations:Release"
-defines { "LUMOS_RELEASE", "NDEBUG", "TRACY_ENABLE", "LUMOS_PROFILE_ENABLED","TRACY_ON_DEMAND"}
+        defines { "LUMOS_RELEASE", "NDEBUG", "TRACY_ENABLE", "LUMOS_PROFILE_ENABLED","TRACY_ON_DEMAND"}
 		optimize "Speed"
 		symbols "On"
 		runtime "Release"

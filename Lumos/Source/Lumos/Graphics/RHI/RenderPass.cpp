@@ -14,7 +14,7 @@ namespace Lumos
             float timeSinceLastAccessed;
         };
         static std::unordered_map<uint64_t, RenderPassAsset> m_RenderPassCache;
-        static const float m_CacheLifeTime = 0.1f;
+        static const float m_CacheLifeTime = 1.0f;
 
         RenderPass::~RenderPass()                                    = default;
         RenderPass* (*RenderPass::CreateFunc)(const RenderPassDesc&) = nullptr;

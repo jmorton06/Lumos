@@ -13,10 +13,10 @@ namespace Lumos
 
     class LUMOS_EXPORT LuaScriptComponent
     {
-		template <typename Archive>
-		friend void save(Archive& archive, const LuaScriptComponent& luaComponent);
-		template <typename Archive>
-		friend void load(Archive& archive, LuaScriptComponent& luaComponent);
+        template <typename Archive>
+        friend void save(Archive& archive, const LuaScriptComponent& luaComponent);
+        template <typename Archive>
+        friend void load(Archive& archive, LuaScriptComponent& luaComponent);
 
     public:
         LuaScriptComponent();

@@ -24,17 +24,24 @@ namespace Lumos
 
     RigidBody3DComponent::RigidBody3DComponent(const RigidBody3DComponent& other)
     {
-        m_RigidBody    = other.m_RigidBody;
-        m_OwnRigidBody = other.m_OwnRigidBody;
-
-        // TODO: Create Separate Move constructor and change this to duplicate the rigidbody
-        // auto properties = other.m_RigidBody->Body->GetProperties();
-        // m_RigidBody = CreateSharedPtr<RigidBody3DInstance>(properties);
+        // Create a new physics body with the same properties as the original
+        // This ensures duplicated entities have their own independent rigid body
+        if(other.m_RigidBody)
+        {
+            auto properties = other.m_RigidBody->GetProperties();
+            m_RigidBody     = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody(properties);
+            m_OwnRigidBody  = true;
+        }
+        else
+        {
+            m_RigidBody    = nullptr;
+            m_OwnRigidBody = false;
+        }
     }
 
     RigidBody3DComponent::~RigidBody3DComponent()
     {
-        if (m_RigidBody && m_OwnRigidBody)
+        if(m_RigidBody && m_OwnRigidBody)
             Application::Get().GetSystem<LumosPhysicsEngine>()->DestroyBody(m_RigidBody);
     }
 

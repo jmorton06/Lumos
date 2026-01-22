@@ -386,8 +386,8 @@ namespace Lumos::Graphics
         std::string ext = StringUtilities::GetFilePathExtension(path);
         int64_t size    = FileSystem::GetFileSize(Str8StdS(path));
 
-		ArenaTemp scratch = ScratchBegin(0,0);
-        auto data       = FileSystem::ReadFile(scratch.arena, Str8StdS(path));
+        ArenaTemp scratch = ScratchBegin(0, 0);
+        auto data         = FileSystem::ReadFile(scratch.arena, Str8StdS(path));
 
         if(data == nullptr)
         {
@@ -475,7 +475,7 @@ namespace Lumos::Graphics
         System::JobSystem::Wait(ctx);
 #endif
 
-		ScratchEnd(scratch);
+        ScratchEnd(scratch);
     }
 
 }

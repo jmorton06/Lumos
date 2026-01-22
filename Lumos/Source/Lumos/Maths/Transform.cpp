@@ -82,6 +82,11 @@ namespace Lumos
             return m_WorldMatrix.Rotation();
         }
 
+        const Vec3 Transform::GetWorldScale()
+        {
+            return m_WorldMatrix.Scale();
+        }
+
         const Vec3& Transform::GetLocalPosition() const
         {
             return m_LocalPosition;

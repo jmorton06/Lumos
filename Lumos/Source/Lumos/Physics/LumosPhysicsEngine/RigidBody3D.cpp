@@ -29,7 +29,20 @@ namespace Lumos
         , m_WSTransform(Mat4(1.0f))
     {
         ASSERT(properties.Mass > 0.0f, "Mass <= 0");
-        m_InvMass = 1.0f / properties.Mass;
+        
+        m_Static = properties.Static;
+        
+        // Static objects have infinite mass (zero inverse mass)
+        if(m_Static)
+        {
+            m_InvMass = 0.0f;
+            m_AtRest = true;
+        }
+        else
+        {
+            m_InvMass = 1.0f / properties.Mass;
+            m_AtRest = properties.AtRest;
+        }
 
         m_LocalBoundingBox.Set(Vec3(-0.5f), Vec3(0.5f));
         m_CollisionShape = nullptr;
@@ -37,20 +50,20 @@ namespace Lumos
         if(properties.Shape)
             SetCollisionShape(properties.Shape);
 
-        m_Static     = properties.Static;
-        m_AtRest     = properties.AtRest;
-        m_Elasticity = properties.Elasticity;
-        m_Friction   = properties.Friction;
-        m_UUID       = UUID();
-
-        if(m_Static)
-            m_AtRest = true;
+        m_Elasticity     = properties.Elasticity;
+        m_Friction       = properties.Friction;
+        m_Trigger        = properties.isTrigger;
+        m_CollisionLayer = properties.CollisionLayer;
+        m_CollisionMask  = properties.CollisionMask;
+        m_UUID           = UUID();
     }
 
     RigidBody3D::~RigidBody3D()
     {
         m_UUID = 0;
     }
+
+    DEFAULTCOPYANDMOVEDEFINE(RigidBody3D);
 
     RigidBody3DProperties::RigidBody3DProperties()  = default;
     RigidBody3DProperties::~RigidBody3DProperties() = default;
@@ -190,7 +203,7 @@ namespace Lumos
     {
         m_CollisionShape = shape;
 
-        if (m_CollisionShape)
+        if(m_CollisionShape)
         {
             m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
             AutoResizeBoundingBox();
@@ -265,8 +278,14 @@ namespace Lumos
             properties.Mass = 1.0f / m_InvMass;
         else
             properties.Mass = 1.0f;
-        // TODO: Finish rest;
-        LWARN("WIP Rigidbody GetProperties");
+        properties.Orientation     = m_Orientation;
+        properties.AngularVelocity = m_AngularVelocity;
+        properties.Torque          = m_Torque;
+        properties.Static          = m_Static;
+        properties.Friction        = m_Friction;
+        properties.AtRest          = m_AtRest;
+        properties.isTrigger       = m_Trigger;
+        properties.Shape           = m_CollisionShape;
 
         return properties;
     }

@@ -30,12 +30,12 @@ namespace Lumos
                 return TDArray<ShaderType>();
             };
 
-			const char* GetName() const override
+            const char* GetName() const override
             {
                 return m_Name.c_str();
             }
 
-			const char* GetFilePath() const override
+            const char* GetFilePath() const override
             {
                 return m_FilePath.c_str();
             };
@@ -63,7 +63,7 @@ namespace Lumos
             {
                 return m_PushConstants;
             }
-			
+
             VkDescriptorSetLayout* GetDescriptorLayout(int id)
             {
                 return &m_DescriptorSetLayouts[id];
@@ -113,9 +113,9 @@ namespace Lumos
 
             VkPipelineShaderStageCreateInfo* m_ShaderStages;
             uint32_t m_StageCount = 0;
-			std::string m_Name;
-			std::string m_FilePath;
-			std::string m_Source;
+            std::string m_Name;
+            std::string m_FilePath;
+            std::string m_Source;
             TDArray<ShaderType> m_ShaderTypes;
             bool m_Compiled = false;
 

@@ -29,7 +29,7 @@ namespace Lumos::Debug
         formattedMessage = PushStr8FV(scratch.arena, message, args);
         va_end(args);
 
-        formattedMessage = PushStr8F(scratch.arena, " %s%s\n", levelStrs[(u8)level], formattedMessage.str);
+        formattedMessage = PushStr8F(scratch.arena, " %s%s", levelStrs[(u8)level], formattedMessage.str);
         OS::ConsoleWrite((const char*)formattedMessage.str, u8(level));
 
         if(s_LogFunction)

@@ -598,23 +598,21 @@ namespace Lumos
         if(ImGui::IsItemHovered())
         {
             ImGui::BeginTooltip();
-			ImVec2 avail = ImGui::GetContentRegionAvail();
-			
-			ImVec2 offset = ImVec2(
-									   (avail.x - size.x) * 0.5f,
-								   0.0f
-								   );
-			offset.x = ImMax(offset.x, 0.0f);
-			
-			ImGui::SetCursorPos(ImGui::GetCursorPos() + offset);
-			
-			bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-			ImGui::Image(
-						 Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture),
-						 ImVec2(size.x, size.y),
-						 ImVec2(0.0f, flipImage ? 1.0f : 0.0f),
-						 ImVec2(1.0f, flipImage ? 0.0f : 1.0f)
-						 );
+            ImVec2 avail = ImGui::GetContentRegionAvail();
+
+            ImVec2 offset = ImVec2(
+                (avail.x - size.x) * 0.5f,
+                0.0f);
+            offset.x = ImMax(offset.x, 0.0f);
+
+            ImGui::SetCursorPos(ImGui::GetCursorPos() + offset);
+
+            bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
+            ImGui::Image(
+                Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture),
+                ImVec2(size.x, size.y),
+                ImVec2(0.0f, flipImage ? 1.0f : 0.0f),
+                ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
             ImGui::EndTooltip();
         }
 
@@ -630,20 +628,19 @@ namespace Lumos
         {
             ImGui::BeginTooltip();
             ImVec2 avail = ImGui::GetContentRegionAvail();
-			
-			ImVec2 offset = ImVec2(
-									   (avail.x - size.x) * 0.5f,
-								   0.0f);
-			offset.x = ImMax(offset.x, 0.0f);
-			ImGui::SetCursorPos(ImGui::GetCursorPos() + offset);
-			
-			bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-			ImGui::Image(
-						 Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture),
-						 ImVec2(size.x, size.y),
-						 ImVec2(0.0f, flipImage ? 1.0f : 0.0f),
-						 ImVec2(1.0f, flipImage ? 0.0f : 1.0f)
-						 );
+
+            ImVec2 offset = ImVec2(
+                (avail.x - size.x) * 0.5f,
+                0.0f);
+            offset.x = ImMax(offset.x, 0.0f);
+            ImGui::SetCursorPos(ImGui::GetCursorPos() + offset);
+
+            bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
+            ImGui::Image(
+                Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture),
+                ImVec2(size.x, size.y),
+                ImVec2(0.0f, flipImage ? 1.0f : 0.0f),
+                ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
             ImGui::TextUnformatted(text);
             ImGui::EndTooltip();
         }
@@ -1343,6 +1340,84 @@ namespace Lumos
             colours[ImGuiCol_DockingPreview]     = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
 
 #endif
+        }
+        else if(theme == AppleLight)
+        {
+            ImGui::StyleColorsLight();
+            colours[ImGuiCol_Text]              = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+            colours[ImGuiCol_TextDisabled]      = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+            colours[ImGuiCol_WindowBg]          = ImVec4(0.95f, 0.95f, 0.95f, 1.00f);
+            colours[ImGuiCol_ChildBg]           = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
+            colours[ImGuiCol_PopupBg]           = ImVec4(1.00f, 1.00f, 1.00f, 0.98f);
+            colours[ImGuiCol_Border]            = ImVec4(0.70f, 0.70f, 0.70f, 0.40f);
+            colours[ImGuiCol_FrameBg]           = ImVec4(0.85f, 0.85f, 0.85f, 0.60f);
+            colours[ImGuiCol_FrameBgHovered]    = ImVec4(0.80f, 0.85f, 0.95f, 0.80f);
+            colours[ImGuiCol_FrameBgActive]     = ImVec4(0.70f, 0.80f, 0.95f, 1.00f);
+            colours[ImGuiCol_TitleBg]           = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
+            colours[ImGuiCol_TitleBgActive]     = ImVec4(0.80f, 0.85f, 0.95f, 1.00f);
+            colours[ImGuiCol_MenuBarBg]         = ImVec4(0.94f, 0.94f, 0.94f, 1.00f);
+            colours[ImGuiCol_Button]            = ImVec4(0.85f, 0.85f, 0.85f, 0.60f);
+            colours[ImGuiCol_ButtonHovered]     = ImVec4(0.80f, 0.85f, 0.95f, 1.00f);
+            colours[ImGuiCol_ButtonActive]      = ImVec4(0.70f, 0.80f, 0.95f, 1.00f);
+            colours[ImGuiCol_CheckMark]         = ImVec4(0.00f, 0.48f, 1.00f, 1.00f);
+            colours[ImGuiCol_SliderGrab]        = ImVec4(0.00f, 0.48f, 1.00f, 0.60f);
+            colours[ImGuiCol_SliderGrabActive]  = ImVec4(0.00f, 0.48f, 1.00f, 1.00f);
+            colours[ImGuiCol_ResizeGrip]        = ImVec4(0.60f, 0.60f, 0.60f, 0.30f);
+            colours[ImGuiCol_ResizeGripHovered] = ImVec4(0.00f, 0.48f, 1.00f, 0.40f);
+            colours[ImGuiCol_ResizeGripActive]  = ImVec4(0.00f, 0.48f, 1.00f, 0.60f);
+            colours[ImGuiCol_Header]            = ImVec4(0.85f, 0.85f, 0.85f, 0.60f);
+            colours[ImGuiCol_HeaderHovered]     = ImVec4(0.80f, 0.85f, 0.95f, 0.80f);
+            colours[ImGuiCol_HeaderActive]      = ImVec4(0.70f, 0.80f, 0.95f, 1.00f);
+        }
+        else if(theme == GraphiteDark)
+        {
+            ImGui::StyleColorsDark();
+            colours[ImGuiCol_Text]             = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
+            colours[ImGuiCol_TextDisabled]     = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+            colours[ImGuiCol_WindowBg]         = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+            colours[ImGuiCol_ChildBg]          = ImVec4(0.10f, 0.10f, 0.10f, 0.00f);
+            colours[ImGuiCol_PopupBg]          = ImVec4(0.18f, 0.18f, 0.18f, 0.92f);
+            colours[ImGuiCol_Border]           = ImVec4(0.25f, 0.25f, 0.25f, 0.50f);
+            colours[ImGuiCol_FrameBg]          = ImVec4(0.20f, 0.20f, 0.20f, 0.60f);
+            colours[ImGuiCol_FrameBgHovered]   = ImVec4(0.30f, 0.30f, 0.30f, 0.80f);
+            colours[ImGuiCol_FrameBgActive]    = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
+            colours[ImGuiCol_TitleBg]          = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+            colours[ImGuiCol_TitleBgActive]    = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+            colours[ImGuiCol_MenuBarBg]        = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+            colours[ImGuiCol_Button]           = ImVec4(0.20f, 0.20f, 0.20f, 0.60f);
+            colours[ImGuiCol_ButtonHovered]    = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
+            colours[ImGuiCol_ButtonActive]     = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
+            colours[ImGuiCol_CheckMark]        = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+            colours[ImGuiCol_SliderGrab]       = ImVec4(0.60f, 0.60f, 0.60f, 0.60f);
+            colours[ImGuiCol_SliderGrabActive] = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
+            colours[ImGuiCol_Header]           = ImVec4(0.20f, 0.20f, 0.20f, 0.60f);
+            colours[ImGuiCol_HeaderHovered]    = ImVec4(0.30f, 0.30f, 0.30f, 0.80f);
+            colours[ImGuiCol_HeaderActive]     = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
+        }
+        else if(theme == Pastel)
+        {
+            ImGui::StyleColorsLight();
+            colours[ImGuiCol_Text]             = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+            colours[ImGuiCol_TextDisabled]     = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+            colours[ImGuiCol_WindowBg]         = ImVec4(0.98f, 0.97f, 0.95f, 1.00f);
+            colours[ImGuiCol_ChildBg]          = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
+            colours[ImGuiCol_PopupBg]          = ImVec4(1.00f, 1.00f, 1.00f, 0.95f);
+            colours[ImGuiCol_Border]           = ImVec4(0.80f, 0.80f, 0.80f, 0.30f);
+            colours[ImGuiCol_FrameBg]          = ImVec4(0.92f, 0.90f, 0.95f, 0.60f);
+            colours[ImGuiCol_FrameBgHovered]   = ImVec4(0.85f, 0.82f, 0.92f, 0.80f);
+            colours[ImGuiCol_FrameBgActive]    = ImVec4(0.75f, 0.70f, 0.85f, 1.00f);
+            colours[ImGuiCol_TitleBg]          = ImVec4(0.92f, 0.90f, 0.95f, 1.00f);
+            colours[ImGuiCol_TitleBgActive]    = ImVec4(0.85f, 0.82f, 0.92f, 1.00f);
+            colours[ImGuiCol_MenuBarBg]        = ImVec4(0.94f, 0.92f, 0.95f, 1.00f);
+            colours[ImGuiCol_Button]           = ImVec4(0.82f, 0.80f, 0.90f, 0.60f);
+            colours[ImGuiCol_ButtonHovered]    = ImVec4(0.75f, 0.70f, 0.85f, 1.00f);
+            colours[ImGuiCol_ButtonActive]     = ImVec4(0.65f, 0.60f, 0.80f, 1.00f);
+            colours[ImGuiCol_CheckMark]        = ImVec4(0.50f, 0.45f, 0.75f, 1.00f);
+            colours[ImGuiCol_SliderGrab]       = ImVec4(0.60f, 0.55f, 0.80f, 0.60f);
+            colours[ImGuiCol_SliderGrabActive] = ImVec4(0.50f, 0.45f, 0.75f, 1.00f);
+            colours[ImGuiCol_Header]           = ImVec4(0.92f, 0.90f, 0.95f, 0.60f);
+            colours[ImGuiCol_HeaderHovered]    = ImVec4(0.85f, 0.82f, 0.92f, 0.80f);
+            colours[ImGuiCol_HeaderActive]     = ImVec4(0.75f, 0.70f, 0.85f, 1.00f);
         }
 
         colours[ImGuiCol_Separator]        = colours[ImGuiCol_TitleBg];

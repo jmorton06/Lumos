@@ -29,7 +29,7 @@ namespace Lumos
             float timeSinceLastAccessed;
         };
         static std::unordered_map<uint64_t, FramebufferAsset> m_FramebufferCache;
-        static const float m_CacheLifeTime = 1.0f;
+        static const float m_CacheLifeTime = 0.0f;
 
         SharedPtr<Framebuffer> Framebuffer::Get(const FramebufferDesc& framebufferDesc)
         {

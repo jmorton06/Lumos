@@ -37,7 +37,7 @@ namespace Lumos
                 int sceneVersion      = m_CurrentScene->GetSceneVersion();
                 auto& sceneSettings   = m_CurrentScene->GetSettings();
 
-                String8 nameBuffer = {  };
+                String8 nameBuffer = {};
                 nameBuffer.str     = PushArray(m_Editor->GetFrameArena(), uint8_t, INPUT_BUF_SIZE);
                 nameBuffer.size    = INPUT_BUF_SIZE;
 
@@ -61,7 +61,7 @@ namespace Lumos
                     {
                         m_NameUpdated = false;
                         String8 scenePath;
-						String8 filePath = PushStr8F(m_Editor->GetFrameArena(), "//Assets/Scenes/%s.lsn", m_SceneName.c_str());
+                        String8 filePath = PushStr8F(m_Editor->GetFrameArena(), "//Assets/Scenes/%s.lsn", m_SceneName.c_str());
                         if(FileSystem::Get().ResolvePhysicalPath(m_Editor->GetFrameArena(), filePath, &scenePath))
                         {
                             std::filesystem::rename(ToStdString(scenePath), m_Editor->GetProjectSettings().m_ProjectRoot + "Assets/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn");

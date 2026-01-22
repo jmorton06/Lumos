@@ -135,6 +135,12 @@ namespace Lumos
             return std::isinf(value);
         }
 
+        template <class T>
+        inline bool IsZero(T value)
+        {
+            return value >= -M_EPSILON && value <= M_EPSILON;
+        }
+
         /// Clamp a number to a range.
         template <class T>
         inline T Clamp(T value, T min, T max)
@@ -391,6 +397,8 @@ namespace Lumos
         const float* ValuePtr(const Quat& quat);
         const float* ValuePtr(const Mat3& mat);
         const float* ValuePtr(const Mat4& mat);
+
+        Vec3 PerpendicularVector(const Vec3& v);
 
         void TestMaths();
 

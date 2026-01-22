@@ -5,11 +5,11 @@
 
 namespace Lumos
 {
-	struct Mutex;
-	class StringPool;
+    struct Mutex;
+    class StringPool;
     class AssetRegistry
     {
-		friend class AssetManagerPanel;
+        friend class AssetManagerPanel;
         template <typename Archive>
         friend void save(Archive& archive, const AssetRegistry& registry);
 
@@ -17,8 +17,8 @@ namespace Lumos
         friend void load(Archive& archive, AssetRegistry& registry);
 
     public:
-		AssetRegistry();
-		~AssetRegistry();
+        AssetRegistry();
+        ~AssetRegistry();
 
         AssetMetaData& operator[](const UUID handle);
         AssetMetaData& Get(const UUID handle);
@@ -27,7 +27,7 @@ namespace Lumos
         void Update(float elapsedSeconds);
 
         bool Contains(const UUID handle) const;
-        size_t Remove(const UUID handle);
+        void Remove(const UUID handle);
         void Clear();
 
         void AddName(const String8& name, UUID ID);
@@ -37,15 +37,15 @@ namespace Lumos
 
         void ReplaceID(UUID current, UUID newID);
 
-		private:
-		HashMap(UUID, AssetMetaData) m_AssetRegistry;
+    private:
+        HashMap(UUID, AssetMetaData) m_AssetRegistry;
         HashMap(u64, UUID) m_NameMap;
         HashMap(UUID, String8) m_UUIDNameMap;
 
-		Arena* m_Arena;
-		Mutex* m_Mutex;
+        Arena* m_Arena;
+        Mutex* m_Mutex;
 
-		StringPool* m_StringPool;
+        StringPool* m_StringPool;
 
         float m_ExpirationTime = 3.0f;
     };

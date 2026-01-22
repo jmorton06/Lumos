@@ -1,4 +1,4 @@
-// Copyright 2015-2023 The Khronos Group Inc.
+// Copyright 2015-2025 The Khronos Group Inc.
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
@@ -14,7 +14,9 @@
 #  define VULKAN_HPP_CPLUSPLUS __cplusplus
 #endif
 
-#if 201703L < VULKAN_HPP_CPLUSPLUS
+#if 202002L < VULKAN_HPP_CPLUSPLUS
+#  define VULKAN_HPP_CPP_VERSION 23
+#elif 201703L < VULKAN_HPP_CPLUSPLUS
 #  define VULKAN_HPP_CPP_VERSION 20
 #elif 201402L < VULKAN_HPP_CPLUSPLUS
 #  define VULKAN_HPP_CPP_VERSION 17
@@ -24,6 +26,13 @@
 #  define VULKAN_HPP_CPP_VERSION 11
 #else
 #  error "vulkan.hpp needs at least c++ standard version 11"
+#endif
+
+// include headers holding feature-test macros
+#if 20 <= VULKAN_HPP_CPP_VERSION
+#  include <version>
+#else
+#  include <ciso646>
 #endif
 
 #if defined( VULKAN_HPP_DISABLE_ENHANCED_MODE )
@@ -70,19 +79,33 @@
 #  define __has_include( x ) false
 #endif
 
-#if ( 201907 <= __cpp_lib_three_way_comparison ) && __has_include( <compare> ) && !defined( VULKAN_HPP_NO_SPACESHIP_OPERATOR )
+#if defined( __cpp_lib_three_way_comparison ) && ( 201907 <= __cpp_lib_three_way_comparison ) && __has_include( <compare> ) && !defined( VULKAN_HPP_NO_SPACESHIP_OPERATOR )
 #  define VULKAN_HPP_HAS_SPACESHIP_OPERATOR
 #endif
 
-#if ( 201803 <= __cpp_lib_span )
+#if defined( __cpp_lib_span ) && ( 201803 <= __cpp_lib_span )
 #  define VULKAN_HPP_SUPPORT_SPAN
 #endif
 
+#if defined( __cpp_lib_modules ) && !defined( VULKAN_HPP_STD_MODULE ) && defined( VULKAN_HPP_ENABLE_STD_MODULE )
+#  define VULKAN_HPP_STD_MODULE std.compat
+#endif
+
+#ifndef VK_USE_64_BIT_PTR_DEFINES
+#  if defined( __LP64__ ) || defined( _WIN64 ) || ( defined( __x86_64__ ) && !defined( __ILP32__ ) ) || defined( _M_X64 ) || defined( __ia64 ) || \
+    defined( _M_IA64 ) || defined( __aarch64__ ) || defined( __powerpc64__ ) || ( defined( __riscv ) && __riscv_xlen == 64 )
+#    define VK_USE_64_BIT_PTR_DEFINES 1
+#  else
+#    define VK_USE_64_BIT_PTR_DEFINES 0
+#  endif
+#endif
+
 // 32-bit vulkan is not typesafe for non-dispatchable handles, so don't allow copy constructors on this platform by default.
-// To enable this feature on 32-bit platforms please define VULKAN_HPP_TYPESAFE_CONVERSION
+// To enable this feature on 32-bit platforms please #define VULKAN_HPP_TYPESAFE_CONVERSION 1
+// To disable this feature on 64-bit platforms please #define VULKAN_HPP_TYPESAFE_CONVERSION 0
 #if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
 #  if !defined( VULKAN_HPP_TYPESAFE_CONVERSION )
-#    define VULKAN_HPP_TYPESAFE_CONVERSION
+#    define VULKAN_HPP_TYPESAFE_CONVERSION 1
 #  endif
 #endif
 
@@ -122,7 +145,7 @@
 #  endif
 #endif
 
-#if defined( VULKAN_HPP_TYPESAFE_CONVERSION )
+#if ( VULKAN_HPP_TYPESAFE_CONVERSION == 1 )
 #  define VULKAN_HPP_TYPESAFE_EXPLICIT
 #else
 #  define VULKAN_HPP_TYPESAFE_EXPLICIT explicit
@@ -173,6 +196,12 @@
 #  define VULKAN_HPP_DEPRECATED( msg ) [[deprecated( msg )]]
 #else
 #  define VULKAN_HPP_DEPRECATED( msg )
+#endif
+
+#if 17 <= VULKAN_HPP_CPP_VERSION
+#  define VULKAN_HPP_DEPRECATED_17( msg ) [[deprecated( msg )]]
+#else
+#  define VULKAN_HPP_DEPRECATED_17( msg )
 #endif
 
 #if ( 17 <= VULKAN_HPP_CPP_VERSION ) && !defined( VULKAN_HPP_NO_NODISCARD_WARNINGS )
@@ -228,32 +257,40 @@
 
 namespace VULKAN_HPP_NAMESPACE
 {
-  class DispatchLoaderDynamic;
+  namespace detail
+  {
+    class DispatchLoaderDynamic;
+
+#if !defined( VULKAN_HPP_DEFAULT_DISPATCHER )
+#  if VULKAN_HPP_DISPATCH_LOADER_DYNAMIC == 1
+    extern VULKAN_HPP_STORAGE_API DispatchLoaderDynamic defaultDispatchLoaderDynamic;
+#  endif
+#endif
+  }  // namespace detail
 }  // namespace VULKAN_HPP_NAMESPACE
 
 #if !defined( VULKAN_HPP_DEFAULT_DISPATCHER )
 #  if VULKAN_HPP_DISPATCH_LOADER_DYNAMIC == 1
-#    define VULKAN_HPP_DEFAULT_DISPATCHER ::VULKAN_HPP_NAMESPACE::defaultDispatchLoaderDynamic
-#    define VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE                                             \
-      namespace VULKAN_HPP_NAMESPACE                                                                       \
-      {                                                                                                    \
-        VULKAN_HPP_STORAGE_API ::VULKAN_HPP_NAMESPACE::DispatchLoaderDynamic defaultDispatchLoaderDynamic; \
+#    define VULKAN_HPP_DEFAULT_DISPATCHER ::VULKAN_HPP_NAMESPACE::detail::defaultDispatchLoaderDynamic
+#    define VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE                       \
+      namespace VULKAN_HPP_NAMESPACE                                                 \
+      {                                                                              \
+        namespace detail                                                             \
+        {                                                                            \
+          VULKAN_HPP_STORAGE_API DispatchLoaderDynamic defaultDispatchLoaderDynamic; \
+        }                                                                            \
       }
-namespace VULKAN_HPP_NAMESPACE
-{
-  extern VULKAN_HPP_STORAGE_API VULKAN_HPP_NAMESPACE::DispatchLoaderDynamic defaultDispatchLoaderDynamic;
-}  // namespace VULKAN_HPP_NAMESPACE
 #  else
-#    define VULKAN_HPP_DEFAULT_DISPATCHER ::VULKAN_HPP_NAMESPACE::getDispatchLoaderStatic()
+#    define VULKAN_HPP_DEFAULT_DISPATCHER ::VULKAN_HPP_NAMESPACE::detail::getDispatchLoaderStatic()
 #    define VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 #  endif
 #endif
 
 #if !defined( VULKAN_HPP_DEFAULT_DISPATCHER_TYPE )
 #  if VULKAN_HPP_DISPATCH_LOADER_DYNAMIC == 1
-#    define VULKAN_HPP_DEFAULT_DISPATCHER_TYPE ::VULKAN_HPP_NAMESPACE::DispatchLoaderDynamic
+#    define VULKAN_HPP_DEFAULT_DISPATCHER_TYPE ::VULKAN_HPP_NAMESPACE::detail::DispatchLoaderDynamic
 #  else
-#    define VULKAN_HPP_DEFAULT_DISPATCHER_TYPE ::VULKAN_HPP_NAMESPACE::DispatchLoaderStatic
+#    define VULKAN_HPP_DEFAULT_DISPATCHER_TYPE ::VULKAN_HPP_NAMESPACE::detail::DispatchLoaderStatic
 #  endif
 #endif
 
@@ -265,6 +302,25 @@ namespace VULKAN_HPP_NAMESPACE
 #  define VULKAN_HPP_DEFAULT_ARGUMENT_ASSIGNMENT         = {}
 #  define VULKAN_HPP_DEFAULT_ARGUMENT_NULLPTR_ASSIGNMENT = nullptr
 #  define VULKAN_HPP_DEFAULT_DISPATCHER_ASSIGNMENT       = VULKAN_HPP_DEFAULT_DISPATCHER
+#endif
+
+#if !defined( VULKAN_HPP_EXPECTED ) && ( 23 <= VULKAN_HPP_CPP_VERSION ) && defined( __cpp_lib_expected )
+#  if !( defined( VULKAN_HPP_ENABLE_STD_MODULE ) && defined( VULKAN_HPP_STD_MODULE ) )
+#    include <expected>
+#  endif
+#  define VULKAN_HPP_EXPECTED   std::expected
+#  define VULKAN_HPP_UNEXPECTED std::unexpected
+#endif
+
+#if !defined( VULKAN_HPP_RAII_NAMESPACE )
+#  define VULKAN_HPP_RAII_NAMESPACE raii
+#endif
+
+#if defined( VULKAN_HPP_NO_EXCEPTIONS ) && defined( VULKAN_HPP_EXPECTED )
+#  define VULKAN_HPP_RAII_NO_EXCEPTIONS
+#  define VULKAN_HPP_RAII_CREATE_NOEXCEPT noexcept
+#else
+#  define VULKAN_HPP_RAII_CREATE_NOEXCEPT
 #endif
 
 #endif

@@ -106,6 +106,7 @@ namespace Lumos
         void OnNewProject() override;
         void Refresh();
         void QueueRefresh() { m_Refresh = true; }
+        void GetAllAssets(std::vector<std::string>& outAssets);
 
     private:
         static inline TDArray<String8> assetTypes = {

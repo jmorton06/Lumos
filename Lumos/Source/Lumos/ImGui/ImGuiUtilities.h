@@ -44,7 +44,10 @@ namespace Lumos
             Classic,
             Cherry,
             Cinder,
-            Cosy
+            Cosy,
+            AppleLight,
+            GraphiteDark,
+            Pastel
         };
 
         bool Property(const char* name, std::string& value, PropertyFlag flags = PropertyFlag::ReadOnly);

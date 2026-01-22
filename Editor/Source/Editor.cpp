@@ -14,6 +14,8 @@
 #include "EditorSettingsPanel.h"
 #include "ProjectSettingsPanel.h"
 #include "FileBrowserPanel.h"
+#include "ScriptConsolePanel.h"
+#include "LuaDebugPanel.h"
 #include "PreviewDraw.h"
 #include "EditorPanel.h"
 
@@ -32,6 +34,7 @@
 #include <Lumos/Scene/Entity.h>
 #include <Lumos/Scene/EntityManager.h>
 #include <Lumos/Events/ApplicationEvent.h>
+#include <Lumos/Events/GestureEvent.h>
 #include <Lumos/Scene/Component/Components.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
 #include <Lumos/Scene/Component/SoundComponent.h>
@@ -70,6 +73,7 @@
 #include <Lumos/Core/CoreSystem.h>
 #include <Lumos/Core/Thread.h>
 #include <Lumos/Graphics/UI.h>
+#include <Lumos/Core/Undo.h>
 
 #include <imgui/imgui_internal.h>
 #include <imgui/Plugins/ImGuizmo.h>
@@ -83,6 +87,8 @@ namespace Lumos
     {
         Debug::Log::SetLoggerFunction(ConsoleLoggerFunction);
         Application::SetInstance(this);
+
+        m_ImGuiClearScreen = true;
     }
 
     Editor::~Editor()
@@ -114,6 +120,7 @@ namespace Lumos
     void Editor::Init()
     {
         LUMOS_PROFILE_FUNCTION();
+        Lumos::InitialiseUndo();
         ImCmd::CreateContext();
         toggle_demo_cmd.Name            = "Toggle ImGui demo window";
         toggle_demo_cmd.InitialCallback = [&]()
@@ -137,7 +144,10 @@ namespace Lumos
                 "Classic",
                 "Cherry",
                 "Cinder",
-                "Cosy" });
+                "Cosy",
+                "AppleLight",
+                "GraphiteDark",
+                "Pastel" });
         };
         select_theme_cmd.SubsequentCallback = [&](int selected_option)
         {
@@ -169,6 +179,23 @@ namespace Lumos
         ImCmd::AddCommand(example_cmd); // Copy intentionally
         ImCmd::AddCommand(std::move(add_example_cmd_cmd));
         ImCmd::AddCommand(std::move(remove_example_cmd_cmd));
+
+        ImCmd::Command search_assets_cmd;
+        search_assets_cmd.Name = "Search Assets";
+        search_assets_cmd.InitialCallback = [this]()
+        {
+            m_CachedAssetPaths.clear();
+            if(m_ResourcePanel)
+                m_ResourcePanel->GetAllAssets(m_CachedAssetPaths);
+            if(!m_CachedAssetPaths.empty())
+                ImCmd::Prompt(m_CachedAssetPaths);
+        };
+        search_assets_cmd.SubsequentCallback = [this](int selected)
+        {
+            if(selected >= 0 && selected < (int)m_CachedAssetPaths.size())
+                FileOpenCallback(m_CachedAssetPaths[selected]);
+        };
+        ImCmd::AddCommand(std::move(search_assets_cmd));
 
         auto& guizmoStyle                    = ImGuizmo::GetStyle();
         guizmoStyle.HatchedAxisLineThickness = -1.0f;
@@ -302,8 +329,16 @@ namespace Lumos
         m_Panels.emplace_back(CreateSharedPtr<GraphicsInfoPanel>());
         m_Panels.back()->SetActive(false);
 #ifndef LUMOS_PLATFORM_IOS
-        m_Panels.emplace_back(CreateSharedPtr<ResourcePanel>());
+        {
+            auto resourcePanel = CreateSharedPtr<ResourcePanel>();
+            m_ResourcePanel = resourcePanel.get();
+            m_Panels.emplace_back(resourcePanel);
+        }
 #endif
+        m_Panels.emplace_back(CreateSharedPtr<ScriptConsolePanel>());
+        m_Panels.back()->SetActive(false);
+        m_Panels.emplace_back(CreateSharedPtr<LuaDebugPanel>());
+        m_Panels.back()->SetActive(false);
 
         for(auto& panel : m_Panels)
             panel->SetEditor(this);
@@ -450,6 +485,17 @@ namespace Lumos
         m_Settings.m_View2D = m_CurrentCamera->IsOrthographic();
 
         m_FileBrowserPanel->OnImGui();
+
+        bool ctrlPressed  = Input::Get().GetKeyHeld(Lumos::InputCode::Key::LeftControl) || Input::Get().GetKeyHeld(Lumos::InputCode::Key::RightControl);
+        bool shiftPressed = Input::Get().GetKeyHeld(Lumos::InputCode::Key::LeftShift) || Input::Get().GetKeyHeld(Lumos::InputCode::Key::RightShift);
+        bool zPressed     = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Z);
+        bool yPressed     = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Y);
+
+        if(ctrlPressed && zPressed && !shiftPressed)
+            Lumos::Undo();
+        else if(ctrlPressed && (yPressed || (zPressed && shiftPressed)))
+            Lumos::Redo();
+
         auto& io  = ImGui::GetIO();
         auto ctrl = io.ConfigMacOSXBehaviors ? io.KeySuper : io.KeyCtrl;
         if(ctrl && Input::Get().GetKeyPressed(Lumos::InputCode::Key::P))
@@ -552,6 +598,43 @@ namespace Lumos
 
         if(ImGui::BeginMainMenuBar())
         {
+            // Calculate available width for menus
+            // Play buttons are centered, so available space is roughly half the window minus some padding
+            float windowWidth = ImGui::GetWindowWidth();
+            float playButtonsWidth = 3.0f * (ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x);
+            float playButtonsStart = (windowWidth * 0.5f) - (playButtonsWidth * 0.5f);
+
+            // Estimate widths for menus (approximate)
+            float menuPadding = ImGui::GetStyle().ItemSpacing.x * 2 + ImGui::GetStyle().FramePadding.x * 2;
+            float fileMenuWidth = ImGui::CalcTextSize("File").x + menuPadding;
+            float editMenuWidth = ImGui::CalcTextSize("Edit").x + menuPadding;
+            float viewMenuWidth = ImGui::CalcTextSize("View").x + menuPadding;
+            float scenesMenuWidth = ImGui::CalcTextSize("Scenes").x + menuPadding;
+            float graphicsMenuWidth = ImGui::CalcTextSize("Graphics").x + menuPadding;
+            float aboutMenuWidth = ImGui::CalcTextSize("About").x + menuPadding;
+            float moreMenuWidth = ImGui::CalcTextSize(ICON_MDI_DOTS_HORIZONTAL).x + menuPadding;
+
+            float totalSecondaryWidth = editMenuWidth + viewMenuWidth + scenesMenuWidth + graphicsMenuWidth + aboutMenuWidth;
+            float availableForMenus = playButtonsStart - fileMenuWidth - 20.0f;
+
+            bool collapseMenus = availableForMenus < totalSecondaryWidth;
+
+            // Calculate if project/scene names can fit (only relevant when menus aren't collapsed)
+            float projectNameWidth = m_ProjectLoaded ? ImGui::CalcTextSize(m_ProjectSettings.m_ProjectName.c_str()).x + 80.0f : 0;
+            float sceneNameWidth = m_ProjectLoaded ? ImGui::CalcTextSize(GetCurrentScene()->GetSceneName().c_str()).x + 80.0f : 0;
+            float debugWidth = 0;
+#ifdef LUMOS_DEBUG
+            debugWidth = ImGui::CalcTextSize("DEBUG").x + 60.0f;
+#endif
+            float totalProjectInfoWidth = projectNameWidth + sceneNameWidth + debugWidth;
+
+            // When collapsed, check if there's room for project info after the "..." menu
+            float spaceAfterMenus = collapseMenus
+                ? (playButtonsStart - fileMenuWidth - moreMenuWidth - 20.0f)
+                : (playButtonsStart - fileMenuWidth - totalSecondaryWidth - 20.0f);
+
+            bool showProjectInfo = spaceAfterMenus >= totalProjectInfoWidth;
+
             if(ImGui::BeginMenu("File"))
             {
                 if(ImGui::MenuItem("Open Project"))
@@ -679,6 +762,24 @@ namespace Lumos
                         ImGuiUtilities::SetTheme(ImGuiUtilities::Cosy);
                         OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
+                    if(ImGui::MenuItem("Apple Light", "", m_Settings.m_Theme == ImGuiUtilities::AppleLight))
+                    {
+                        m_Settings.m_Theme = ImGuiUtilities::AppleLight;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::AppleLight);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                    }
+                    if(ImGui::MenuItem("Graphite Dark", "", m_Settings.m_Theme == ImGuiUtilities::GraphiteDark))
+                    {
+                        m_Settings.m_Theme = ImGuiUtilities::GraphiteDark;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::GraphiteDark);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                    }
+                    if(ImGui::MenuItem("Pastel", "", m_Settings.m_Theme == ImGuiUtilities::Pastel))
+                    {
+                        m_Settings.m_Theme = ImGuiUtilities::Pastel;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::Pastel);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                    }
                     ImGui::EndMenu();
                 }
 
@@ -691,192 +792,223 @@ namespace Lumos
 
                 ImGui::EndMenu();
             }
-            if(ImGui::BeginMenu("Edit"))
+
+            // Lambda to draw secondary menus (Edit, View, Scenes, Graphics, About)
+            // includeProjectInfo: when true, adds project/scene info to the menu (for overflow)
+            auto DrawSecondaryMenus = [&](bool includeProjectInfo)
             {
-                // TODO
-                //  if(ImGui::MenuItem("Undo", "CTRL+Z"))
-                //  {
-                //  }
-                //  if(ImGui::MenuItem("Redo", "CTRL+Y", false, false))
-                //  {
-                //  } // Disabled item
-                //  ImGui::Separator();
-
-                bool enabled = !m_SelectedEntities.empty();
-
-                if(ImGui::MenuItem("Cut", "CTRL+X", false, enabled))
+                if(ImGui::BeginMenu("Edit"))
                 {
-                    for(auto entity : m_SelectedEntities)
-                        SetCopiedEntity(entity, true);
-                }
-
-                if(ImGui::MenuItem("Copy", "CTRL+C", false, enabled))
-                {
-                    for(auto entity : m_SelectedEntities)
-                        SetCopiedEntity(entity, false);
-                }
-
-                enabled = !m_CopiedEntities.empty();
-
-                if(ImGui::MenuItem("Paste", "CTRL+V", false, enabled))
-                {
-                    for(auto entity : m_CopiedEntities)
+                    if(ImGui::MenuItem("Undo", "CTRL+Z"))
                     {
-                        Application::Get().GetCurrentScene()->DuplicateEntity({ entity, Application::Get().GetCurrentScene() });
-                        if(entity.Valid())
+                        Lumos::Undo();
+                    }
+                    if(ImGui::MenuItem("Redo", "CTRL+Y", false, true))
+                    {
+                        Lumos::Redo();
+                    }
+                    ImGui::Separator();
+
+                    bool enabled = !m_SelectedEntities.empty();
+
+                    if(ImGui::MenuItem("Cut", "CTRL+X", false, enabled))
+                    {
+                        for(auto entity : m_SelectedEntities)
+                            SetCopiedEntity(entity, true);
+                    }
+
+                    if(ImGui::MenuItem("Copy", "CTRL+C", false, enabled))
+                    {
+                        for(auto entity : m_SelectedEntities)
+                            SetCopiedEntity(entity, false);
+                    }
+
+                    enabled = !m_CopiedEntities.empty();
+
+                    if(ImGui::MenuItem("Paste", "CTRL+V", false, enabled))
+                    {
+                        for(auto entity : m_CopiedEntities)
                         {
-                            /// if(entity == m_SelectedEntity)
-                            ///  m_SelectedEntity = entt::null;
-                            Entity(entity, Application::Get().GetCurrentScene()).Destroy();
-                        }
-                    }
-                }
-
-                ImGui::EndMenu();
-            }
-            if(ImGui::BeginMenu("View"))
-            {
-                for(auto& panel : m_Panels)
-                {
-                    if(ImGui::MenuItem(panel->GetName().c_str(), "", &panel->Active(), true))
-                    {
-                        panel->SetActive(true);
-                    }
-                }
-
-                if(ImGui::MenuItem("ImGui Demo", "", &m_Settings.m_ShowImGuiDemo, true))
-                {
-                    m_Settings.m_ShowImGuiDemo = true;
-                }
-
-                ImGui::EndMenu();
-            }
-
-            if(ImGui::BeginMenu("Scenes"))
-            {
-                ArenaTemp scratch = ScratchBegin(0, 0);
-                auto scenes       = Application::Get().GetSceneManager()->GetSceneNames(scratch.arena);
-
-                for(size_t i = 0; i < scenes.Size(); i++)
-                {
-                    auto name = scenes[i];
-                    if(ImGui::MenuItem((const char*)name.str))
-                    {
-                        Application::Get().GetSceneManager()->SwitchScene((const char*)name.str);
-                    }
-                }
-                ScratchEnd(scratch);
-                ImGui::EndMenu();
-            }
-
-            if(ImGui::BeginMenu("Graphics"))
-            {
-                if(ImGui::MenuItem("Compile Shaders"))
-                {
-                    RecompileShaders();
-                }
-                if(ImGui::MenuItem("Embed Shaders"))
-                {
-                    std::string coreDataPath;
-                    auto shaderPath = std::filesystem::path(m_ProjectSettings.m_EngineAssetPath + "Shaders/CompiledSPV/");
-                    int shaderCount = 0;
-                    if(std::filesystem::is_directory(shaderPath))
-                    {
-                        for(auto entry : std::filesystem::directory_iterator(shaderPath))
-                        {
-                            auto extension = StringUtilities::GetFilePathExtension(entry.path().string());
-                            if(extension == "spv")
+                            Application::Get().GetCurrentScene()->DuplicateEntity({ entity, Application::Get().GetCurrentScene() });
+                            if(entity.Valid())
                             {
-                                EmbedShader(entry.path().string());
-                                shaderCount++;
+                                Entity(entity, Application::Get().GetCurrentScene()).Destroy();
                             }
                         }
                     }
-                    LINFO("Embedded %i shaders. Recompile to use", shaderCount);
+
+                    ImGui::EndMenu();
                 }
-                if(ImGui::MenuItem("Embed File"))
+                if(ImGui::BeginMenu("View"))
                 {
-                    EmbedFile();
-                }
-
-                if(ImGui::BeginMenu("GPU Index"))
-                {
-                    uint32_t gpuCount = Graphics::Renderer::GetRenderer()->GetGPUCount();
-
-                    if(gpuCount == 1)
+                    for(auto& panel : m_Panels)
                     {
-                        ImGui::TextUnformatted("Default");
-                        ImGuiUtilities::Tooltip("Only default GPU selectable");
-                    }
-                    else
-                    {
-                        int8_t currentDesiredIndex = Application::Get().GetProjectSettings().DesiredGPUIndex;
-                        int8_t newIndex            = currentDesiredIndex;
-
-                        if(ImGui::Selectable("Default", currentDesiredIndex == -1))
+                        if(ImGui::MenuItem(panel->GetName().c_str(), "", &panel->Active(), true))
                         {
-                            newIndex = -1;
+                            panel->SetActive(true);
                         }
+                    }
 
-                        for(uint32_t index = 0; index < gpuCount; index++)
+                    if(ImGui::MenuItem("ImGui Demo", "", &m_Settings.m_ShowImGuiDemo, true))
+                    {
+                        m_Settings.m_ShowImGuiDemo = true;
+                    }
+
+                    ImGui::EndMenu();
+                }
+
+                if(ImGui::BeginMenu("Scenes"))
+                {
+                    ArenaTemp scratch = ScratchBegin(0, 0);
+                    auto scenes       = Application::Get().GetSceneManager()->GetSceneNames(scratch.arena);
+
+                    for(size_t i = 0; i < scenes.Size(); i++)
+                    {
+                        auto name = scenes[i];
+                        if(ImGui::MenuItem((const char*)name.str))
                         {
-                            if(ImGui::Selectable(std::to_string(index).c_str(), index == uint32_t(currentDesiredIndex)))
+                            Application::Get().GetSceneManager()->SwitchScene((const char*)name.str);
+                        }
+                    }
+                    ScratchEnd(scratch);
+                    ImGui::EndMenu();
+                }
+
+                if(ImGui::BeginMenu("Graphics"))
+                {
+                    if(ImGui::MenuItem("Compile Shaders"))
+                    {
+                        RecompileShaders();
+                    }
+                    if(ImGui::MenuItem("Embed Shaders"))
+                    {
+                        std::string coreDataPath;
+                        auto shaderPath = std::filesystem::path(m_ProjectSettings.m_EngineAssetPath + "Shaders/CompiledSPV/");
+                        int shaderCount = 0;
+                        if(std::filesystem::is_directory(shaderPath))
+                        {
+                            for(auto entry : std::filesystem::directory_iterator(shaderPath))
                             {
-                                newIndex = index;
+                                auto extension = StringUtilities::GetFilePathExtension(entry.path().string());
+                                if(extension == "spv")
+                                {
+                                    EmbedShader(entry.path().string());
+                                    shaderCount++;
+                                }
                             }
                         }
+                        LINFO("Embedded %i shaders. Recompile to use", shaderCount);
+                    }
+                    if(ImGui::MenuItem("Embed File"))
+                    {
+                        EmbedFile();
+                    }
 
-                        Application::Get().GetProjectSettings().DesiredGPUIndex = newIndex;
+                    if(ImGui::BeginMenu("GPU Index"))
+                    {
+                        uint32_t gpuCount = Graphics::Renderer::GetRenderer()->GetGPUCount();
+
+                        if(gpuCount == 1)
+                        {
+                            ImGui::TextUnformatted("Default");
+                            ImGuiUtilities::Tooltip("Only default GPU selectable");
+                        }
+                        else
+                        {
+                            int8_t currentDesiredIndex = Application::Get().GetProjectSettings().DesiredGPUIndex;
+                            int8_t newIndex            = currentDesiredIndex;
+
+                            if(ImGui::Selectable("Default", currentDesiredIndex == -1))
+                            {
+                                newIndex = -1;
+                            }
+
+                            for(uint32_t index = 0; index < gpuCount; index++)
+                            {
+                                if(ImGui::Selectable(std::to_string(index).c_str(), index == uint32_t(currentDesiredIndex)))
+                                {
+                                    newIndex = index;
+                                }
+                            }
+
+                            Application::Get().GetProjectSettings().DesiredGPUIndex = newIndex;
+                        }
+                        ImGui::EndMenu();
                     }
                     ImGui::EndMenu();
                 }
-                ImGui::EndMenu();
-            }
 
-            if(ImGui::BeginMenu("About"))
+                if(ImGui::BeginMenu("About"))
+                {
+                    auto& version = Lumos::LumosVersion;
+                    ImGui::Text("Version : %d.%d.%d", version.major, version.minor, version.patch);
+                    ImGui::Separator();
+
+                    std::string githubMenuText = std::string(ICON_MDI_GITHUB_BOX) + std::string(" Github");
+                    if(ImGui::MenuItem(githubMenuText.c_str()))
+                    {
+                        Lumos::OS::Get().OpenURL("https://www.github.com/jmorton06/Lumos");
+                    }
+                    ImGui::Separator();
+
+                    ImGui::TextUnformatted("Third-Party");
+
+                    ArenaTemp scratch = ScratchBegin(nullptr, 0);
+
+                    if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "ImGui - Version : %s, Revision - %i", IMGUI_VERSION, IMGUI_VERSION_NUM).str))
+                        Lumos::OS::Get().OpenURL("https://github.com/ocornut/imgui");
+                    if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Entt - Version  : %s", ENTT_VERSION).str))
+                        Lumos::OS::Get().OpenURL("https://github.com/skypjack/entt");
+                    if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Cereal - Version : %i.%i.%i", CEREAL_VERSION_MAJOR, CEREAL_VERSION_MINOR, CEREAL_VERSION_PATCH).str))
+                        Lumos::OS::Get().OpenURL("https://github.com/USCiLab/cereal");
+                    if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Box2D - Version : %i.%i", 3, 0).str))
+                        Lumos::OS::Get().OpenURL("https://github.com/erincatto/box2d");
+                    ScratchEnd(scratch);
+
+                    if(ImGui::BeginMenu("Contributers"))
+                    {
+                        if(ImGui::MenuItem("Joe Morton"))
+                            Lumos::OS::Get().OpenURL("https://github.com/jmorton06");
+
+                        if(ImGui::MenuItem("RuanLucasGD"))
+                            Lumos::OS::Get().OpenURL("https://github.com/RuanLucasGD");
+
+                        if(ImGui::MenuItem("adriengivry"))
+                            Lumos::OS::Get().OpenURL("https://github.com/adriengivry");
+
+                        ImGui::EndMenu(); // Contributer Menu
+                    }
+                    ImGui::EndMenu(); // About Menu
+                }
+
+                // Show project info in overflow menu when it doesn't fit in menu bar
+                if(includeProjectInfo && m_ProjectLoaded)
+                {
+                    ImGui::Separator();
+                    ImGui::TextDisabled("Project: %s", m_ProjectSettings.m_ProjectName.c_str());
+                    ImGui::TextDisabled("Scene: %s", GetCurrentScene()->GetSceneName().c_str());
+#ifdef LUMOS_DEBUG
+                    ImGui::TextColored(ImVec4(0.8f, 0.15f, 0.15f, 1.0f), "DEBUG");
+#endif
+                }
+            };
+
+            // Show secondary menus either directly or collapsed under "..."
+            if(collapseMenus)
             {
-                auto& version = Lumos::LumosVersion;
-                ImGui::Text("Version : %d.%d.%d", version.major, version.minor, version.patch);
-                ImGui::Separator();
-
-                std::string githubMenuText = ICON_MDI_GITHUB_BOX " Github";
-                if(ImGui::MenuItem(githubMenuText.c_str()))
+                if(ImGui::BeginMenu(ICON_MDI_DOTS_HORIZONTAL))
                 {
-                    Lumos::OS::Get().OpenURL("https://www.github.com/jmorton06/Lumos");
+                    DrawSecondaryMenus(!showProjectInfo);  // Include project info if it won't fit in bar
+                    ImGui::EndMenu();
                 }
-                ImGui::Separator();
-
-                ImGui::TextUnformatted("Third-Party");
-
-                ArenaTemp scratch = ScratchBegin(nullptr, 0);
-
-                if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "ImGui - Version : %s, Revision - %i", IMGUI_VERSION, IMGUI_VERSION_NUM).str))
-                    Lumos::OS::Get().OpenURL("https://github.com/ocornut/imgui");
-                if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Entt - Version  : %s", ENTT_VERSION).str))
-                    Lumos::OS::Get().OpenURL("https://github.com/skypjack/entt");
-                if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Cereal - Version : %i.%i.%i", CEREAL_VERSION_MAJOR, CEREAL_VERSION_MINOR, CEREAL_VERSION_PATCH).str))
-                    Lumos::OS::Get().OpenURL("https://github.com/USCiLab/cereal");
-                if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Box2D - Version : %i.%i", 3, 0).str))
-                    Lumos::OS::Get().OpenURL("https://github.com/erincatto/box2d");
-                ScratchEnd(scratch);
-
-                if(ImGui::BeginMenu("Contributers"))
-                {
-                    if(ImGui::MenuItem("Joe Morton"))
-                        Lumos::OS::Get().OpenURL("https://github.com/jmorton06");
-
-                    if(ImGui::MenuItem("RuanLucasGD"))
-                        Lumos::OS::Get().OpenURL("https://github.com/RuanLucasGD");
-
-                    if(ImGui::MenuItem("adriengivry"))
-                        Lumos::OS::Get().OpenURL("https://github.com/adriengivry");
-
-                    ImGui::EndMenu(); // Contributer Menu
-                }
-                ImGui::EndMenu(); // About Menu
+            }
+            else
+            {
+                DrawSecondaryMenus(false);  // Never include project info when menus are expanded
             }
 
-            if(m_ProjectLoaded)
+            // Only show project/scene names in menu bar when there's enough space
+            if(m_ProjectLoaded && showProjectInfo)
             {
                 {
                     ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
@@ -1236,7 +1368,14 @@ namespace Lumos
                 locationPopupOpened   = true;
 
                 // Set filePath to working directory
+                #ifdef LUMOS_PLATFORM_LINUX
+                std::string path  = OS::Get().GetExecutablePath() + "/../../../";
+                String8 pathCopy  = PushStr8Copy(m_FrameArena, path.c_str());
+                pathCopy           = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
+                path = (const char*)pathCopy.str;
+                #else
                 const auto& path  = OS::Get().GetExecutablePath();
+                #endif
                 auto& browserPath = m_FileBrowserPanel->GetPath();
                 browserPath       = std::filesystem::path(path);
                 m_FileBrowserPanel->SetFileTypeFilters({ ".lmproj" });
@@ -1358,13 +1497,28 @@ namespace Lumos
             m_SelectedEntity = m_SelectedEntities.front();
             if(m_SelectedEntity.Valid())
             {
+                // Skip locked entities from gizmo manipulation
+                if(m_SelectedEntity.HasComponent<EditorLockComponent>())
+                    return;
+
                 ImGuizmo::SetDrawlist();
                 ImGuizmo::SetOrthographic(m_CurrentCamera->IsOrthographic());
 
                 auto transform = m_SelectedEntity.TryGetComponent<Maths::Transform>();
                 if(transform != nullptr)
+            {
+                if(ImGuizmo::IsUsing() && !m_GizmoUsing)
                 {
-                    Mat4 model = transform->GetWorldMatrix();
+                    Lumos::UndoPush(transform, sizeof(Maths::Transform));
+                    m_GizmoUsing = true;
+                }
+                else if(!ImGuizmo::IsUsing() && m_GizmoUsing)
+                {
+                    Lumos::UndoCommit();
+                    m_GizmoUsing = false;
+                }
+
+                Mat4 model = transform->GetWorldMatrix();
 
                     float snapAmount[3] = { m_Settings.m_SnapAmount, m_Settings.m_SnapAmount, m_Settings.m_SnapAmount };
                     float delta[16];
@@ -1449,6 +1603,10 @@ namespace Lumos
 
                 Entity entity = { entityID, m_SceneManager->GetCurrentScene() };
 
+                // Skip locked entities from multi-entity transform
+                if(entity.HasComponent<EditorLockComponent>())
+                    continue;
+
                 if(!entity.HasComponent<Maths::Transform>())
                     continue;
 
@@ -1456,8 +1614,13 @@ namespace Lumos
                 medianPointScale += entity.GetTransform().GetLocalScale();
                 validcount++;
             }
-            medianPointLocation /= (float)validcount; // m_SelectedEntities.size();
-            medianPointScale /= (float)validcount;    // m_SelectedEntities.size();
+
+            // No valid unlocked entities to transform
+            if(validcount == 0)
+                return;
+
+            medianPointLocation /= (float)validcount;
+            medianPointScale /= (float)validcount;
 
             Mat4 medianPointMatrix = Mat4::Translation(medianPointLocation) * Mat4::Scale(medianPointScale);
 
@@ -1496,6 +1659,11 @@ namespace Lumos
                     {
                         if(!registry.valid(entityID))
                             continue;
+
+                        // Skip locked entities
+                        if(registry.any_of<EditorLockComponent>(entityID))
+                            continue;
+
                         auto transform = registry.try_get<Maths::Transform>(entityID);
 
                         if(!transform)
@@ -1537,6 +1705,11 @@ namespace Lumos
                     {
                         if(!registry.valid(entityID))
                             continue;
+
+                        // Skip locked entities
+                        if(registry.any_of<EditorLockComponent>(entityID))
+                            continue;
+
                         auto transform = registry.try_get<Maths::Transform>(entityID);
 
                         if(!transform)
@@ -1669,7 +1842,7 @@ namespace Lumos
                 ImGuiID dock_main_id = DockspaceID;
                 ImGuiID DockLeft     = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.75f, nullptr, &dock_main_id);
                 ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.25f, nullptr, &dock_main_id);
-				ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.3f, nullptr, &DockLeft);
+                ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.3f, nullptr, &DockLeft);
 
                 ImGuiID DockLeftSplitLeft  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Left, 0.5f, nullptr, &DockLeft);
                 ImGuiID DockLeftSplitRight = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Right, 0.5f, nullptr, &DockLeft);
@@ -1677,11 +1850,6 @@ namespace Lumos
                 /*ImGuiID DockRightSplitLeft  = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Left, 0.5f, nullptr, &DockRight);
                 ImGuiID DockRightSplitRight = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Right, 0.5f, nullptr, &DockRight);
 */
-
-                ImGuiID DockLeftChild         = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.875f, nullptr, &DockLeft);
-                ImGuiID DockRightChild        = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.875f, nullptr, &DockRight);
-                ImGuiID DockingLeftDownChild  = ImGui::DockBuilderSplitNode(DockLeftChild, ImGuiDir_Down, 0.06f, nullptr, &DockLeftChild);
-                ImGuiID DockingRightDownChild = ImGui::DockBuilderSplitNode(DockRightChild, ImGuiDir_Down, 0.06f, nullptr, &DockRightChild);
 
                 ImGuiID DockBottomChild         = ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Down, 0.2f, nullptr, &DockBottom);
                 ImGuiID DockingBottomLeftChild  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.4f, nullptr, &DockLeft);
@@ -1692,7 +1860,7 @@ namespace Lumos
                 ImGuiID DockMiddleLeft   = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Left, 0.5f, nullptr, &DockMiddle);
                 ImGuiID DockMiddleRight  = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Right, 0.5f, nullptr, &DockMiddle);
 
-                ImGuiID DockingBottomRight           = ImGui::DockBuilderSplitNode(DockRightChild, ImGuiDir_Down, 0.5f, nullptr, &DockRightChild);
+                ImGuiID DockingBottomRight           = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.5f, nullptr, &DockRight);
                 ImGuiID DockingBottomRightSplitLeft  = ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Left, 0.5f, nullptr, &DockingBottomRight);
                 ImGuiID DockingBottomRightSplitRight = ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Right, 0.5f, nullptr, &DockingBottomRight);
 
@@ -1930,6 +2098,27 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowFileEvent>(BIND_EVENT_FN(Editor::OnFileDrop));
+
+        // Handle three-finger swipe for undo/redo
+        dispatcher.Dispatch<GestureSwipeEvent>([this](GestureSwipeEvent& event) {
+            if(event.GetNumTouches() == 3)
+            {
+                if(event.GetDirection() == SwipeDirection::Left)
+                {
+                    Lumos::Undo();
+                    LINFO("Undo triggered by gesture");
+                    return true;
+                }
+                else if(event.GetDirection() == SwipeDirection::Right)
+                {
+                    Lumos::Redo();
+                    LINFO("Redo triggered by gesture");
+                    return true;
+                }
+            }
+            return false;
+        });
+
         // Block events here
 
         Application::OnEvent(e);
@@ -1978,7 +2167,7 @@ namespace Lumos
         if(m_EditorState == EditorState::Play)
             autoSaveTimer = 0.0f;
 
-        if(Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape) && GetEditorState() != EditorState::Preview)
+        if(Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape) && GetEditorState() != EditorState::Preview || m_QueuedScenePreviewEnd)
         {
             Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(true);
             Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(true);
@@ -1987,18 +2176,23 @@ namespace Lumos
             Application::Get().GetSystem<AudioManager>()->SetPaused(true);
             Application::Get().SetEditorState(EditorState::Preview);
 
-            // m_SelectedEntity = entt::null;
             m_SelectedEntities.clear();
             ImGui::SetWindowFocus("###scene");
             LoadCachedScene();
             SetEditorState(EditorState::Preview);
+            m_QueuedScenePreviewEnd = false;
+        }
+
+        if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || Input::Get().GetKeyHeld(InputCode::Key::LeftControl))
+           && Input::Get().GetKeyPressed(Lumos::InputCode::Key::Z))
+        {
+            Undo();
         }
 
         if(m_SceneViewActive)
         {
             auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 
-            // if(Application::Get().GetSceneActive())
             {
                 const Vec2 mousePos = Input::Get().GetMousePosition();
                 m_EditorCameraController.SetCamera(m_EditorCamera);
@@ -2014,11 +2208,61 @@ namespace Lumos
 
                 if(!m_SelectedEntities.empty() && Input::Get().GetKeyPressed(InputCode::Key::F))
                 {
-                    if(registry.valid(m_SelectedEntities.front()))
+                    // Calculate combined bounds for all selected entities
+                    Vec3 minBounds(std::numeric_limits<float>::max());
+                    Vec3 maxBounds(std::numeric_limits<float>::lowest());
+                    bool hasValidBounds = false;
+
+                    for(auto entity : m_SelectedEntities)
                     {
-                        auto transform = registry.try_get<Maths::Transform>(m_SelectedEntities.front());
-                        if(transform)
-                            FocusCamera(transform->GetWorldPosition(), 2.0f, 2.0f);
+                        if(!registry.valid(entity))
+                            continue;
+
+                        auto transform = registry.try_get<Maths::Transform>(entity);
+                        if(!transform)
+                            continue;
+
+                        Vec3 pos = transform->GetWorldPosition();
+                        Vec3 entityMin = pos;
+                        Vec3 entityMax = pos;
+
+                        // Check for ModelComponent to get actual bounds
+                        auto model = registry.try_get<Graphics::ModelComponent>(entity);
+                        if(model && model->ModelRef)
+                        {
+                            auto& meshes = model->ModelRef->GetMeshes();
+                            for(auto& mesh : meshes)
+                            {
+                                if(mesh)
+                                {
+                                    // Transform bounding box to world space
+                                    auto bb = mesh->GetBoundingBox().Transformed(transform->GetWorldMatrix());
+
+                                    entityMin = Maths::Min(entityMin, Maths::Min(bb.Min(), bb.Max()));
+                                    entityMax = Maths::Max(entityMax, Maths::Max(bb.Min(), bb.Max()));
+                                }
+                            }
+                        }
+
+                        // Also consider sprite bounds
+                        auto sprite = registry.try_get<Graphics::Sprite>(entity);
+                        if(sprite)
+                        {
+                            Vec3 scale = transform->GetWorldScale();
+                            entityMin = pos - scale * 0.5f;
+                            entityMax = pos + scale * 0.5f;
+                        }
+
+                        minBounds = Maths::Min(minBounds, entityMin);
+                        maxBounds = Maths::Max(maxBounds, entityMax);
+                        hasValidBounds = true;
+                    }
+
+                    if(hasValidBounds)
+                    {
+                        Vec3 center = (minBounds + maxBounds) * 0.5f;
+                        float distance = Maths::Max(2.0f, Maths::Distance(minBounds, maxBounds) * 1.2f);
+                        FocusCamera(center, distance, 2.0f);
                     }
                 }
             }
@@ -2210,7 +2454,7 @@ namespace Lumos
         {
             m_TransitioningCamera = true;
 
-            m_CameraDestination     = point + m_EditorCameraTransform.GetForwardDirection() * distance;
+            m_CameraDestination     = point - m_EditorCameraTransform.GetForwardDirection() * distance;
             m_CameraTransitionSpeed = speed;
         }
     }
@@ -2461,6 +2705,19 @@ namespace Lumos
             }
     }
 
+    void Editor::ExitApp()
+    {
+        if(m_EditorState != EditorState::Play)
+        {
+            SetAppState(Lumos::AppState::Closing);
+        }
+        else
+        {
+            m_QueuedScenePreviewEnd = true;
+        }
+    }
+
+
     void Editor::SelectObject(const Maths::Ray& ray, bool hoveredOnly)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -2476,6 +2733,10 @@ namespace Lumos
 
         for(auto entity : group)
         {
+            // Skip locked entities
+            if(registry.any_of<EditorLockComponent>(entity))
+                continue;
+
             const auto& [model, trans] = group.get<Graphics::ModelComponent, Maths::Transform>(entity);
 
             auto& meshes = model.ModelRef->GetMeshes();
@@ -2533,6 +2794,10 @@ namespace Lumos
 
         for(auto entity : spriteGroup)
         {
+            // Skip locked entities
+            if(registry.any_of<EditorLockComponent>(entity))
+                continue;
+
             const auto& [sprite, trans] = spriteGroup.get<Graphics::Sprite, Maths::Transform>(entity);
 
             auto& worldTransform = trans.GetWorldMatrix();
@@ -2555,6 +2820,10 @@ namespace Lumos
 
         for(auto entity : animSpriteGroup)
         {
+            // Skip locked entities
+            if(registry.any_of<EditorLockComponent>(entity))
+                continue;
+
             const auto& [sprite, trans] = animSpriteGroup.get<Graphics::AnimatedSprite, Maths::Transform>(entity);
 
             auto& worldTransform = trans.GetWorldMatrix();
@@ -2767,7 +3036,7 @@ namespace Lumos
         else if(IsAudioFile(path))
         {
             String8 physicalPath;
-            Lumos::FileSystem::Get().ResolvePhysicalPath(m_FrameArena, Str8StdS(path),  &physicalPath);
+            Lumos::FileSystem::Get().ResolvePhysicalPath(m_FrameArena, Str8StdS(path), &physicalPath);
             auto sound = Sound::Create(ToStdString(physicalPath), StringUtilities::GetFilePathExtension(path));
 
             auto soundNode = SharedPtr<SoundNode>(SoundNode::Create());
@@ -2908,8 +3177,10 @@ namespace Lumos
             }
         }
 #elif defined(LUMOS_PLATFORM_IOS)
-		// TODO: StringRefactr
-       // m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
+        // TODO: StringRefactr
+        m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
+#elif defined(LUMOS_PLATFORM_LINUX)
+        m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "/../../ExampleProject/";
 #endif
 
         m_ProjectSettings.m_ProjectName = "Example";

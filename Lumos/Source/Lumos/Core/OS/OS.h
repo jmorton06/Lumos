@@ -34,7 +34,7 @@ namespace Lumos
         virtual void SetTitleBarColour(const Vec4& colour, bool dark = true) { };
 
         // Mobile only
-        virtual void ShowKeyboard() { };
+        virtual void ShowKeyboard(bool bShow) { };
         virtual void HideKeyboard() { };
         virtual void Delay(uint32_t usec) { };
 

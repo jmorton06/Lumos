@@ -24,7 +24,7 @@ namespace Lumos
 
             struct Context
             {
-                std::atomic<uint32_t> counter { 0 };
+                std::atomic<uint32_t> counter = 0;
             };
 
             // Add a job to execute asynchronously. Any idle thread will execute this job.

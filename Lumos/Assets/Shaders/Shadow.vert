@@ -7,9 +7,6 @@ layout(push_constant) uniform PushConsts
 {
 	mat4 transform;
 	uint cascadeIndex;
-    float p0;
-    float p1;
-    float p2;
 } pushConsts;
 
 out gl_PerVertex
@@ -29,25 +26,7 @@ layout(location = 0) out vec2 uv;
 void main()
 {
     mat4 transform = pushConsts.transform;
-    mat4 proj;
-    switch(pushConsts.cascadeIndex)
-    {
-        case 0 : 
-		proj = u_DirShadow.DirLightMatrices[0];
-        break;
-        case 1 : 
-		proj = u_DirShadow.DirLightMatrices[1];
-        break;
-        case 2 : 
-		proj = u_DirShadow.DirLightMatrices[2];
-        break;
-        default : 
-		proj = u_DirShadow.DirLightMatrices[3];
-        break;
-    }
-    //gl_Position = u_DirShadow.DirLightMatrices[pushConsts.cascadeIndex] * transform * vec4(inPosition, 1.0); 
-	
-	gl_Position = transform * vec4(inPosition, 1.0); 
+    gl_Position = transform * vec4(inPosition, 1.0); 
     //This order needed to match the order of 
     /*
 
@@ -63,8 +42,6 @@ layout(location = 5) in vec3 inBitangent;
 	vec3 test5 = inNormal; //SPV vertex layout incorrect when not used
 	vec3 test3 = inTangent; //SPV vertex layout incorrect when not used
 	vec3 test4 = inBitangent; //SPV vertex layout incorrect when not used
-    float test6 = pushConsts.p0;
-    float test7 = pushConsts.p1;
-    float test8 = pushConsts.p2;
+
     
 }

@@ -25,6 +25,7 @@ namespace Lumos
             void SetTexture(const std::string& name, Texture* texture, uint32_t mipIndex, TextureType textureType) override;
             void SetTexture(const std::string& name, Texture** texture, uint32_t textureCount, TextureType textureType) override;
             void SetBuffer(const std::string& name, UniformBuffer* buffer) override;
+            void SetStorageBuffer(const std::string& name, StorageBuffer* buffer) override;
             void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data) override;
             void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data, uint32_t size) override;
             void SetUniformBufferData(const std::string& bufferName, void* data) override;
@@ -32,6 +33,7 @@ namespace Lumos
             void SetTexture(u8 binding, Texture* texture, uint32_t mipIndex, TextureType textureType) override;
             void SetTexture(u8 binding, Texture** texture, uint32_t textureCount, TextureType textureType) override;
             void SetBuffer(u8 binding, UniformBuffer* buffer) override;
+            void SetStorageBuffer(u8 binding, StorageBuffer* buffer) override;
             void SetUniform(u8 binding, const std::string& uniformName, void* data) override;
             void SetUniform(u8 binding, const std::string& uniformName, void* data, uint32_t size) override;
             void SetUniformBufferData(u8 binding, void* data) override;

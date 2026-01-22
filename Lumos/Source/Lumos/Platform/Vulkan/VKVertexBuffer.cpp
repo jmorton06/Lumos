@@ -61,17 +61,15 @@ namespace Lumos
         void VKVertexBuffer::SetDataSub(uint32_t size, const void* data, uint32_t offset)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            m_Size = size;
+            if(m_Size < size + offset)
+            {
+                m_Size = size + offset;
+                VKBuffer::Resize(m_Size, nullptr);
+            }
 
-            if(m_Size < size)
-            {
-                m_Size = size;
-                VKBuffer::Resize(size, data);
-            }
-            else
-            {
-                VKBuffer::SetData(size, data);
-            }
+            Map(size, offset);
+            memcpy(m_Mapped, data, size);
+            UnMap();
         }
 
         void* VKVertexBuffer::GetPointerInternal()

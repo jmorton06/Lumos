@@ -13,6 +13,7 @@ namespace Lumos
         class VKFramebuffer;
         class VKRenderPass;
         class VKTexture2D;
+        class VKCommandBuffer;
 
         class VKIMGUIRenderer : public IMGUIRenderer
         {
@@ -26,7 +27,7 @@ namespace Lumos
             void OnResize(uint32_t width, uint32_t height) override;
             void Clear() override;
 
-            void FrameRender(ImGui_ImplVulkanH_Window* wd);
+            void FrameRender(ImGui_ImplVulkanH_Window* wd, VKCommandBuffer* commandBuffer);
             void SetupVulkanWindowData(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height);
             bool Implemented() const override { return true; }
             void RebuildFontTexture() override;

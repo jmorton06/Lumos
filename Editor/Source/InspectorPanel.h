@@ -2,9 +2,12 @@
 
 #include "EditorPanel.h"
 #include <Lumos/ImGui/ImGuiEnttEditor.hpp>
+#include <vector>
 
 namespace Lumos
 {
+    class Entity;
+
     class InspectorPanel : public EditorPanel
     {
     public:
@@ -17,6 +20,8 @@ namespace Lumos
         bool GetIsDebugMode() const { return m_DebugMode; };
 
     private:
+        void DrawMultiEntityInspector(Scene* scene, const std::vector<Entity>& entities);
+
         MM::ImGuiEntityEditor<entt::entity> m_EnttEditor;
         bool m_DebugMode = false;
     };

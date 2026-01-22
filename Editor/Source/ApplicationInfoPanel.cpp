@@ -170,7 +170,7 @@ namespace Lumos
                 ImGui::Text("Num Rendered Objects %u", Engine::Get().Statistics().NumRenderedObjects);
                 ImGui::Text("Num Shadow Objects %u", Engine::Get().Statistics().NumShadowObjects);
                 ImGui::Text("Bound Pipelines %u", Engine::Get().Statistics().BoundPipelines);
-                ImGui::Text("Bound SceneRenderer %u", Engine::Get().Statistics().BoundSceneRenderer);
+                ImGui::Text("Bound RenderPasses %u", Engine::Get().Statistics().BoundRenderPasses);
                 if(ImGui::TreeNodeEx("Arenas", 0))
                 {
                     uint64_t totalAllocated = 0;

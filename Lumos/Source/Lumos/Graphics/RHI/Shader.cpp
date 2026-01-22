@@ -10,7 +10,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        Shader* (*Shader::CreateFunc)(const char*)                                               = nullptr;
+        Shader* (*Shader::CreateFunc)(const char*)                                                      = nullptr;
         Shader* (*Shader::CreateFuncFromEmbedded)(const uint32_t*, uint32_t, const uint32_t*, uint32_t) = nullptr;
         Shader* (*Shader::CreateCompFuncFromEmbedded)(const uint32_t*, uint32_t)                        = nullptr;
 
