@@ -906,7 +906,7 @@ typedef enum {
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     if (@available(iOS 13.4, *)) {
-        if (event.type == UIEventTypeIndirectPointer && (event.buttonMask & UIEventButtonMaskSecondary)) {
+        if (event.type == UIEventTypePointer && (event.buttonMask & UIEventButtonMaskSecondary)) {
             UITouch *touch = [touches anyObject];
             if (touch) {
                 CGPoint location = [touch locationInView:self.view];
@@ -977,7 +977,7 @@ typedef enum {
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     if (@available(iOS 13.4, *)) {
-        if (event.type == UIEventTypeIndirectPointer && (event.buttonMask & UIEventButtonMaskSecondary)) {
+        if (event.type == UIEventTypePointer && (event.buttonMask & UIEventButtonMaskSecondary)) {
             UITouch *touch = [touches anyObject];
             if (touch) {
                 CGPoint location = [touch locationInView:self.view];

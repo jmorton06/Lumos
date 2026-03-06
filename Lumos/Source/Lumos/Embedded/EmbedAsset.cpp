@@ -8,6 +8,7 @@
 
 #include <iomanip>
 #include <fstream>
+#include <sstream>
 
 namespace Lumos
 {

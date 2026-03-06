@@ -4,18 +4,14 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Graphics/RHI/RHIDefinitions.h"
+#include "Graphics/Animation/Skeleton.h"
+#include "Graphics/Animation/Animation.h"
 #include "Core/String.h"
 #include "Maths/Matrix4.h"
 
 namespace Lumos
 {
     struct ImportSettings;
-
-    namespace Graphics
-    {
-        class Skeleton;
-        class Animation;
-    }
 
     struct LMeshWriteData
     {

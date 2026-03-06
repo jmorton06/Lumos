@@ -19,7 +19,7 @@ namespace Lumos
         using StubFunction      = R (*)(const void* const*, typename AddPointer<Args>::type...);
         using OperationFunction = void (*)(FunctionErasedOperation operation, const void** other, const void* const*);
 
-        static const int MAX_LAMBDA_SIZE = sizeof(void*) * 8;
+        static const int MAX_LAMBDA_SIZE = sizeof(void*) * 12;
 
         StubFunction functionStub;
         OperationFunction functionOperation;

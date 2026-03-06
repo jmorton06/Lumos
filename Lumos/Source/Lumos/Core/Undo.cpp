@@ -97,7 +97,7 @@ namespace Lumos
         {
             i32 N        = s_Undo->undo - 1;
             Delta header = s_Undo->delta[N];
-            i32 changes  = header.size;
+            i32 changes  = (i32)header.size;
             i32 n        = N - changes;
             for(i32 i = N - 1; i >= n; i--)
             {
@@ -131,7 +131,7 @@ namespace Lumos
             }
 
             Delta header = s_Undo->delta[N];
-            i32 changes  = header.size;
+            i32 changes  = (i32)header.size;
             i32 n        = N - changes;
             for(i32 i = n; i < N; i++)
             {

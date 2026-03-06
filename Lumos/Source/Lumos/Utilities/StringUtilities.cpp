@@ -10,6 +10,7 @@
 #endif
 
 #include <iomanip>
+#include <sstream>
 
 namespace Lumos
 {

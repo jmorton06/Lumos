@@ -1,3 +1,4 @@
+#include "Precompiled.h"
 #include "EmbeddedAssetData.h"
 #include "BRDFTexture.inl"
 
