@@ -33,6 +33,7 @@
 #include "Scripting/Lua/LuaManager.h"
 #include "ImGui/ImGuiManager.h"
 #include "Events/ApplicationEvent.h"
+#include "Events/KeyEvent.h"
 #include "Audio/AudioManager.h"
 #include "Audio/Sound.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
@@ -46,7 +47,7 @@
 #include "Scene/Serialisation/SerialisationImplementation.h"
 #include "Scene/Serialisation/SerialiseApplication.h"
 
-#include "Embedded/splash.inl"
+#include "Embedded/EmbeddedAssetData.h"
 #include "Core/OS/OS.h"
 #include "Core/Undo.h"
 
@@ -109,6 +110,8 @@ namespace Lumos
 
 #ifdef LUMOS_PLATFORM_IOS
         m_ProjectSettings.m_EngineAssetPath = OS::Get().GetAssetPath();
+#else
+        SetEngineAssetPath();
 #endif
 
         bool bDisableSplashScreen = false;
@@ -116,6 +119,57 @@ namespace Lumos
         if(cmdline->OptionBool(Str8Lit("disable-splash")))
         {
             bDisableSplashScreen = true;
+        }
+
+        // Check for screenshot option
+        String8 screenshotOpt = cmdline->OptionString(Str8Lit("screenshot"));
+        if(screenshotOpt.size > 0)
+        {
+            m_ScreenshotPath = std::string((const char*)screenshotOpt.str, screenshotOpt.size);
+            m_TakeScreenshotOnInit = true;
+        }
+
+        // Screenshot control
+        if(cmdline->OptionBool(Str8Lit("screenshot-no-close")))
+        {
+            m_CloseAfterScreenshot = false;
+        }
+
+        // Embedded shaders
+        if(cmdline->OptionBool(Str8Lit("force-embedded-shaders")))
+        {
+            m_ForceEmbeddedShaders = true;
+        }
+
+        // Test UI visibility
+        if(cmdline->OptionBool(Str8Lit("test-ui")))
+        {
+            m_ShowTestUI = true;
+        }
+        if(cmdline->OptionBool(Str8Lit("disable-test-ui")))
+        {
+            m_ShowTestUI = false;
+        }
+
+        // Headless mode
+        if(cmdline->OptionBool(Str8Lit("headless")))
+        {
+            m_HeadlessMode = true;
+        }
+
+        // Scene selection
+        String8 sceneOpt = cmdline->OptionString(Str8Lit("scene"));
+        if(sceneOpt.size > 0)
+        {
+            m_InitialSceneName = std::string((const char*)sceneOpt.str, sceneOpt.size);
+        }
+
+        // Benchmark mode
+        String8 benchmarkOpt = cmdline->OptionString(Str8Lit("benchmark"));
+        if(benchmarkOpt.size > 0)
+        {
+            m_BenchmarkMode = true;
+            m_BenchmarkFrameCount = (int)atoi((const char*)benchmarkOpt.str);
         }
 
         Engine::Get();
@@ -140,23 +194,47 @@ namespace Lumos
             windowDesc.IconPaths = { Str8Lit("//Assets/Textures/icon.png"), Str8Lit("//Assets/Textures/icon32.png") };
         }
 
-        // Initialise the Window
-        m_Window = UniquePtr<Window>(Window::Create());
-        if(!m_Window->Init(windowDesc))
-            OnQuit();
+        // Initialise the Window (skip in headless mode)
+        if(!m_HeadlessMode)
+        {
+            LUMOS_PROFILE_SCOPE("Init::Window");
+            m_Window = UniquePtr<Window>(Window::Create());
+            if(!m_Window->Init(windowDesc))
+                OnQuit();
 
-        m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+            m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+
+            m_SceneViewWidth  = m_Window->GetWidth();
+            m_SceneViewHeight = m_Window->GetHeight();
+        }
+        else
+        {
+            m_SceneViewWidth  = windowDesc.Width;
+            m_SceneViewHeight = windowDesc.Height;
+        }
 
         m_EditorState = EditorState::Play;
 
-        bool loadEmbeddedShaders = true;
-        std::string ShaderFolder = m_ProjectSettings.m_EngineAssetPath + "Shaders";
-
-        if(FileSystem::FolderExists(Str8StdS(ShaderFolder)))
-            loadEmbeddedShaders = false;
-
-        if(!loadEmbeddedShaders)
+        bool loadEmbeddedShaders = m_ForceEmbeddedShaders;
+        if(!m_ForceEmbeddedShaders)
         {
+            m_ProjectSettings.m_EngineAssetPath = "/Users/jmorton/Dev/Lumos-Dev/Lumos/Assets/";
+            std::string ShaderFolder = m_ProjectSettings.m_EngineAssetPath + "Shaders";
+
+            if(FileSystem::FolderExists(Str8StdS(ShaderFolder)))
+            {
+                LINFO("Engine Asset Folder Found");
+                loadEmbeddedShaders = false;
+            }
+            else
+            {
+                loadEmbeddedShaders = true;
+            }
+        }
+
+        if(!loadEmbeddedShaders && !m_ForceEmbeddedShaders)
+        {
+            LUMOS_PROFILE_SCOPE("Init::EmbedShaders");
             ArenaTemp temp     = ScratchBegin(0, 0);
             String8 shaderPath = PushStr8F(temp.arena, "%sShaders/CompiledSPV/", m_ProjectSettings.m_EngineAssetPath.c_str());
 
@@ -165,7 +243,10 @@ namespace Lumos
 
             LINFO("Embedded %i shaders.", EmbedShaderCount);
         }
-        Graphics::Renderer::Init(loadEmbeddedShaders, m_ProjectSettings.m_EngineAssetPath);
+        {
+            LUMOS_PROFILE_SCOPE("Init::Renderer");
+            Graphics::Renderer::Init(loadEmbeddedShaders, m_ProjectSettings.m_EngineAssetPath);
+        }
 
         if(m_ProjectSettings.Fullscreen)
             m_Window->Maximise();
@@ -175,12 +256,24 @@ namespace Lumos
         {
             auto desc          = Graphics::TextureDesc(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::REPEAT);
             desc.flags         = Graphics::TextureFlags::Texture_Sampled;
-            auto splashTexture = Graphics::Texture2D::CreateFromSource(splashWidth, splashHeight, (void*)splash, desc);
-            if(Graphics::Renderer::GetRenderer()->Begin())
+            Graphics::Texture2D* splashTexture = nullptr;
+
+            if(!m_ProjectSettings.SplashPath.empty()
+               && FileSystem::FileExists(Str8StdS(m_ProjectSettings.SplashPath)))
             {
-                Graphics::Renderer::GetRenderer()->DrawSplashScreen(splashTexture);
+                splashTexture = Graphics::Texture2D::CreateFromFile("splash", m_ProjectSettings.SplashPath, desc);
+            }
+
+            if(!splashTexture)
+            {
+                const auto& splashData = Embedded::GetSplashData();
+                splashTexture = Graphics::Texture2D::CreateFromSource(splashData.width, splashData.height, (void*)splashData.data, desc);
+            }
+
+            if(splashTexture && Graphics::Renderer::GetRenderer()->Begin())
+            {
+                Graphics::Renderer::GetRenderer()->DrawSplashScreen(splashTexture, m_ProjectSettings.SplashBGColour);
                 Graphics::Renderer::GetRenderer()->Present();
-                // To Display the window
                 m_Window->ProcessInput();
                 m_Window->OnUpdate();
             }
@@ -214,23 +307,35 @@ namespace Lumos
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
                                    { m_SceneManager->LoadCurrentList(); });
 
-        m_ImGuiManager = CreateUniquePtr<ImGuiManager>(m_ImGuiClearScreen);
-        m_ImGuiManager->OnInit();
-        LINFO("Initialised ImGui Manager");
+        {
+            LUMOS_PROFILE_SCOPE("Init::ImGui");
+            m_ImGuiManager = CreateUniquePtr<ImGuiManager>(m_ImGuiClearScreen);
+            m_ImGuiManager->OnInit();
+            LINFO("Initialised ImGui Manager");
+        }
 
-        m_SceneRenderer = CreateUniquePtr<Graphics::SceneRenderer>(screenWidth, screenHeight);
-        LINFO("Initialised SceneRenderer");
+        {
+            LUMOS_PROFILE_SCOPE("Init::SceneRenderer");
+            m_SceneRenderer = CreateUniquePtr<Graphics::SceneRenderer>(screenWidth, screenHeight);
+            LINFO("Initialised SceneRenderer");
+        }
 
         LINFO("Waiting for JobSystem");
         System::JobSystem::Wait(context);
 
         m_CurrentState = AppState::Running;
 
-        Graphics::Material::InitDefaultTexture();
-        LINFO("Initialised Default Texture");
+        {
+            LUMOS_PROFILE_SCOPE("Init::DefaultTexture");
+            Graphics::Material::InitDefaultTexture();
+            LINFO("Initialised Default Texture");
+        }
 
-        Graphics::Font::InitDefaultFont();
-        LINFO("Initialised Default Font");
+        {
+            LUMOS_PROFILE_SCOPE("Init::DefaultFont");
+            Graphics::Font::InitDefaultFont();
+            LINFO("Initialised Default Font");
+        }
 
         m_SceneRenderer->EnableDebugRenderer(true);
         LINFO("Debug Renderer Enabled");
@@ -244,7 +349,22 @@ namespace Lumos
         InitialiseUI(m_UIArena);
         UIApplyDarkTheme();
 
-        GetUIState()->DPIScale = Application::Get().GetWindow()->GetDPIScale();
+        float dpiScale = Application::Get().GetWindow()->GetDPIScale();
+        GetUIState()->DPIScale = dpiScale;
+
+        // Scale UI style defaults by DPI so text/padding are correct on Retina
+        if(dpiScale > 1.0f)
+        {
+            auto* styles = GetUIState()->style_variable_lists;
+            styles[StyleVar_FontSize].first->value.x *= dpiScale;
+            styles[StyleVar_Padding].first->value.x *= dpiScale;
+            styles[StyleVar_Padding].first->value.y *= dpiScale;
+            styles[StyleVar_Border].first->value.x *= dpiScale;
+            styles[StyleVar_Border].first->value.y *= dpiScale;
+            styles[StyleVar_CornerRadius].first->value.x *= dpiScale;
+            styles[StyleVar_ShadowOffset].first->value.y *= dpiScale;
+            styles[StyleVar_ShadowBlur].first->value.x *= dpiScale;
+        }
 
         if(cmdline->OptionBool(Str8Lit("test-maths")))
         {
@@ -252,7 +372,7 @@ namespace Lumos
         }
 
 #ifdef LUMOS_PLATFORM_MACOS
-        m_QualitySettings.SetGeneralLevel(2);
+        m_QualitySettings.SetGeneralLevel(1);
 #else
         m_QualitySettings.SetGeneralLevel(2);
 #endif
@@ -266,24 +386,18 @@ namespace Lumos
         MutexDestroy(m_EventQueueMutex);
         MutexDestroy(m_MainThreadQueueMutex);
 
-        ArenaRelease(m_FrameArena);
-        ArenaRelease(m_Arena);
-
-        delete m_StringPool;
-
-        ShutDownUI();
-        ArenaRelease(m_UIArena);
+        ReleaseUndo();
 
         Graphics::Material::ReleaseDefaultTexture();
         Graphics::Font::ShutdownDefaultFont();
         Engine::Release();
         Input::Release();
 
-        m_AssetManager.reset();
         m_SceneManager.reset();
         m_SceneRenderer.reset();
         LuaManager::Release();
         m_SystemManager.reset();
+        m_AssetManager.reset();
 
         Graphics::Pipeline::ClearCache();
         Graphics::RenderPass::ClearCache();
@@ -295,6 +409,15 @@ namespace Lumos
         DebugRenderer::Release();
 
         Graphics::Renderer::Release();
+
+        ShutDownUI();
+
+        ArenaRelease(m_FrameArena);
+        ArenaRelease(m_Arena);
+
+        delete m_StringPool;
+
+        ArenaRelease(m_UIArena);
     }
 
     void Application::OpenProject(const std::string& filePath)
@@ -312,36 +435,28 @@ namespace Lumos
 
         CreateAssetFolders();
 
-        Graphics::Renderer::GetGraphicsContext()->WaitIdle();
-        m_SceneManager = CreateUniquePtr<SceneManager>();
+        //Graphics::Renderer::GetGraphicsContext()->WaitIdle();
+        //m_SceneManager = CreateUniquePtr<SceneManager>(); //Called in Deserialise
 
         Deserialise();
 
-        // Load default shaders again. Opening a project will load a new asset registry, so previously loaded shaders will be deleted/not in the asset manager
-        // TODO: Fix needing this
-        {
-            bool loadEmbeddedShaders = true;
-            std::string ShaderFolder = m_ProjectSettings.m_EngineAssetPath + "Shaders";
-
-            if(FileSystem::FolderExists(Str8StdS(ShaderFolder)))
-                loadEmbeddedShaders = false;
-
-            if(!loadEmbeddedShaders)
-            {
-                ArenaTemp temp     = ScratchBegin(0, 0);
-                String8 shaderPath = PushStr8F(temp.arena, "%sShaders/CompiledSPV/", m_ProjectSettings.m_EngineAssetPath.c_str());
-
-                FileSystem::IterateFolder((const char*)shaderPath.str, EmbedShaderFunc);
-                ScratchEnd(temp);
-
-                LINFO("Embedded %i shaders.", EmbedShaderCount);
-            }
-            Graphics::Renderer::Init(loadEmbeddedShaders, m_ProjectSettings.m_EngineAssetPath);
-
-        }
-
         m_SceneManager->LoadCurrentList();
         m_SceneManager->ApplySceneSwitch();
+
+        // Load specific scene if requested via command line
+        if(!m_InitialSceneName.empty())
+        {
+            auto& scenes = m_SceneManager->GetScenes();
+            for(size_t i = 0; i < scenes.Size(); i++)
+            {
+                if(scenes[i]->GetSceneName() == m_InitialSceneName)
+                {
+                    m_SceneManager->SwitchScene((int)i);
+                    m_SceneManager->ApplySceneSwitch();
+                    break;
+                }
+            }
+        }
 
         LuaManager::Get().OnNewProject(m_ProjectSettings.m_ProjectRoot);
     }
@@ -360,6 +475,16 @@ namespace Lumos
         m_SceneManager = CreateUniquePtr<SceneManager>();
 
         MountFileSystemPaths();
+
+        {
+            String8 packPath = PushStr8F(m_FrameArena, "%sAssets.lpak", m_ProjectSettings.m_ProjectRoot.c_str());
+            if(FileSystem::FileExists(packPath))
+            {
+                if(FileSystem::Get().MountPack(packPath))
+                    LINFO("Mounted asset pack: %.*s", (int)packPath.size, packPath.str);
+            }
+        }
+
         SetEngineAssetPath();
         CreateAssetFolders();
 
@@ -427,7 +552,8 @@ namespace Lumos
         // Input processed here will be used in this frame's Update()
         Input::Get().ResetPressed();
         Input::Get().ResetGestures();
-        m_Window->ProcessInput();
+        if(m_Window)
+            m_Window->ProcessInput();
 
         ArenaClear(m_FrameArena);
 
@@ -472,10 +598,9 @@ namespace Lumos
         UIBeginFrame(frameSize, (float)ts.GetSeconds(), m_SceneViewPosition);
         UIBeginBuild();
 
-        static bool showTestUI = false;
-        if(Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape))
-            showTestUI = !showTestUI;
-        if(showTestUI)
+        if(m_Window && Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape))
+            m_ShowTestUI = !m_ShowTestUI;
+        if(m_ShowTestUI)
             TestUI();
 
         {
@@ -516,12 +641,11 @@ namespace Lumos
             return false;
         }
 
+        UIEndBuild();
         UILayout();
         UIAnimate();
 
         UIEndFrame(Graphics::Font::GetDefaultFont());
-
-        UIEndBuild();
         // if (Platform->WindowIsActive)
         {
             // UIProcessInteractions();
@@ -558,8 +682,11 @@ namespace Lumos
 
         {
             LUMOS_PROFILE_SCOPE("Application::WindowUpdate");
-            m_Window->UpdateCursorImGui();
-            m_Window->OnUpdate();
+            if(m_Window)
+            {
+                m_Window->UpdateCursorImGui();
+                m_Window->OnUpdate();
+            }
         }
 
         if(now - m_SecondTimer > 1.0f)
@@ -587,6 +714,39 @@ namespace Lumos
 
         if(!m_Minimized)
             Graphics::Renderer::GetRenderer()->Present();
+
+        // Take screenshot after a few frames so UI is stable
+        if(m_TakeScreenshotOnInit && !m_ScreenshotTaken && m_CurrentState == AppState::Running)
+        {
+            m_ScreenshotFrameDelay++;
+            if(m_ScreenshotFrameDelay >= 5)
+            {
+                m_ScreenshotTaken = true;
+                if(!m_ScreenshotPath.empty() && m_SceneRenderer && m_Window)
+                {
+                    LINFO("Taking screenshot: %s", m_ScreenshotPath.c_str());
+                    Graphics::Renderer::GetRenderer()->SaveScreenshot(m_ScreenshotPath, Application::Get().GetWindow()->GetSwapChain()->GetCurrentImage());
+
+                    if(m_CloseAfterScreenshot)
+                    {
+                        m_CurrentState = AppState::Closing;
+                    }
+                }
+            }
+        }
+
+        // Benchmark mode handling
+        if(m_BenchmarkMode && m_CurrentState == AppState::Running)
+        {
+            m_BenchmarkCurrentFrame++;
+            if(m_BenchmarkCurrentFrame >= m_BenchmarkFrameCount)
+            {
+                LINFO("Benchmark complete: %d frames", m_BenchmarkFrameCount);
+                LINFO("Average FPS: %.2f", stats.FramesPerSecond);
+                LINFO("Average Frame Time: %.2fms", stats.FrameTime);
+                m_CurrentState = AppState::Closing;
+            }
+        }
 
         return m_CurrentState != AppState::Closing;
     }
@@ -621,43 +781,161 @@ namespace Lumos
             // UIPushStyle(StyleVar_BorderColor, { 0.4f, 0.4f, 0.4f, 0.6f });
             // UIPushStyle(StyleVar_TextColor, { 0.8f, 0.8f, 0.8f, 1.0f });
 
-            // UIPushStyle(StyleVar_FontSize, { 24.0f, 1.0f, 1.0f, 1.0f });
-            static bool value                   = false;
+            static bool showSecondPanel         = false;
             static bool showDebugDearImGuiPanel = false;
+            static int currentTheme             = (int)UITheme_Dark;
+            static float progressValue          = 0.0f;
+            static int intSliderValue           = 50;
+            static float floatSliderValue       = 0.5f;
+            static bool expanderOpen            = false;
+            static char textBuffer[64]          = "Hello";
+            static char textBuffer2[64]         = "World";
+            static int dropdownSelection        = 0;
+            static const char* dropdownOptions[] = { "Option A", "Option B", "Option C" };
+            static bool showModal               = false;
+            static int activeTab                = 0;
+            static bool treeNode1               = false;
+            static bool treeNode2               = false;
+            static bool treeNode1_1             = false;
+            static float colorRGB[3]            = { 1.0f, 0.5f, 0.2f };
+            static float uiFontSize             = GetUIState()->style_variable_lists[StyleVar_FontSize].first->value.x;
 
             {
-                UIBeginPanel("First Panel", WidgetFlags_Draggable | WidgetFlags_StackVertically | WidgetFlags_CentreX | WidgetFlags_CentreY | WidgetFlags_Floating_X | WidgetFlags_Floating_Y | WidgetFlags_DragParent);
-                if(UIButton("Test Button2").clicked)
-                    LINFO("clicked button2");
+                UIBeginPanel("UI Demo", WidgetFlags_Draggable | WidgetFlags_StackVertically | WidgetFlags_CentreX | WidgetFlags_CentreY | WidgetFlags_Floating_X | WidgetFlags_Floating_Y | WidgetFlags_DragParent);
 
-                UIToggle("Dear ImGui Debug UI Panel", &showDebugDearImGuiPanel);
+                // Theme selector
+                static const char* themeNames[] = { "Light", "Dark", "Blue", "Green", "Purple", "High Contrast" };
+                if(UIDropdown("Theme", &currentTheme, themeNames, (int)UITheme_Count).clicked)
+                    UISetTheme((UITheme)currentTheme);
 
-                UILabel("Info1", Str8Lit("Test 1"));
-                UILabel("Info2", Str8Lit("Test 2"));
-                UILabel("Info3", Str8Lit("Test 3"));
-                UILabel("Info4", Str8Lit("Test 4"));
-                UIToggle("Test Toggle", &value);
+                if(UISlider("Font Size", &uiFontSize, 12.0f, 64.0f, 200.0f).dragging)
+                    GetUIState()->style_variable_lists[StyleVar_FontSize].first->value.x = uiFontSize;
 
-                if(UIButton("Exit App").clicked)
+                UISeparator();
+
+                UIBeginRow();
+                if(UIButton("Btn A").clicked) LINFO("A");
+                if(UIButton("Btn B").clicked) LINFO("B");
+                if(UIButton("Btn C").clicked) LINFO("C");
+                UIEndRow();
+
+                UISeparator();
+
+                progressValue += 0.003f;
+                if(progressValue > 1.0f) progressValue = 0.0f;
+                UIProgressBar("Progress", progressValue, 200.0f, 20.0f);
+
+                UISpacer(5.0f);
+
+                UISlider("Volume", &floatSliderValue);
+                UISliderInt("Count", &intSliderValue, 0, 100);
+
+                UISeparator();
+
+                // Expander demo
+                UIExpander("More Options", &expanderOpen);
+                if(expanderOpen)
+                {
+                    UITextInput("Name", textBuffer, sizeof(textBuffer));
+                    UITextInput("Other", textBuffer2, sizeof(textBuffer2));
+                    UIDropdown("Selection", &dropdownSelection, dropdownOptions, 3);
+                    UIToggle("Option 1", &showSecondPanel);
+                    UIToggle("Option 2", &showDebugDearImGuiPanel);
+
+                    // Color picker
+                    UIColorEdit3("Color", colorRGB);
+
+                    // Tree view
+                    if(UITreeNode("Root Node", &treeNode1))
+                    {
+                        if(UITreeNode("Child 1", &treeNode1_1))
+                        {
+                            UILabel("Leaf1", Str8Lit("Leaf Item A"));
+                            UILabel("Leaf2", Str8Lit("Leaf Item B"));
+                            UITreePop();
+                        }
+                        UILabel("Child2Label", Str8Lit("Child 2 (no children)"));
+                        UITreePop();
+                    }
+                    if(UITreeNode("Another Root", &treeNode2))
+                    {
+                        UILabel("AnotherLeaf", Str8Lit("Another leaf"));
+                        UITreePop();
+                    }
+                }
+
+                UIButton("Hover Me");
+                UITooltip("This is a tooltip!");
+
+                // Tab demo
+                UISeparator();
+                static int selectedTab = 0;
+                UIBeginTabBar("DemoTabs");
+                if(UITabItem("Tab 1")) selectedTab = 0;
+                if(UITabItem("Tab 2")) selectedTab = 1;
+                if(UITabItem("Tab 3")) selectedTab = 2;
+                UIEndTabBar();
+
+                // Tab content (after tab bar)
+                if(selectedTab == 0)
+                    UILabel("Tab1Content", Str8Lit("Content for Tab 1"));
+                else if(selectedTab == 1)
+                    UILabel("Tab2Content", Str8Lit("Content for Tab 2"));
+                else
+                    UILabel("Tab3Content", Str8Lit("Content for Tab 3"));
+
+                UISeparator();
+
+                // Modal demo
+                if(UIButton("Open Modal").clicked)
+                    showModal = true;
+
+                // Context menu trigger
+                if(UIButton("Right-Click Me").right_clicked)
+                    GetUIState()->ContextMenuOpen = true;
+
+                UISeparator();
+
+                if(UIButton("Exit").clicked)
                     SetAppState(Lumos::AppState::Closing);
 
-                static float valueS = 0.5f;
-                UISlider("Test Slider", &valueS);
                 UIEndPanel();
+
+                // Context menu
+                if(UIBeginContextMenu("DemoContextMenu"))
+                {
+                    if(UIContextMenuItem("Action 1").clicked) LINFO("Action 1");
+                    if(UIContextMenuItem("Action 2").clicked) LINFO("Action 2");
+                    if(UIContextMenuItem("Action 3").clicked) LINFO("Action 3");
+                    UIEndContextMenu();
+                }
+
+                // Modal dialog
+                if(UIBeginModal("Demo Modal", &showModal))
+                {
+                    UILabel("ModalTitle", Str8Lit("Modal Dialog"));
+                    UISeparator();
+                    UILabel("ModalContent", Str8Lit("This is a modal dialog."));
+                    UILabel("ModalContent2", Str8Lit("Click outside or OK to close."));
+                    UISpacer(10.0f);
+                    if(UIButton("OK").clicked)
+                        showModal = false;
+                    UIEndModal();
+                }
 
                 if(showDebugDearImGuiPanel)
                     DearIMGUIDebugPanel();
             }
 
-            if(value)
+            if(showSecondPanel)
             {
-                UIBeginPanel("Second Panel", WidgetFlags_StackVertically | WidgetFlags_Draggable | WidgetFlags_Floating_X | WidgetFlags_Floating_Y | WidgetFlags_DragParent);
-                UILabel("Info 5", Str8Lit("Test 1234"));
-                UILabel("Info 6", Str8Lit("Test 56789"));
-                UILabel("Info 7", Str8Lit("Test"));
-                UILabel("Info 8", Str8Lit("Test"));
-                UILabel("Info 9", Str8Lit("Test"));
-                UILabel("Info 1###samenametest", Str8Lit("Test"));
+                UIBeginPanel("Info", WidgetFlags_StackVertically | WidgetFlags_Draggable | WidgetFlags_Floating_X | WidgetFlags_Floating_Y | WidgetFlags_DragParent);
+                UILabel("L1", Str8Lit("Immediate Mode UI"));
+                UILabel("L2", Str8Lit("Custom Widgets"));
+                UISeparator();
+                UILabel("DblClick", Str8Lit("Double-click test:"));
+                if(UIButton("Double Click Me").double_clicked)
+                    LINFO("Double clicked!");
                 UIEndPanel();
             }
 
@@ -689,6 +967,18 @@ namespace Lumos
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
+
+        // UI keyboard input
+        dispatcher.Dispatch<KeyTypedEvent>([](KeyTypedEvent& event) -> bool
+        {
+            UIProcessKeyTyped(event.Character);
+            return false;
+        });
+        dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent& event) -> bool
+        {
+            UIProcessKeyPressed(event.GetKeyCode());
+            return false;
+        });
 
         if(m_ImGuiManager)
             m_ImGuiManager->OnEvent(e);
@@ -780,6 +1070,9 @@ namespace Lumos
         m_Minimized = false;
 
         Graphics::Renderer::GetRenderer()->OnResize(width, height);
+
+        m_SceneViewWidth  = width;
+        m_SceneViewHeight = height;
 
         if(m_SceneRenderer)
             m_SceneRenderer->OnResize(width, height);
@@ -874,14 +1167,23 @@ namespace Lumos
 
             MountFileSystemPaths();
 
+            {
+                String8 packPath = PushStr8F(m_FrameArena, "%sAssets.lpak", m_ProjectSettings.m_ProjectRoot.c_str());
+                if(FileSystem::FileExists(packPath))
+                {
+                    if(FileSystem::Get().MountPack(packPath))
+                        LINFO("Mounted asset pack: %.*s", (int)packPath.size, packPath.str);
+                }
+            }
+
             LINFO("Loading Project : %s", filePath.c_str());
+
+            m_SceneManager = CreateUniquePtr<SceneManager>();
 
             if(!FileSystem::FileExists(Str8StdS(filePath)))
             {
                 LINFO("No saved Project file found %s", filePath.c_str());
                 {
-                    m_SceneManager = CreateUniquePtr<SceneManager>();
-
                     // Set Default values
                     m_ProjectSettings = {};
                     m_ProjectLoaded   = false;
@@ -895,35 +1197,52 @@ namespace Lumos
 
             CreateAssetFolders();
 
-            m_ProjectLoaded = true;
-
             String8 data = FileSystem::ReadTextFile(m_FrameArena, Str8StdS(filePath));
+
+            if(data.size == 0 || data.str == nullptr)
+            {
+                LERROR("Failed to read project file - %s (data.size=%llu, str=%p)", filePath.c_str(), data.size, (void*)data.str);
+                m_ProjectLoaded = false;
+                m_ProjectSettings = {};
+                SetEngineAssetPath();
+                m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
+                m_SceneManager->SwitchScene(0);
+                return;
+            }
+
+            NullTerminate(data);
+
             std::istringstream istr;
             istr.str((const char*)data.str);
-            // try
+            try
             {
                 cereal::JSONInputArchive input(istr);
                 input(*this);
 
-                // Load Asset Registry
+                // Clear project assets but keep engine assets (shaders etc)
                 {
+                    m_AssetManager->GetAssetRegistry()->ClearProjectAssets();
                     String8 path = PushStr8F(m_FrameArena, "%sAssetRegistry.lmar", m_ProjectSettings.m_ProjectRoot.c_str());
                     if(FileSystem::FileExists(path))
                     {
                         DeserialiseAssetRegistry(path, *m_AssetManager->GetAssetRegistry());
                     }
                 }
+
+                m_ProjectLoaded = true;
             }
-            //            catch(...)
-            //            {
-            //                m_ProjectSettings = {};
-            //				SetEngineAssetPath();
-            //
-            //                m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
-            //                m_SceneManager->SwitchScene(0);
-            //
-            //                LERROR("Failed to load project - %s", filePath.c_str());
-            //            }
+            catch(const std::exception& e)
+            {
+                m_ProjectLoaded   = false;
+                m_ProjectSettings = {};
+                SetEngineAssetPath();
+
+                m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
+                m_SceneManager->SwitchScene(0);
+
+                LERROR("Failed to load project - %s", filePath.c_str());
+                LERROR("Error: %s", e.what());
+            }
         }
     }
 
@@ -966,14 +1285,21 @@ namespace Lumos
     void Application::SetEngineAssetPath()
     {
 #ifdef LUMOS_PLATFORM_MACOS
-        // This is assuming Application in bin/Release-macos-x86_64/LumosEditor.app
-        LINFO(StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()).c_str());
-        m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../../../../Lumos/Assets/";
+        std::string execPath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath());
+        LINFO(execPath.c_str());
 
-        if(!FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_EngineAssetPath)))
+        // Try bundle Resources path first (sandboxed/distributed app)
+        std::string bundlePath = execPath + "../Resources/EngineAssets/";
+        if(FileSystem::FolderExists(Str8StdS(bundlePath)))
         {
-            m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../Lumos/Assets/";
+            m_ProjectSettings.m_EngineAssetPath = bundlePath;
+            return;
         }
+
+        // Development: relative to build output
+        m_ProjectSettings.m_EngineAssetPath = execPath + "../../../../../Lumos/Assets/";
+        if(!FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_EngineAssetPath)))
+            m_ProjectSettings.m_EngineAssetPath = execPath + "../../Lumos/Assets/";
 #else
         m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../Lumos/Assets/";
 #endif

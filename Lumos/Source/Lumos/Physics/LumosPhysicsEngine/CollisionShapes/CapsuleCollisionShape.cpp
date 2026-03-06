@@ -21,24 +21,38 @@ namespace Lumos
 
     Mat3 CapsuleCollisionShape::BuildInverseInertia(float invMass) const
     {
-        // Capsule is oriented along Y-axis, so height extends along Y
-        Vec3 halfExtents(m_Radius, m_Radius, m_Radius);
-        halfExtents.y += m_Height * 0.5f;
+        // Proper capsule inertia: cylinder (height h, radius r) + two hemisphere caps
+        // Capsule oriented along Y-axis
+        const float r  = m_Radius;
+        const float h  = m_Height;
+        const float r2 = r * r;
+        const float h2 = h * h;
 
-        float lx               = 2.0f * (halfExtents.x);
-        float ly               = 2.0f * (halfExtents.y);
-        float lz               = 2.0f * (halfExtents.z);
-        const float x2         = lx * lx;
-        const float y2         = ly * ly;
-        const float z2         = lz * lz;
-        const float scaledmass = (1.0f / invMass) * float(.08333333);
+        // Volume fractions for mass distribution
+        const float cylVol = Maths::M_PI * r2 * h;
+        const float sphVol = (4.0f / 3.0f) * Maths::M_PI * r2 * r;
+        const float totalVol = cylVol + sphVol;
+
+        const float mass = 1.0f / invMass;
+        const float massCyl = mass * cylVol / totalVol;
+        const float massSph = mass * sphVol / totalVol;
+
+        // Cylinder inertia about center (Y-aligned)
+        const float Ixx_cyl = massCyl * (r2 / 4.0f + h2 / 12.0f);
+        const float Iyy_cyl = massCyl * r2 / 2.0f;
+
+        // Sphere inertia + parallel axis for hemispheres offset from center
+        // Hemisphere COM is 3r/8 from flat face, so distance from capsule center = h/2 + 3r/8
+        const float d = h / 2.0f + 3.0f * r / 8.0f;
+        const float Ixx_sph = massSph * (2.0f * r2 / 5.0f + d * d);
+        const float Iyy_sph = massSph * 2.0f * r2 / 5.0f;
+
+        const float Ixx = Ixx_cyl + Ixx_sph;
+        const float Iyy = Iyy_cyl + Iyy_sph;
+        const float Izz = Ixx; // Symmetric about Y
 
         Mat3 inertia(1.0f);
-        inertia.SetDiagonal(Vec3(1.0f / scaledmass * (y2 + z2), 1.0f / scaledmass * (x2 + z2), 1.0f / scaledmass * (x2 + y2)));
-        //        inertia[0][0] = 1.0f / scaledmass * (y2 + z2);
-        //        inertia[1][1] = 1.0f / scaledmass * (x2 + z2);
-        //        inertia[2][2] = 1.0f / scaledmass * (x2 + y2);
-
+        inertia.SetDiagonal(Vec3(1.0f / Ixx, 1.0f / Iyy, 1.0f / Izz));
         return inertia;
     }
 
@@ -71,23 +85,42 @@ namespace Lumos
         float minProj = Maths::Min(topProj, bottomProj) - m_Radius;
         float maxProj = Maths::Max(topProj, bottomProj) + m_Radius;
 
-        // Calculate the min and max points as world space positions
-        // These are points along the axis that have the correct projections
+        // Calculate the min and max points as actual world space positions on the capsule surface
         Vec3 axisNormalized = axis.Normalised();
+
+        // Find which endpoint is more extreme along the axis
+        bool topIsMax = topProj > bottomProj;
+        Vec3 maxEndpoint = topIsMax ? topPosition : bottomPosition;
+        Vec3 minEndpoint = topIsMax ? bottomPosition : topPosition;
+
         if(out_min)
-            *out_min = axisNormalized * minProj;
+            *out_min = minEndpoint - axisNormalized * m_Radius;
         if(out_max)
-            *out_max = axisNormalized * maxProj;
+            *out_max = maxEndpoint + axisNormalized * m_Radius;
     }
 
     void CapsuleCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject,
                                                             const Vec3& axis,
                                                             ReferencePolygon& refPolygon) const
     {
-        refPolygon.Faces[0]  = currentObject->GetPosition() + axis * m_Radius;
-        refPolygon.FaceCount = 1;
+        Mat4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
 
-        refPolygon.Normal = axis;
+        // Get the top and bottom hemisphere centers
+        Vec3 topPosition    = Vec3(transform * Vec4(0.0f, m_Height * 0.5f, 0.0f, 1.0f));
+        Vec3 bottomPosition = Vec3(transform * Vec4(0.0f, -m_Height * 0.5f, 0.0f, 1.0f));
+
+        // Determine which hemisphere is more aligned with the contact axis
+        Vec3 axisNorm = axis.Normalised();
+        float topDot    = Maths::Dot((topPosition - currentObject->GetPosition()).Normalised(), axisNorm);
+        float bottomDot = Maths::Dot((bottomPosition - currentObject->GetPosition()).Normalised(), axisNorm);
+
+        // Use the hemisphere center that best faces the axis
+        Vec3 closestHemisphereCenter = topDot > bottomDot ? topPosition : bottomPosition;
+
+        // Contact point is on the sphere surface of the hemisphere
+        refPolygon.Faces[0]  = closestHemisphereCenter + axisNorm * m_Radius;
+        refPolygon.FaceCount = 1;
+        refPolygon.Normal    = axisNorm;
     }
 
     void CapsuleCollisionShape::DebugDraw(const RigidBody3D* currentObject) const

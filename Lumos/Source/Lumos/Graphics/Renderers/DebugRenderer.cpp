@@ -377,8 +377,6 @@ namespace Lumos
 
         Log(Vec3(1.0f, 0.25f, 0.25f), "[ERROR] %s:%d", filename, linenumber);
         AddLogEntry(Vec3(1.0f, 0.5f, 0.5f), "\t \x01 \"" + std::string(buf, static_cast<size_t>(length)) + "\"");
-
-        std::cout << std::endl;
     }
 
     void DebugRenderer::DebugDraw(const Maths::BoundingBox& box, const Vec4& edgeColour, bool cornersOnly, bool depthTested, float width)

@@ -11,7 +11,7 @@ namespace Lumos
     {
         m_PyramidHalfDimensions = Vec3(0.5f, 0.5f, 0.5f);
         m_Type                  = CollisionShapeType::CollisionPyramid;
-        m_LocalTransform        = Mat4::Scale(m_PyramidHalfDimensions);
+        m_LocalTransform        = Mat4::Translation(Vec3(0.0f, m_PyramidHalfDimensions.y * 0.5f, 0.0f)) * Mat4::Scale(m_PyramidHalfDimensions);
 
         if(m_PyramidHull->GetNumVertices() == 0)
         {
@@ -20,6 +20,12 @@ namespace Lumos
 
         m_Axes.Resize(5);
         m_Edges.Resize(m_PyramidHull->GetNumEdges());
+
+        m_Normals[0] = Vec3(0.0f, -1.0f, 0.0f);
+        m_Normals[1] = Vec3(0.0f, -1.0f, 0.0f);
+        m_Normals[2] = Vec3(0.0f, -1.0f, 0.0f);
+        m_Normals[3] = Vec3(0.0f, -1.0f, 0.0f);
+        m_Normals[4] = Vec3(0.0f, -1.0f, 0.0f);
     }
 
     PyramidCollisionShape::PyramidCollisionShape(const Vec3& halfdims)
@@ -27,7 +33,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         m_PyramidHalfDimensions = halfdims;
 
-        m_LocalTransform = Mat4::Scale(m_PyramidHalfDimensions);
+        m_LocalTransform = Mat4::Translation(Vec3(0.0f, m_PyramidHalfDimensions.y * 0.5f, 0.0f)) * Mat4::Scale(m_PyramidHalfDimensions);
         m_Type           = CollisionShapeType::CollisionPyramid;
 
         Vec3 m_Points[5] = {
@@ -60,11 +66,16 @@ namespace Lumos
     Mat3 PyramidCollisionShape::BuildInverseInertia(float invMass) const
     {
         LUMOS_PROFILE_FUNCTION();
+        // Solid rectangular pyramid: base w×d, height h
+        // Ixx = m(3h² + 4d²)/80, Iyy = m(w² + d²)/20, Izz = m(3h² + 4w²)/80
         Vec3 scaleSq = m_PyramidHalfDimensions + m_PyramidHalfDimensions;
         scaleSq      = scaleSq * scaleSq;
 
         Mat3 inertia(1.0f);
-        inertia.SetDiagonal(Vec3(3.0f * invMass / ((0.2f * scaleSq.x) + (0.15f * scaleSq.y)), 3.0f * invMass / ((0.2f * scaleSq.z) + (0.15f * scaleSq.y)), 3.0f * invMass / ((0.2f * scaleSq.z) + (0.2f * scaleSq.x))));
+        inertia.SetDiagonal(Vec3(
+            80.0f * invMass / (3.0f * scaleSq.y + 4.0f * scaleSq.z),
+            20.0f * invMass / (scaleSq.x + scaleSq.z),
+            80.0f * invMass / (3.0f * scaleSq.y + 4.0f * scaleSq.x)));
         return inertia;
     }
 
@@ -89,7 +100,6 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION_LOW();
         {
-            m_Axes.Clear();
             m_Axes.Resize(5);
             const Mat3 objOrientation = Mat3(currentObject->GetOrientation());
             m_Axes[0]                 = (objOrientation * m_Normals[0]);

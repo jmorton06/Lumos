@@ -38,6 +38,7 @@
 #include <glad/glad.h>
 #endif
 
-#include <sol/sol.hpp>
+// Sol2 (Lua bindings) removed from PCH - include only in Lua-related .cpp files
+// #include <sol/sol.hpp>
 #endif
 #endif

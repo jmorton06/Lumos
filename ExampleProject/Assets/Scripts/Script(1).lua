@@ -73,7 +73,7 @@ movementY = GetVerticalMovementAxis(0.2);
 
 jumpTimer = jumpTimer + dt
 if Input.GetKeyPressed( Key.Space ) or Input.IsControllerButtonPressed(0,0) and jumpTimer > 0.5 then
-phys:GetRigidBody():SetLinearVelocity(phys:GetRigidBody():GetLinearVelocity() + Vector3.new(0.0,7.0,0.0))
+phys:GetRigidBody():SetLinearVelocity(phys:GetRigidBody():GetLinearVelocity() + Vec3.new(0.0,7.0,0.0))
 jumpTimer =  0.0
 elseif Input.GetKeyHeld( Key.W ) then
 movementY = 1.0
@@ -103,5 +103,3 @@ end
 
 function OnCleanUp()
 end
-
-

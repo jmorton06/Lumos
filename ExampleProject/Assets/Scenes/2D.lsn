@@ -34,7 +34,7 @@
         "value3": false
     },
     "value1": 71,
-    "value2": 2,
+    "value2": 6,
     "value3": 0,
     "value4": 2097153,
     "value5": 2097154,
@@ -106,9 +106,66 @@
     "value71": 1048644,
     "value72": 1048645,
     "value73": 1048646,
-    "value74": 1,
-    "value75": 2097153,
+    "value74": 4,
+    "value75": 2097216,
     "value76": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value77": 2097217,
+    "value78": {
+        "Position": {
+            "value0": -3.9571993350982668,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value79": 2097154,
+    "value80": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 25.195755004882814,
+            "value2": 35.065093994140628
+        },
+        "Rotation": {
+            "value0": -0.26293960213661196,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9648122787475586
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value81": 2097153,
+    "value82": {
         "Position": {
             "value0": 4.98375940322876,
             "value1": -7.393299102783203,
@@ -126,20 +183,36 @@
             "value2": 1.0
         }
     },
-    "value77": 2,
-    "value78": 0,
-    "value79": {
+    "value83": 6,
+    "value84": 0,
+    "value85": {
         "Name": "GameController"
     },
-    "value80": 2097153,
-    "value81": {
+    "value86": 2097153,
+    "value87": {
         "Name": "Camera"
     },
-    "value82": 0,
-    "value83": 0,
-    "value84": 1,
-    "value85": 2097153,
-    "value86": {
+    "value88": 2097154,
+    "value89": {
+        "Name": "Light"
+    },
+    "value90": 2097157,
+    "value91": {
+        "Name": "Sky"
+    },
+    "value92": 2097216,
+    "value93": {
+        "Name": "Cube"
+    },
+    "value94": 2097217,
+    "value95": {
+        "Name": "DamagedHelmet.gltf"
+    },
+    "value96": 0,
+    "value97": 0,
+    "value98": 1,
+    "value99": 2097153,
+    "value100": {
         "Scale": 6.0,
         "Aspect": 1.3245033025741578,
         "FOV": 60.0,
@@ -149,33 +222,173 @@
         "ShutterSpeed": 0.01666666753590107,
         "Sensitivity": 250.0
     },
-    "value87": 1,
-    "value88": 0,
-    "value89": {
-        "FilePath": "//Assets/Scripts/PongTest.lua"
+    "value101": 1,
+    "value102": 0,
+    "value103": {
+        "FilePath": "//Assets/Scripts/FlappyBirdTest.lua"
     },
-    "value90": 0,
-    "value91": 0,
-    "value92": 0,
-    "value93": 0,
-    "value94": 0,
-    "value95": 0,
-    "value96": 0,
-    "value97": 0,
-    "value98": 0,
-    "value99": 0,
-    "value100": 2,
-    "value101": 0,
-    "value102": {
+    "value104": 0,
+    "value105": 1,
+    "value106": 2097154,
+    "value107": {
+        "value0": {
+            "value0": 0.0,
+            "value1": 25.195755004882814,
+            "value2": 35.065093994140628,
+            "value3": 1.0
+        },
+        "value1": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "value2": 0.0,
+        "value3": 0.0,
+        "value4": {
+            "value0": 0.0,
+            "value1": 0.50737464427948,
+            "value2": 0.8617255687713623,
+            "value3": 1.0
+        },
+        "value5": 120000.0,
+        "value6": 1.0
+    },
+    "value108": 0,
+    "value109": 1,
+    "value110": 2097157,
+    "value111": {
+        "value0": "",
+        "value1": 0,
+        "value2": 0,
+        "value3": 0,
+        "value4": "",
+        "value5": 0.03125,
+        "value6": 1,
+        "value7": {
+            "value0": 2.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        }
+    },
+    "value112": 0,
+    "value113": 0,
+    "value114": 0,
+    "value115": 0,
+    "value116": 0,
+    "value117": 0,
+    "value118": 6,
+    "value119": 0,
+    "value120": {
         "value0": 5632316061460210371
     },
-    "value103": 2097153,
-    "value104": {
+    "value121": 2097153,
+    "value122": {
         "value0": 11691517214524486209
     },
-    "value105": 0,
-    "value106": 0,
-    "value107": 0,
-    "value108": 0,
-    "value109": 0
+    "value123": 2097154,
+    "value124": {
+        "value0": 6832427528293119553
+    },
+    "value125": 2097157,
+    "value126": {
+        "value0": 5795810104219489141
+    },
+    "value127": 2097216,
+    "value128": {
+        "value0": 9897235021787377154
+    },
+    "value129": 2097217,
+    "value130": {
+        "value0": 4788089662553577232
+    },
+    "value131": 2,
+    "value132": 2097216,
+    "value133": {
+        "PrimitiveType": 2,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.00553114851936698,
+                        "value1": 0.19561977684497834,
+                        "value2": 0.639769434928894,
+                        "value3": 1.0
+                    },
+                    "roughnessValue": 0.30000001192092898,
+                    "metallicValue": 0.800000011920929,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "",
+                    "Reflectance": 0.30000001192092898
+                }
+            }
+        },
+        "MaterialOverrides": [
+            {
+                "key": 0,
+                "value": "//Assets/Materials/MaterialBlue##0.lmat"
+            }
+        ],
+        "AnimationOverride": ""
+    },
+    "value134": 2097217,
+    "value135": {
+        "PrimitiveType": 8,
+        "FilePath": "//Assets/Imported/11108861339461690106.lmesh",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 1.0,
+                        "value1": 1.0,
+                        "value2": 1.0,
+                        "value3": 1.0
+                    },
+                    "roughnessValue": 0.699999988079071,
+                    "metallicValue": 0.699999988079071,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 1.0,
+                    "metallicMapFactor": 1.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 1.0,
+                    "aoMapFactor": 1.0,
+                    "emissiveMapFactor": 1.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 1.0,
+                    "shader": "",
+                    "Reflectance": 0.30000001192092898
+                }
+            }
+        },
+        "MaterialOverrides": [],
+        "AnimationOverride": ""
+    },
+    "value136": 0,
+    "value137": 0,
+    "value138": 0,
+    "value139": 0
 }

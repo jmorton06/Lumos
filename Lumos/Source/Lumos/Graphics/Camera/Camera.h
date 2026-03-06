@@ -1,14 +1,24 @@
 #pragma once
 
-#include "CameraController.h"
-#include "Maths/Ray.h"
 #include "Maths/Frustum.h"
-#include "Scene/Serialisation/Serialisation.h"
+
+namespace Lumos
+{
+    namespace Maths
+    {
+        class Ray;
+    }
+}
 
 namespace Lumos
 {
     class LUMOS_EXPORT Camera
     {
+        template <typename Archive>
+        friend void save(Archive& archive, const Camera& model);
+
+        template <typename Archive>
+        friend void load(Archive& archive, Camera& model);
     public:
         Camera();
         Camera(float FOV, float Near, float Far, float aspect);
@@ -98,28 +108,6 @@ namespace Lumos
         Maths::Frustum& GetFrustum(const Mat4& viewMatrix);
 
         Maths::Ray GetScreenRay(float x, float y, const Mat4& viewMatrix, bool flipY) const;
-
-        template <typename Archive>
-        void save(Archive& archive) const
-        {
-            archive(cereal::make_nvp("Scale", m_Scale), cereal::make_nvp("Aspect", m_AspectRatio), cereal::make_nvp("FOV", m_Fov), cereal::make_nvp("Near", m_Near), cereal::make_nvp("Far", m_Far));
-
-            archive(cereal::make_nvp("Aperture", m_Aperture), cereal::make_nvp("ShutterSpeed", m_ShutterSpeed), cereal::make_nvp("Sensitivity", m_Sensitivity));
-        }
-
-        template <typename Archive>
-        void load(Archive& archive)
-        {
-            archive(cereal::make_nvp("Scale", m_Scale), cereal::make_nvp("Aspect", m_AspectRatio), cereal::make_nvp("FOV", m_Fov), cereal::make_nvp("Near", m_Near), cereal::make_nvp("Far", m_Far));
-
-            if(Serialisation::CurrentSceneVersion > 11)
-            {
-                archive(cereal::make_nvp("Aperture", m_Aperture), cereal::make_nvp("ShutterSpeed", m_ShutterSpeed), cereal::make_nvp("Sensitivity", m_Sensitivity));
-            }
-
-            m_FrustumDirty    = true;
-            m_ProjectionDirty = true;
-        }
 
         float GetShadowBoundingRadius() const
         {

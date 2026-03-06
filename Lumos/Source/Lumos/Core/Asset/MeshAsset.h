@@ -5,8 +5,8 @@ namespace Lumos
     namespace Graphics
     {
         class Mesh;
-
     }
+
     struct MeshAsset
     {
         const char* name;
@@ -16,7 +16,7 @@ namespace Lumos
         u32* Indices;
         u32 IndexCount;
 
-        u8* VertedData; // Can be cast to Vertex or AnimVertex;
+        u8* VertedData; // Can be cast to Vertex or AnimVertex
         u32 VertexDataSize;
 
         bool Animated;

@@ -73,5 +73,5 @@ namespace Lumos
     HashMapClearRaw((HashMapRaw*)(SET), HashMapElemSize(SET))
 
 #define HashSetDeinit(SET) \
-    HashMapDeinitRaw((HashMapRaw*)(SET), HashMapElemSize(SET))
+    HashMapDeinitRaw((HashMapRaw*)(SET))
 }

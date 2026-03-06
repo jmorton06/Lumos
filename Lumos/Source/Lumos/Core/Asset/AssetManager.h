@@ -29,8 +29,8 @@ namespace Lumos
         NONCOPYABLEANDMOVE(AssetManager);
 
         SharedPtr<Asset> GetAsset(UUID ID);
-        AssetMetaData& AddAsset(const String8& name, SharedPtr<Asset> data, bool keepUnreferenced = true);
-        AssetMetaData& AddAsset(UUID name, SharedPtr<Asset> data, bool keepUnreferenced = true);
+        AssetMetaData& AddAsset(const String8& name, SharedPtr<Asset> data, bool keepUnreferenced = true, bool isEngineAsset = false);
+        AssetMetaData& AddAsset(UUID name, SharedPtr<Asset> data, bool keepUnreferenced = true, bool isEngineAsset = false);
         AssetMetaData GetAsset(const String8& name);
 
         SharedPtr<Asset> GetAssetData(const String8& name);
@@ -44,11 +44,20 @@ namespace Lumos
 
         SharedPtr<Asset> operator[](UUID name) { return GetAsset(name); }
         SharedPtr<Graphics::Texture2D> LoadTextureAsset(const String8& filePath, bool thread);
+        SharedPtr<Graphics::Texture2D> LoadTextureAsset(const String8& filePath, bool thread, const Graphics::TextureDesc& desc);
+
+        void RemoveAsset(const String8& name)
+        {
+            UUID id;
+            if(m_AssetRegistry->GetID(name, id))
+                m_AssetRegistry->Remove(id);
+        }
 
         SharedPtr<AssetRegistry> GetAssetRegistry() { return m_AssetRegistry; }
 
     protected:
         bool LoadTexture(const String8& filePath, SharedPtr<Graphics::Texture2D>& texture, bool thread);
+        bool LoadTexture(const String8& filePath, SharedPtr<Graphics::Texture2D>& texture, bool thread, const Graphics::TextureDesc& desc);
 
         Arena* m_Arena;
         SharedPtr<AssetRegistry> m_AssetRegistry;

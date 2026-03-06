@@ -89,6 +89,11 @@ namespace Lumos
         String8 Str8PathSkipLastPeriod(String8 str);
         String8 Str8PathChopPastLastSlash(String8 str);
 
+        // "foo/bar.png" -> "png" (extension without dot, or empty)
+        String8 Str8PathExtension(String8 path);
+        // "foo/bar.png" -> "foo/" (directory with trailing slash, or empty)
+        String8 Str8PathDirectory(String8 path);
+
         PathType PathTypeFromStr8(String8 path);
         String8List PathPartsFromStr8(Arena* arena, String8 path);
         String8List AbsolutePathPartsFromSourcePartsType(Arena* arena, String8 source, String8List parts, PathType type);

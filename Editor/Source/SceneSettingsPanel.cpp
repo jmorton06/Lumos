@@ -282,6 +282,15 @@ namespace Lumos
                             physicsSystem->SetBroadphaseType((BroadphaseType)sceneSettings.Physics3DSettings.BroadPhaseTypeIndex);
                         if(ImGuiUtilities::Property("IntegrationType", sceneSettings.Physics3DSettings.IntegrationTypeIndex))
                             physicsSystem->SetIntegrationType((IntegrationType)sceneSettings.Physics3DSettings.IntegrationTypeIndex);
+
+                        // Time scale and parallel narrowphase
+                        float timeScale = physicsSystem->GetTimeScale();
+                        if(ImGuiUtilities::Property("Time Scale", timeScale, 0.0f, 10.0f))
+                            physicsSystem->SetTimeScale(timeScale);
+
+                        bool parallelNarrowphase = physicsSystem->GetParallelNarrowphase();
+                        if(ImGuiUtilities::Property("Parallel Narrowphase", parallelNarrowphase))
+                            physicsSystem->SetParallelNarrowphase(parallelNarrowphase);
                     }
                 }
 

@@ -29,6 +29,7 @@ namespace Lumos
         bool Contains(const UUID handle) const;
         void Remove(const UUID handle);
         void Clear();
+        void ClearProjectAssets();
 
         void AddName(const String8& name, UUID ID);
         bool GetID(const String8& name, UUID& ID);

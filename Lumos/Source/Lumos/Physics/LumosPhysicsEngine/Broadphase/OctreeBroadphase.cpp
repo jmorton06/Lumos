@@ -4,14 +4,16 @@
 
 #include "Core/DataStructures/Set.h"
 #include "Maths/MathsUtilities.h"
+#include "Utilities/CombineHash.h"
 
 #define DEBUG_CHECK_DUPLICATES 0
 namespace Lumos
 {
 
-    OctreeBroadphase::OctreeBroadphase(const u32 maxObjectsPerPartition, const u32 maxPartitionDepth)
+    OctreeBroadphase::OctreeBroadphase(const u32 maxObjectsPerPartition, const u32 maxPartitionDepth, const u32 maxLeafCount)
         : m_MaxObjectsPerPartition(maxObjectsPerPartition)
         , m_MaxPartitionDepth(maxPartitionDepth)
+        , m_MaxLeafCount(maxLeafCount)
         , m_Leaves()
     {
         m_Arena            = ArenaAlloc(Megabytes(8));
@@ -37,8 +39,7 @@ namespace Lumos
         m_RootNode.PhysicsObjectCount = 0;
         m_RootNode.boundingBox        = Maths::BoundingBox();
         m_RootNode.PhysicsObjects     = PushArrayNoZero(m_Arena, RigidBody3D*, totalRigidBodyCount);
-#define LEAF_COUNT 1024
-        m_Leaves = PushArrayNoZero(m_Arena, OctreeNode*, LEAF_COUNT);
+        m_Leaves = PushArrayNoZero(m_Arena, OctreeNode*, m_MaxLeafCount);
 
         // Early exit if no objects
         if(totalRigidBodyCount == 0)
@@ -65,7 +66,7 @@ namespace Lumos
         // Recursively divide world
         Divide(m_RootNode, 0);
 
-        HashSet(size_t) collisionPairHashSet = { 0 };
+        HashSet(uint64_t) collisionPairHashSet = { 0 };
         //collisionPairHashSet.arena           = m_Arena;
 
         // Add collision pairs in leaf world divisions
@@ -119,7 +120,8 @@ namespace Lumos
                         pair.pObjectB = &obj1;
                     }
 
-                    size_t pairHash = (size_t)pair.pObjectA + ((size_t)pair.pObjectB << 8);
+                    uint64_t pairHash = 0;
+                    HashCombine(pairHash, pair.pObjectA, pair.pObjectB);
                     if(!HashSetContains(&collisionPairHashSet, pairHash))
                     {
                         HashSetAdd(&collisionPairHashSet, pairHash);
@@ -145,6 +147,8 @@ namespace Lumos
                 }
             }
         }
+        
+        HashSetDeinit(&collisionPairHashSet);
     }
 
     void OctreeBroadphase::DebugDraw()
@@ -160,7 +164,7 @@ namespace Lumos
         constexpr size_t MAX_SAFE_DEPTH = 10;
         if(iteration > MAX_SAFE_DEPTH)
         {
-            if(division.PhysicsObjectCount > 1 && m_LeafCount < LEAF_COUNT)
+            if(division.PhysicsObjectCount > 1 && m_LeafCount < m_MaxLeafCount)
             {
                 m_Leaves[m_LeafCount] = &division;
                 m_LeafCount++;
@@ -181,7 +185,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_SCOPE_LOW("Add Leaf");
             // Ignore any subdivisions that contain no objects
-            if(division.PhysicsObjectCount > 1 && m_LeafCount < LEAF_COUNT)
+            if(division.PhysicsObjectCount > 1 && m_LeafCount < m_MaxLeafCount)
             {
                 m_Leaves[m_LeafCount] = &division;
                 m_LeafCount++;

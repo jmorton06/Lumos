@@ -14,12 +14,19 @@ project "Lumos"
 	{
 		"Source/**.h",
 		"Source/**.c",
-		"Source/**.cpp"
+		"Source/**.cpp",
+		"External/lz4/lz4.c",
+		"External/lz4/lz4.h"
 	}
 
 	removefiles
 	{
-		"Source/Lumos/Platform/**"
+		"Source/Lumos/Platform/**",
+		-- Unity build optimization: exclude individual Lua binding files
+		-- They're combined in LuaBindingsUnity.cpp to share Sol2 template instantiations
+		"Source/Lumos/Scripting/Lua/MathsLua.cpp",
+		"Source/Lumos/Scripting/Lua/ImGuiLua.cpp",
+		"Source/Lumos/Scripting/Lua/PhysicsLua.cpp"
 	}
 
 	includedirs
@@ -53,6 +60,10 @@ project "Lumos"
 		"%{IncludeDir.Lumos}",
 	}
 
+	if _OPTIONS["shaderc"] then
+		externalincludedirs { "%{IncludeDir.shaderc}" }
+	end
+
 	links
 	{
 		"lua",
@@ -64,7 +75,7 @@ project "Lumos"
 		"msdf-atlas-gen",
 		"ozz_base",
 		"ozz_animation",
-		"ozz_animation_offline"
+		"ozz_animation_offline",
 	}
 
 	defines
@@ -77,9 +88,6 @@ project "Lumos"
 	filter "options:time-trace"
 		buildoptions {"-ftime-trace"}
 		linkoptions {"-ftime-trace"}
-
-	filter 'architecture:x86_64'
-		defines { "LUMOS_SSE" }
 
 	filter "system:windows"
 		cppdialect "C++17"
@@ -105,7 +113,7 @@ project "Lumos"
 			"LUMOS_OPENAL",
 			"LUMOS_VOLK",
 			"LUMOS_USE_GLFW_WINDOWS",
-			"USE_VMA_ALLOCATOR"
+			"USE_VMA_ALLOCATOR",
 		}
 
 		files
@@ -130,12 +138,20 @@ project "Lumos"
 			"Dwmapi.lib"
 		}
 
+		if _OPTIONS["shaderc"] then
+			defines { "LUMOS_SHADERC" }
+			links { "shaderc" }
+		end
+
 		filter "action:vs*"
 			buildoptions { "/bigobj" }
 		filter 'files:External/**.cpp'
 			flags  { 'NoPCH' }
 		filter 'files:External/**.c'
-			flags  { 'NoPCH' }
+		    flags { 'NoPCH' }
+
+		filter { 'system:windows', 'architecture:x86_64' }
+		    defines { "LUMOS_SSE"  }
 
 	filter "system:macosx"
 		cppdialect "C++17"
@@ -174,7 +190,6 @@ project "Lumos"
 			"VK_USE_PLATFORM_METAL_EXT",
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL",
-			"LUMOS_VOLK"
 		}
 
 		links
@@ -192,8 +207,13 @@ project "Lumos"
 
 		libdirs
 		{
-			"../bin/**"
+			"../bin/**",
 		}
+
+		if _OPTIONS["shaderc"] then
+			defines { "LUMOS_SHADERC" }
+			links { "shaderc" }
+		end
 
 		buildoptions
 		{
@@ -227,8 +247,12 @@ project "Lumos"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_IOS_MVK",
 			"LUMOS_IMGUI",
-			"LUMOS_OPENAL"
+            "LUMOS_OPENAL",
 		}
+
+		if _OPTIONS["shaderc"] then
+			defines { "LUMOS_SHADERC" }
+		end
 
 		files
 		{
@@ -287,7 +311,7 @@ project "Lumos"
 			"LUMOS_IMGUI",
 			"LUMOS_VOLK",
 			"LUMOS_OPENAL",
-			"USE_VMA_ALLOCATOR"
+			"USE_VMA_ALLOCATOR",
 		}
 
 		files
@@ -316,7 +340,7 @@ project "Lumos"
 		libdirs
 		{
 			"../bin/**",
-			"External/OpenAL/libs/linux"
+			"External/OpenAL/libs/linux",
 		}
 
 		buildoptions
@@ -327,7 +351,12 @@ project "Lumos"
 			"-Wno-psabi"
 		}
 
-		links { "X11", "pthread"}
+		links { "X11", "pthread" }
+
+		if _OPTIONS["shaderc"] then
+			defines { "LUMOS_SHADERC" }
+			links { "shaderc" }
+		end
 
 		pchheader "../Lumos/Source/Precompiled.h"
 		pchsource "../Lumos/Source/Precompiled.cpp"
@@ -344,6 +373,8 @@ project "Lumos"
 			{
 				"-msse4.1",
 			}
+        filter { 'system:linux', 'architecture:x86_64' }
+		    defines { "LUMOS_SSE"  }
 
 	filter "configurations:Debug"
         defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE_ENABLED","TRACY_ON_DEMAND"  }
@@ -359,6 +390,6 @@ project "Lumos"
 
 	filter "configurations:Production"
 		defines { "LUMOS_PRODUCTION", "NDEBUG" }
-		symbols "Off"
+		symbols "On"
 		optimize "Full"
 		runtime "Release"

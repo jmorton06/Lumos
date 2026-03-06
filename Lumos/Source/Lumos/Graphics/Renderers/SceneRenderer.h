@@ -134,6 +134,8 @@ namespace Lumos
             float SubmitParticleTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
 
+            Texture2D* GetMainTexture() const { return m_MainTexture; }
+
             bool m_DebugRenderEnabled = false;
             bool m_EnableUIPass       = true;
             struct LUMOS_EXPORT RenderCommand2D
@@ -151,7 +153,7 @@ namespace Lumos
                 uint32_t BufferSize        = 1000 * RENDERER2D_VERTEX_SIZE * 4;
                 uint32_t IndiciesSize      = 1000 * 6;
                 uint32_t MaxTextures       = 16;
-                uint32_t MaxBatchDrawCalls = 100;
+                uint32_t MaxBatchDrawCalls = 500;
 
                 void SetMaxQuads(uint32_t quads)
                 {
@@ -372,6 +374,7 @@ namespace Lumos
             SharedPtr<Graphics::Shader> m_DepthPrePassAlphaAnimShader;
             Texture2D* m_SSAOTexture  = nullptr;
             Texture2D* m_SSAOTexture1 = nullptr;
+            bool m_SSAOValid          = false;
 
             Texture2D* m_NoiseTexture  = nullptr;
             Texture2D* m_NormalTexture = nullptr;

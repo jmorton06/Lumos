@@ -32,5 +32,23 @@ namespace Lumos
                 }
             }
         }
+
+        template <typename Iterator, typename CompareFunc = SmallerThan<typename RemovePointer<Iterator>::type>>
+        constexpr void InsertionSort(Iterator first, Iterator last, CompareFunc compare = CompareFunc())
+        {
+            if(first == last)
+                return;
+            for(Iterator i = first + 1; i != last; ++i)
+            {
+                auto key = *i;
+                Iterator j = i;
+                while(j != first && compare(key, *(j + (-1))))
+                {
+                    *j = *(j + (-1));
+                    j = j + (-1);
+                }
+                *j = key;
+            }
+        }
     }
 }

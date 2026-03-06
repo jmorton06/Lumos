@@ -28,5 +28,6 @@ namespace Lumos
         uint32_t m_SavedDockID = 0;
 
         float m_SavedTimer = -1.0f;
+        bool m_KeyboardShowing = false;
     };
 }

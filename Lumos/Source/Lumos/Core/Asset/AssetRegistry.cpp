@@ -28,6 +28,11 @@ namespace Lumos
 
     AssetRegistry::~AssetRegistry()
     {
+        ForHashMapEach(UUID, AssetMetaData, &m_AssetRegistry, it)
+        {
+            it.value->Data = nullptr;
+        }
+
         delete m_StringPool;
 
         MutexDestroy(m_Mutex);
@@ -56,6 +61,9 @@ namespace Lumos
 
         for(u32 i = 0; i < keysToDeleteCount; i++)
         {
+            AssetMetaData* meta = (AssetMetaData*)HashMapFindPtr(&m_AssetRegistry, keysToDelete[i]);
+            if(meta)
+                meta->Data = nullptr;
             HashMapRemove(&m_AssetRegistry, keysToDelete[i]);
         }
     }
@@ -154,13 +162,56 @@ namespace Lumos
     void AssetRegistry::Remove(UUID handle)
     {
         ScopedMutex mutex(m_Mutex);
+        AssetMetaData* meta = (AssetMetaData*)HashMapFindPtr(&m_AssetRegistry, handle);
+        if(meta)
+            meta->Data = nullptr;
         HashMapRemove(&m_AssetRegistry, handle);
     }
 
     void AssetRegistry::Clear()
     {
         ScopedMutex mutex(m_Mutex);
+
+        ForHashMapEach(UUID, AssetMetaData, &m_AssetRegistry, it)
+        {
+            it.value->Data = nullptr;
+        }
+
         HashMapClear(&m_AssetRegistry);
+    }
+
+    void AssetRegistry::ClearProjectAssets()
+    {
+        ScopedMutex mutex(m_Mutex);
+
+        static UUID keysToDelete[1024];
+        u32 keysToDeleteCount = 0;
+
+        ForHashMapEach(UUID, AssetMetaData, &m_AssetRegistry, it)
+        {
+            if(!it.value->IsEngineAsset)
+            {
+                keysToDelete[keysToDeleteCount++] = *it.key;
+                if(keysToDeleteCount >= 1024)
+                    break;
+            }
+        }
+
+        for(u32 i = 0; i < keysToDeleteCount; i++)
+        {
+            // Remove name mappings for this asset
+            String8 name;
+            if(GetName(keysToDelete[i], name))
+            {
+                u64 nameHash = MurmurHash64A(name.str, (i32)name.size, 0);
+                HashMapRemove(&m_NameMap, nameHash);
+                HashMapRemove(&m_UUIDNameMap, keysToDelete[i]);
+            }
+            AssetMetaData* meta = (AssetMetaData*)HashMapFindPtr(&m_AssetRegistry, keysToDelete[i]);
+            if(meta)
+                meta->Data = nullptr;
+            HashMapRemove(&m_AssetRegistry, keysToDelete[i]);
+        }
     }
 
 }

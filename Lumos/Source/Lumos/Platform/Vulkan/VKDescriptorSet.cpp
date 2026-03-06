@@ -82,7 +82,7 @@ namespace Lumos
                                            { vkFreeDescriptorSets(device, pool, 1, &descriptorSet); });
             }
 
-            for(auto bufferData : m_DescriptorData)
+            for(auto& bufferData : m_DescriptorData)
             {
                 bufferData.LocalStorage.Release();
             }

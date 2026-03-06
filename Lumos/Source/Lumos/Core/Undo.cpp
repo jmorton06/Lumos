@@ -15,6 +15,16 @@ namespace Lumos
         s_Undo->copyRedoStart = (u8*)s_Undo->copy->Ptr + s_Undo->copy->Position;
     }
 
+    void ReleaseUndo()
+    {
+        if(s_Undo)
+        {
+            ArenaRelease(s_Undo->copy);
+            delete s_Undo;
+            s_Undo = nullptr;
+        }
+    }
+
     void UndoPush(void* source, i64 size)
     {
         u8* copy = (u8*)ArenaPush(s_Undo->copy, size);

@@ -1,5 +1,17 @@
 #include "Precompiled.h"
 #include "Input.h"
+#include "Core/Application.h"
+#include "Core/OS/Window.h"
+
+#ifdef LUMOS_PLATFORM_MACOS
+#include <GLFW/glfw3.h>
+#endif
+#ifdef LUMOS_PLATFORM_WINDOWS
+#include <GLFW/glfw3.h>
+#endif
+#ifdef LUMOS_PLATFORM_LINUX
+#include <GLFW/glfw3.h>
+#endif
 
 namespace Lumos
 {
@@ -68,7 +80,6 @@ namespace Lumos
 
     bool Input::OnKeyReleased(KeyReleasedEvent& e)
     {
-        SetKeyPressed(Lumos::InputCode::Key(e.GetKeyCode()), false);
         SetKeyHeld(Lumos::InputCode::Key(e.GetKeyCode()), false);
         return false;
     }
@@ -82,7 +93,6 @@ namespace Lumos
 
     bool Input::OnMouseReleased(MouseButtonReleasedEvent& e)
     {
-        SetMouseClicked(Lumos::InputCode::MouseKey(e.GetMouseButton()), false);
         SetMouseHeld(Lumos::InputCode::MouseKey(e.GetMouseButton()), false);
         return false;
     }
@@ -206,5 +216,27 @@ namespace Lumos
 
     void Input::RemoveController(int id)
     {
+    }
+
+    void Input::SetClipboard(const char* text)
+    {
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
+        if(Application::Get().GetWindow())
+        {
+            glfwSetClipboardString((GLFWwindow*)Application::Get().GetWindow()->GetHandle(), text);
+        }
+#endif
+    }
+
+    std::string Input::GetClipboard()
+    {
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
+        if(Application::Get().GetWindow())
+        {
+            const char* text = glfwGetClipboardString((GLFWwindow*)Application::Get().GetWindow()->GetHandle());
+            return text ? std::string(text) : std::string();
+        }
+#endif
+        return std::string();
     }
 }

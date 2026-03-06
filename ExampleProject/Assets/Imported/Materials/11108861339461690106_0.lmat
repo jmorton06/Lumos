@@ -1,0 +1,27 @@
+{
+    "Albedo": "//Assets/Imported/Textures/9670010164181228443.limg",
+    "Normal": "//Assets/Imported/Textures/13743721374520823237.limg",
+    "Metallic": "//Assets/Imported/Textures/9489998459176362434.limg",
+    "Roughness": "",
+    "Ao": "//Assets/Imported/Textures/1158109711453856352.limg",
+    "Emissive": "//Assets/Imported/Textures/11402897920699153898.limg",
+    "albedoColour": {
+        "value0": 1.0,
+        "value1": 1.0,
+        "value2": 1.0,
+        "value3": 1.0
+    },
+    "roughnessValue": 0.699999988079071,
+    "metallicValue": 0.699999988079071,
+    "emissiveValue": 0.0,
+    "albedoMapFactor": 1.0,
+    "metallicMapFactor": 1.0,
+    "roughnessMapFactor": 1.0,
+    "normalMapFactor": 1.0,
+    "aoMapFactor": 1.0,
+    "emissiveMapFactor": 1.0,
+    "alphaCutOff": 0.4000000059604645,
+    "workflow": 1.0,
+    "shader": "",
+    "Reflectance": 0.30000001192092898
+}

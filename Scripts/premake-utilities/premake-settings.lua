@@ -1,5 +1,5 @@
 settings = { }
 settings.workspace_name   = 'Lumos'
-settings.bundle_identifier = 'com.jmorton06.lumos'
+settings.bundle_identifier = 'com.jmorton.lumos'
 settings.developer_team = 'C5L4T5BF6L'
-settings.enable_signing = false
+settings.enable_signing = true

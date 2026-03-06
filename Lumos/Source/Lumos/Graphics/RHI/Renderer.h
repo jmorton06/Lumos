@@ -51,7 +51,7 @@ namespace Lumos
             virtual void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const             = 0;
             virtual void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const = 0;
             virtual void Dispatch(CommandBuffer* commandBuffer, uint32_t workGroupSizeX, uint32_t workGroupSizeY, uint32_t workGroupSizeZ) { }
-            virtual void DrawSplashScreen(Texture* texture) { }
+            virtual void DrawSplashScreen(Texture* texture, const float* bgColour = nullptr) { }
             virtual uint32_t GetGPUCount() const { return 1; }
             virtual bool SupportsCompute() { return false; }
             virtual void SaveScreenshot(const std::string& path, Graphics::Texture* texture = nullptr, bool Blur = false, float BlurRadius = 2.0f) { };

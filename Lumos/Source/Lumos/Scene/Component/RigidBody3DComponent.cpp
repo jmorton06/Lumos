@@ -3,6 +3,7 @@
 #include "Scene/Scene.h"
 #include "Scene/EntityManager.h"
 #include "Maths/MathsUtilities.h"
+#include "Physics/LumosPhysicsEngine/PhysicsMaterial.h"
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -167,6 +168,101 @@ namespace Lumos
         if(ImGui::Checkbox("##At Rest", &isRest))
             m_RigidBody->SetIsAtRest(isRest);
 
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        auto linearFactor = m_RigidBody->GetLinearFactor();
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Linear Factor");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if(ImGui::DragFloat3("##LinearFactor", Maths::ValuePtr(linearFactor), 0.1f, 0.0f, 1.0f))
+            m_RigidBody->SetLinearFactor(linearFactor);
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        auto angularFactor = m_RigidBody->GetAngularFactor();
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Angular Factor");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if(ImGui::DragFloat3("##AngularFactor", Maths::ValuePtr(angularFactor), 0.1f, 0.0f, 1.0f))
+            m_RigidBody->SetAngularFactor(angularFactor);
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        ImGui::Columns(1);
+
+        // Material preset dropdown
+        auto material = m_RigidBody->GetMaterial();
+        const char* presetNames[] = { "Custom", "Default", "Bouncy", "Ice", "Rubber", "Metal", "Wood", "Concrete" };
+        static int currentPreset = 0;
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Material Preset");
+        ImGui::SameLine();
+        ImGui::PushItemWidth(-1);
+        if(ImGui::Combo("##MaterialPreset", &currentPreset, presetNames, 8))
+        {
+            switch(currentPreset)
+            {
+            case 1: material = PhysicsMaterial::Default(); break;
+            case 2: material = PhysicsMaterial::Bouncy(); break;
+            case 3: material = PhysicsMaterial::Ice(); break;
+            case 4: material = PhysicsMaterial::Rubber(); break;
+            case 5: material = PhysicsMaterial::Metal(); break;
+            case 6: material = PhysicsMaterial::Wood(); break;
+            case 7: material = PhysicsMaterial::Concrete(); break;
+            default: break;
+            }
+            if(currentPreset > 0)
+                m_RigidBody->SetMaterial(material);
+        }
+        ImGui::PopItemWidth();
+
+        ImGui::Columns(2);
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Mat Friction");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if(ImGui::DragFloat("##MatFriction", &material.Friction, 0.01f, 0.0f, 2.0f))
+            m_RigidBody->SetMaterial(material);
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Mat Restitution");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if(ImGui::DragFloat("##MatRestitution", &material.Restitution, 0.01f, 0.0f, 2.0f))
+            m_RigidBody->SetMaterial(material);
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        const char* combineModeNames[] = { "Average", "Minimum", "Maximum", "Multiply" };
+        int frictionCombine = (int)material.FrictionCombine;
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Friction Combine");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if(ImGui::Combo("##FrictionCombine", &frictionCombine, combineModeNames, 4))
+        {
+            material.FrictionCombine = (PhysicsMaterialCombineMode)frictionCombine;
+            m_RigidBody->SetMaterial(material);
+        }
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        int restitutionCombine = (int)material.RestitutionCombine;
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Restitution Combine");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if(ImGui::Combo("##RestitutionCombine", &restitutionCombine, combineModeNames, 4))
+        {
+            material.RestitutionCombine = (PhysicsMaterialCombineMode)restitutionCombine;
+            m_RigidBody->SetMaterial(material);
+        }
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 

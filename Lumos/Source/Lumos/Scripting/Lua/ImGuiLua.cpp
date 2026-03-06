@@ -5,6 +5,7 @@
 #ifdef BIND_IMGUI_LUA
 #include <sol/sol.hpp>
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 
 namespace Lumos
 {
@@ -772,6 +773,7 @@ namespace Lumos
         imgui["getWindowContentRegionMax"]  = ImGui::GetWindowContentRegionMax;
         imgui["getWindowContentRegionMin"]  = ImGui::GetWindowContentRegionMin;
         imgui["getWindowContentRegionMax"]  = ImGui::GetWindowContentRegionMax;
+        imgui["getWindowDrawList"]          = []() { return ImGui::GetWindowDrawList(); };
 
         imgui["setNextWindowPos"] = sol::overload(
             ImGui::SetNextWindowPos,
@@ -825,10 +827,10 @@ namespace Lumos
         imgui["getScrollY"]        = ImGui::GetScrollY;
         imgui["getScrollMaxX"]     = ImGui::GetScrollMaxX;
         imgui["getScrollMaxY"]     = ImGui::GetScrollMaxY;
-        imgui["getScrollX"]        = ImGui::SetScrollX;
-        imgui["getScrollY"]        = ImGui::SetScrollY;
-        imgui["setScrollHereY"]    = ImGui::SetScrollHereY;
-        imgui["setScrollFromPosY"] = ImGui::SetScrollFromPosY;
+        imgui["setScrollX"]        = [](float v) { ImGui::SetScrollX(v); };
+        imgui["setScrollY"]        = [](float v) { ImGui::SetScrollY(v); };
+        imgui["setScrollHereY"]    = [](float r) { ImGui::SetScrollHereY(r); };
+        imgui["setScrollFromPosY"] = [](float y, float r) { ImGui::SetScrollFromPosY(y, r); };
 
         imgui["pushFont"]       = ImGui::PushFont;
         imgui["popFont"]        = ImGui::PopFont;
@@ -941,7 +943,7 @@ namespace Lumos
                                             { return ImGui::BeginCombo(_label, _preview_value); });
         imgui["endCombo"]   = ImGui::EndCombo;
 
-        /*     imgui["dragFloat"] = sol::overload(
+        imgui["dragFloat"] = sol::overload(
             [](const char* _label, float _currentValue, sol::function _cb)
             {
                 if(ImGui::DragFloat(_label, &_currentValue))
@@ -952,36 +954,9 @@ namespace Lumos
                 if(ImGui::DragFloat(_label, &_currentValue, _v_speed))
                     _cb(_currentValue);
             },
-            [](const char* _label, float _currentValue, float _v_speed, float _v_min, sol::function _cb)
-            {
-                if(ImGui::DragFloat(_label, &_currentValue, _v_speed, _v_min))
-                    _cb(_currentValue);
-            },
             [](const char* _label, float _currentValue, float _v_speed, float _v_min, float _v_max, sol::function _cb)
             {
                 if(ImGui::DragFloat(_label, &_currentValue, _v_speed, _v_min, _v_max))
-                    _cb(_currentValue);
-            },
-            [](const char* _label,
-                float _currentValue,
-                float _v_speed,
-                float _v_min,
-                float _v_max,
-                const char* _fmt,
-                sol::function _cb)
-            {
-                if(ImGui::DragFloat(_label, &_currentValue, _v_speed, _v_min, _v_max, _fmt))
-                    _cb(_currentValue);
-            },
-            [](const char* _label,
-                float _currentValue,
-                float _v_speed,
-                float _v_min,
-                float _v_max,
-                const char* _fmt,
-                sol::function _cb)
-            {
-                if(ImGui::DragFloat(_label, &_currentValue, _v_speed, _v_min, _v_max, _fmt))
                     _cb(_currentValue);
             });
 
@@ -996,25 +971,9 @@ namespace Lumos
                 if(ImGui::DragInt(_label, &_currentValue, _v_speed))
                     _cb(_currentValue);
             },
-            [](const char* _label, int _currentValue, float _v_speed, int _v_min, sol::function _cb)
-            {
-                if(ImGui::DragInt(_label, &_currentValue, _v_speed, _v_min))
-                    _cb(_currentValue);
-            },
             [](const char* _label, int _currentValue, float _v_speed, int _v_min, int _v_max, sol::function _cb)
             {
                 if(ImGui::DragInt(_label, &_currentValue, _v_speed, _v_min, _v_max))
-                    _cb(_currentValue);
-            },
-            [](const char* _label,
-                int _currentValue,
-                float _v_speed,
-                int _v_min,
-                int _v_max,
-                const char* _fmt,
-                sol::function _cb)
-            {
-                if(ImGui::DragInt(_label, &_currentValue, _v_speed, _v_min, _v_max, _fmt))
                     _cb(_currentValue);
             });
 
@@ -1041,24 +1000,9 @@ namespace Lumos
                 if(ImGui::SliderAngle(_label, &_currentValue))
                     _cb(_currentValue);
             },
-            [](const char* _label, float _currentValue, float _v_degrees_min, sol::function _cb)
-            {
-                if(ImGui::SliderAngle(_label, &_currentValue, _v_degrees_min))
-                    _cb(_currentValue);
-            },
             [](const char* _label, float _currentValue, float _v_degrees_min, float _v_degrees_max, sol::function _cb)
             {
                 if(ImGui::SliderAngle(_label, &_currentValue, _v_degrees_min, _v_degrees_max))
-                    _cb(_currentValue);
-            },
-            [](const char* _label,
-                float _currentValue,
-                float _v_degrees_min,
-                float _v_degrees_max,
-                const char* _format,
-                sol::function _cb)
-            {
-                if(ImGui::SliderAngle(_label, &_currentValue, _v_degrees_min, _v_degrees_max, _format))
                     _cb(_currentValue);
             });
 
@@ -1074,82 +1018,48 @@ namespace Lumos
                     _cb(_currentValue);
             });
 
-        imgui["vSliderFloat"] = sol::overload(
-            [](const char* _label,
-                const ImVec2& _size,
-                float _currentValue,
-                float _v_min,
-                float _v_max,
-                sol::function _cb)
-            {
-                if(ImGui::VSliderFloat(_label, _size, &_currentValue, _v_min, _v_max))
-                    _cb(_currentValue);
-            },
-            [](const char* _label,
-                const ImVec2& _size,
-                float _currentValue,
-                float _v_min,
-                float _v_max,
-                const char* _format,
-                sol::function _cb)
-            {
-                if(ImGui::VSliderFloat(_label, _size, &_currentValue, _v_min, _v_max, _format))
-                    _cb(_currentValue);
-            });
-
-        imgui["vSliderInt"] = sol::overload(
-            [](const char* _label, const ImVec2& _size, int _currentValue, int _v_min, int _v_max, sol::function _cb)
-            {
-                if(ImGui::VSliderInt(_label, _size, &_currentValue, _v_min, _v_max))
-                    _cb(_currentValue);
-            },
-            [](const char* _label,
-                const ImVec2& _size,
-                int _currentValue,
-                int _v_min,
-                int _v_max,
-                const char* _format,
-                sol::function _cb)
-            {
-                if(ImGui::VSliderInt(_label, _size, &_currentValue, _v_min, _v_max, _format))
-                    _cb(_currentValue);
-            });*/
-
         //@TODO: add overloads
-        // imgui["inputText"] = [](const char * _label, int _capacity, sol::function _cb) {
-        //    //@TODO: This is kinda gnarly
-        //    static stick::HashMap<const char *, stick::std::string> s_stringStorage;
-        //    auto it = s_stringStorage.find(_label);
-        //    stick::std::string * str;
-        //    if (it != s_stringStorage.end())
-        //        str = &it->value;
-        //    else
-        //    {
-        //        auto res = s_stringStorage.insert(_label, std::string());
-        //        str = &res.iterator->value;
-        //    }
+        imgui["inputText"] = [](const char* _label, const std::string& _text, sol::function _cb)
+        {
+            static std::unordered_map<std::string, std::string> s_storage;
+            auto& buf = s_storage[_label];
+            if(buf != _text)
+                buf = _text;
+            buf.resize(4096);
+            if(ImGui::InputText(_label, &buf[0], buf.capacity()))
+            {
+                buf.resize(strlen(buf.c_str()));
+                _cb(buf);
+            }
+        };
 
-        //    str->reserve(_capacity);
-        //    if (ImGui::InputText(_label, &(*str)[0], str->capacity()))
-        //        _cb(str->cString());
-        //};
-        // imgui["inputTextMultiline"] = [](const char * _label, int _capacity, sol::function _cb) {
-        //    //@TODO: This is kinda gnarly
-        //    static stick::HashMap<const char *, stick::std::string> s_stringStorage;
-        //    auto it = s_stringStorage.find(_label);
-        //    stick::std::string * str;
-        //    if (it != s_stringStorage.end())
-        //        str = &it->value;
-        //    else
-        //    {
-        //        auto res = s_stringStorage.insert(_label, std::string());
-        //        str = &res.iterator->value;
-        //    }
-
-        //    str->reserve(_capacity);
-        //    if (ImGui::InputTextMultiline(_label, &(*str)[0], str->capacity()))
-        //        _cb(str->cString());
-        //};
+        imgui["inputTextMultiline"] = sol::overload(
+            [](const char* _label, const std::string& _text, sol::function _cb)
+            {
+                static std::unordered_map<std::string, std::string> s_storage;
+                auto& buf = s_storage[_label];
+                if(buf != _text)
+                    buf = _text;
+                buf.resize(16384);
+                if(ImGui::InputTextMultiline(_label, &buf[0], buf.capacity()))
+                {
+                    buf.resize(strlen(buf.c_str()));
+                    _cb(buf);
+                }
+            },
+            [](const char* _label, const std::string& _text, float _w, float _h, sol::function _cb)
+            {
+                static std::unordered_map<std::string, std::string> s_storage;
+                auto& buf = s_storage[_label];
+                if(buf != _text)
+                    buf = _text;
+                buf.resize(16384);
+                if(ImGui::InputTextMultiline(_label, &buf[0], buf.capacity(), ImVec2(_w, _h)))
+                {
+                    buf.resize(strlen(buf.c_str()));
+                    _cb(buf);
+                }
+            });
 
         imgui["inputFloat"] = sol::overload(
             [](const char* _label, float _current, sol::function _cb)
@@ -1268,6 +1178,10 @@ namespace Lumos
                 _cb(bOpen); });
 
         imgui["selectable"] = sol::overload(
+            [](const char* _label, bool _bSelected)
+            {
+                return ImGui::Selectable(_label, &_bSelected);
+            },
             [](const char* _label, bool _bSelected, sol::function _cb)
             {
                 if(ImGui::Selectable(_label, &_bSelected))
@@ -1280,6 +1194,26 @@ namespace Lumos
             });
 
         // PlotLines
+        imgui["plotLines"] = [](const char* label, sol::table vals,
+            sol::optional<const char*> overlay,
+            sol::optional<float> scaleMin, sol::optional<float> scaleMax,
+            sol::optional<float> w, sol::optional<float> h)
+        {
+            std::vector<float> data;
+            for(int i = 1; i <= (int)vals.size(); i++)
+                data.push_back(vals[i].get_or(0.0f));
+            ImGui::PlotLines(label, data.data(), (int)data.size(), 0,
+                overlay.value_or(nullptr),
+                scaleMin.value_or(FLT_MAX), scaleMax.value_or(FLT_MAX),
+                ImVec2(w.value_or(0), h.value_or(80)));
+        };
+
+        imgui["colorEdit3"] = [](const char* label, float r, float g, float b, sol::function cb)
+        {
+            float col[3] = { r, g, b };
+            if(ImGui::ColorEdit3(label, col))
+                cb(col[0], col[1], col[2]);
+        };
 
         imgui["value"] = sol::overload((void (*)(const char*, bool))ImGui::Value,
                                        (void (*)(const char*, int))ImGui::Value,
@@ -1350,7 +1284,7 @@ namespace Lumos
         imgui["openPopupOnItemClick"] = sol::overload(
             ImGui::OpenPopupOnItemClick, [](const char* _name)
             { return ImGui::OpenPopupOnItemClick(_name); });
-        imgui["isPopupOpen"]       = (bool (*)(const char*))ImGui::IsPopupOpen;
+        imgui["isPopupOpen"]       = [](const char* str_id) { return ImGui::IsPopupOpen(str_id); };
         imgui["closeCurrentPopup"] = ImGui::CloseCurrentPopup;
 
         imgui["columns"] = sol::overload(
@@ -1435,24 +1369,24 @@ namespace Lumos
         // imgui["setItemDefaultFocus"] = ImGui::SetItemDefaultFocus;
         // imgui["setKeyboardFocusHere"] = ImGui::SetKeyboardFocusHere;
 
-        // imgui["isItemHovered"] = sol::overload(ImGui::IsItemHovered, []()
-        //     { return ImGui::IsItemHovered(); });
-        // imgui["isItemActive"] = ImGui::IsItemActive;
-        // imgui["isItemFocused"] = ImGui::IsItemFocused;
-        // imgui["isItemClicked"] = sol::overload(ImGui::IsItemClicked, []()
-        //     { return ImGui::IsItemClicked(); });
-        // imgui["isItemVisible"] = ImGui::IsItemVisible;
-        // imgui["isItemEdited"] = ImGui::IsItemEdited;
-        // imgui["isItemActivated"] = ImGui::IsItemActivated;
-        // imgui["isItemDeactivated"] = ImGui::IsItemDeactivated;
-        // imgui["isItemDeactivatedAfterEdit"] = ImGui::IsItemDeactivatedAfterEdit;
-        // imgui["isAnyItemHovered"] = ImGui::IsAnyItemHovered;
-        // imgui["isAnyItemActive"] = ImGui::IsAnyItemActive;
-        // imgui["isAnyItemFocused"] = ImGui::IsAnyItemFocused;
-        // imgui["getItemRectMin"] = ImGui::GetItemRectMin;
-        // imgui["getItemRectMax"] = ImGui::GetItemRectMax;
-        // imgui["getItemRectSize"] = ImGui::GetItemRectSize;
-        // imgui["setItemAllowOverlap"] = ImGui::SetItemAllowOverlap;
+        imgui["isItemHovered"] = sol::overload(ImGui::IsItemHovered, []()
+             { return ImGui::IsItemHovered(); });
+        imgui["isItemActive"] = ImGui::IsItemActive;
+        imgui["isItemFocused"] = ImGui::IsItemFocused;
+        imgui["isItemClicked"] = sol::overload(ImGui::IsItemClicked, []()
+            { return ImGui::IsItemClicked(); });
+        imgui["isItemVisible"] = ImGui::IsItemVisible;
+        imgui["isItemEdited"] = ImGui::IsItemEdited;
+        imgui["isItemActivated"] = ImGui::IsItemActivated;
+        imgui["isItemDeactivated"] = ImGui::IsItemDeactivated;
+        imgui["isItemDeactivatedAfterEdit"] = ImGui::IsItemDeactivatedAfterEdit;
+        imgui["isAnyItemHovered"] = ImGui::IsAnyItemHovered;
+        imgui["isAnyItemActive"] = ImGui::IsAnyItemActive;
+        imgui["isAnyItemFocused"] = ImGui::IsAnyItemFocused;
+        imgui["getItemRectMin"] = ImGui::GetItemRectMin;
+        imgui["getItemRectMax"] = ImGui::GetItemRectMax;
+        imgui["getItemRectSize"] = ImGui::GetItemRectSize;
+        imgui["setNextItemAllowOverlap"] = ImGui::SetNextItemAllowOverlap;
 
         // imgui["getKeyIndex"] = ImGui::GetKeyIndex;
         // imgui["isKeyDown"] = ImGui::IsKeyDown;
@@ -1474,6 +1408,134 @@ namespace Lumos
         // imgui["setMouseCursor"] = ImGui::SetMouseCursor;
         // imgui["captureKeyboardFromApp"] = ImGui::CaptureKeyboardFromApp;
         // imgui["captureMouseFromApp"] = ImGui::CaptureMouseFromApp;
+
+        // DrawList bindings
+        imgui["colorToU32"] = [](float r, float g, float b, float a)
+        {
+            return ImGui::ColorConvertFloat4ToU32(ImVec4(r, g, b, a));
+        };
+
+        imgui["drawListAddRectFilled"] = sol::overload(
+            [](ImDrawList* dl, float x1, float y1, float x2, float y2, ImU32 col)
+            { dl->AddRectFilled(ImVec2(x1, y1), ImVec2(x2, y2), col); },
+            [](ImDrawList* dl, float x1, float y1, float x2, float y2, ImU32 col, float rounding)
+            { dl->AddRectFilled(ImVec2(x1, y1), ImVec2(x2, y2), col, rounding); });
+
+        imgui["drawListAddRect"] = sol::overload(
+            [](ImDrawList* dl, float x1, float y1, float x2, float y2, ImU32 col)
+            { dl->AddRect(ImVec2(x1, y1), ImVec2(x2, y2), col); },
+            [](ImDrawList* dl, float x1, float y1, float x2, float y2, ImU32 col, float rounding)
+            { dl->AddRect(ImVec2(x1, y1), ImVec2(x2, y2), col, rounding); },
+            [](ImDrawList* dl, float x1, float y1, float x2, float y2, ImU32 col, float rounding, ImDrawFlags flags, float thickness)
+            { dl->AddRect(ImVec2(x1, y1), ImVec2(x2, y2), col, rounding, flags, thickness); });
+
+        imgui["drawListAddLine"] = sol::overload(
+            [](ImDrawList* dl, float x1, float y1, float x2, float y2, ImU32 col)
+            { dl->AddLine(ImVec2(x1, y1), ImVec2(x2, y2), col); },
+            [](ImDrawList* dl, float x1, float y1, float x2, float y2, ImU32 col, float thickness)
+            { dl->AddLine(ImVec2(x1, y1), ImVec2(x2, y2), col, thickness); });
+
+        imgui["drawListAddCircleFilled"] = sol::overload(
+            [](ImDrawList* dl, float cx, float cy, float radius, ImU32 col)
+            { dl->AddCircleFilled(ImVec2(cx, cy), radius, col); },
+            [](ImDrawList* dl, float cx, float cy, float radius, ImU32 col, int numSegments)
+            { dl->AddCircleFilled(ImVec2(cx, cy), radius, col, numSegments); });
+
+        imgui["drawListAddCircle"] = sol::overload(
+            [](ImDrawList* dl, float cx, float cy, float radius, ImU32 col)
+            { dl->AddCircle(ImVec2(cx, cy), radius, col); },
+            [](ImDrawList* dl, float cx, float cy, float radius, ImU32 col, int numSegments, float thickness)
+            { dl->AddCircle(ImVec2(cx, cy), radius, col, numSegments, thickness); });
+
+        imgui["drawListAddText"] = [](ImDrawList* dl, float x, float y, ImU32 col, const char* text)
+        { dl->AddText(ImVec2(x, y), col, text); };
+
+        imgui["drawListAddTriangleFilled"] = [](ImDrawList* dl, float x1, float y1, float x2, float y2, float x3, float y3, ImU32 col)
+        { dl->AddTriangleFilled(ImVec2(x1, y1), ImVec2(x2, y2), ImVec2(x3, y3), col); };
+
+        // DockNodeFlags enum
+        imgui.new_enum("DockNodeFlags",
+                       "None", 0,
+                       "NoSplit", ImGuiDockNodeFlags_NoSplit,
+                       "NoResize", ImGuiDockNodeFlags_NoResize,
+                       "NoTabBar", ImGuiDockNodeFlags_NoTabBar,
+                       "HiddenTabBar", ImGuiDockNodeFlags_HiddenTabBar,
+                       "NoWindowMenuButton", ImGuiDockNodeFlags_NoWindowMenuButton,
+                       "NoCloseButton", ImGuiDockNodeFlags_NoCloseButton);
+
+        // DockBuilder functions
+        imgui["dockBuilderGetNode"] = [](ImGuiID id) -> bool
+        {
+            return ImGui::DockBuilderGetNode(id) != nullptr;
+        };
+
+        imgui["dockBuilderRemoveNode"] = [](ImGuiID id)
+        {
+            ImGui::DockBuilderRemoveNode(id);
+        };
+
+        imgui["dockBuilderAddNode"] = sol::overload(
+            [](ImGuiID id) { return ImGui::DockBuilderAddNode(id); },
+            [](ImGuiID id, ImGuiDockNodeFlags flags) { return ImGui::DockBuilderAddNode(id, flags); });
+
+        imgui["dockBuilderSetNodeSize"] = [](ImGuiID id, float w, float h)
+        {
+            ImGui::DockBuilderSetNodeSize(id, ImVec2(w, h));
+        };
+
+        imgui["dockBuilderSplitNode"] = [](ImGuiID id, int dir, float ratio) -> std::tuple<ImGuiID, ImGuiID>
+        {
+            ImGuiID outDir = 0, outOpp = 0;
+            ImGui::DockBuilderSplitNode(id, (ImGuiDir)dir, ratio, &outDir, &outOpp);
+            return std::make_tuple(outDir, outOpp);
+        };
+
+        imgui["dockBuilderDockWindow"] = [](const char* name, ImGuiID nodeId)
+        {
+            ImGui::DockBuilderDockWindow(name, nodeId);
+        };
+
+        imgui["dockBuilderFinish"] = [](ImGuiID id)
+        {
+            ImGui::DockBuilderFinish(id);
+        };
+
+        // DockSpace
+        imgui["dockSpace"] = sol::overload(
+            [](ImGuiID id) { return ImGui::DockSpace(id, ImVec2(0, 0), 0); },
+            [](ImGuiID id, ImGuiDockNodeFlags flags) { return ImGui::DockSpace(id, ImVec2(0, 0), flags); });
+
+        // Fullscreen dockspace convenience wrapper
+        imgui["beginFullscreenDockspace"] = [](const char* name) -> std::tuple<ImGuiID, bool>
+        {
+            ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar
+                | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
+                | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
+
+            ImGuiViewport* viewport = ImGui::GetMainViewport();
+            ImGui::SetNextWindowPos(viewport->WorkPos);
+            ImGui::SetNextWindowSize(viewport->WorkSize);
+            ImGui::SetNextWindowViewport(viewport->ID);
+
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+            ImGui::Begin(name, nullptr, windowFlags);
+            ImGui::PopStyleVar(3);
+
+            ImGuiID dockspaceId = ImGui::GetID(name);
+            bool needsLayout   = !ImGui::DockBuilderGetNode(dockspaceId);
+
+            ImGuiDockNodeFlags dockFlags = ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoCloseButton;
+            ImGui::DockSpace(dockspaceId, ImVec2(0, 0), dockFlags);
+
+            return std::make_tuple(dockspaceId, needsLayout);
+        };
+
+        imgui["endFullscreenDockspace"] = []()
+        {
+            ImGui::End();
+        };
     }
 }
 

@@ -17,6 +17,7 @@
 #include "CompiledSPV/Headers/ForwardPBRAnimvertspv.hpp"
 #include "CompiledSPV/Headers/ForwardPBRvertspv.hpp"
 #include "CompiledSPV/Headers/ForwardPBRfragspv.hpp"
+#include "CompiledSPV/Headers/ForwardPBRLowfragspv.hpp"
 
 #include "CompiledSPV/Headers/Skyboxvertspv.hpp"
 #include "CompiledSPV/Headers/Skyboxfragspv.hpp"
@@ -66,9 +67,9 @@ namespace Lumos
 {
     namespace Graphics
     {
-#define LoadShaderEmbedded(name, vertName, fragName) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_##vertName##vertspv.data(), spirv_##vertName##vertspv_size, spirv_##fragName##fragspv.data(), spirv_##fragName##fragspv_size)), true);
-#define LoadComputeShaderEmbedded(name, compName) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateCompFromEmbeddedArray(spirv_##compName##compspv.data(), spirv_##compName##compspv_size)), true);
-#define LoadShaderFromFile(name, path) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile((engineShaderPath + path).c_str())), true);
+#define LoadShaderEmbedded(name, vertName, fragName) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_##vertName##vertspv.data(), spirv_##vertName##vertspv_size, spirv_##fragName##fragspv.data(), spirv_##fragName##fragspv_size)), true, true);
+#define LoadComputeShaderEmbedded(name, compName) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateCompFromEmbeddedArray(spirv_##compName##compspv.data(), spirv_##compName##compspv_size)), true, true);
+#define LoadShaderFromFile(name, path) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile((engineShaderPath + path).c_str())), true, true);
 
         Renderer* (*Renderer::CreateFunc)() = nullptr;
 
@@ -92,6 +93,7 @@ namespace Lumos
 
         void Renderer::LoadEngineShaders(bool loadEmbeddedShaders, const std::string& engineShaderPath)
         {
+            LUMOS_PROFILE_FUNCTION();
             auto shaderLibrary = Application::Get().GetAssetManager();
             if(loadEmbeddedShaders)
             {
@@ -99,6 +101,7 @@ namespace Lumos
                 LoadShaderEmbedded(Str8Lit("Skybox"), Skybox, Skybox);
                 LoadShaderEmbedded(Str8Lit("ForwardPBR"), ForwardPBR, ForwardPBR);
                 LoadShaderEmbedded(Str8Lit("ForwardPBRAnim"), ForwardPBRAnim, ForwardPBR);
+                LoadShaderEmbedded(Str8Lit("ForwardPBR_Low"), ForwardPBR, ForwardPBRLow);
                 LoadShaderEmbedded(Str8Lit("Shadow"), Shadow, Shadow);
                 LoadShaderEmbedded(Str8Lit("ShadowAlpha"), Shadow, ShadowAlpha);
                 LoadShaderEmbedded(Str8Lit("ShadowAnim"), ShadowAnim, Shadow);
@@ -166,6 +169,7 @@ namespace Lumos
                 LoadShaderFromFile(Str8Lit("SSAOBlur"), "Shaders/SSAOBlur.shader");
                 LoadShaderFromFile(Str8Lit("Sharpen"), "Shaders/Sharpen.shader");
                 LoadShaderFromFile(Str8Lit("ForwardPBR"), "Shaders/ForwardPBR.shader");
+                LoadShaderFromFile(Str8Lit("ForwardPBR_Low"), "Shaders/ForwardPBR_Low.shader");
                 LoadShaderFromFile(Str8Lit("ForwardPBRAnim"), "Shaders/ForwardPBRAnim.shader");
                 LoadShaderFromFile(Str8Lit("Particle"), "Shaders/Particle.shader");
                 LoadShaderFromFile(Str8Lit("DepthPrePassAnim"), "Shaders/DepthPrePassAnim.shader");

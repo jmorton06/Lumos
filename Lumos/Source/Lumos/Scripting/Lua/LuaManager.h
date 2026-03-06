@@ -46,5 +46,6 @@ namespace Lumos
         static TDArray<std::string> s_Identifiers;
 
         sol::state* m_State;
+        uint32_t m_ReloadFrameCounter = 0;
     };
 }

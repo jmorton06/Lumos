@@ -22,47 +22,6 @@ layout(set = 0, binding = 1) uniform sampler2D u_Texture;
 layout(set = 0, binding = 2) uniform sampler2D u_BloomTexture;
 layout(location = 0) out vec4 outFrag;
 
-mat4 SaturationMatrix( float saturation )
-{
-    vec3 luminance = vec3( 0.3086, 0.6094, 0.0820 );
-    float oneMinusSat = 1.0 - saturation;
-    
-    vec3 red = vec3( luminance.x * oneMinusSat );
-    red+= vec3( saturation, 0, 0 );
-    
-    vec3 green = vec3( luminance.y * oneMinusSat );
-    green += vec3( 0, saturation, 0 );
-    
-    vec3 blue = vec3( luminance.z * oneMinusSat );
-    blue += vec3( 0, 0, saturation );
-    
-    return mat4( red,     0,
-                 green,   0,
-                 blue,    0,
-                 0, 0, 0, 1 );
-}
-
-vec3 UpsampleTent9(sampler2D tex, float lod, vec2 uv, vec2 texelSize, float radius)
-{
-	vec4 offset = texelSize.xyxy * vec4(1.0f, 1.0f, -1.0f, 0.0f) * radius;
-	
-	// Center
-	vec3 result = textureLod(tex, uv, lod).rgb * 4.0f;
-	
-	result += textureLod(tex, uv - offset.xy, lod).rgb;
-	result += textureLod(tex, uv - offset.wy, lod).rgb * 2.0;
-	result += textureLod(tex, uv - offset.zy, lod).rgb;
-	
-	result += textureLod(tex, uv + offset.zw, lod).rgb * 2.0;
-	result += textureLod(tex, uv + offset.xw, lod).rgb * 2.0;
-	
-	result += textureLod(tex, uv + offset.zy, lod).rgb;
-	result += textureLod(tex, uv + offset.wy, lod).rgb * 2.0;
-	result += textureLod(tex, uv + offset.xy, lod).rgb;
-	
-	return result * (1.0f / 16.0f);
-}
-
 vec3 ACESApprox(vec3 v)
 {
     v *= 0.6f;
@@ -209,11 +168,7 @@ void main()
 {
 	vec3 colour = texture(u_Texture, outTexCoord).rgb;
 	
-	float sampleScale = 0.5;
-	ivec2 texSize = textureSize(u_BloomTexture, 0);
-	vec2 fTexSize = vec2(float(texSize.x), float(texSize.y));
-	
-	vec3 bloom = UpsampleTent9(u_BloomTexture, 0, outTexCoord, 1.0f / fTexSize, sampleScale) * ubo.BloomIntensity;
+	vec3 bloom = texture(u_BloomTexture, outTexCoord).rgb * ubo.BloomIntensity;
 	
 	colour += bloom;
 	
@@ -228,7 +183,8 @@ void main()
 	colour = Gamma(colour);
 
 	colour.rgb = (colour.rgb - 0.5f) * ubo.Contrast + 0.5f + ubo.Brightness;
-	colour.rgb = (SaturationMatrix(ubo.Saturation) * vec4(colour, 1.0)).xyz;
+	float lum = dot(colour.rgb, vec3(0.3086, 0.6094, 0.0820));
+	colour.rgb = mix(vec3(lum), colour.rgb, ubo.Saturation);
 
 	outFrag = vec4(colour, 1.0);
 }

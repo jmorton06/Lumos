@@ -99,11 +99,11 @@ vec3 DownsampleBox13(sampler2D tex, float lod, vec2 uv, vec2 texelSize)
     // Outer box
     vec3 F = textureLod(tex, uv + texelSize * vec2(-2.0f, -2.0f), lod).rgb;
     vec3 G = textureLod(tex, uv + texelSize * vec2(-2.0f, 0.0f), lod).rgb;
-    vec3 H = textureLod(tex, uv + texelSize * vec2(0.0f, 2.0f), lod).rgb;
-    vec3 I = textureLod(tex, uv + texelSize * vec2(2.0f, 2.0f), lod).rgb;
+    vec3 H = textureLod(tex, uv + texelSize * vec2(-2.0f, 2.0f), lod).rgb;
+    vec3 I = textureLod(tex, uv + texelSize * vec2(0.0f, 2.0f), lod).rgb;
     vec3 J = textureLod(tex, uv + texelSize * vec2(2.0f, 2.0f), lod).rgb;
     vec3 K = textureLod(tex, uv + texelSize * vec2(2.0f, 0.0f), lod).rgb;
-    vec3 L = textureLod(tex, uv + texelSize * vec2(-2.0f, -2.0f), lod).rgb;
+    vec3 L = textureLod(tex, uv + texelSize * vec2(2.0f, -2.0f), lod).rgb;
     vec3 M = textureLod(tex, uv + texelSize * vec2(0.0f, -2.0f), lod).rgb;
 	
     // Weights

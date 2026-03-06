@@ -36,8 +36,8 @@ namespace Lumos
         LINFO("Creating window - Title : %s, Width : %i, Height : %i", (const char*)properties.Title.str, properties.Width, properties.Height);
         
         m_Data.Title = ToStdString(properties.Title);
-        m_Data.Width = properties.Width;
-        m_Data.Height = properties.Height;
+        m_Data.Width = prop.Width;
+        m_Data.Height = prop.Height;
         m_Data.Exit = false;
         
 		m_GraphicsContext = SharedPtr<Graphics::GraphicsContext>(Graphics::GraphicsContext::Create());
@@ -78,7 +78,7 @@ namespace Lumos
             m_Data.EventCallback(*event);
             delete event;
         }
-        
+
         m_QueuedEvents.Clear();
     }
     
@@ -104,6 +104,18 @@ namespace Lumos
             KeyReleasedEvent* event = new KeyReleasedEvent(key);
             m_QueuedEvents.PushBack(event);
         }
+    }
+
+    void iOSWindow::OnKeyTypedEvent(char character)
+    {
+        KeyTypedEvent* event = new KeyTypedEvent(Lumos::InputCode::Key::A, character);
+        m_QueuedEvents.PushBack(event);
+    }
+
+    void iOSWindow::OnScrollEvent(float xOffset, float yOffset)
+    {
+        MouseScrolledEvent* event = new MouseScrolledEvent(xOffset, yOffset);
+        m_QueuedEvents.PushBack(event);
     }
     
     void iOSWindow::OnTouchEvent(uint32_t xPos, uint32_t yPos, uint32_t count, bool down)
@@ -133,6 +145,8 @@ namespace Lumos
     
     void iOSWindow::OnResizeEvent(uint32_t width, uint32_t height)
     {
+        m_Data.Width = width;
+        m_Data.Height = height;
         WindowResizeEvent* event = new WindowResizeEvent(width, height);
         m_QueuedEvents.PushBack(event);
     }

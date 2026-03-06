@@ -30,7 +30,7 @@ namespace Lumos
         state.velocity += dvdt * dt;
     }
 
-    Integration::Derivative Integration::Evaluate(State& initial, float dt, float t, const Derivative& derivative)
+    Integration::Derivative Integration::Evaluate(State& initial, float t, float dt, const Derivative& derivative)
     {
         State state;
         state.position = initial.position + derivative.velocity * dt;

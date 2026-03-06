@@ -30,7 +30,7 @@
 #include "Maths/MathsUtilities.h"
 #include "Events/ApplicationEvent.h"
 
-#include "Embedded/BRDFTexture.inl"
+#include "Embedded/EmbeddedAssetData.h"
 #include "Embedded/CheckerBoardTextureArray.inl"
 #include "Core/Asset/AssetManager.h"
 #include "Core/Application.h"
@@ -128,7 +128,11 @@ namespace Lumos::Graphics
 
         // Setup forward pass data
         m_ForwardData.m_DepthTest    = true;
+#ifdef LUMOS_PLATFORM_MACOS
+        m_ForwardData.m_Shader       = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBR_Low")).As<Graphics::Shader>();
+#else
         m_ForwardData.m_Shader       = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBR")).As<Graphics::Shader>();
+#endif
         m_ForwardData.m_AnimShader   = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBRAnim")).As<Graphics::Shader>();
         m_ForwardData.m_DepthTexture = TextureDepth::Create(width, height, Renderer::GetRenderer()->GetDepthFormat(), m_MainTextureSamples);
         m_ForwardData.m_CommandQueue.Reserve(1000);
@@ -211,7 +215,8 @@ namespace Lumos::Graphics
         param.wrap              = TextureWrap::CLAMP_TO_EDGE;
         param.flags             = TextureFlags::Texture_RenderTarget;
         param.generateMipMaps   = false;
-        m_ForwardData.m_BRDFLUT = UniquePtr<Texture2D>(Texture2D::Create(param, BRDFTextureWidth, BRDFTextureHeight));
+        const auto& brdfData = Embedded::GetBRDFData();
+        m_ForwardData.m_BRDFLUT = UniquePtr<Texture2D>(Texture2D::Create(param, brdfData.width, brdfData.height));
 
         m_GenerateBRDFLUT = true;
 
@@ -290,9 +295,9 @@ namespace Lumos::Graphics
         }
 
         mainRenderTargetDesc.flags = TextureFlags::Texture_RenderTarget | TextureFlags::Texture_CreateMips | TextureFlags::Texture_MipViews;
-        m_BloomTexture             = Texture2D::Create(mainRenderTargetDesc, width, height);
-        m_BloomTexture1            = Texture2D::Create(mainRenderTargetDesc, width, height);
-        m_BloomTexture2            = Texture2D::Create(mainRenderTargetDesc, width, height);
+        m_BloomTexture             = Texture2D::Create(mainRenderTargetDesc, width / 2, height / 2);
+        m_BloomTexture1            = Texture2D::Create(mainRenderTargetDesc, width / 2, height / 2);
+        m_BloomTexture2            = Texture2D::Create(mainRenderTargetDesc, width / 2, height / 2);
 
         m_FXAAShader               = Application::Get().GetAssetManager()->GetAssetData(m_SupportCompute ? Str8Lit("FXAAComp") : Str8Lit("FXAA")).As<Graphics::Shader>();
         descriptorDesc.layoutIndex = 0;
@@ -677,9 +682,9 @@ namespace Lumos::Graphics
         m_PostProcessTexture1->Resize(width, height);
         m_SSAOTexture->Resize(width / 2, height / 2);
         m_SSAOTexture1->Resize(width / 2, height / 2);
-        m_BloomTexture->Resize(width, height);
-        m_BloomTexture1->Resize(width, height);
-        m_BloomTexture2->Resize(width, height);
+        m_BloomTexture->Resize(width / 2, height / 2);
+        m_BloomTexture1->Resize(width / 2, height / 2);
+        m_BloomTexture2->Resize(width / 2, height / 2);
         m_NormalTexture->Resize(width, height);
     }
 
@@ -987,7 +992,7 @@ namespace Lumos::Graphics
 
             m_ForwardData.m_DescriptorSet[2]->SetTexture(0, reinterpret_cast<Texture*>(shadowData.m_ShadowTex), 0, TextureType::DEPTHARRAY);
             m_ForwardData.m_DescriptorSet[2]->SetTexture(3, m_ForwardData.m_BRDFLUT.get());
-            m_ForwardData.m_DescriptorSet[2]->SetTexture(4, Application::Get().GetCurrentScene()->GetSettings().RenderSettings.SSAOEnabled ? m_SSAOTexture : Material::GetDefaultTexture().get());
+            m_ForwardData.m_DescriptorSet[2]->SetTexture(4, m_SSAOValid ? m_SSAOTexture : Material::GetDefaultTexture().get());
             m_ForwardData.m_DescriptorSet[2]->SetTexture(1, m_ForwardData.m_EnvironmentMap, 0, TextureType::CUBE);
             m_ForwardData.m_DescriptorSet[2]->SetTexture(2, m_ForwardData.m_IrradianceMap, 0, TextureType::CUBE);
             m_ForwardData.m_DescriptorSet[2]->Update();
@@ -1182,28 +1187,28 @@ namespace Lumos::Graphics
 
             {
                 LUMOS_PROFILE_SCOPE("Sort Meshes by distance from camera");
-                auto camTransform = m_CameraTransform;
+                auto camPos = m_CameraTransform->GetWorldPosition();
                 if(!m_ForwardData.m_CommandQueue.Empty())
-                    Algorithms::BubbleSort(m_ForwardData.m_CommandQueue.begin(), m_ForwardData.m_CommandQueue.end(),
-                                           [camTransform](RenderCommand& a, RenderCommand& b)
-                                           {
-                                               if(a.material->GetFlag(Material::RenderFlags::DEPTHTEST) && !b.material->GetFlag(Material::RenderFlags::DEPTHTEST))
-                                                   return true;
-                                               if(!a.material->GetFlag(Material::RenderFlags::DEPTHTEST) && b.material->GetFlag(Material::RenderFlags::DEPTHTEST))
-                                                   return false;
+                    Algorithms::InsertionSort(m_ForwardData.m_CommandQueue.begin(), m_ForwardData.m_CommandQueue.end(),
+                                              [camPos](RenderCommand& a, RenderCommand& b)
+                                              {
+                                                  if(a.material->GetFlag(Material::RenderFlags::DEPTHTEST) && !b.material->GetFlag(Material::RenderFlags::DEPTHTEST))
+                                                      return true;
+                                                  if(!a.material->GetFlag(Material::RenderFlags::DEPTHTEST) && b.material->GetFlag(Material::RenderFlags::DEPTHTEST))
+                                                      return false;
 
-                                               return Maths::Distance(camTransform->GetWorldPosition(), a.transform.Translation()) < Maths::Distance(camTransform->GetWorldPosition(), b.transform.Translation());
-                                           });
+                                                  return Maths::Length2(camPos - a.transform.Translation()) < Maths::Length2(camPos - b.transform.Translation());
+                                              });
             }
 
             {
                 LUMOS_PROFILE_SCOPE("Sort sprites by z value");
                 if(!m_Renderer2DData.m_CommandQueue2D.Empty())
-                    Algorithms::BubbleSort(m_Renderer2DData.m_CommandQueue2D.begin(), m_Renderer2DData.m_CommandQueue2D.end(),
-                                           [](RenderCommand2D& a, RenderCommand2D& b)
-                                           {
-                                               return a.transform.Translation()[2] < b.transform.Translation()[2];
-                                           });
+                    Algorithms::InsertionSort(m_Renderer2DData.m_CommandQueue2D.begin(), m_Renderer2DData.m_CommandQueue2D.end(),
+                                              [](RenderCommand2D& a, RenderCommand2D& b)
+                                              {
+                                                  return a.transform.Translation()[2] < b.transform.Translation()[2];
+                                              });
             }
         }
     }
@@ -1261,6 +1266,7 @@ namespace Lumos::Graphics
         //     sceneRenderSettings.SSAOEnabled = false;
         // }
 
+        m_SSAOValid = false;
         if(sceneRenderSettings.SSAOEnabled && !m_DisablePostProcess && qualitySettings.EnableSSAO)
         {
             SSAOPass();
@@ -1825,6 +1831,8 @@ namespace Lumos::Graphics
         auto set = m_SSAOPassDescriptorSet.get();
         Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
         Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
+
+        m_SSAOValid = true;
     }
 
     void SceneRenderer::SSAOBlurPass()
@@ -2101,10 +2109,21 @@ namespace Lumos::Graphics
             text_color       = text_color.Lerp(activeTextColor, easedActiveTransition);
         }
 
+        // Apply scale animation
+        Vec2 scaledSize = widget->size;
+        Vec2 scaledPos = widget->position;
+        if((widget->flags & WidgetFlags_AnimateScale) && widget->ScaleAnimation < 1.0f)
+        {
+            float scale = widget->ScaleAnimation;
+            Vec2 center = widget->position + widget->size * 0.5f;
+            scaledSize = widget->size * scale;
+            scaledPos = center - scaledSize * 0.5f;
+        }
+
         if(widget->flags & WidgetFlags_DrawBorder)
         {
-            Vec2 size = widget->size;
-            Vec2 p    = widget->position;
+            Vec2 size = scaledSize;
+            Vec2 p    = scaledPos;
             // size *= 4.0f;
             p.y = m_MainTexture->GetHeight() - p.y;
 
@@ -2143,35 +2162,33 @@ namespace Lumos::Graphics
                 if(texture)
                     textureSlot = SubmitTexture(texture);
 
+                float cornerRadius = widget->style_vars[StyleVar_CornerRadius].x;
+
                 Vec3 vertex                       = Vec4(min.x, min.y, 0.0f, 1.0f);
                 m_Renderer2DData.m_Buffer->vertex = vertex;
-                m_Renderer2DData.m_Buffer->uv.x   = uv[0].x;
-                m_Renderer2DData.m_Buffer->uv.y   = uv[0].y;
-                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, 0.0f);
+                m_Renderer2DData.m_Buffer->uv     = Vec4(uv[0].x, uv[0].y, size.x, size.y);
+                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, cornerRadius);
                 m_Renderer2DData.m_Buffer->colour = colour;
                 m_Renderer2DData.m_Buffer++;
 
                 vertex                            = Vec4(min.x, max.y, 0.0f, 1.0f);
                 m_Renderer2DData.m_Buffer->vertex = vertex;
-                m_Renderer2DData.m_Buffer->uv.x   = uv[3].x;
-                m_Renderer2DData.m_Buffer->uv.y   = uv[3].y;
-                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, 0.0f);
+                m_Renderer2DData.m_Buffer->uv     = Vec4(uv[3].x, uv[3].y, size.x, size.y);
+                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, cornerRadius);
                 m_Renderer2DData.m_Buffer->colour = colour;
                 m_Renderer2DData.m_Buffer++;
 
                 vertex                            = Vec4(max.x, max.y, 0.0f, 1.0f);
                 m_Renderer2DData.m_Buffer->vertex = vertex;
-                m_Renderer2DData.m_Buffer->uv.x   = uv[2].x;
-                m_Renderer2DData.m_Buffer->uv.y   = uv[2].y;
-                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, 0.0f);
+                m_Renderer2DData.m_Buffer->uv     = Vec4(uv[2].x, uv[2].y, size.x, size.y);
+                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, cornerRadius);
                 m_Renderer2DData.m_Buffer->colour = colour;
                 m_Renderer2DData.m_Buffer++;
 
                 vertex                            = Vec4(max.x, min.y, 0.0f, 1.0f);
                 m_Renderer2DData.m_Buffer->vertex = vertex;
-                m_Renderer2DData.m_Buffer->uv.x   = uv[1].x;
-                m_Renderer2DData.m_Buffer->uv.y   = uv[1].y;
-                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, 0.0f);
+                m_Renderer2DData.m_Buffer->uv     = Vec4(uv[1].x, uv[1].y, size.x, size.y);
+                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, cornerRadius);
                 m_Renderer2DData.m_Buffer->colour = colour;
                 m_Renderer2DData.m_Buffer++;
 
@@ -2183,8 +2200,8 @@ namespace Lumos::Graphics
         {
             Vec2 border = widget->style_vars[StyleVar_Border].ToVector2();
             // Inset background by border width for proper layering
-            Vec2 size   = widget->size - border * 2.0f;
-            Vec2 p      = widget->position + border;
+            Vec2 size   = scaledSize - border * 2.0f;
+            Vec2 p      = scaledPos + border;
 
             p.y = m_MainTexture->GetHeight() - p.y;
 
@@ -2222,35 +2239,33 @@ namespace Lumos::Graphics
                 if(texture)
                     textureSlot = SubmitTexture(texture);
 
+                float cornerRadius = widget->style_vars[StyleVar_CornerRadius].x;
+
                 Vec3 vertex                       = Vec4(min.x, min.y, 0.0f, 1.0f);
                 m_Renderer2DData.m_Buffer->vertex = vertex;
-                m_Renderer2DData.m_Buffer->uv.x   = uv[0].x;
-                m_Renderer2DData.m_Buffer->uv.y   = uv[0].y;
-                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, 0.0f);
+                m_Renderer2DData.m_Buffer->uv     = Vec4(uv[0].x, uv[0].y, size.x, size.y);
+                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, cornerRadius);
                 m_Renderer2DData.m_Buffer->colour = colour;
                 m_Renderer2DData.m_Buffer++;
 
                 vertex                            = Vec4(min.x, max.y, 0.0f, 1.0f);
                 m_Renderer2DData.m_Buffer->vertex = vertex;
-                m_Renderer2DData.m_Buffer->uv.x   = uv[3].x;
-                m_Renderer2DData.m_Buffer->uv.y   = uv[3].y;
-                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, 0.0f);
+                m_Renderer2DData.m_Buffer->uv     = Vec4(uv[3].x, uv[3].y, size.x, size.y);
+                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, cornerRadius);
                 m_Renderer2DData.m_Buffer->colour = colour;
                 m_Renderer2DData.m_Buffer++;
 
                 vertex                            = Vec4(max.x, max.y, 0.0f, 1.0f);
                 m_Renderer2DData.m_Buffer->vertex = vertex;
-                m_Renderer2DData.m_Buffer->uv.x   = uv[2].x;
-                m_Renderer2DData.m_Buffer->uv.y   = uv[2].y;
-                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, 0.0f);
+                m_Renderer2DData.m_Buffer->uv     = Vec4(uv[2].x, uv[2].y, size.x, size.y);
+                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, cornerRadius);
                 m_Renderer2DData.m_Buffer->colour = colour;
                 m_Renderer2DData.m_Buffer++;
 
                 vertex                            = Vec4(max.x, min.y, 0.0f, 1.0f);
                 m_Renderer2DData.m_Buffer->vertex = vertex;
-                m_Renderer2DData.m_Buffer->uv.x   = uv[1].x;
-                m_Renderer2DData.m_Buffer->uv.y   = uv[1].y;
-                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, 0.0f);
+                m_Renderer2DData.m_Buffer->uv     = Vec4(uv[1].x, uv[1].y, size.x, size.y);
+                m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, cornerRadius);
                 m_Renderer2DData.m_Buffer->colour = colour;
                 m_Renderer2DData.m_Buffer++;
 
@@ -2263,21 +2278,23 @@ namespace Lumos::Graphics
             Vec2 padding   = widget->style_vars[StyleVar_Padding].ToVector2();
             float fontSize = widget->style_vars[StyleVar_FontSize].x;
 
-            Vec2 size = widget->size;
-            Vec2 p    = widget->position;
+            Vec2 size = scaledSize;
+            Vec2 p    = scaledPos;
 
+            Vec2 textSize = GetStringSize(widget->text, fontSize);
+            p.y = m_MainTexture->GetHeight() - p.y;
+
+            // X positioning
             if(widget->TextAlignment & UI_Text_Alignment_Center_X)
-            {
-                p.y = m_MainTexture->GetHeight() - p.y;
-                p.y -= size.y - padding.y * 0.5f;
-                p.x += (size.x - GetStringSize(widget->text, fontSize).x) * 0.5f;
-            }
+                p.x += (size.x - textSize.x) * 0.5f;
             else
-            {
-                p.y = m_MainTexture->GetHeight() - p.y;
-                p.y -= size.y - padding.y * 0.5f;
-                p.x += padding.x * 0.5f;
-            }
+                p.x += padding.x;
+
+            // Y positioning
+            if(widget->TextAlignment & UI_Text_Alignment_Center_Y)
+                p.y -= (size.y + textSize.y) * 0.5f;
+            else
+                p.y -= size.y - padding.y;
             if(!m_CurrentUIText)
             {
                 if(m_Renderer2DData.m_IndexCount > 0)
@@ -3223,32 +3240,28 @@ namespace Lumos::Graphics
 
             Vec3 vertex                       = transform * Vec4(min.x, min.y, 0.0f, 1.0f);
             m_Renderer2DData.m_Buffer->vertex = vertex;
-            m_Renderer2DData.m_Buffer->uv.x   = uv[0].x;
-            m_Renderer2DData.m_Buffer->uv.y   = uv[0].y;
+            m_Renderer2DData.m_Buffer->uv     = Vec4(uv[0].x, uv[0].y, 0.0f, 0.0f);
             m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, 0.0f);
             m_Renderer2DData.m_Buffer->colour = colour;
             m_Renderer2DData.m_Buffer++;
 
             vertex                            = transform * Vec4(max.x, min.y, 0.0f, 1.0f);
             m_Renderer2DData.m_Buffer->vertex = vertex;
-            m_Renderer2DData.m_Buffer->uv.x   = uv[1].x;
-            m_Renderer2DData.m_Buffer->uv.y   = uv[1].y;
+            m_Renderer2DData.m_Buffer->uv     = Vec4(uv[1].x, uv[1].y, 0.0f, 0.0f);
             m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, 0.0f);
             m_Renderer2DData.m_Buffer->colour = colour;
             m_Renderer2DData.m_Buffer++;
 
             vertex                            = transform * Vec4(max.x, max.y, 0.0f, 1.0f);
             m_Renderer2DData.m_Buffer->vertex = vertex;
-            m_Renderer2DData.m_Buffer->uv.x   = uv[2].x;
-            m_Renderer2DData.m_Buffer->uv.y   = uv[2].y;
+            m_Renderer2DData.m_Buffer->uv     = Vec4(uv[2].x, uv[2].y, 0.0f, 0.0f);
             m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, 0.0f);
             m_Renderer2DData.m_Buffer->colour = colour;
             m_Renderer2DData.m_Buffer++;
 
             vertex                            = transform * Vec4(min.x, max.y, 0.0f, 1.0f);
             m_Renderer2DData.m_Buffer->vertex = vertex;
-            m_Renderer2DData.m_Buffer->uv.x   = uv[3].x;
-            m_Renderer2DData.m_Buffer->uv.y   = uv[3].y;
+            m_Renderer2DData.m_Buffer->uv     = Vec4(uv[3].x, uv[3].y, 0.0f, 0.0f);
             m_Renderer2DData.m_Buffer->tid    = Vec2(textureSlot, 0.0f);
             m_Renderer2DData.m_Buffer->colour = colour;
             m_Renderer2DData.m_Buffer++;
@@ -4995,7 +5008,6 @@ namespace Lumos::Graphics
     void SceneRenderer::ParticlePass()
     {
         LUMOS_PROFILE_FUNCTION();
-        LUMOS_PROFILE_GPU("Particle Pass");
 
         if(!m_Camera || !m_CameraTransform)
             return;
@@ -5004,6 +5016,8 @@ namespace Lumos::Graphics
 
         if(emitterGroup.empty())
             return;
+
+        LUMOS_PROFILE_GPU("Particle Pass");
 
         Graphics::PipelineDesc pipelineDesc;
         pipelineDesc.shader              = m_ParticleData.m_Shader;

@@ -2,6 +2,7 @@
 #include "Manifold.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
+#include "Physics/LumosPhysicsEngine/PhysicsMaterial.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Maths/MathsUtilities.h"
 
@@ -9,9 +10,6 @@
 
 namespace Lumos
 {
-
-#define persistentThresholdSq 0.025f
-
     Manifold::Manifold()
         : m_pNodeA(nullptr)
         , m_pNodeB(nullptr)
@@ -84,16 +82,16 @@ namespace Lumos
             jn                  = c.sumImpulseContact - oldSumImpulseContact;
 
             m_pNodeA->SetLinearVelocity(m_pNodeA->GetLinearVelocity()
-                                        + normal * (jn * m_pNodeA->GetInverseMass()));
+                                        + normal * (jn * m_pNodeA->GetInverseMass()) * m_pNodeA->GetLinearFactor());
             m_pNodeB->SetLinearVelocity(m_pNodeB->GetLinearVelocity()
-                                        - normal * (jn * m_pNodeB->GetInverseMass()));
+                                        - normal * (jn * m_pNodeB->GetInverseMass()) * m_pNodeB->GetLinearFactor());
 
             m_pNodeA->SetAngularVelocity(m_pNodeA->GetAngularVelocity()
                                          + m_pNodeA->GetInverseInertia()
-                                             * Maths::Cross(r1, normal * jn));
+                                             * Maths::Cross(r1, normal * jn) * m_pNodeA->GetAngularFactor());
             m_pNodeB->SetAngularVelocity(m_pNodeB->GetAngularVelocity()
                                          - m_pNodeB->GetInverseInertia()
-                                             * Maths::Cross(r2, normal * jn));
+                                             * Maths::Cross(r2, normal * jn) * m_pNodeB->GetAngularFactor());
         }
         // Friction
         {
@@ -106,7 +104,9 @@ namespace Lumos
 
                 float frictionalMass = (m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass())
                     + Maths::Dot(tangent, Maths::Cross(m_pNodeA->GetInverseInertia() * Maths::Cross(r1, tangent), r1) + Maths::Cross(m_pNodeB->GetInverseInertia() * Maths::Cross(r2, tangent), r2));
-                float frictionCoef = Maths::Sqrt(m_pNodeA->GetFriction() * m_pNodeB->GetFriction());
+                const auto& matA = m_pNodeA->GetMaterial();
+                const auto& matB = m_pNodeB->GetMaterial();
+                float frictionCoef = PhysicsMaterial::CombineValues(matA.Friction, matB.Friction, matA.FrictionCombine);
                 float jt           = -1.0f * frictionCoef * Maths::Dot(dv, tangent) / frictionalMass;
 
                 // Clamp friction to never apply more force than the main collision
@@ -118,16 +118,16 @@ namespace Lumos
                 jt                      = c.sumImpulseFriction - oldImpulseTangent;
 
                 m_pNodeA->SetLinearVelocity(m_pNodeA->GetLinearVelocity()
-                                            + tangent * (jt * m_pNodeA->GetInverseMass()));
+                                            + tangent * (jt * m_pNodeA->GetInverseMass()) * m_pNodeA->GetLinearFactor());
                 m_pNodeB->SetLinearVelocity(m_pNodeB->GetLinearVelocity()
-                                            - tangent * (jt * m_pNodeB->GetInverseMass()));
+                                            - tangent * (jt * m_pNodeB->GetInverseMass()) * m_pNodeB->GetLinearFactor());
 
                 m_pNodeA->SetAngularVelocity(m_pNodeA->GetAngularVelocity()
                                              + m_pNodeA->GetInverseInertia()
-                                                 * Maths::Cross(r1, tangent * jt));
+                                                 * Maths::Cross(r1, tangent * jt) * m_pNodeA->GetAngularFactor());
                 m_pNodeB->SetAngularVelocity(m_pNodeB->GetAngularVelocity()
                                              - m_pNodeB->GetInverseInertia()
-                                                 * Maths::Cross(r2, tangent * jt));
+                                                 * Maths::Cross(r2, tangent * jt) * m_pNodeB->GetAngularFactor());
             }
         }
     }
@@ -155,8 +155,9 @@ namespace Lumos
         // already changed in a different constraint and the elasticity
         // force will no longer be correct .
         {
-            const float elasticity = sqrtf(m_pNodeA->GetElasticity()
-                                           * m_pNodeB->GetElasticity());
+            const auto& matA = m_pNodeA->GetMaterial();
+            const auto& matB = m_pNodeB->GetMaterial();
+            const float elasticity = PhysicsMaterial::CombineValues(matA.Restitution, matB.Restitution, matA.RestitutionCombine);
 
             float elatisity_term = elasticity * Maths::Dot(contact.collisionNormal, m_pNodeA->GetLinearVelocity() + Maths::Cross(contact.relPosA, m_pNodeA->GetAngularVelocity()) - m_pNodeB->GetLinearVelocity() - Maths::Cross(contact.relPosB, m_pNodeB->GetAngularVelocity()));
 
@@ -226,7 +227,7 @@ namespace Lumos
             }
         }
 
-        if(should_add)
+        if(should_add && m_ContactCount < MAX_CONTACT_POINTS)
         {
             m_vContacts[m_ContactCount] = contact;
             m_ContactCount++;

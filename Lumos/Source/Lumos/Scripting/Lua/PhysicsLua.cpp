@@ -5,6 +5,7 @@
 #include "Core/Application.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h"
+#include "Physics/LumosPhysicsEngine/PhysicsMaterial.h"
 
 #include <box2d/box2d.h>
 #include <sol/sol.hpp>
@@ -63,6 +64,13 @@ namespace Lumos
         physicsObjectParameters_type["damping"]                         = &RigidBodyParameters::damping;
         physicsObjectParameters_type["elasticity"]                      = &RigidBodyParameters::elasticity;
 
+        sol::usertype<CollisionInfo3D> collisionInfo3D_type = state.new_usertype<CollisionInfo3D>("CollisionInfo3D");
+        collisionInfo3D_type["otherBody"]      = &CollisionInfo3D::OtherBody;
+        collisionInfo3D_type["contactNormal"]   = &CollisionInfo3D::ContactNormal;
+        collisionInfo3D_type["contactPoint"]    = &CollisionInfo3D::ContactPoint;
+        collisionInfo3D_type["penetration"]     = &CollisionInfo3D::Penetration;
+        collisionInfo3D_type["isTrigger"]       = &CollisionInfo3D::IsTrigger;
+
         sol::usertype<RigidBody3DProperties> physicsObjectParameters3D_type = state.new_usertype<RigidBody3DProperties>("RigidBodyParameters3D");
         physicsObjectParameters3D_type["mass"]                              = &RigidBody3DProperties::Mass;
         // physicsObjectParameters3D_type["shape"]                           = &RigidBody3DProperties::Shape;
@@ -84,6 +92,27 @@ namespace Lumos
         physics3D_type.set_function("GetIsStatic", &RigidBody3D::GetIsStatic);
         physics3D_type.set_function("SetIsStatic", &RigidBody3D::SetIsStatic);
         physics3D_type.set_function("SetCollisionShape", static_cast<void (RigidBody3D::*)(CollisionShapeType)>(&RigidBody3D::SetCollisionShape));
+        physics3D_type.set_function("GetLinearFactor", &RigidBody3D::GetLinearFactor);
+        physics3D_type.set_function("SetLinearFactor", &RigidBody3D::SetLinearFactor);
+        physics3D_type.set_function("GetAngularFactor", &RigidBody3D::GetAngularFactor);
+        physics3D_type.set_function("SetAngularFactor", &RigidBody3D::SetAngularFactor);
+        physics3D_type.set_function("GetMaterial", &RigidBody3D::GetMaterial);
+        physics3D_type.set_function("SetMaterial", &RigidBody3D::SetMaterial);
+        physics3D_type.set_function("GetElasticity", &RigidBody3D::GetElasticity);
+        physics3D_type.set_function("SetElasticity", &RigidBody3D::SetElasticity);
+        physics3D_type.set_function("GetIsTrigger", &RigidBody3D::GetIsTrigger);
+        physics3D_type.set_function("SetIsTrigger", &RigidBody3D::SetIsTrigger);
+
+        sol::usertype<PhysicsMaterial> physicsMaterial_type = state.new_usertype<PhysicsMaterial>("PhysicsMaterial");
+        physicsMaterial_type["friction"]    = &PhysicsMaterial::Friction;
+        physicsMaterial_type["restitution"] = &PhysicsMaterial::Restitution;
+        physicsMaterial_type.set_function("Default", &PhysicsMaterial::Default);
+        physicsMaterial_type.set_function("Bouncy", &PhysicsMaterial::Bouncy);
+        physicsMaterial_type.set_function("Ice", &PhysicsMaterial::Ice);
+        physicsMaterial_type.set_function("Rubber", &PhysicsMaterial::Rubber);
+        physicsMaterial_type.set_function("Metal", &PhysicsMaterial::Metal);
+        physicsMaterial_type.set_function("Wood", &PhysicsMaterial::Wood);
+        physicsMaterial_type.set_function("Concrete", &PhysicsMaterial::Concrete);
 
         std::initializer_list<std::pair<sol::string_view, Shape>> shapes = {
             { "Square", Shape::Square },
@@ -97,7 +126,8 @@ namespace Lumos
             { "Sphere", CollisionShapeType::CollisionSphere },
             { "Pyramid", CollisionShapeType::CollisionPyramid },
             { "Capsule", CollisionShapeType::CollisionCapsule },
-            { "Hull", CollisionShapeType::CollisionHull }
+            { "Hull", CollisionShapeType::CollisionHull },
+            { "Terrain", CollisionShapeType::CollisionTerrain }
         };
         state.new_enum<CollisionShapeType, false>("CollisionShapeType", shapes3D);
 

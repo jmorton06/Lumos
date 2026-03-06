@@ -3,7 +3,10 @@
 #include "Mesh.h"
 #include "Material.h"
 #include "Utilities/StringUtilities.h"
+#include "Utilities/Hash.h"
 #include "Core/OS/FileSystem.h"
+#include "Core/Asset/LMeshReader.h"
+#include "Core/Asset/LAnimReader.h"
 #include "Animation/Skeleton.h"
 #include "Animation/Animation.h"
 #include "Animation/AnimationController.h"
@@ -47,11 +50,76 @@ namespace Lumos::Graphics
     Model::Model(Model&&)                 = default;
     Model& Model::operator=(Model&&)      = default;
 
+    bool Model::LoadLMesh(const std::string& path)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        Arena* lmeshArena = ArenaAlloc(Kilobytes(8));
+        bool result = LMeshReader::Read(lmeshArena, Str8StdS(path), *this);
+        ArenaRelease(lmeshArena);
+        return result;
+    }
+
+    bool Model::LoadLAnim(const std::string& path)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        Arena* lanimArena = ArenaAlloc(Kilobytes(8));
+        bool result = LAnimReader::Read(lanimArena, Str8StdS(path), *this);
+        ArenaRelease(lanimArena);
+        return result;
+    }
+
     void Model::LoadModel(const std::string& path)
     {
         LUMOS_PROFILE_FUNCTION();
         ArenaTemp Scratch = ScratchBegin(0, 0);
 
+        const std::string fileExtension = StringUtilities::GetFilePathExtension(path);
+
+        // If it's already a .lmesh file, load directly
+        if(fileExtension == "lmesh")
+        {
+            if(LoadLMesh(path))
+            {
+                // Check for companion .lanim (same path with .lanim extension)
+                std::string animPath = path.substr(0, path.size() - 5) + "lanim";
+                if(FileSystem::Get().FileExistsVFS(Str8StdS(animPath)))
+                    LoadLAnim(animPath);
+
+                LINFO("Loaded Model (lmesh direct) - %s meshes=%d", path.c_str(), (int)m_Meshes.Size());
+            }
+            else
+            {
+                LERROR("Model: failed to load lmesh (version mismatch or corrupt), reimport required: %s", path.c_str());
+            }
+            ScratchEnd(Scratch);
+            return;
+        }
+
+        // Check for imported .lmesh version
+        // Convert source path to imported path: //Assets/Imported/<hash>.lmesh
+        {
+            u64 pathHash = MurmurHash64A(path.c_str(), (int)path.size(), 0);
+            char importedPath[256];
+            snprintf(importedPath, sizeof(importedPath), "//Assets/Imported/%llu.lmesh", (unsigned long long)pathHash);
+
+            if(FileSystem::Get().FileExistsVFS(Str8C(importedPath)))
+            {
+                if(LoadLMesh(importedPath))
+                {
+                    // Check for companion .lanim
+                    char animPath[256];
+                    snprintf(animPath, sizeof(animPath), "//Assets/Imported/%llu.lanim", (unsigned long long)pathHash);
+                    if(FileSystem::Get().FileExistsVFS(Str8C(animPath)))
+                        LoadLAnim(animPath);
+
+                    LINFO("Loaded Model (imported lmesh) - %s meshes=%d", path.c_str(), (int)m_Meshes.Size());
+                    ScratchEnd(Scratch);
+                    return;
+                }
+            }
+        }
+
+        // Fallback to source loaders
         String8 physicalPath;
         if(!Lumos::FileSystem::Get().ResolvePhysicalPath(Scratch.arena, Str8StdS(path), &physicalPath))
         {
@@ -62,8 +130,6 @@ namespace Lumos::Graphics
 
         std::string resolvedPath = ToStdString(physicalPath);
 
-        const std::string fileExtension = StringUtilities::GetFilePathExtension(path);
-
         if(fileExtension == "obj")
             LoadOBJ(resolvedPath);
         else if(fileExtension == "gltf" || fileExtension == "glb")
@@ -73,7 +139,7 @@ namespace Lumos::Graphics
         else
             LERROR("Unsupported File Type : %s", fileExtension.c_str());
 
-        LINFO("Loaded Model - %s", path.c_str());
+        LINFO("Loaded Model (source) - %s meshes=%d", path.c_str(), (int)m_Meshes.Size());
         ScratchEnd(Scratch);
     }
 
@@ -173,5 +239,25 @@ namespace Lumos::Graphics
     SharedPtr<AnimationController> Model::GetAnimationController() const
     {
         return m_AnimationController;
+    }
+
+    const TDArray<Mat4>& Model::GetBindPoses() const
+    {
+        return m_BindPoses;
+    }
+
+    void Model::SetSkeleton(SharedPtr<Skeleton> skeleton)
+    {
+        m_Skeleton = skeleton;
+    }
+
+    void Model::SetAnimations(const TDArray<SharedPtr<Animation>>& animations)
+    {
+        m_Animation = animations;
+    }
+
+    void Model::SetBindPoses(const TDArray<Mat4>& bindPoses)
+    {
+        m_BindPoses = bindPoses;
     }
 }

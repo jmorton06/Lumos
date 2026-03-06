@@ -15,10 +15,9 @@ namespace Lumos
         Vec3 ab        = obj2->GetPosition() - obj1->GetPosition();
         m_restDistance = Maths::Length(ab);
 
-        Vec3 r1    = (obj1->GetPosition() - m_pObj1->GetPosition());
-        Vec3 r2    = (obj2->GetPosition() - m_pObj2->GetPosition());
-        m_LocalOnA = Maths::Transpose(Mat3(m_pObj1->GetOrientation())) * r1;
-        m_LocalOnB = Maths::Transpose(Mat3(m_pObj2->GetOrientation())) * r2;
+        // Attach at object centers
+        m_LocalOnA = Vec3(0.0f);
+        m_LocalOnB = Vec3(0.0f);
     }
 
     SpringConstraint::SpringConstraint(RigidBody3D* obj1, RigidBody3D* obj2, const Vec3& globalOnA, const Vec3& globalOnB, float springConstant, float dampingFactor)

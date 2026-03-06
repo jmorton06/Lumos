@@ -7,8 +7,8 @@ namespace Lumos
 
     Window::~Window()
     {
-        m_SwapChain.reset();
-        m_GraphicsContext.reset();
+		m_SwapChain.reset();
+		m_GraphicsContext.reset();
     }
 
     Window* Window::Create()

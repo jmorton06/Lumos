@@ -24,11 +24,14 @@ namespace Lumos
             virtual RHIFormat GetFormat() const                = 0;
             virtual void GenerateMipMaps(CommandBuffer* commandBuffer = nullptr) { }
             virtual void SetName(const std::string& name) { };
+            virtual void SetFilepath(const std::string& path) { };
             virtual uint8_t GetSamples() const { return 0; }
+            virtual TextureDesc GetTextureParameters() const { return {}; }
 
             virtual uint32_t GetSize() const { return 0; }
             virtual uint32_t GetMipMapLevels() const { return 0; }
             virtual void* GetImageHande() const { return GetHandle(); };
+            virtual const uint8_t* GetPixelData() const { return nullptr; }
 
             static bool IsDepthStencilFormat(RHIFormat format)
             {

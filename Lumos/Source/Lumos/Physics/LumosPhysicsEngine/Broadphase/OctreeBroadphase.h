@@ -17,7 +17,7 @@ namespace Lumos
     class LUMOS_EXPORT OctreeBroadphase : public Broadphase
     {
     public:
-        OctreeBroadphase(u32 maxObjectsPerPartition, u32 maxPartitionDepth);
+        OctreeBroadphase(u32 maxObjectsPerPartition, u32 maxPartitionDepth, u32 maxLeafCount = 1024);
         virtual ~OctreeBroadphase();
 
         struct OctreeNode
@@ -49,6 +49,7 @@ namespace Lumos
         u32 m_MaxObjectsPerPartition;
         u32 m_MaxPartitionDepth;
         u32 m_MinPartitionSize;
+        u32 m_MaxLeafCount;
 
         uint32_t m_LeafCount = 0;
         OctreeNode m_RootNode;

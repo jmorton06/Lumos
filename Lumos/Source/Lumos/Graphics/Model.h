@@ -38,8 +38,13 @@ namespace Lumos
 
             SharedPtr<Skeleton> GetSkeleton() const;
             const TDArray<SharedPtr<Animation>>& GetAnimations() const;
+            const TDArray<Mat4>& GetBindPoses() const;
             SharedPtr<SamplingContext> GetSamplingContext() const;
             SharedPtr<AnimationController> GetAnimationController() const;
+
+            void SetSkeleton(SharedPtr<Skeleton> skeleton);
+            void SetAnimations(const TDArray<SharedPtr<Animation>>& animations);
+            void SetBindPoses(const TDArray<Mat4>& bindPoses);
 
             uint32_t GetCurrentAnimationIndex() const { return m_CurrentAnimation; }
             void SetCurrentAnimationIndex(uint32_t index) { m_CurrentAnimation = index; }
@@ -78,8 +83,10 @@ namespace Lumos
             void LoadOBJ(const std::string& path);
             void LoadGLTF(const std::string& path);
             void LoadFBX(const std::string& path);
+            bool LoadLMesh(const std::string& path);
 
         public:
+            bool LoadLAnim(const std::string& path);
             void LoadModel(const std::string& path);
         };
     }

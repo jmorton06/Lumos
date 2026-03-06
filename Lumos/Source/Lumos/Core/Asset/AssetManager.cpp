@@ -36,17 +36,17 @@ namespace Lumos
         return nullptr;
     }
 
-    AssetMetaData& AssetManager::AddAsset(const String8& name, SharedPtr<Asset> data, bool keepUnreferenced)
+    AssetMetaData& AssetManager::AddAsset(const String8& name, SharedPtr<Asset> data, bool keepUnreferenced, bool isEngineAsset)
     {
         UUID ID = UUID();
         m_AssetRegistry->GetID(name, ID);
 
-        AssetMetaData& metaData = AddAsset(ID, data, keepUnreferenced);
+        AssetMetaData& metaData = AddAsset(ID, data, keepUnreferenced, isEngineAsset);
         m_AssetRegistry->AddName(name, ID);
         return metaData;
     }
 
-    AssetMetaData& AssetManager::AddAsset(UUID ID, SharedPtr<Asset> data, bool keepUnreferenced)
+    AssetMetaData& AssetManager::AddAsset(UUID ID, SharedPtr<Asset> data, bool keepUnreferenced, bool isEngineAsset)
     {
         AssetRegistry& registry = *m_AssetRegistry;
         if(m_AssetRegistry->Contains(ID))
@@ -57,6 +57,7 @@ namespace Lumos
             metaData.Expire         = !keepUnreferenced;
             metaData.Type           = data ? data->GetAssetType() : AssetType::Unkown;
             metaData.IsDataLoaded   = data ? true : false;
+            metaData.IsEngineAsset  = isEngineAsset || metaData.IsEngineAsset;
             return metaData;
         }
 
@@ -68,6 +69,7 @@ namespace Lumos
         newResource.Type            = data->GetAssetType();
         newResource.Expire          = !keepUnreferenced;
         newResource.IsDataLoaded    = data ? true : false;
+        newResource.IsEngineAsset   = isEngineAsset;
 
         registry[ID] = newResource;
 
@@ -134,29 +136,55 @@ namespace Lumos
         return true;
     }
 
-    static void LoadTexture2D(Graphics::Texture2D* tex, const String8& path)
+    static void LoadTexture2D(Graphics::Texture2D* tex, const String8& path, bool deferred, Graphics::TextureDesc desc = {})
     {
         LUMOS_PROFILE_FUNCTION();
         ImageLoadDesc imageLoadDesc = {};
         imageLoadDesc.filePath      = (const char*)path.str;
-        imageLoadDesc.maxHeight     = 256;
-        imageLoadDesc.maxWidth      = 256;
+        imageLoadDesc.maxHeight     = 2048;
+        imageLoadDesc.maxWidth      = 2048;
         Lumos::LoadImageFromFile(imageLoadDesc);
 
-        Graphics::TextureDesc desc;
-        desc.format = imageLoadDesc.outBits / 4 == 8 ? Graphics::RHIFormat::R8G8B8A8_Unorm : Graphics::RHIFormat::R32G32B32A32_Float;
+        desc.format    = imageLoadDesc.outBits / 4 == 8 ? Graphics::RHIFormat::R8G8B8A8_Unorm : Graphics::RHIFormat::R32G32B32A32_Float;
+        if(desc.minFilter == Graphics::TextureFilter::NONE)
+            desc.minFilter = Graphics::TextureFilter::LINEAR;
+        if(desc.magFilter == Graphics::TextureFilter::NONE)
+            desc.magFilter = Graphics::TextureFilter::LINEAR;
 
-        Application::Get().SubmitToMainThread([tex, imageLoadDesc, desc]()
-                                              { tex->Load(imageLoadDesc.outWidth, imageLoadDesc.outHeight, imageLoadDesc.outPixels, desc); });
+        if(deferred)
+        {
+            Application::Get().SubmitToMainThread([tex, imageLoadDesc, desc]()
+            {
+                tex->Load(imageLoadDesc.outWidth, imageLoadDesc.outHeight, imageLoadDesc.outPixels, desc);
+                delete[] static_cast<uint8_t*>(imageLoadDesc.outPixels);
+            });
+        }
+        else
+        {
+            tex->Load(imageLoadDesc.outWidth, imageLoadDesc.outHeight, imageLoadDesc.outPixels, desc);
+            delete[] static_cast<uint8_t*>(imageLoadDesc.outPixels);
+        }
     }
 
     bool AssetManager::LoadTexture(const String8& filePath, SharedPtr<Graphics::Texture2D>& texture, bool thread)
     {
         texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create({}, 1, 1));
         if(thread)
-            m_Futures.PushBack(std::async(std::launch::async, &LoadTexture2D, texture.get(), filePath));
+            m_Futures.PushBack(std::async(std::launch::async, LoadTexture2D, texture.get(), filePath, true, Graphics::TextureDesc{}));
         else
-            LoadTexture2D(texture.get(), filePath);
+            LoadTexture2D(texture.get(), filePath, false);
+
+        AddAsset(filePath, texture);
+        return true;
+    }
+
+    bool AssetManager::LoadTexture(const String8& filePath, SharedPtr<Graphics::Texture2D>& texture, bool thread, const Graphics::TextureDesc& desc)
+    {
+        texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create({}, 1, 1));
+        if(thread)
+            m_Futures.PushBack(std::async(std::launch::async, LoadTexture2D, texture.get(), filePath, true, desc));
+        else
+            LoadTexture2D(texture.get(), filePath, false, desc);
 
         AddAsset(filePath, texture);
         return true;
@@ -164,8 +192,29 @@ namespace Lumos
 
     SharedPtr<Graphics::Texture2D> AssetManager::LoadTextureAsset(const String8& filePath, bool thread)
     {
+        if(AssetExists(filePath))
+        {
+            auto existing = GetAssetData(filePath);
+            if(existing)
+                return existing.As<Graphics::Texture2D>();
+        }
+
         SharedPtr<Graphics::Texture2D> texture;
         LoadTexture(filePath, texture, thread);
+        return texture;
+    }
+
+    SharedPtr<Graphics::Texture2D> AssetManager::LoadTextureAsset(const String8& filePath, bool thread, const Graphics::TextureDesc& desc)
+    {
+        if(AssetExists(filePath))
+        {
+            auto existing = GetAssetData(filePath);
+            if(existing)
+                return existing.As<Graphics::Texture2D>();
+        }
+
+        SharedPtr<Graphics::Texture2D> texture;
+        LoadTexture(filePath, texture, thread, desc);
         return texture;
     }
 }

@@ -160,6 +160,7 @@ namespace Lumos::Graphics
         m_MaterialProperties->workflow           = properties.workflow;
         m_MaterialProperties->reflectance        = properties.reflectance;
 
+        m_MaterialPropertiesDirty = true;
         UpdateMaterialPropertiesData();
     }
 
@@ -256,9 +257,13 @@ namespace Lumos::Graphics
             SetTexturesUpdated(false);
         }
 
-        m_DescriptorSet->Update();
+        if(m_MaterialPropertiesDirty)
+        {
+            m_DescriptorSet->SetUniformBufferData(6, *&m_MaterialProperties);
+            m_MaterialPropertiesDirty = false;
+        }
 
-        // UpdateDescriptorSet();
+        m_DescriptorSet->Update();
     }
 
     void Material::SetShader(const std::string& filePath)

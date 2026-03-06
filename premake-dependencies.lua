@@ -20,6 +20,7 @@ IncludeDir["msdf_atlas_gen"] = "%{wks.location}/Lumos/External/msdf-atlas-gen/ms
 IncludeDir["msdfgen"] = "%{wks.location}/Lumos/External/msdf-atlas-gen/msdfgen"
 IncludeDir["ozz"] = "%{wks.location}/Lumos/External/ozz-animation/include"
 IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
+IncludeDir["shaderc"] = "%{wks.location}/Lumos/External/shaderc/libshaderc/include"
 
 LibraryDir = {}
 LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"

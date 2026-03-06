@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/UUID.h"
+#include "PhysicsMaterial.h"
 #include "Core/DataStructures/TDArray.h"
 #include "Maths/BoundingBox.h"
 #include "Maths/Vector2.h"
@@ -18,6 +19,15 @@ namespace Lumos
     class RigidBody3D;
 
     enum CollisionShapeType : unsigned int;
+
+    struct CollisionInfo3D
+    {
+        RigidBody3D* OtherBody = nullptr;
+        Vec3 ContactNormal;
+        Vec3 ContactPoint;
+        float Penetration = 0.0f;
+        bool IsTrigger    = false;
+    };
 
     // Collision layer system constants (16 layers, 0-15)
     namespace CollisionLayer
@@ -101,10 +111,12 @@ namespace Lumos
         float Elasticity     = 0.5f;
         float Friction       = 0.5f;
         bool AtRest          = false;
-        bool isTrigger       = false;
-        u16 CollisionLayer   = 0;
-        u16 CollisionMask    = 0xFFFF;
+        bool isTrigger              = false;
+        u16 CollisionLayer          = 0;
+        u16 CollisionMask           = 0xFFFF;
+        float RestVelocityThreshold = 0.004f;
         SharedPtr<CollisionShape> Shape;
+        PhysicsMaterial Material;
     };
 
     class alignas(16) RigidBody3D
@@ -222,16 +234,21 @@ namespace Lumos
         bool GetIsTrigger() const { return m_Trigger; }
         void SetIsTrigger(bool trigger) { m_Trigger = trigger; }
 
-        float GetAngularFactor() const { return m_AngularFactor; }
-        void SetAngularFactor(float factor) { m_AngularFactor = factor; }
+        const Vec3& GetLinearFactor() const { return m_LinearFactor; }
+        void SetLinearFactor(const Vec3& factor) { m_LinearFactor = factor; }
+
+        const Vec3& GetAngularFactor() const { return m_AngularFactor; }
+        void SetAngularFactor(const Vec3& factor) { m_AngularFactor = factor; }
 
         bool GetIsStatic() const { return m_Static; }
         bool GetIsAtRest() const { return m_AtRest; }
         float GetElasticity() const { return m_Elasticity; }
         float GetFriction() const { return m_Friction; }
         bool IsAwake() const { return !m_AtRest; }
-        void SetElasticity(const float elasticity) { m_Elasticity = elasticity; }
-        void SetFriction(const float friction) { m_Friction = friction; }
+        void SetElasticity(const float elasticity) { m_Elasticity = elasticity; m_Material.Restitution = elasticity; }
+        void SetFriction(const float friction) { m_Friction = friction; m_Material.Friction = friction; }
+        const PhysicsMaterial& GetMaterial() const { return m_Material; }
+        void SetMaterial(const PhysicsMaterial& mat) { m_Material = mat; m_Friction = mat.Friction; m_Elasticity = mat.Restitution; }
         void SetIsStatic(const bool isStatic)
         {
             m_Static = isStatic;
@@ -267,6 +284,7 @@ namespace Lumos
         float m_AverageSummedVelocity;
         float m_Elasticity;
         float m_Friction;
+        PhysicsMaterial m_Material;
 
         mutable Mat4 m_WSTransform;
         Maths::BoundingBox m_LocalBoundingBox; //!< Model orientated bounding box in model space
@@ -277,7 +295,8 @@ namespace Lumos
         mutable bool m_WSAabbInvalidated; //!< Flag indicating if the cached world space transoformed AABB is invalid
         bool m_Static;
         bool m_AtRest;
-        float m_AngularFactor;
+        Vec3 m_LinearFactor = Vec3(1.0f);
+        Vec3 m_AngularFactor = Vec3(1.0f);
 
         UUID m_UUID;
 

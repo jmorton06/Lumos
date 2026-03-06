@@ -132,6 +132,7 @@ namespace Lumos
             uint32_t m_MaterialBufferSize;
             std::string m_Name;
             bool m_TexturesUpdated = false;
+            bool m_MaterialPropertiesDirty = false;
             uint32_t m_Flags;
 
             std::string m_MaterialPath;

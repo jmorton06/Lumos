@@ -89,7 +89,7 @@ namespace Lumos
         virtual void OnUpdate(const TimeStep& dt);
         virtual void OnImGui();
         virtual void OnDebugDraw();
-        
+
         virtual void ExitApp();
 
         SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
@@ -173,6 +173,8 @@ namespace Lumos
         void CreateAssetFolders();
         void SetEngineAssetPath();
 
+        void SetScreenshotPath(const std::string& path) { m_ScreenshotPath = path; m_TakeScreenshotOnInit = true; }
+
         struct ProjectSettings
         {
             std::string m_ProjectRoot;
@@ -188,8 +190,16 @@ namespace Lumos
             int ProjectVersion     = 1;
             int8_t DesiredGPUIndex = -1;
             std::string IconPath;
-            bool DefaultIcon  = true;
-            bool HideTitleBar = false;
+            bool DefaultIcon       = true;
+            bool HideTitleBar      = false;
+            std::string AppScript; // VFS path to auto-load Lua script (tools only, ignored for games)
+            std::string BundleIdentifier; // "com.company.game"
+            std::string Version     = "1.0.0";
+            std::string BuildNumber = "1";
+            std::string SplashPath; // VFS path to custom splash image
+            float SplashBGColour[4] = { 40.0f / 256.0f, 42.0f / 256.0f, 54.0f / 256.0f, 1.0f };
+            std::string StartScene; // Scene name to load on startup (v11+, replaces SceneIndex)
+            bool AutoImportMeshes  = false; // Auto-convert source models to .lmesh on load
         };
 
         ProjectSettings& GetProjectSettings() { return m_ProjectSettings; }
@@ -250,6 +260,22 @@ namespace Lumos
         StringPool* m_StringPool;
 
         String8 m_AssetPath;
+
+        // Screenshot on init feature
+        std::string m_ScreenshotPath;
+        bool m_TakeScreenshotOnInit = false;
+        bool m_ScreenshotTaken      = false;
+        int m_ScreenshotFrameDelay  = 0;
+
+        // Command line option flags
+        bool m_CloseAfterScreenshot   = true;  // Default: close after screenshot
+        bool m_ForceEmbeddedShaders   = false; // Default: auto-detect
+        bool m_ShowTestUI             = false; // Default: hidden
+        bool m_HeadlessMode           = false; // Default: normal rendering
+        bool m_BenchmarkMode          = false; // Default: no benchmark
+        int m_BenchmarkFrameCount     = 0;
+        int m_BenchmarkCurrentFrame   = 0;
+        std::string m_InitialSceneName;        // Scene to load on startup
 
         NONCOPYABLE(Application)
     };

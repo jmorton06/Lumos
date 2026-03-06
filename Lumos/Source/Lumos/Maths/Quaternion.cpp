@@ -223,8 +223,8 @@ namespace Lumos
 
                 if(Maths::Equals(Vector2(lx, ly), Vector2(0)))
                     pitch = (2.0f * atan2f(x, w));
-
-                pitch = (float)atan2f(ly, lx);
+                else
+                    pitch = (float)atan2f(ly, lx);
             }
 
             // Yaw
@@ -239,8 +239,8 @@ namespace Lumos
 
                 if(Maths::Equals(Vector2(lx, ly), Vector2(0)))
                     roll = 0.0f;
-
-                roll = float(atan2f(ly, lx));
+                else
+                    roll = float(atan2f(ly, lx));
             }
 
             return Vector3(pitch * M_RADTODEG, yaw * M_RADTODEG, roll * M_RADTODEG);

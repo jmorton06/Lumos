@@ -37,31 +37,25 @@ namespace Lumos
                 { 'y', Lumos::InputCode::Key::Y },
                 { 'z', Lumos::InputCode::Key::Z },
 
-                { '0', Lumos::InputCode::Key::D0 },
-                { '1', Lumos::InputCode::Key::D1 },
-                { '2', Lumos::InputCode::Key::D2 },
-                { '3', Lumos::InputCode::Key::D3 },
-                { '4', Lumos::InputCode::Key::D4 },
-                { '5', Lumos::InputCode::Key::D5 },
-                { '6', Lumos::InputCode::Key::D6 },
-                { '7', Lumos::InputCode::Key::D7 },
-                { '8', Lumos::InputCode::Key::D8 },
-                { '9', Lumos::InputCode::Key::D9 },
-
-                { '-', Lumos::InputCode::Key::Minus },
+                // Special keys (iOS hardware keycodes) — must come before ASCII chars
+                // to avoid collisions ('0'=0x30=Tab, '3'=0x33=Backspace, '5'=0x35=Escape, '8'=0x38=Shift)
+                { 0x24, Lumos::InputCode::Key::Enter },
+                { 0x30, Lumos::InputCode::Key::Tab },
+                { 0x33, Lumos::InputCode::Key::Backspace },
+                { 0x35, Lumos::InputCode::Key::Escape },
+                { 0x38, Lumos::InputCode::Key::LeftShift },
                 { 0x75, Lumos::InputCode::Key::Delete },
-                { ' ', Lumos::InputCode::Key::Space },
                 { 0x7B, Lumos::InputCode::Key::Left },
                 { 0x7C, Lumos::InputCode::Key::Right },
-                { 0x7E, Lumos::InputCode::Key::Up },
                 { 0x7D, Lumos::InputCode::Key::Down },
-                { 0x38, Lumos::InputCode::Key::LeftShift },
-                { 0x35, Lumos::InputCode::Key::Escape },
+                { 0x7E, Lumos::InputCode::Key::Up },
+
+                // ASCII chars (digits excluded — '0','3','5','8' collide with special keycodes above)
+                // Digit keys are handled via insertText: / OnKeyTyped instead
+                { ' ', Lumos::InputCode::Key::Space },
+                { '-', Lumos::InputCode::Key::Minus },
                 { '+', Lumos::InputCode::Key::Equal },
-                { 0x33, Lumos::InputCode::Key::Backspace },
-                { 0x24, Lumos::InputCode::Key::Enter },
                 { ',', Lumos::InputCode::Key::Comma },
-                { 0x30, Lumos::InputCode::Key::Tab },
                 { '\t', Lumos::InputCode::Key::Tab },
                 { '\r', Lumos::InputCode::Key::Enter },
                 { '\n', Lumos::InputCode::Key::Enter }

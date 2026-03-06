@@ -41,6 +41,10 @@
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h>
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h>
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h>
+#include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/CompoundCollisionShape.h>
+#include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/TerrainCollisionShape.h>
+#include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/MeshCollisionShape.h>
+#include <Lumos/Physics/LumosPhysicsEngine/PhysicsMaterial.h>
 #include <Lumos/Maths/MathsUtilities.h>
 #include <Lumos/Maths/Quaternion.h>
 #include <Lumos/Maths/Matrix4.h>
@@ -698,6 +702,66 @@ end
         }
     }
 
+    static void CompoundCollisionShapeInspector(Lumos::CompoundCollisionShape* shape, const Lumos::RigidBody3DComponent& phys)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        ImGui::TextUnformatted("Compound Collision Shape");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        uint32_t childCount = shape->GetChildCount();
+        ImGui::Text("Child Shapes: %u", childCount);
+
+        if(ImGui::Button("Add Sphere Child"))
+        {
+            auto sphereShape = Lumos::CreateSharedPtr<Lumos::SphereCollisionShape>(0.5f);
+            shape->AddChild(sphereShape);
+            phys.GetRigidBody()->CollisionShapeUpdated();
+        }
+        ImGui::SameLine();
+        if(ImGui::Button("Add Cuboid Child"))
+        {
+            auto cuboidShape = Lumos::CreateSharedPtr<Lumos::CuboidCollisionShape>(Lumos::Vec3(0.5f));
+            shape->AddChild(cuboidShape);
+            phys.GetRigidBody()->CollisionShapeUpdated();
+        }
+
+        if(childCount > 0 && ImGui::Button("Clear Children"))
+        {
+            shape->ClearChildren();
+            phys.GetRigidBody()->CollisionShapeUpdated();
+        }
+    }
+
+    static void TerrainCollisionShapeInspector(Lumos::TerrainCollisionShape* shape, const Lumos::RigidBody3DComponent& phys)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        ImGui::TextUnformatted("Terrain Collision Shape");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        ImGui::Text("Width: %u", shape->GetWidth());
+        ImGui::Text("Height: %u", shape->GetHeight());
+        ImGui::Text("Scale XZ: %.2f", shape->GetScaleXZ());
+        ImGui::Text("Scale Y: %.2f", shape->GetScaleY());
+    }
+
+    static void MeshCollisionShapeInspector(Lumos::MeshCollisionShape* shape, const Lumos::RigidBody3DComponent& phys)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        ImGui::TextUnformatted("Mesh Collision Shape");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        ImGui::Text("Triangles: %u", shape->GetTriangleCount());
+
+        if(ImGui::Button("Generate from Model"))
+        {
+            // TODO: Get mesh from entity's ModelComponent
+            LWARN("Generate from Model not implemented yet");
+        }
+    }
+
     std::string CollisionShape2DTypeToString(Lumos::Shape shape)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -743,6 +807,12 @@ end
             return "Capsule";
         case Lumos::CollisionShapeType::CollisionHull:
             return "Hull";
+        case Lumos::CollisionShapeType::CollisionCompound:
+            return "Compound";
+        case Lumos::CollisionShapeType::CollisionTerrain:
+            return "Terrain";
+        case Lumos::CollisionShapeType::CollisionMesh:
+            return "Mesh";
         default:
             LERROR("Unsupported Collision shape");
             break;
@@ -764,6 +834,12 @@ end
             return Lumos::CollisionShapeType::CollisionCapsule;
         if(type == "Hull")
             return Lumos::CollisionShapeType::CollisionHull;
+        if(type == "Compound")
+            return Lumos::CollisionShapeType::CollisionCompound;
+        if(type == "Terrain")
+            return Lumos::CollisionShapeType::CollisionTerrain;
+        if(type == "Mesh")
+            return Lumos::CollisionShapeType::CollisionMesh;
         LERROR("Unsupported Collision shape %s", type.c_str());
         return Lumos::CollisionShapeType::CollisionSphere;
     }
@@ -993,6 +1069,24 @@ end
         if(Lumos::ImGuiUtilities::Property("Elasticity", elasticity))
             phys.GetRigidBody()->SetElasticity(elasticity);
 
+        // Physics material combine modes
+        const char* combineModes[] = { "Average", "Minimum", "Maximum", "Multiply" };
+        auto material = phys.GetRigidBody()->GetMaterial();
+
+        int frictionCombine = (int)material.FrictionCombine;
+        if(Lumos::ImGuiUtilities::PropertyDropdown("Friction Combine", combineModes, 4, &frictionCombine))
+        {
+            material.FrictionCombine = (Lumos::PhysicsMaterialCombineMode)frictionCombine;
+            phys.GetRigidBody()->SetMaterial(material);
+        }
+
+        int restitutionCombine = (int)material.RestitutionCombine;
+        if(Lumos::ImGuiUtilities::PropertyDropdown("Restitution Combine", combineModes, 4, &restitutionCombine))
+        {
+            material.RestitutionCombine = (Lumos::PhysicsMaterialCombineMode)restitutionCombine;
+            phys.GetRigidBody()->SetMaterial(material);
+        }
+
         if(Lumos::ImGuiUtilities::Property("Static", isStatic))
             phys.GetRigidBody()->SetIsStatic(isStatic);
 
@@ -1058,7 +1152,7 @@ end
         ImGui::Separator();
         ImGui::PopStyleVar();
 
-        const char* shapes[5]     = { "Sphere", "Cuboid", "Pyramid", "Capsule", "Hull" };
+        const char* shapes[8]     = { "Sphere", "Cuboid", "Pyramid", "Capsule", "Hull", "Compound", "Terrain", "Mesh" };
         int selectedIndex         = 0;
         const char* shape_current = collisionShape ? CollisionShapeTypeToString(collisionShape->GetType()) : "";
         int index                 = 0;
@@ -1095,6 +1189,15 @@ end
                 break;
             case Lumos::CollisionShapeType::CollisionHull:
                 HullCollisionShapeInspector(reinterpret_cast<Lumos::HullCollisionShape*>(collisionShape.get()), phys);
+                break;
+            case Lumos::CollisionShapeType::CollisionCompound:
+                CompoundCollisionShapeInspector(reinterpret_cast<Lumos::CompoundCollisionShape*>(collisionShape.get()), phys);
+                break;
+            case Lumos::CollisionShapeType::CollisionTerrain:
+                TerrainCollisionShapeInspector(reinterpret_cast<Lumos::TerrainCollisionShape*>(collisionShape.get()), phys);
+                break;
+            case Lumos::CollisionShapeType::CollisionMesh:
+                MeshCollisionShapeInspector(reinterpret_cast<Lumos::MeshCollisionShape*>(collisionShape.get()), phys);
                 break;
             default:
                 ImGui::NextColumn();
@@ -2608,10 +2711,116 @@ end
                     Lumos::ImGuiUtilities::Property("Vertex Count", stats.VertexCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
                     Lumos::ImGuiUtilities::Property("Index Count", stats.IndexCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
                     Lumos::ImGuiUtilities::Property("Optimise Threshold", stats.OptimiseThreshold, 0.0f, 0.0f, 0.0f, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
-                    Lumos::ImGuiUtilities::PropertyConst("Material", mesh->GetMaterial() ? (mesh->GetMaterial()->GetName().empty() ? "No Name" : mesh->GetMaterial()->GetName().c_str()) : "Empty");
+                    // Material picker
+                    auto& modelComp = reg.get<Lumos::Graphics::ModelComponent>(e);
+                    {
+                        const char* matLabel = mesh->GetMaterial() ? (mesh->GetMaterial()->GetName().empty() ? "No Name" : mesh->GetMaterial()->GetName().c_str()) : "Empty";
 
+                        ImGui::TextUnformatted("Material");
+                        ImGui::NextColumn();
+                        ImGui::PushItemWidth(-1);
+
+                        Lumos::String8 popupId = Lumos::PushStr8F(Lumos::Application::Get().GetFrameArena(), "MatPicker_%d", MeshIndex);
+
+                        float buttonWidth = ImGui::GetContentRegionAvail().x;
+                        float clearWidth  = ImGui::CalcTextSize("X").x + ImGui::GetStyle().FramePadding.x * 2.0f;
+                        bool hasOverride  = modelComp.MaterialOverrides.count((u32)MeshIndex) > 0;
+
+                        if(hasOverride)
+                            buttonWidth -= clearWidth + ImGui::GetStyle().ItemSpacing.x;
+
+                        if(ImGui::Button(matLabel, ImVec2(buttonWidth, 0)))
+                            ImGui::OpenPopup((const char*)popupId.str);
+
+                        if(hasOverride)
+                        {
+                            ImGui::SameLine();
+                            Lumos::String8 clearId = Lumos::PushStr8F(Lumos::Application::Get().GetFrameArena(), "X##matclear_%d", MeshIndex);
+                            if(ImGui::Button((const char*)clearId.str, ImVec2(clearWidth, 0)))
+                            {
+                                modelComp.MaterialOverrides.erase((u32)MeshIndex);
+                                // Reload model to restore embedded material
+                                if(modelComp.ModelRef && modelComp.ModelRef->GetPrimitiveType() == Lumos::Graphics::PrimitiveType::File)
+                                {
+                                    auto path = modelComp.ModelRef->GetFilePath();
+                                    modelComp.ModelRef->GetMeshesRef().Clear();
+                                    modelComp.ModelRef->LoadModel(path);
+                                    modelComp.ApplyMaterialOverrides();
+                                }
+                            }
+                        }
+
+                        static std::vector<std::string> s_CachedLmatFiles;
+                        static bool s_MatCacheDirty = true;
+                        static char s_MatFilter[128] = {};
+
+                        if(ImGui::BeginPopup((const char*)popupId.str))
+                        {
+                            if(s_MatCacheDirty)
+                            {
+                                s_CachedLmatFiles.clear();
+                                Lumos::ArenaTemp scratch = Lumos::ScratchBegin(nullptr, 0);
+                                Lumos::String8 assetsVFS = Lumos::Str8Lit("//Assets/");
+                                Lumos::String8 physAssets;
+                                if(Lumos::FileSystem::Get().ResolvePhysicalPath(scratch.arena, assetsVFS, &physAssets))
+                                {
+                                    std::error_code ec;
+                                    for(auto& entry : std::filesystem::recursive_directory_iterator((const char*)physAssets.str, ec))
+                                    {
+                                        if(entry.is_regular_file() && entry.path().extension() == ".lmat")
+                                        {
+                                            auto vfsPath = Lumos::FileSystem::Get().AbsolutePathToFileSystem(scratch.arena, Lumos::Str8StdS(entry.path().string()));
+                                            if(vfsPath.size > 0)
+                                                s_CachedLmatFiles.push_back(std::string((const char*)vfsPath.str, vfsPath.size));
+                                            else
+                                                s_CachedLmatFiles.push_back(entry.path().string());
+                                        }
+                                    }
+                                }
+                                Lumos::ScratchEnd(scratch);
+                                s_MatCacheDirty = false;
+                            }
+
+                            ImGui::InputText("Search", s_MatFilter, sizeof(s_MatFilter));
+                            ImGui::Separator();
+
+                            std::string filterStr(s_MatFilter);
+                            for(auto& lmatPath : s_CachedLmatFiles)
+                            {
+                                if(!filterStr.empty())
+                                {
+                                    std::string lower = lmatPath;
+                                    std::string lowerFilter = filterStr;
+                                    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+                                    std::transform(lowerFilter.begin(), lowerFilter.end(), lowerFilter.begin(), ::tolower);
+                                    if(lower.find(lowerFilter) == std::string::npos)
+                                        continue;
+                                }
+
+                                if(ImGui::Selectable(lmatPath.c_str()))
+                                {
+                                    mesh->SetAndLoadMaterial(lmatPath);
+                                    modelComp.MaterialOverrides[(u32)MeshIndex] = lmatPath;
+                                    s_MatCacheDirty = true;
+                                    memset(s_MatFilter, 0, sizeof(s_MatFilter));
+                                    ImGui::CloseCurrentPopup();
+                                }
+                            }
+
+                            ImGui::EndPopup();
+                        }
+                        else
+                        {
+                            s_MatCacheDirty = true;
+                            memset(s_MatFilter, 0, sizeof(s_MatFilter));
+                        }
+
+                        ImGui::PopItemWidth();
+                        ImGui::NextColumn();
+                    }
+
+                    // Drag-drop material onto mesh
                     const ImGuiPayload* payload = ImGui::GetDragDropPayload();
-                    auto callback               = std::bind(&Lumos::Graphics::Mesh::SetAndLoadMaterial, mesh, std::placeholders::_1);
                     if(payload != NULL && payload->IsDataType("AssetFile"))
                     {
                         auto filePath = std::string(reinterpret_cast<const char*>(payload->Data));
@@ -2619,10 +2828,10 @@ end
                         {
                             if(ImGui::BeginDragDropTarget())
                             {
-                                // Drop directly on to node and append to the end of it's children list.
                                 if(ImGui::AcceptDragDropPayload("AssetFile"))
                                 {
-                                    callback(filePath);
+                                    mesh->SetAndLoadMaterial(filePath);
+                                    modelComp.MaterialOverrides[(u32)MeshIndex] = filePath;
                                     ImGui::EndDragDropTarget();
 
                                     ImGui::Columns(1);
@@ -2829,6 +3038,111 @@ end
                 int animCount          = (int)animations.Size();
                 Lumos::ImGuiUtilities::Property("Animation Count", animCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
 
+                // Animation file picker
+                {
+                    auto& mc = reg.get<Lumos::Graphics::ModelComponent>(e);
+                    const char* animLabel = mc.AnimationOverride.empty() ? "Embedded" : mc.AnimationOverride.c_str();
+
+                    ImGui::TextUnformatted("Animation File");
+                    ImGui::NextColumn();
+                    ImGui::PushItemWidth(-1);
+
+                    float btnWidth   = ImGui::GetContentRegionAvail().x;
+                    float clearWidth = ImGui::CalcTextSize("X").x + ImGui::GetStyle().FramePadding.x * 2.0f;
+                    bool hasAnimOverride = !mc.AnimationOverride.empty();
+
+                    if(hasAnimOverride)
+                        btnWidth -= clearWidth + ImGui::GetStyle().ItemSpacing.x;
+
+                    if(ImGui::Button(animLabel, ImVec2(btnWidth, 0)))
+                        ImGui::OpenPopup("AnimPicker");
+
+                    if(hasAnimOverride)
+                    {
+                        ImGui::SameLine();
+                        if(ImGui::Button("X##animclear", ImVec2(clearWidth, 0)))
+                        {
+                            mc.AnimationOverride.clear();
+                            // Reload model to restore embedded animations
+                            if(mc.ModelRef && mc.ModelRef->GetPrimitiveType() == Lumos::Graphics::PrimitiveType::File)
+                            {
+                                auto path = mc.ModelRef->GetFilePath();
+                                mc.ModelRef->GetMeshesRef().Clear();
+                                mc.ModelRef->LoadModel(path);
+                                mc.ApplyMaterialOverrides();
+                            }
+                        }
+                    }
+
+                    static std::vector<std::string> s_CachedAnimFiles;
+                    static bool s_AnimCacheDirty = true;
+                    static char s_AnimFilter[128] = {};
+
+                    if(ImGui::BeginPopup("AnimPicker"))
+                    {
+                        if(s_AnimCacheDirty)
+                        {
+                            s_CachedAnimFiles.clear();
+                            Lumos::ArenaTemp scratch = Lumos::ScratchBegin(nullptr, 0);
+                            Lumos::String8 assetsVFS = Lumos::Str8Lit("//Assets/");
+                            Lumos::String8 physAssets;
+                            if(Lumos::FileSystem::Get().ResolvePhysicalPath(scratch.arena, assetsVFS, &physAssets))
+                            {
+                                std::error_code ec;
+                                for(auto& entry : std::filesystem::recursive_directory_iterator((const char*)physAssets.str, ec))
+                                {
+                                    if(entry.is_regular_file() && entry.path().extension() == ".lanim")
+                                    {
+                                        auto vfsPath = Lumos::FileSystem::Get().AbsolutePathToFileSystem(scratch.arena, Lumos::Str8StdS(entry.path().string()));
+                                        if(vfsPath.size > 0)
+                                            s_CachedAnimFiles.push_back(std::string((const char*)vfsPath.str, vfsPath.size));
+                                        else
+                                            s_CachedAnimFiles.push_back(entry.path().string());
+                                    }
+                                }
+                            }
+                            Lumos::ScratchEnd(scratch);
+                            s_AnimCacheDirty = false;
+                        }
+
+                        ImGui::InputText("Search", s_AnimFilter, sizeof(s_AnimFilter));
+                        ImGui::Separator();
+
+                        std::string filterStr(s_AnimFilter);
+                        for(auto& animPath : s_CachedAnimFiles)
+                        {
+                            if(!filterStr.empty())
+                            {
+                                std::string lower = animPath;
+                                std::string lowerFilter = filterStr;
+                                std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+                                std::transform(lowerFilter.begin(), lowerFilter.end(), lowerFilter.begin(), ::tolower);
+                                if(lower.find(lowerFilter) == std::string::npos)
+                                    continue;
+                            }
+
+                            if(ImGui::Selectable(animPath.c_str()))
+                            {
+                                mc.AnimationOverride = animPath;
+                                mc.ModelRef->LoadLAnim(animPath);
+                                s_AnimCacheDirty = true;
+                                memset(s_AnimFilter, 0, sizeof(s_AnimFilter));
+                                ImGui::CloseCurrentPopup();
+                            }
+                        }
+
+                        ImGui::EndPopup();
+                    }
+                    else
+                    {
+                        s_AnimCacheDirty = true;
+                        memset(s_AnimFilter, 0, sizeof(s_AnimFilter));
+                    }
+
+                    ImGui::PopItemWidth();
+                    ImGui::NextColumn();
+                }
+
                 if(animCount > 0)
                 {
                     ImGui::Columns(1);
@@ -2878,20 +3192,43 @@ end
 
                     uint32_t currentIndex   = modelRef->GetCurrentAnimationIndex();
                     const char* currentAnim = animNames[currentIndex];
-                    if(ImGui::BeginCombo("##AnimationCombo", currentAnim, 0)) // The second parameter is the label previewed before opening the combo.
+
+                    if(ImGui::Button(currentAnim, ImVec2(ImGui::GetContentRegionAvail().x, 0)))
+                        ImGui::OpenPopup("AnimSelectPicker");
+
+                    static char s_AnimSelectFilter[128] = {};
+
+                    if(ImGui::BeginPopup("AnimSelectPicker"))
                     {
+                        ImGui::InputText("Search", s_AnimSelectFilter, sizeof(s_AnimSelectFilter));
+                        ImGui::Separator();
+
+                        std::string filterStr(s_AnimSelectFilter);
                         for(int n = 0; n < animNames.Size(); n++)
                         {
-                            bool is_selected = (currentIndex == n);
-                            if(ImGui::Selectable(animNames[n], currentAnim))
+                            if(!filterStr.empty())
                             {
-                                currentIndex = n;
-                                modelRef->SetCurrentAnimationIndex(n);
+                                std::string lower = animNames[n];
+                                std::string lowerFilter = filterStr;
+                                std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+                                std::transform(lowerFilter.begin(), lowerFilter.end(), lowerFilter.begin(), ::tolower);
+                                if(lower.find(lowerFilter) == std::string::npos)
+                                    continue;
                             }
-                            if(is_selected)
-                                ImGui::SetItemDefaultFocus();
+
+                            if(ImGui::Selectable(animNames[n], currentIndex == (uint32_t)n))
+                            {
+                                modelRef->SetCurrentAnimationIndex(n);
+                                memset(s_AnimSelectFilter, 0, sizeof(s_AnimSelectFilter));
+                                ImGui::CloseCurrentPopup();
+                            }
                         }
-                        ImGui::EndCombo();
+
+                        ImGui::EndPopup();
+                    }
+                    else
+                    {
+                        memset(s_AnimSelectFilter, 0, sizeof(s_AnimSelectFilter));
                     }
                 }
                 ImGui::TreePop();

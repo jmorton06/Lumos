@@ -2,6 +2,8 @@
 #include "LoadImage.h"
 
 #include "Core/OS/FileSystem.h"
+#include "Core/Asset/LImgReader.h"
+#include "Utilities/StringUtilities.h"
 
 #ifdef FREEIMAGE
 #include <FreeImage.h>
@@ -38,6 +40,24 @@ namespace Lumos
         {
             ScratchEnd(Scratch);
             return nullptr;
+        }
+
+        // Fast path for .limg pre-decoded format
+        {
+            std::string ext = StringUtilities::GetFilePathExtension(std::string(filename));
+            if(ext == "limg")
+            {
+                LImgReadResult imgResult = {};
+                if(LImgReader::Read((const char*)physicalPath.str, imgResult))
+                {
+                    if(width)  *width  = imgResult.Width;
+                    if(height) *height = imgResult.Height;
+                    if(bits)   *bits   = imgResult.Bits;
+                    if(isHDR)  *isHDR  = imgResult.IsHDR;
+                    ScratchEnd(Scratch);
+                    return imgResult.Pixels;
+                }
+            }
         }
 
         if(stbi_is_hdr((const char*)physicalPath.str))
@@ -162,6 +182,26 @@ namespace Lumos
             return false;
         }
         desc.filePath = (const char*)physicalPath.str;
+
+        // Fast path for .limg pre-decoded format
+        {
+            std::string ext = StringUtilities::GetFilePathExtension(std::string(desc.filePath));
+            if(ext == "limg")
+            {
+                LImgReadResult imgResult = {};
+                if(LImgReader::Read(desc.filePath, imgResult))
+                {
+                    desc.outWidth  = imgResult.Width;
+                    desc.outHeight = imgResult.Height;
+                    desc.outBits   = imgResult.Bits;
+                    desc.isHDR     = imgResult.IsHDR;
+                    desc.outPixels = imgResult.Pixels;
+                    ScratchEnd(Scratch);
+                    return true;
+                }
+                // Fall through to stbi if limg read fails
+            }
+        }
 
         if(stbi_is_hdr(desc.filePath))
         {

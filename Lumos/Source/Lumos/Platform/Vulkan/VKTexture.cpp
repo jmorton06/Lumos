@@ -195,12 +195,26 @@ namespace Lumos
             m_Height      = height;
             m_Parameters  = parameters;
             m_LoadOptions = loadOptions;
-            m_Data        = static_cast<uint8_t*>(data);
             m_Format      = parameters.format;
+
+            // Copy pixel data so we own it (caller's data may be freed)
+            uint32_t bpp      = Maths::Max(1u, GetBitsFromFormat(parameters.format) / 8);
+            uint64_t dataSize = (uint64_t)width * height * bpp;
+            if(data && dataSize > 0)
+            {
+                m_Data = new uint8_t[dataSize];
+                memcpy(m_Data, data, dataSize);
+            }
             m_VKFormat    = VKUtilities::FormatToVK(parameters.format, parameters.srgb);
             m_Flags       = m_Parameters.flags;
             m_Samples     = parameters.samples;
             Load();
+
+            if(!loadOptions.storePixelData && m_Data)
+            {
+                delete[] m_Data;
+                m_Data = nullptr;
+            }
 
             m_TextureImageView = CreateImageView(m_TextureImage, VKUtilities::FormatToVK(parameters.format, parameters.srgb), m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
             m_TextureSampler   = CreateTextureSampler(VKUtilities::TextureFilterToVK(m_Parameters.magFilter), VKUtilities::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), m_Parameters.anisotropicFiltering, m_Parameters.anisotropicFiltering ? VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy : 1.0f,
@@ -314,6 +328,12 @@ namespace Lumos
             }
 
             m_ImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+            if(m_Data)
+            {
+                delete[] m_Data;
+                m_Data = nullptr;
+            }
         }
 
         void VKTexture2D::Resize(uint32_t width, uint32_t height)
@@ -605,12 +625,23 @@ namespace Lumos
             m_Height      = height;
             m_Parameters  = parameters;
             m_LoadOptions = loadOptions;
-            m_Data        = static_cast<uint8_t*>(data);
             m_Format      = parameters.format;
+
+            // Copy pixel data so we own it
+            uint32_t bpp      = Maths::Max(1u, GetBitsFromFormat(parameters.format) / 8);// * 4;
+            uint64_t dataSize = (uint64_t)width * height * bpp;
+            m_Data = new uint8_t[dataSize];
+            memcpy(m_Data, data, dataSize);
             m_VKFormat    = VKUtilities::FormatToVK(parameters.format, parameters.srgb);
             m_Flags       = m_Parameters.flags;
 
             Load();
+
+            if(!loadOptions.storePixelData && m_Data)
+            {
+                delete[] m_Data;
+                m_Data = nullptr;
+            }
 
             m_TextureImageView = CreateImageView(m_TextureImage, VKUtilities::FormatToVK(parameters.format, parameters.srgb), m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
             m_TextureSampler   = CreateTextureSampler(VKUtilities::TextureFilterToVK(m_Parameters.magFilter), VKUtilities::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), m_Parameters.anisotropicFiltering, m_Parameters.anisotropicFiltering ? VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy : 1.0f,

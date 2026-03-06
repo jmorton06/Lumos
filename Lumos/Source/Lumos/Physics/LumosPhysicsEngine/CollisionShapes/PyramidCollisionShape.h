@@ -39,7 +39,7 @@ namespace Lumos
         {
             m_PyramidHalfDimensions = dims;
 
-            m_LocalTransform = Mat4::Scale(m_PyramidHalfDimensions);
+            m_LocalTransform = Mat4::Translation(Vec3(0.0f, m_PyramidHalfDimensions.y * 0.5f, 0.0f)) * Mat4::Scale(m_PyramidHalfDimensions);
             m_Type           = CollisionShapeType::CollisionPyramid;
 
             Vec3 m_Points[5] = {
@@ -78,7 +78,7 @@ namespace Lumos
         {
             archive(m_PyramidHalfDimensions);
 
-            m_LocalTransform = Mat4::Scale(m_PyramidHalfDimensions);
+            m_LocalTransform = Mat4::Translation(Vec3(0.0f, m_PyramidHalfDimensions.y * 0.5f, 0.0f)) * Mat4::Scale(m_PyramidHalfDimensions);
             m_Type           = CollisionShapeType::CollisionPyramid;
 
             Vec3 m_Points[5] = {

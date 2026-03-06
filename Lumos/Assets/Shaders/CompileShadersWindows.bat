@@ -8,6 +8,25 @@ set mypath=%cd%
 set COMPILER=C:/VulkanSDK/1.3.216.0/Bin/glslc.exe
 set DSTDIR=CompiledSPV
 set CHECK_FILE_MODIFIED=0
+set SHADER_FILTER=
+
+:parse_args
+if "%~1"=="" goto :args_parsed
+if /i "%~1"=="--check" set CHECK_FILE_MODIFIED=1
+if /i "%~1"=="-c" set CHECK_FILE_MODIFIED=1
+if /i "%~1"=="--force" set CHECK_FILE_MODIFIED=0
+if /i "%~1"=="-f" set CHECK_FILE_MODIFIED=0
+if /i "%~1"=="--shader" (
+    set SHADER_FILTER=%~2
+    shift
+)
+if /i "%~1"=="-s" (
+    set SHADER_FILTER=%~2
+    shift
+)
+shift
+goto :parse_args
+:args_parsed
 
 if not exist "%DSTDIR%" (
   mkdir "%DSTDIR%"
@@ -16,6 +35,15 @@ if not exist "%DSTDIR%" (
 for %%f in (*.vert *.frag *.comp) do (
 
   set SRC=%%f
+  
+  rem Check filter
+  if defined SHADER_FILTER (
+      echo !SRC! | findstr /i "!SHADER_FILTER!" >nul
+      if errorlevel 1 (
+          goto :continue_loop
+      )
+  )
+
   set DST=%DSTDIR%\!SRC:.vert=.vert.spv!
   set DST=!DST:.frag=.frag.spv!
   set DST=!DST:.comp=.comp.spv!
@@ -35,6 +63,9 @@ for %%f in (*.vert *.frag *.comp) do (
       %COMPILER% "!SRC!" -o "!DST!"
     )
   )
+  
+  :continue_loop
+  rem Continue
 )
 pause
 endlocal

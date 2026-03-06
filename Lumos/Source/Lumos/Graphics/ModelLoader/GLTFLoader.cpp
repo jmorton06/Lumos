@@ -91,7 +91,7 @@ namespace Lumos::Graphics
         }
     }
 
-    TDArray<SharedPtr<Material>> LoadMaterials(tinygltf::Model& gltfModel)
+    TDArray<SharedPtr<Material>> LoadMaterials(tinygltf::Model& gltfModel, const std::string& directory)
     {
         LUMOS_PROFILE_FUNCTION();
         TDArray<SharedPtr<Graphics::Texture2D>> loadedTextures;
@@ -128,7 +128,14 @@ namespace Lumos::Graphics
 
                 uint32_t texWidth  = imageAndSampler.Image->width;
                 uint32_t texHeight = imageAndSampler.Image->height;
-                uint8_t* pixels    = imageAndSampler.Image->image.data();
+                uint8_t* pixels    = imageAndSampler.Image->image.empty() ? nullptr : imageAndSampler.Image->image.data();
+
+                if(!pixels || texWidth == 0 || texHeight == 0)
+                {
+                    LERROR("GLTF: Texture has no pixel data (w=%u h=%u)", texWidth, texHeight);
+                    loadedTextures.PushBack(nullptr);
+                    continue;
+                }
 
                 uint32_t maxWidth, maxHeight;
                 GetMaxImageDimensions(maxWidth, maxHeight);
@@ -161,7 +168,13 @@ namespace Lumos::Graphics
                     freeData = true;
                 }
 
-                Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromSource(texWidth, texHeight, pixels, params);
+                Graphics::TextureLoadOptions loadOpts(false, false, true); // storePixelData for import
+                Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromSource(texWidth, texHeight, pixels, params, loadOpts);
+                if(texture2D && imageAndSampler.Image && !imageAndSampler.Image->uri.empty()
+                   && imageAndSampler.Image->uri.rfind("data:", 0) != 0)
+                {
+                    texture2D->SetFilepath(directory + imageAndSampler.Image->uri);
+                }
                 loadedTextures.PushBack(SharedPtr<Graphics::Texture2D>(texture2D ? texture2D : nullptr));
                 if(freeData)
                     free(pixels);
@@ -915,7 +928,8 @@ namespace Lumos::Graphics
         {
             LUMOS_PROFILE_SCOPE("Parse GLTF Model");
 
-            auto LoadedMaterials = LoadMaterials(model);
+            std::string directory = path.substr(0, path.find_last_of('/') + 1);
+            auto LoadedMaterials = LoadMaterials(model, directory);
 
             std::string name = path.substr(path.find_last_of('/') + 1);
 
@@ -979,6 +993,14 @@ namespace Lumos::Graphics
 
                 delete rawSkeleton;
             }
+        }
+        
+        if(HashMapsInitialised)
+        {
+            HashMapsInitialised = false;
+            HashMapDeinit(&GLTF_COMPONENT_LENGTH_LOOKUP);
+            HashMapDeinit(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP);
+
         }
     }
 }

@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 24,
+        "Version": 27,
         "Scene Name": "Sponza",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
@@ -33,9 +33,9 @@
         "value2": 1.0,
         "value3": false
     },
-    "value1": 9,
+    "value1": 10,
     "value2": 9,
-    "value3": 1048576,
+    "value3": 8,
     "value4": 1,
     "value5": 2,
     "value6": 3,
@@ -43,48 +43,11 @@
     "value8": 5,
     "value9": 6,
     "value10": 7,
-    "value11": 8,
-    "value12": 7,
-    "value13": 1048576,
-    "value14": {
-        "Position": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 1.0328266620635987
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 1.0
-        },
-        "Scale": {
-            "value0": 4.507300853729248,
-            "value1": 4.507300853729248,
-            "value2": 4.507299423217773
-        }
-    },
-    "value15": 5,
-    "value16": {
-        "Position": {
-            "value0": -43.276554107666019,
-            "value1": 9.159662246704102,
-            "value2": -15.362536430358887
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 0.9999999403953552
-        },
-        "Scale": {
-            "value0": 2.3499999046325685,
-            "value1": 2.3499999046325685,
-            "value2": 2.3499996662139894
-        }
-    },
-    "value17": 7,
-    "value18": {
+    "value11": 9,
+    "value12": 3145728,
+    "value13": 7,
+    "value14": 7,
+    "value15": {
         "Position": {
             "value0": -16.0792293548584,
             "value1": 3.7029831409454347,
@@ -102,8 +65,46 @@
             "value2": 1.0
         }
     },
-    "value19": 6,
-    "value20": {
+    "value16": 5,
+    "value17": {
+        "Position": {
+            "value0": -48.03950119018555,
+            "value1": 9.159662246704102,
+            "value2": -17.738876342773439
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9999999403953552
+        },
+        "Scale": {
+            "value0": 2.3499999046325685,
+            "value1": 2.3499999046325685,
+            "value2": 2.3499996662139894
+        }
+    },
+    "value18": 9,
+    "value19": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 5.0,
+            "value1": 5.0,
+            "value2": 5.0
+        }
+    },
+    "value20": 6,
+    "value21": {
         "Position": {
             "value0": 0.000013351507732295432,
             "value1": -0.006932055111974478,
@@ -121,8 +122,8 @@
             "value2": 1.000004768371582
         }
     },
-    "value21": 8,
-    "value22": {
+    "value22": 8,
+    "value23": {
         "Position": {
             "value0": 0.0,
             "value1": 20.91830825805664,
@@ -140,8 +141,8 @@
             "value2": 1.0
         }
     },
-    "value23": 2,
-    "value24": {
+    "value24": 2,
+    "value25": {
         "Position": {
             "value0": 20.89605140686035,
             "value1": 4.722044944763184,
@@ -159,8 +160,8 @@
             "value2": 1.0000011920928956
         }
     },
-    "value25": 1,
-    "value26": {
+    "value26": 1,
+    "value27": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
@@ -178,52 +179,56 @@
             "value2": 1.000003457069397
         }
     },
-    "value27": 6,
-    "value28": 1,
-    "value29": {
+    "value28": 7,
+    "value29": 1,
+    "value30": {
         "Name": "Light"
     },
-    "value30": 4,
-    "value31": {
+    "value31": 4,
+    "value32": {
         "Name": "Environment"
     },
-    "value32": 2,
-    "value33": {
+    "value33": 2,
+    "value34": {
         "Name": "Camera"
     },
-    "value34": 3,
-    "value35": {
+    "value35": 3,
+    "value36": {
         "Name": "LuaScript"
     },
-    "value36": 5,
-    "value37": {
+    "value37": 5,
+    "value38": {
         "Name": "Cube"
     },
-    "value38": 8,
-    "value39": {
+    "value39": 8,
+    "value40": {
         "Name": "ParticleEmitter"
     },
-    "value40": 0,
-    "value41": 2,
-    "value42": 6,
-    "value43": {
+    "value41": 9,
+    "value42": {
+        "Name": "Sponza.gltf"
+    },
+    "value43": 0,
+    "value44": 2,
+    "value45": 6,
+    "value46": {
         "First": 1048575,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 5
     },
-    "value44": 5,
-    "value45": {
+    "value47": 5,
+    "value48": {
         "First": 6,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 1048575
     },
-    "value46": 1,
-    "value47": 2,
-    "value48": {
+    "value49": 1,
+    "value50": 2,
+    "value51": {
         "Scale": 1.0,
-        "Aspect": 0.7866241931915283,
+        "Aspect": 0.822629988193512,
         "FOV": 79.24700164794922,
         "Near": 0.27399998903274538,
         "Far": 831.0960083007813,
@@ -231,15 +236,15 @@
         "ShutterSpeed": 0.01666666753590107,
         "Sensitivity": 500.0
     },
-    "value49": 1,
-    "value50": 3,
-    "value51": {
+    "value52": 1,
+    "value53": 3,
+    "value54": {
         "FilePath": "//Assets/Scripts/Projectile.lua"
     },
-    "value52": 0,
-    "value53": 2,
-    "value54": 1,
-    "value55": {
+    "value55": 0,
+    "value56": 2,
+    "value57": 1,
+    "value58": {
         "value0": {
             "value0": 0.0,
             "value1": 0.0,
@@ -255,20 +260,20 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.5855494141578674,
-            "value1": 0.7909445762634277,
-            "value2": -0.17759086191654206,
+            "value0": 0.5855500102043152,
+            "value1": 0.7909444570541382,
+            "value2": -0.1775895208120346,
             "value3": 1.0
         },
         "value5": 128000.0,
         "value6": 1.0
     },
-    "value56": 6,
-    "value57": {
+    "value59": 6,
+    "value60": {
         "value0": {
-            "value0": -43.27652359008789,
+            "value0": -48.03947067260742,
             "value1": 9.14337158203125,
-            "value2": -15.362556457519532,
+            "value2": -17.7388973236084,
             "value3": 1.0
         },
         "value1": {
@@ -288,10 +293,10 @@
         "value5": 120000.0,
         "value6": 10.0
     },
-    "value58": 0,
-    "value59": 1,
-    "value60": 4,
-    "value61": {
+    "value61": 0,
+    "value62": 1,
+    "value63": 4,
+    "value64": {
         "value0": "//Assets/Textures/cubemap/noga",
         "value1": 11,
         "value2": 3072,
@@ -306,72 +311,72 @@
             "value3": 1.0
         }
     },
-    "value62": 0,
-    "value63": 0,
-    "value64": 1,
-    "value65": 2,
-    "value66": {
+    "value65": 0,
+    "value66": 0,
+    "value67": 1,
+    "value68": 2,
+    "value69": {
         "ControllerType": 4
     },
-    "value67": 0,
-    "value68": 0,
-    "value69": 0,
-    "value70": 9,
-    "value71": 4,
-    "value72": {
+    "value70": 0,
+    "value71": 0,
+    "value72": 0,
+    "value73": 9,
+    "value74": 4,
+    "value75": {
         "value0": 15908292661079695999
     },
-    "value73": 3,
-    "value74": {
+    "value76": 3,
+    "value77": {
         "value0": 7526643175369553408
     },
-    "value75": 2,
-    "value76": {
+    "value78": 2,
+    "value79": {
         "value0": 10876671568568338938
     },
-    "value77": 1,
-    "value78": {
+    "value80": 1,
+    "value81": {
         "value0": 7214240436243909756
     },
-    "value79": 1048576,
-    "value80": {
-        "value0": 7500562784737221622
-    },
-    "value81": 5,
-    "value82": {
-        "value0": 11895628897253878785
-    },
-    "value83": 6,
-    "value84": {
-        "value0": 10240194095462285041
-    },
-    "value85": 7,
-    "value86": {
-        "value0": 7682186050372134587
-    },
-    "value87": 8,
-    "value88": {
+    "value82": 8,
+    "value83": {
         "value0": 13693206612009164301
     },
-    "value89": 3,
-    "value90": 1048576,
+    "value84": 5,
+    "value85": {
+        "value0": 11895628897253878785
+    },
+    "value86": 6,
+    "value87": {
+        "value0": 10240194095462285041
+    },
+    "value88": 7,
+    "value89": {
+        "value0": 7682186050372134587
+    },
+    "value90": 9,
     "value91": {
+        "value0": 6384487917760456513
+    },
+    "value92": 3,
+    "value93": 7,
+    "value94": {
         "PrimitiveType": 8,
-        "FilePath": "//Assets/Meshes/Sponza/Sponza.gltf",
+        "FilePath": "//Assets/Meshes/DamagedHelmet/glTF/DamagedHelmet.gltf",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
+                    "Albedo": "//Assets/Meshes/DamagedHelmet/glTF/Default_albedo.jpg",
+                    "Normal": "//Assets/Meshes/DamagedHelmet/glTF/Default_normal.jpg",
+                    "Metallic": "//Assets/Meshes/DamagedHelmet/glTF/Default_metalRoughness.jpg",
                     "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
+                    "Ao": "//Assets/Meshes/DamagedHelmet/glTF/Default_AO.jpg",
+                    "Emissive": "//Assets/Meshes/DamagedHelmet/glTF/Default_emissive.jpg",
                     "albedoColour": {
-                        "value0": 0.5879999995231628,
-                        "value1": 0.5879999995231628,
-                        "value2": 0.5879999995231628,
+                        "value0": 1.0,
+                        "value1": 1.0,
+                        "value2": 1.0,
                         "value3": 1.0
                     },
                     "roughnessValue": 0.699999988079071,
@@ -381,18 +386,20 @@
                     "metallicMapFactor": 1.0,
                     "roughnessMapFactor": 0.0,
                     "normalMapFactor": 1.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
+                    "aoMapFactor": 1.0,
+                    "emissiveMapFactor": 1.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 1.0,
-                    "shader": "C:/Dev/Lumos-Dev/Lumos/Assets/Shaders/ForwardPBR.shader",
+                    "shader": "",
                     "Reflectance": 0.30000001192092898
                 }
             }
-        }
+        },
+        "MaterialOverrides": [],
+        "AnimationOverride": ""
     },
-    "value92": 5,
-    "value93": {
+    "value95": 5,
+    "value96": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -422,16 +429,18 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "C:/Dev/Lumos-Dev/Lumos/Assets/Shaders/ForwardPBR.shader",
+                    "shader": "",
                     "Reflectance": 0.30000001192092898
                 }
             }
-        }
+        },
+        "MaterialOverrides": [],
+        "AnimationOverride": ""
     },
-    "value94": 7,
-    "value95": {
+    "value97": 9,
+    "value98": {
         "PrimitiveType": 8,
-        "FilePath": "//Assets/Meshes/DamagedHelmet/glTF/DamagedHelmet.gltf",
+        "FilePath": "//Assets/Imported/11359155952386108340.lmesh",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -443,33 +452,40 @@
                     "Ao": "",
                     "Emissive": "",
                     "albedoColour": {
-                        "value0": 1.0,
-                        "value1": 1.0,
-                        "value2": 1.0,
+                        "value0": 0.00553114851936698,
+                        "value1": 0.19561977684497834,
+                        "value2": 0.639769434928894,
                         "value3": 1.0
                     },
-                    "roughnessValue": 0.699999988079071,
-                    "metallicValue": 0.699999988079071,
+                    "roughnessValue": 0.30000001192092898,
+                    "metallicValue": 0.800000011920929,
                     "emissiveValue": 0.0,
-                    "albedoMapFactor": 1.0,
-                    "metallicMapFactor": 1.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
                     "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 1.0,
-                    "aoMapFactor": 1.0,
-                    "emissiveMapFactor": 1.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
-                    "workflow": 1.0,
-                    "shader": "C:/Dev/Lumos-Dev/Lumos/Assets/Shaders/ForwardPBR.shader",
+                    "workflow": 0.0,
+                    "shader": "",
                     "Reflectance": 0.30000001192092898
                 }
             }
-        }
+        },
+        "MaterialOverrides": [
+            {
+                "key": 0,
+                "value": "//Assets/Materials/MaterialBlue##0.lmat"
+            }
+        ],
+        "AnimationOverride": ""
     },
-    "value96": 0,
-    "value97": 0,
-    "value98": 1,
-    "value99": 8,
-    "value100": {
+    "value99": 0,
+    "value100": 0,
+    "value101": 1,
+    "value102": 8,
+    "value103": {
         "value0": 2048,
         "value1": 6.0,
         "value2": 0.20000000298023225,
@@ -496,7 +512,7 @@
         },
         "value7": 2.0,
         "value8": 2.0,
-        "value9": 0.08911193907260895,
+        "value9": 0.03504297137260437,
         "value10": 0.10000000149011612,
         "value11": 100,
         "value12": false,
@@ -512,5 +528,6 @@
         "value18": false,
         "value19": 1,
         "value20": 1
-    }
+    },
+    "value104": 0
 }

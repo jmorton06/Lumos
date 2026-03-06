@@ -16,8 +16,12 @@
 #include "FileBrowserPanel.h"
 #include "ScriptConsolePanel.h"
 #include "LuaDebugPanel.h"
+#include "AboutSupportPanel.h"
 #include "PreviewDraw.h"
+#include "ImportPanel.h"
 #include "EditorPanel.h"
+#include <Lumos/Core/Asset/AssetImporter.h>
+#include <Lumos/Core/Asset/AssetPacker.h>
 
 #include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Utilities/Timer.h>
@@ -57,6 +61,10 @@
 #include <Lumos/Graphics/Model.h>
 #include <Lumos/Graphics/Environment.h>
 #include <Lumos/Graphics/Animation/AnimationController.h>
+#include <Lumos/Graphics/ShaderCompiler.h>
+
+#include <fstream>
+#include <filesystem>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/Embedded/EmbedAsset.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
@@ -106,6 +114,7 @@ namespace Lumos
         m_Panels.clear();
         m_PreviewDraw->ReleaseResources();
         delete m_PreviewDraw;
+        delete m_ImportPanel;
         delete m_FileBrowserPanel;
 
         Application::OnQuit();
@@ -120,6 +129,7 @@ namespace Lumos
     void Editor::Init()
     {
         LUMOS_PROFILE_FUNCTION();
+        m_ProjectSettings.AutoImportMeshes = true;
         Lumos::InitialiseUndo();
         ImCmd::CreateContext();
         toggle_demo_cmd.Name            = "Toggle ImGui demo window";
@@ -222,15 +232,35 @@ namespace Lumos
         m_TempSceneSaveFilePath += "/Lumos/";
 #endif
         if(!FileSystem::FolderExists(Str8StdS(m_TempSceneSaveFilePath)))
-            std::filesystem::create_directory(m_TempSceneSaveFilePath);
+        {
+            std::error_code ec;
+            std::filesystem::create_directory(m_TempSceneSaveFilePath, ec);
+        }
 
-        std::vector<std::string> iniLocation = {
-            StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "Editor.ini",
-            StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../../Editor.ini"
-        };
+        std::string iniDefaultPath;
+        std::vector<std::string> iniLocation;
 
-#if defined(LUMOS_PLATFORM_IOS)
-        iniLocation.push_back(StringUtilities::GetFileLocation(OS::Get().GetAssetPath()) + "Editor.ini");
+#ifdef LUMOS_PLATFORM_MACOS
+        {
+            // Sandbox-friendly: use Application Support directory
+            const char* home = std::getenv("HOME");
+            std::string appSupport = std::string(home ? home : "/tmp") + "/Library/Application Support/LumosEditor/";
+            std::error_code ec;
+            std::filesystem::create_directories(appSupport, ec);
+            iniDefaultPath = appSupport + "Editor.ini";
+            iniLocation.push_back(iniDefaultPath);
+            // Also check legacy locations for migration
+            std::string execPath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath());
+            iniLocation.push_back(execPath + "Editor.ini");
+            iniLocation.push_back(execPath + "../../../Editor.ini");
+        }
+#elif defined(LUMOS_PLATFORM_IOS)
+        iniDefaultPath = OS::Get().GetCurrentWorkingDirectory() + "/Editor.ini";
+        iniLocation.push_back(iniDefaultPath);
+#else
+        iniDefaultPath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "Editor.ini";
+        iniLocation.push_back(iniDefaultPath);
+        iniLocation.push_back(StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../../Editor.ini");
 #endif
 
         bool fileFound = false;
@@ -244,12 +274,12 @@ namespace Lumos
                 LINFO("Loaded Editor Ini file %s", path.c_str());
                 if(deleteIniFile)
                 {
-                    std::filesystem::remove_all(path);
+                    std::error_code ec;
+                    std::filesystem::remove_all(path, ec);
                 }
                 else
                 {
                     m_IniFile = IniFile(filePath);
-                    // ImGui::GetIO().IniFilename = ini[i];
 
                     fileFound = true;
                     LoadEditorSettings();
@@ -261,19 +291,11 @@ namespace Lumos
         if(!fileFound)
         {
             LINFO("Editor Ini not found");
-#ifdef LUMOS_PLATFORM_MACOS
-            filePath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../../Editor.ini";
-#elif defined(LUMOS_PLATFORM_IOS)
-            filePath = StringUtilities::GetFileLocation(OS::Get().GetAssetPath()) + "Editor.ini";
-#else
-            filePath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "Editor.ini";
-#endif
+            filePath = iniDefaultPath;
             LINFO("Creating Editor Ini %s", filePath.c_str());
 
-            //  FileSystem::WriteTextFile(filePath, "");
             m_IniFile = IniFile(filePath);
             AddDefaultEditorSettings();
-            // ImGui::GetIO().IniFilename = "editor.ini";
         }
 
         Application::Init();
@@ -286,18 +308,36 @@ namespace Lumos
         pathCopy                        = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
         m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
 
-        m_EditorCamera  = CreateSharedPtr<Camera>(-20.0f,
-                                                  -40.0f,
-                                                  Vec3(-31.0f, 12.0f, 51.0f),
-                                                  60.0f,
-                                                  0.01f,
-                                                  m_Settings.m_CameraFar,
-                                                  (float)Application::Get().GetWindowSize().x / (float)Application::Get().GetWindowSize().y);
-        m_CurrentCamera = m_EditorCamera.get();
+        {
+            m_EditorCamera = CreateSharedPtr<Camera>(60.0f,
+                                                     0.01f,
+                                                     m_Settings.m_CameraFar,
+                                                     (float)Application::Get().GetWindowSize().x / (float)Application::Get().GetWindowSize().y);
+            m_CurrentCamera = m_EditorCamera.get();
 
-        Mat4 viewMat = Mat4::LookAt(Vec3(-31.0f, 12.0f, 51.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
-        m_EditorCameraTransform.SetLocalTransform(viewMat);
-        m_EditorCameraTransform.SetWorldMatrix(Mat4(1.0f));
+            // Apply saved per-scene camera, or default
+            Vec3 camPos(-31.0f, 12.0f, 51.0f);
+            Quat camRot(0.0f, 0.0f, 0.0f, 1.0f);
+            auto* scene = GetCurrentScene();
+            if(scene)
+            {
+                m_LastSceneName = scene->GetSceneName();
+                for(size_t i = 0; i < m_Settings.m_SceneCameraStates.Size(); i++)
+                {
+                    auto& s = m_Settings.m_SceneCameraStates[i];
+                    if(s.sceneName == m_LastSceneName)
+                    {
+                        camPos = Vec3(s.posX, s.posY, s.posZ);
+                        camRot = Quat(s.rotX, s.rotY, s.rotZ, s.rotW);
+                        break;
+                    }
+                }
+            }
+
+            m_EditorCameraTransform.SetLocalPosition(camPos);
+            m_EditorCameraTransform.SetLocalOrientation(camRot);
+            m_EditorCameraTransform.SetWorldMatrix(Mat4(1.0f));
+        }
 
         m_ComponentIconMap[typeid(Graphics::Light).hash_code()]          = ICON_MDI_LIGHTBULB;
         m_ComponentIconMap[typeid(Camera).hash_code()]                   = ICON_MDI_CAMERA;
@@ -339,11 +379,14 @@ namespace Lumos
         m_Panels.back()->SetActive(false);
         m_Panels.emplace_back(CreateSharedPtr<LuaDebugPanel>());
         m_Panels.back()->SetActive(false);
+        m_Panels.emplace_back(CreateSharedPtr<AboutSupportPanel>());
+        m_Panels.back()->SetActive(false);
 
         for(auto& panel : m_Panels)
             panel->SetEditor(this);
 
         m_FileBrowserPanel = new FileBrowserPanel();
+        m_ImportPanel      = new ImportPanel();
         m_PreviewDraw      = new PreviewDraw();
 
         CreateGridRenderer();
@@ -427,7 +470,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         std::string extension = StringUtilities::GetFilePathExtension(filePath);
 
-        if(extension == "obj" || extension == "gltf" || extension == "glb" || extension == "fbx" || extension == "FBX")
+        if(extension == "obj" || extension == "gltf" || extension == "glb" || extension == "fbx" || extension == "FBX" || extension == "lmesh")
             return true;
 
         return false;
@@ -438,7 +481,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         std::string extension = StringUtilities::GetFilePathExtension(filePath);
         extension             = StringUtilities::ToLower(extension);
-        if(extension == "png" || extension == "tga" || extension == "jpg")
+        if(extension == "png" || extension == "tga" || extension == "jpg" || extension == "limg")
             return true;
 
         return false;
@@ -469,6 +512,15 @@ namespace Lumos
     void Editor::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
+
+        if(!m_ProjectLoaded)
+        {
+            DrawWelcomeScreen();
+            m_FileBrowserPanel->OnImGui();
+            Application::OnImGui();
+            return;
+        }
+
         DrawMenuBar();
 
         BeginDockSpace(m_Settings.m_FullScreenOnPlay && Application::Get().GetEditorState() == EditorState::Play);
@@ -485,6 +537,7 @@ namespace Lumos
         m_Settings.m_View2D = m_CurrentCamera->IsOrthographic();
 
         m_FileBrowserPanel->OnImGui();
+        m_ImportPanel->OnImGui();
 
         bool ctrlPressed  = Input::Get().GetKeyHeld(Lumos::InputCode::Key::LeftControl) || Input::Get().GetKeyHeld(Lumos::InputCode::Key::RightControl);
         bool shiftPressed = Input::Get().GetKeyHeld(Lumos::InputCode::Key::LeftShift) || Input::Get().GetKeyHeld(Lumos::InputCode::Key::RightShift);
@@ -576,25 +629,32 @@ namespace Lumos
     }
 
     static std::string projectLocation = "../";
-    static bool reopenNewProjectPopup  = false;
     static bool locationPopupOpened    = false;
 
     void Editor::NewProjectLocationCallback(const std::string& path)
     {
-        projectLocation       = path;
-        m_NewProjectPopupOpen = false;
-        reopenNewProjectPopup = true;
-        locationPopupOpened   = false;
+        projectLocation     = path;
+        locationPopupOpened = false;
     }
 
     void Editor::DrawMenuBar()
     {
         LUMOS_PROFILE_FUNCTION();
 
+        // Reserve viewport space for safe area insets (notch, rounded corners)
+        {
+            SafeAreaInsets sa = OS::Get().GetSafeAreaInsets();
+            ImGuiViewport* vp = ImGui::GetMainViewport();
+            ImGuiWindowFlags saFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+            if(sa.top > 0.0f)    { ImGui::BeginViewportSideBar("##SafeTop", vp, ImGuiDir_Up, sa.top, saFlags); ImGui::End(); }
+            if(sa.bottom > 0.0f) { ImGui::BeginViewportSideBar("##SafeBot", vp, ImGuiDir_Down, sa.bottom, saFlags); ImGui::End(); }
+            if(sa.left > 0.0f)   { ImGui::BeginViewportSideBar("##SafeLeft", vp, ImGuiDir_Left, sa.left, saFlags); ImGui::End(); }
+            if(sa.right > 0.0f)  { ImGui::BeginViewportSideBar("##SafeRight", vp, ImGuiDir_Right, sa.right, saFlags); ImGui::End(); }
+        }
+
         bool openSaveScenePopup   = false;
         bool openNewScenePopup    = false;
         bool openReloadScenePopup = false;
-        bool openProjectLoadPopup = !m_ProjectLoaded;
 
         if(ImGui::BeginMainMenuBar())
         {
@@ -639,8 +699,21 @@ namespace Lumos
             {
                 if(ImGui::MenuItem("Open Project"))
                 {
-                    reopenNewProjectPopup = false;
-                    openProjectLoadPopup  = true;
+                    locationPopupOpened = true;
+#ifdef LUMOS_PLATFORM_LINUX
+                    std::string path  = OS::Get().GetExecutablePath() + "/../../../";
+                    String8 pathCopy  = PushStr8Copy(m_FrameArena, path.c_str());
+                    pathCopy          = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
+                    path = (const char*)pathCopy.str;
+#else
+                    const auto& path  = OS::Get().GetExecutablePath();
+#endif
+                    auto& browserPath = m_FileBrowserPanel->GetPath();
+                    browserPath       = std::filesystem::path(path);
+                    m_FileBrowserPanel->SetFileTypeFilters({ ".lmproj" });
+                    m_FileBrowserPanel->SetOpenDirectory(false);
+                    m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
+                    m_FileBrowserPanel->Open();
                 }
 
                 if(ImGui::BeginMenu("Open Recent Project", !m_Settings.m_RecentProjects.empty()))
@@ -649,7 +722,11 @@ namespace Lumos
                     {
                         if(ImGui::MenuItem(recentProject.c_str()))
                         {
+                            m_ProjectLoadError.clear();
                             Application::Get().OpenProject(recentProject);
+
+                            if(!m_ProjectLoaded)
+                                m_ProjectLoadError = "Failed to load: " + recentProject;
 
                             for(int i = 0; i < int(m_Panels.size()); i++)
                             {
@@ -658,6 +735,12 @@ namespace Lumos
                         }
                     }
                     ImGui::EndMenu();
+                }
+
+                if(ImGui::MenuItem("Close Project"))
+                {
+                    m_ProjectLoaded = false;
+                    m_ProjectLoadError.clear();
                 }
 
                 ImGui::Separator();
@@ -684,6 +767,21 @@ namespace Lumos
                 if(ImGui::MenuItem("Reload Scene", "CTRL+R"))
                 {
                     openReloadScenePopup = true;
+                }
+
+                ImGui::Separator();
+
+                if(ImGui::MenuItem("Build Asset Pack", nullptr, false, !System::JobSystem::IsBusy(m_AssetPackContext)))
+                {
+                    std::string assetsDir  = m_ProjectSettings.m_ProjectRoot + "Assets/";
+                    std::string outputPath = m_ProjectSettings.m_ProjectRoot + "Assets.lpak";
+                    System::JobSystem::Execute(m_AssetPackContext, [this, assetsDir, outputPath](JobDispatchArgs)
+                    {
+                        PackSettings settings;
+                        settings.ExcludePaths.PushBack(Str8Lit("Cache/"));
+                        settings.ExcludePaths.PushBack(Str8Lit("Imported/"));
+                        m_AssetPackResult = AssetPacker::Pack(Str8StdS(outputPath), Str8StdS(assetsDir), settings);
+                    });
                 }
 
                 ImGui::Separator();
@@ -871,6 +969,23 @@ namespace Lumos
                         }
                     }
                     ScratchEnd(scratch);
+
+                    if(!m_Settings.m_RecentScenes.empty())
+                    {
+                        ImGui::Separator();
+                        if(ImGui::BeginMenu("Recent Scenes"))
+                        {
+                            for(auto& sceneName : m_Settings.m_RecentScenes)
+                            {
+                                if(ImGui::MenuItem(sceneName.c_str()))
+                                {
+                                    Application::Get().GetSceneManager()->SwitchScene(sceneName.c_str());
+                                }
+                            }
+                            ImGui::EndMenu();
+                        }
+                    }
+
                     ImGui::EndMenu();
                 }
 
@@ -978,6 +1093,20 @@ namespace Lumos
 
                         ImGui::EndMenu(); // Contributer Menu
                     }
+
+                    ImGui::Separator();
+                    if(ImGui::MenuItem(ICON_MDI_HEART " About & Support"))
+                    {
+                        for(auto& panel : m_Panels)
+                        {
+                            if(panel->GetSimpleName() == "About & Support")
+                            {
+                                panel->SetActive(true);
+                                break;
+                            }
+                        }
+                    }
+
                     ImGui::EndMenu(); // About Menu
                 }
 
@@ -1261,22 +1390,13 @@ namespace Lumos
 
         if(locationPopupOpened)
         {
-            // Cancel clicked on project location popups
             if(!m_FileBrowserPanel->IsOpen())
             {
-                m_NewProjectPopupOpen = false;
-                locationPopupOpened   = false;
-                reopenNewProjectPopup = true;
+                locationPopupOpened = false;
             }
         }
         if(openNewScenePopup)
             ImGui::OpenPopup("New Scene");
-
-        if((reopenNewProjectPopup || openProjectLoadPopup) && !m_NewProjectPopupOpen)
-        {
-            ImGui::OpenPopup("Open Project");
-            reopenNewProjectPopup = false;
-        }
 
         if(ImGui::BeginPopupModal("New Scene", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
@@ -1358,95 +1478,6 @@ namespace Lumos
             ImGui::EndPopup();
         }
 
-        if(ImGui::BeginPopupModal("Open Project", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-        {
-            if(ImGui::Button("Load Project"))
-            {
-                ImGui::CloseCurrentPopup();
-
-                m_NewProjectPopupOpen = true;
-                locationPopupOpened   = true;
-
-                // Set filePath to working directory
-                #ifdef LUMOS_PLATFORM_LINUX
-                std::string path  = OS::Get().GetExecutablePath() + "/../../../";
-                String8 pathCopy  = PushStr8Copy(m_FrameArena, path.c_str());
-                pathCopy           = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
-                path = (const char*)pathCopy.str;
-                #else
-                const auto& path  = OS::Get().GetExecutablePath();
-                #endif
-                auto& browserPath = m_FileBrowserPanel->GetPath();
-                browserPath       = std::filesystem::path(path);
-                m_FileBrowserPanel->SetFileTypeFilters({ ".lmproj" });
-                m_FileBrowserPanel->SetOpenDirectory(false);
-                m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
-                m_FileBrowserPanel->Open();
-            }
-
-            ImGui::Separator();
-            ImGui::TextUnformatted("Create New Project?\n");
-
-            static std::string newProjectName = "New Project Name";
-            ImGuiUtilities::InputText(newProjectName, "##ProjectNameChange");
-
-            if(ImGui::Button(ICON_MDI_FOLDER))
-            {
-                ImGui::CloseCurrentPopup();
-
-                m_NewProjectPopupOpen = true;
-                locationPopupOpened   = true;
-
-                // Set filePath to working directory
-                const auto& path  = OS::Get().GetExecutablePath();
-                auto& browserPath = m_FileBrowserPanel->GetPath();
-                browserPath       = std::filesystem::path(path);
-                m_FileBrowserPanel->ClearFileTypeFilters();
-                m_FileBrowserPanel->SetOpenDirectory(true);
-                m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(NewProjectLocationCallback));
-                m_FileBrowserPanel->Open();
-            }
-
-            ImGui::SameLine();
-
-            ImGui::TextUnformatted(projectLocation.c_str());
-
-            ImGui::Separator();
-
-            if(ImGui::Button("Create", ImVec2(120, 0)))
-            {
-                Application::Get().OpenNewProject(projectLocation, newProjectName);
-                m_FileBrowserPanel->SetOpenDirectory(false);
-
-                for(int i = 0; i < int(m_Panels.size()); i++)
-                {
-                    m_Panels[i]->OnNewProject();
-                }
-
-                ImGui::CloseCurrentPopup();
-            }
-
-            ImGui::SetItemDefaultFocus();
-            ImGui::SameLine();
-            if(ImGui::Button("Exit", ImVec2(120, 0)))
-            {
-                ImGui::CloseCurrentPopup();
-                SetAppState(AppState::Closing);
-            }
-
-            if(Application::Get().m_ProjectLoaded)
-            {
-                ImGui::SameLine();
-
-                if(ImGui::Button("Cancel", ImVec2(120, 0)))
-                {
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-
-            ImGui::EndPopup();
-        }
-
         if(openReloadScenePopup)
             ImGui::OpenPopup("Reload Scene");
 
@@ -1469,6 +1500,225 @@ namespace Lumos
             }
             ImGui::EndPopup();
         }
+
+        // Asset pack notification overlay
+        if(System::JobSystem::IsBusy(m_AssetPackContext))
+        {
+            ImGuiIO& io = ImGui::GetIO();
+            ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 10, io.DisplaySize.y - 10), ImGuiCond_Always, ImVec2(1, 1));
+            ImGui::SetNextWindowBgAlpha(0.75f);
+            ImGui::Begin("##packnotify", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
+            ImGui::Text("Building asset pack...");
+            ImGui::End();
+        }
+        else if(m_AssetPackResult)
+        {
+            static float s_PackNotifyTimer = 3.0f;
+            s_PackNotifyTimer -= ImGui::GetIO().DeltaTime;
+            if(s_PackNotifyTimer > 0.0f)
+            {
+                ImGuiIO& io = ImGui::GetIO();
+                ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 10, io.DisplaySize.y - 10), ImGuiCond_Always, ImVec2(1, 1));
+                ImGui::SetNextWindowBgAlpha(0.75f);
+                ImGui::Begin("##packnotify", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
+                ImGui::Text("Asset pack built: Assets.lpak");
+                ImGui::End();
+            }
+            else
+            {
+                s_PackNotifyTimer = 3.0f;
+                m_AssetPackResult = false;
+            }
+        }
+    }
+
+    void Editor::DrawWelcomeScreen()
+    {
+        auto& version = Lumos::LumosVersion;
+
+        ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+
+        ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar;
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::Begin("##WelcomeScreen", nullptr, flags);
+        ImGui::PopStyleVar(3);
+
+        float contentWidth = 420.0f;
+        float windowWidth  = ImGui::GetWindowWidth();
+        float windowHeight = ImGui::GetWindowHeight();
+        float offsetX      = (windowWidth - contentWidth) * 0.5f;
+        if(offsetX < 0.0f)
+            offsetX = 0.0f;
+
+        const float ButtonHeight = ImGui::GetTextLineHeightWithSpacing() * 1.2f;
+        // Estimate content height for vertical centering
+        float contentHeight = 380.0f;
+        if(!m_Settings.m_RecentProjects.empty())
+            contentHeight += m_Settings.m_RecentProjects.size() * 28.0f + 60.0f;
+        if(!m_ProjectLoadError.empty())
+            contentHeight += 40.0f;
+
+        float offsetY = (windowHeight - contentHeight) * 0.5f;
+        if(offsetY < 40.0f)
+            offsetY = 40.0f;
+
+        ImGui::SetCursorPos(ImVec2(offsetX, offsetY));
+        ImGui::BeginGroup();
+
+        // Title
+        {
+            ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
+            ImGui::SetCursorPosX(offsetX + (contentWidth - ImGui::CalcTextSize("Lumos Engine").x) * 0.5f);
+            ImGui::TextUnformatted("Lumos Engine");
+        }
+        {
+            ArenaTemp scratch = ScratchBegin(nullptr, 0);
+            String8 versionStr = PushStr8F(scratch.arena, "v%d.%d.%d", version.major, version.minor, version.patch);
+            float vw = ImGui::CalcTextSize((const char*)versionStr.str).x;
+            ImGui::SetCursorPosX(offsetX + (contentWidth - vw) * 0.5f);
+            ImGui::TextDisabled("%s", (const char*)versionStr.str);
+            ScratchEnd(scratch);
+        }
+
+        ImGui::Dummy(ImVec2(0, 20));
+
+        // Error message
+        if(!m_ProjectLoadError.empty())
+        {
+            ImGui::SetCursorPosX(offsetX);
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
+            ImGui::PushTextWrapPos(offsetX + contentWidth);
+            ImGui::Text(ICON_MDI_ALERT_CIRCLE " %s", m_ProjectLoadError.c_str());
+            ImGui::PopTextWrapPos();
+            ImGui::PopStyleColor();
+            ImGui::Dummy(ImVec2(0, 8));
+        }
+
+        // Recent projects
+        if(!m_Settings.m_RecentProjects.empty())
+        {
+            ImGui::SetCursorPosX(offsetX);
+            ImGui::TextDisabled("RECENT PROJECTS");
+            ImGui::Dummy(ImVec2(0, 4));
+
+            for(int i = 0; i < (int)m_Settings.m_RecentProjects.size(); i++)
+            {
+                auto& project       = m_Settings.m_RecentProjects[i];
+                std::string name    = StringUtilities::GetFileName(project);
+                std::string nameNoExt = StringUtilities::RemoveFilePathExtension(name);
+                std::string dirPath = StringUtilities::GetFileLocation(project);
+
+                ImGui::PushID(i);
+                ImGui::SetCursorPosX(offsetX);
+
+                ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.0f, 0.5f));
+                if(ImGui::Selectable(("  " ICON_MDI_FOLDER "  " + nameNoExt).c_str(), false, 0, ImVec2(contentWidth, 28)))
+                {
+                    m_ProjectLoadError.clear();
+                    Application::Get().OpenProject(project);
+
+                    if(!m_ProjectLoaded)
+                        m_ProjectLoadError = "Failed to load: " + project;
+                    else
+                    {
+                        for(int j = 0; j < int(m_Panels.size()); j++)
+                            m_Panels[j]->OnNewProject();
+                    }
+                }
+                ImGui::PopStyleVar();
+
+                if(ImGui::IsItemHovered())
+                    ImGui::SetTooltip("%s", project.c_str());
+                ImGui::PopID();
+            }
+
+            ImGui::Dummy(ImVec2(0, 16));
+        }
+
+        // Open project button
+        ImGui::SetCursorPosX(offsetX);
+        if(ImGui::Button(ICON_MDI_FOLDER_OPEN "  Open Project", ImVec2(contentWidth, ButtonHeight)))
+        {
+            locationPopupOpened = true;
+#ifdef LUMOS_PLATFORM_LINUX
+            std::string path  = OS::Get().GetExecutablePath() + "/../../../";
+            String8 pathCopy  = PushStr8Copy(m_FrameArena, path.c_str());
+            pathCopy          = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
+            path = (const char*)pathCopy.str;
+#else
+            const auto& path  = OS::Get().GetExecutablePath();
+#endif
+            auto& browserPath = m_FileBrowserPanel->GetPath();
+            browserPath       = std::filesystem::path(path);
+            m_FileBrowserPanel->SetFileTypeFilters({ ".lmproj" });
+            m_FileBrowserPanel->SetOpenDirectory(false);
+            m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
+            m_FileBrowserPanel->Open();
+        }
+
+        ImGui::Dummy(ImVec2(0, 24));
+
+        // New project section
+        ImGui::SetCursorPosX(offsetX);
+        ImGui::TextDisabled("NEW PROJECT");
+        ImGui::Dummy(ImVec2(0, 6));
+
+        ImGui::SetCursorPosX(offsetX);
+        static std::string newProjectName = "NewProject";
+        ImGui::SetNextItemWidth(contentWidth);
+        ImGuiUtilities::InputText(newProjectName, "##WelcomeProjectName");
+
+        ImGui::Dummy(ImVec2(0, 6));
+
+        // Location row
+        ImGui::SetCursorPosX(offsetX);
+        if(ImGui::Button(ICON_MDI_FOLDER "  Choose Location", ImVec2(contentWidth, ButtonHeight)))
+        {
+            locationPopupOpened = true;
+            const auto& path    = OS::Get().GetExecutablePath();
+            auto& browserPath   = m_FileBrowserPanel->GetPath();
+            browserPath         = std::filesystem::path(path);
+            m_FileBrowserPanel->ClearFileTypeFilters();
+            m_FileBrowserPanel->SetOpenDirectory(true);
+            m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(NewProjectLocationCallback));
+            m_FileBrowserPanel->Open();
+        }
+        ImGui::SetCursorPosX(offsetX);
+        ImGui::PushTextWrapPos(offsetX + contentWidth);
+        ImGui::TextDisabled("%s", projectLocation.c_str());
+        ImGui::PopTextWrapPos();
+
+        ImGui::Dummy(ImVec2(0, 8));
+
+        ImGui::SetCursorPosX(offsetX);
+        if(ImGui::Button(ICON_MDI_PLUS "  Create Project", ImVec2(contentWidth, ButtonHeight)))
+        {
+            m_ProjectLoadError.clear();
+            Application::Get().OpenNewProject(projectLocation, newProjectName);
+            m_FileBrowserPanel->SetOpenDirectory(false);
+
+            for(int i = 0; i < int(m_Panels.size()); i++)
+                m_Panels[i]->OnNewProject();
+        }
+
+        ImGui::Dummy(ImVec2(0, 24));
+
+        // Exit
+        ImGui::SetCursorPosX(offsetX);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
+        if(ImGui::Button(ICON_MDI_EXIT_TO_APP "  Exit", ImVec2(contentWidth, ButtonHeight)))
+        {
+            SetAppState(AppState::Closing);
+        }
+        ImGui::PopStyleColor(2);
+
+        ImGui::EndGroup();
+        ImGui::End();
     }
 
     static const float identityMatrix[16] = { 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f };
@@ -1553,22 +1803,7 @@ namespace Lumos
                         }
                         else // Rotation
                         {
-                            Vec3 originalRotationEuler = transform->GetLocalOrientation().ToEuler() * Maths::M_DEGTORAD;
-
-                            originalRotationEuler.x = Maths::Mod(originalRotationEuler.x + Maths::M_PI, Maths::M_2PI) - Maths::M_PI;
-                            originalRotationEuler.y = Maths::Mod(originalRotationEuler.y + Maths::M_PI, Maths::M_2PI) - Maths::M_PI;
-                            originalRotationEuler.z = Maths::Mod(originalRotationEuler.z + Maths::M_PI, Maths::M_2PI) - Maths::M_PI;
-
-                            Vec3 deltaRotationEuler = rotation.ToEuler() * Maths::M_DEGTORAD - originalRotationEuler;
-
-                            if(Maths::Abs(deltaRotationEuler.x) < 0.001f)
-                                deltaRotationEuler.x = 0.0f;
-                            if(Maths::Abs(deltaRotationEuler.y) < 0.001f)
-                                deltaRotationEuler.y = 0.0f;
-                            if(Maths::Abs(deltaRotationEuler.z) < 0.001f)
-                                deltaRotationEuler.z = 0.0f;
-
-                            transform->SetLocalOrientation(Quat(transform->GetLocalOrientation().ToEuler() + deltaRotationEuler * Maths::M_RADTODEG));
+                            transform->SetLocalOrientation(rotation);
                         }
 
                         RigidBody2DComponent* rigidBody2DComponent = m_SelectedEntity.TryGetComponent<Lumos::RigidBody2DComponent>();
@@ -1721,7 +1956,7 @@ namespace Lumos
                         }
                         else if(ImGuizmo::IsRotateType()) // static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) & ImGuizmo::OPERATION::ROTATE)
                         {
-                            transform->SetLocalOrientation(Quat(transform->GetLocalOrientation() + deltaRotation));
+                            transform->SetLocalOrientation(deltaRotation * transform->GetLocalOrientation());
                         }
                         else
                         {
@@ -1768,18 +2003,8 @@ namespace Lumos
         {
             ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-            auto pos     = viewport->Pos;
-            auto size    = viewport->Size;
-            bool menuBar = true;
-            if(menuBar)
-            {
-                const float infoBarSize = ImGui::GetFrameHeight();
-                pos.y += infoBarSize;
-                size.y -= infoBarSize;
-            }
-
-            ImGui::SetNextWindowPos(pos);
-            ImGui::SetNextWindowSize(size);
+            ImGui::SetNextWindowPos(viewport->WorkPos);
+            ImGui::SetNextWindowSize(viewport->WorkSize);
             ImGui::SetNextWindowViewport(viewport->ID);
             ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
             ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -1937,12 +2162,78 @@ namespace Lumos
     void Editor::OnNewScene(Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
+
+        // Save outgoing scene camera (skip during init when camera isn't created yet)
+        if(m_EditorCamera && !m_LastSceneName.empty())
+        {
+            const Vec3& pos = m_EditorCameraTransform.GetLocalPosition();
+            const Quat& rot = m_EditorCameraTransform.GetLocalOrientation();
+            bool found      = false;
+            for(size_t i = 0; i < m_Settings.m_SceneCameraStates.Size(); i++)
+            {
+                if(m_Settings.m_SceneCameraStates[i].sceneName == m_LastSceneName)
+                {
+                    auto& s = m_Settings.m_SceneCameraStates[i];
+                    s.posX = pos.x; s.posY = pos.y; s.posZ = pos.z;
+                    s.rotX = rot.x; s.rotY = rot.y; s.rotZ = rot.z; s.rotW = rot.w;
+                    found = true;
+                    break;
+                }
+            }
+            if(!found)
+            {
+                EditorSettings::SceneCameraState s;
+                s.sceneName = m_LastSceneName;
+                s.posX = pos.x; s.posY = pos.y; s.posZ = pos.z;
+                s.rotX = rot.x; s.rotY = rot.y; s.rotZ = rot.z; s.rotW = rot.w;
+                m_Settings.m_SceneCameraStates.PushBack(s);
+            }
+        }
+
         Application::OnNewScene(scene);
-        // m_SelectedEntity = entt::null;
         m_HoveredEntity = {};
         m_SelectedEntities.clear();
-        Mat4 viewMat = Mat4::LookAt(Vec3(-31.0f, 12.0f, 51.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
-        m_EditorCameraTransform.SetLocalTransform(viewMat);
+
+        // Restore incoming scene camera
+        if(scene && m_EditorCamera)
+        {
+            const auto& name = scene->GetSceneName();
+            m_LastSceneName   = name;
+
+            Vec3 camPos(-31.0f, 12.0f, 51.0f);
+            Quat camRot(0.0f, 0.0f, 0.0f, 1.0f);
+            for(size_t i = 0; i < m_Settings.m_SceneCameraStates.Size(); i++)
+            {
+                if(m_Settings.m_SceneCameraStates[i].sceneName == name)
+                {
+                    auto& s = m_Settings.m_SceneCameraStates[i];
+                    camPos  = Vec3(s.posX, s.posY, s.posZ);
+                    camRot  = Quat(s.rotX, s.rotY, s.rotZ, s.rotW);
+                    break;
+                }
+            }
+            m_EditorCameraTransform.SetLocalPosition(camPos);
+            m_EditorCameraTransform.SetLocalOrientation(camRot);
+        }
+        else if(scene)
+        {
+            m_LastSceneName = scene->GetSceneName();
+        }
+
+        // Track scene in recent scenes list
+        if(scene)
+        {
+            auto sceneName = scene->GetSceneName();
+            if(!sceneName.empty())
+            {
+                auto it = std::find(m_Settings.m_RecentScenes.begin(), m_Settings.m_RecentScenes.end(), sceneName);
+                if(it != m_Settings.m_RecentScenes.end())
+                    m_Settings.m_RecentScenes.erase(it);
+                m_Settings.m_RecentScenes.insert(m_Settings.m_RecentScenes.begin(), sceneName);
+                if(m_Settings.m_RecentScenes.size() > 10)
+                    m_Settings.m_RecentScenes.resize(10);
+            }
+        }
 
         for(auto panel : m_Panels)
         {
@@ -2467,16 +2758,68 @@ namespace Lumos
     void Editor::RecompileShaders()
     {
         LUMOS_PROFILE_FUNCTION();
-        LINFO("Recompiling shaders Disabled");
 
-#ifdef LUMOS_RENDER_API_VULKAN
-#ifdef LUMOS_PLATFORM_WINDOWS
-        // std::string filePath = ROOT_DIR"/Lumos/Assets/EngineShaders/CompileShadersWindows.bat";
-        // system(filePath.c_str());
-#elif LUMOS_PLATFORM_MACOS
-        // std::string filePath = ROOT_DIR "/Lumos/Assets/EngineShaders/CompileShadersMac.sh";
-        // system(filePath.c_str());
-#endif
+#ifdef LUMOS_SHADERC
+        LINFO("Recompiling shaders with shaderc...");
+
+        std::string shaderDir = ROOT_DIR "/Lumos/Assets/Shaders/";
+        std::string spvDir    = shaderDir + "CompiledSPV/";
+
+        int compiled = 0, failed = 0;
+
+        auto compileFile = [&](const std::string& path, Graphics::ShaderType type) {
+            std::ifstream file(path);
+            if(!file.is_open()) return;
+
+            std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            file.close();
+
+            std::string filename = path.substr(path.find_last_of("/\\") + 1);
+            auto result = Graphics::ShaderCompiler::Compile(source, type, filename);
+
+            if(!result.success)
+            {
+                LERROR("Shader compile failed: %s - %s", filename.c_str(), result.error.c_str());
+                failed++;
+                return;
+            }
+
+            // Write .spv output
+            std::string ext = (type == Graphics::ShaderType::VERTEX) ? ".vert.spv"
+                            : (type == Graphics::ShaderType::FRAGMENT) ? ".frag.spv"
+                            : ".comp.spv";
+            size_t dotPos = filename.find_last_of('.');
+            std::string baseName = (dotPos != std::string::npos) ? filename.substr(0, dotPos) : filename;
+            std::string outPath  = spvDir + baseName + ext;
+
+            std::ofstream out(outPath, std::ios::binary);
+            if(out.is_open())
+            {
+                out.write(reinterpret_cast<const char*>(result.spirv.data()),
+                         result.spirv.size() * sizeof(uint32_t));
+                out.close();
+                compiled++;
+            }
+        };
+
+        // Iterate shader directory
+        for(auto& entry : std::filesystem::directory_iterator(shaderDir))
+        {
+            if(!entry.is_regular_file()) continue;
+            std::string ext = entry.path().extension().string();
+            std::string path = entry.path().string();
+
+            if(ext == ".vert")
+                compileFile(path, Graphics::ShaderType::VERTEX);
+            else if(ext == ".frag")
+                compileFile(path, Graphics::ShaderType::FRAGMENT);
+            else if(ext == ".comp")
+                compileFile(path, Graphics::ShaderType::COMPUTE);
+        }
+
+        LINFO("Shader compilation done: %d compiled, %d failed", compiled, failed);
+#else
+        LINFO("Shader recompilation not available (shaderc not linked)");
 #endif
     }
 
@@ -2738,6 +3081,12 @@ namespace Lumos
                 continue;
 
             const auto& [model, trans] = group.get<Graphics::ModelComponent, Maths::Transform>(entity);
+            
+            if(!model.ModelRef)
+            {
+                LERROR("Model is Null");
+                continue;
+            }
 
             auto& meshes = model.ModelRef->GetMeshes();
 
@@ -3023,15 +3372,32 @@ namespace Lumos
 
         auto path = filePath;
         path      = StringUtilities::BackSlashesToSlashes(path);
+
+        // Normalize to VFS path for consistent hashing
+        if(path.find("//") != 0)
+        {
+            String8 vfsPath;
+            if(FileSystem::Get().AbsolutePathToFileSystem(m_FrameArena, Str8StdS(path), vfsPath, false))
+                path = ToStdString(vfsPath);
+        }
+
         if(IsTextFile(path))
             OpenTextFile(path, NULL);
         else if(IsModelFile(path))
         {
-            Entity modelEntity = Application::Get().GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create(StringUtilities::GetFileName(path));
-            modelEntity.AddComponent<Graphics::ModelComponent>(path);
-
-            m_SelectedEntities.clear();
-            SetSelected(modelEntity);
+            // Check if already imported (has up-to-date .meta)
+            if(!AssetImporter::NeedsImport(path))
+            {
+                Entity modelEntity = Application::Get().GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create(StringUtilities::GetFileName(path));
+                modelEntity.AddComponent<Graphics::ModelComponent>(path);
+                m_SelectedEntities.clear();
+                SetSelected(modelEntity);
+            }
+            else
+            {
+                // Show import panel for new/stale models
+                m_ImportPanel->Show(path);
+            }
         }
         else if(IsAudioFile(path))
         {
@@ -3092,10 +3458,9 @@ namespace Lumos
 
     void Editor::ProjectOpenCallback(const std::string& filePath)
     {
-        m_NewProjectPopupOpen = false;
-        reopenNewProjectPopup = false;
-        locationPopupOpened   = false;
+        locationPopupOpened = false;
         m_FileBrowserPanel->ClearFileTypeFilters();
+        m_ProjectLoadError.clear();
 
         if(FileSystem::FileExists(Str8StdS(filePath)))
         {
@@ -3105,6 +3470,12 @@ namespace Lumos
         }
 
         Application::Get().OpenProject(filePath);
+
+        if(!m_ProjectLoaded)
+        {
+            m_ProjectLoadError = "Failed to load: " + filePath;
+            return;
+        }
 
         for(int i = 0; i < int(m_Panels.size()); i++)
         {
@@ -3144,19 +3515,72 @@ namespace Lumos
         m_IniFile.SetOrAdd("CameraNear", m_Settings.m_CameraNear);
         m_IniFile.SetOrAdd("CameraFar", m_Settings.m_CameraFar);
 
+        // Save current camera to per-scene state
+        {
+            auto* scene = GetCurrentScene();
+            if(scene && !scene->GetSceneName().empty())
+            {
+                const Vec3& pos     = m_EditorCameraTransform.GetLocalPosition();
+                const Quat& rot     = m_EditorCameraTransform.GetLocalOrientation();
+                const auto& name    = scene->GetSceneName();
+                bool found          = false;
+                for(size_t i = 0; i < m_Settings.m_SceneCameraStates.Size(); i++)
+                {
+                    if(m_Settings.m_SceneCameraStates[i].sceneName == name)
+                    {
+                        auto& s = m_Settings.m_SceneCameraStates[i];
+                        s.posX = pos.x; s.posY = pos.y; s.posZ = pos.z;
+                        s.rotX = rot.x; s.rotY = rot.y; s.rotZ = rot.z; s.rotW = rot.w;
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found)
+                {
+                    EditorSettings::SceneCameraState s;
+                    s.sceneName = name;
+                    s.posX = pos.x; s.posY = pos.y; s.posZ = pos.z;
+                    s.rotX = rot.x; s.rotY = rot.y; s.rotZ = rot.z; s.rotW = rot.w;
+                    m_Settings.m_SceneCameraStates.PushBack(s);
+                }
+            }
+        }
+
+        // Persist per-scene camera states
+        m_IniFile.SetOrAdd("SceneCamCount", int(m_Settings.m_SceneCameraStates.Size()));
+        for(int i = 0; i < int(m_Settings.m_SceneCameraStates.Size()); i++)
+        {
+            auto& s = m_Settings.m_SceneCameraStates[i];
+            std::string prefix = "SceneCam" + std::to_string(i);
+            m_IniFile.SetOrAdd(prefix + "Name", s.sceneName);
+            m_IniFile.SetOrAdd(prefix + "PX", s.posX);
+            m_IniFile.SetOrAdd(prefix + "PY", s.posY);
+            m_IniFile.SetOrAdd(prefix + "PZ", s.posZ);
+            m_IniFile.SetOrAdd(prefix + "RX", s.rotX);
+            m_IniFile.SetOrAdd(prefix + "RY", s.rotY);
+            m_IniFile.SetOrAdd(prefix + "RZ", s.rotZ);
+            m_IniFile.SetOrAdd(prefix + "RW", s.rotW);
+        }
+
         std::sort(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end());
         m_Settings.m_RecentProjects.erase(std::unique(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end()), m_Settings.m_RecentProjects.end());
         m_IniFile.SetOrAdd("RecentProjectCount", int(m_Settings.m_RecentProjects.size()));
 
-        if(m_Settings.m_RecentProjects.size() > 0)
+        for(int i = 0; i < int(m_Settings.m_RecentProjects.size()); i++)
         {
-            for(int i = 0; i < int(m_Settings.m_RecentProjects.size()); i++)
-            {
-                m_IniFile.SetOrAdd("RecentProject" + std::to_string(i), m_Settings.m_RecentProjects[i]);
-            }
-
-            m_IniFile.Rewrite();
+            m_IniFile.SetOrAdd("RecentProject" + std::to_string(i), m_Settings.m_RecentProjects[i]);
         }
+
+        // Recent scenes
+        std::sort(m_Settings.m_RecentScenes.begin(), m_Settings.m_RecentScenes.end());
+        m_Settings.m_RecentScenes.erase(std::unique(m_Settings.m_RecentScenes.begin(), m_Settings.m_RecentScenes.end()), m_Settings.m_RecentScenes.end());
+        m_IniFile.SetOrAdd("RecentSceneCount", int(m_Settings.m_RecentScenes.size()));
+        for(int i = 0; i < int(m_Settings.m_RecentScenes.size()); i++)
+        {
+            m_IniFile.SetOrAdd("RecentScene" + std::to_string(i), m_Settings.m_RecentScenes[i]);
+        }
+
+        m_IniFile.Rewrite();
     }
 
     void Editor::AddDefaultEditorSettings()
@@ -3166,14 +3590,40 @@ namespace Lumos
         m_ProjectSettings.m_ProjectRoot = "../../ExampleProject/";
 
 #ifdef LUMOS_PLATFORM_MACOS
-        // Assuming working directory in /bin/Debug-macosx-x86_64/LumosEditor.app/Contents/MacOS
-        m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../../../../ExampleProject/";
-        if(!Lumos::FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)))
         {
-            m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "/ExampleProject/";
-            if(!Lumos::FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)))
+            std::string execPath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath());
+            std::string bundlePath = execPath + "../Resources/ExampleProject/";
+
+            if(Lumos::FileSystem::FolderExists(Str8StdS(bundlePath)))
             {
-                m_ProjectSettings.m_ProjectRoot = "../../ExampleProject/";
+                // Sandboxed/distributed app: copy bundled project to writable Application Support
+                const char* home = std::getenv("HOME");
+                std::string appSupport = std::string(home ? home : "/tmp") + "/Library/Application Support/LumosEditor/ExampleProject/";
+                std::string projectFile = appSupport + "Example.lmproj";
+
+                std::error_code ec;
+                if(!std::filesystem::exists(projectFile, ec))
+                {
+                    LINFO("Copying bundled ExampleProject to %s", appSupport.c_str());
+                    std::filesystem::create_directories(appSupport, ec);
+                    std::filesystem::copy(bundlePath, appSupport, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing, ec);
+                    if(ec)
+                        LWARN("Failed to copy ExampleProject: %s", ec.message().c_str());
+                }
+                m_ProjectSettings.m_ProjectRoot = appSupport;
+            }
+            else
+            {
+                // Dev build: relative to build output
+                m_ProjectSettings.m_ProjectRoot = execPath + "../../../../../ExampleProject/";
+                if(!Lumos::FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)))
+                {
+                    m_ProjectSettings.m_ProjectRoot = execPath + "/ExampleProject/";
+                    if(!Lumos::FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)))
+                    {
+                        m_ProjectSettings.m_ProjectRoot = "../../ExampleProject/";
+                    }
+                }
             }
         }
 #elif defined(LUMOS_PLATFORM_IOS)
@@ -3203,6 +3653,8 @@ namespace Lumos
         m_IniFile.Add("CameraSpeed", m_Settings.m_CameraSpeed);
         m_IniFile.Add("CameraNear", m_Settings.m_CameraNear);
         m_IniFile.Add("CameraFar", m_Settings.m_CameraFar);
+        m_IniFile.Add("SceneCamCount", 0);
+        m_IniFile.Add("RecentSceneCount", 0);
 
         m_IniFile.Rewrite();
     }
@@ -3236,6 +3688,29 @@ namespace Lumos
         m_Settings.m_CameraNear          = m_IniFile.GetOrDefault("CameraNear", 0.01f);
         m_Settings.m_CameraFar           = m_IniFile.GetOrDefault("CameraFar", 1000.0f);
 
+        // Per-scene camera states
+        {
+            int camCount = m_IniFile.GetOrDefault("SceneCamCount", 0);
+            for(int i = 0; i < camCount; i++)
+            {
+                std::string prefix = "SceneCam" + std::to_string(i);
+                std::string name   = m_IniFile.GetOrDefault(prefix + "Name", std::string());
+                if(!name.empty())
+                {
+                    EditorSettings::SceneCameraState s;
+                    s.sceneName = name;
+                    s.posX = m_IniFile.GetOrDefault(prefix + "PX", -31.0f);
+                    s.posY = m_IniFile.GetOrDefault(prefix + "PY", 12.0f);
+                    s.posZ = m_IniFile.GetOrDefault(prefix + "PZ", 51.0f);
+                    s.rotX = m_IniFile.GetOrDefault(prefix + "RX", 0.0f);
+                    s.rotY = m_IniFile.GetOrDefault(prefix + "RY", 0.0f);
+                    s.rotZ = m_IniFile.GetOrDefault(prefix + "RZ", 0.0f);
+                    s.rotW = m_IniFile.GetOrDefault(prefix + "RW", 1.0f);
+                    m_Settings.m_SceneCameraStates.PushBack(s);
+                }
+            }
+        }
+
         m_EditorCameraController.SetSpeed(m_Settings.m_CameraSpeed);
 
         int recentProjectCount  = 0;
@@ -3263,6 +3738,19 @@ namespace Lumos
 
         std::sort(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end());
         m_Settings.m_RecentProjects.erase(std::unique(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end()), m_Settings.m_RecentProjects.end());
+
+        // Recent scenes
+        int recentSceneCount = m_IniFile.GetOrDefault("RecentSceneCount", 0);
+        for(int i = 0; i < recentSceneCount; i++)
+        {
+            std::string scenePath = m_IniFile.GetOrDefault("RecentScene" + std::to_string(i), std::string());
+            if(!scenePath.empty())
+            {
+                auto it = std::find(m_Settings.m_RecentScenes.begin(), m_Settings.m_RecentScenes.end(), scenePath);
+                if(it == m_Settings.m_RecentScenes.end())
+                    m_Settings.m_RecentScenes.push_back(scenePath);
+            }
+        }
     }
 
     SharedPtr<Graphics::Texture2D> Editor::GetPreviewTexture() const
