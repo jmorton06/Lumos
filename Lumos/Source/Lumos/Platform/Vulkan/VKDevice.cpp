@@ -181,7 +181,7 @@ namespace Lumos
             caps.MaxAnisotropy                = m_PhysicalDeviceProperties.limits.maxSamplerAnisotropy;
             caps.MaxTextureUnits              = m_PhysicalDeviceProperties.limits.maxDescriptorSetSamplers;
             caps.UniformBufferOffsetAlignment = int(m_PhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment);
-            caps.SupportCompute               = false; // true; //Need to sort descriptor set management first
+            caps.SupportCompute               = true;
 
             uint32_t queueFamilyCount;
             vkGetPhysicalDeviceQueueFamilyProperties(m_Handle, &queueFamilyCount, nullptr);

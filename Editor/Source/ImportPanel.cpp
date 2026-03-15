@@ -5,6 +5,9 @@
 #include <Lumos/Utilities/StringUtilities.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
 #include <Lumos/Scene/EntityManager.h>
+#include <Lumos/Graphics/Model.h>
+#include <Lumos/Graphics/Mesh.h>
+#include <Lumos/Scene/Entity.h>
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -30,7 +33,7 @@ namespace Lumos
 
         ImVec2 center = ImGui::GetMainViewport()->GetCenter();
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-        ImGui::SetNextWindowSize(ImVec2(400, 380), ImGuiCond_Appearing);
+        ImGui::SetNextWindowSize(ImVec2(400, 440), ImGuiCond_Appearing);
 
         if(ImGui::BeginPopupModal("Import Asset", &m_Active, ImGuiWindowFlags_NoResize))
         {
@@ -41,6 +44,8 @@ namespace Lumos
 
             ImGui::Checkbox("Import Materials", &m_Settings.ImportMaterials);
             ImGui::Checkbox("Import Animations", &m_Settings.ImportAnimations);
+            ImGui::Checkbox("Copy Source to Project", &m_Settings.CopySourceToProject);
+            ImGui::Checkbox("Split Meshes", &m_Settings.SplitMeshes);
 
             ImGui::Spacing();
             ImGui::Checkbox("Generate Collision Mesh", &m_Settings.GenerateCollision);
@@ -98,10 +103,52 @@ namespace Lumos
                 {
                     if(!Graphics::ModelComponent::ReloadSceneModels(m_SourcePath))
                     {
-                        // Not in scene yet — create a new entity
-                        Entity modelEntity = Application::Get().GetSceneManager()->GetCurrentScene()
-                                                 ->GetEntityManager()->Create(StringUtilities::GetFileName(m_SourcePath));
-                        modelEntity.AddComponent<Graphics::ModelComponent>(m_SourcePath);
+                        auto* scene = Application::Get().GetSceneManager()->GetCurrentScene();
+                        std::string entityName = StringUtilities::GetFileName(m_SourcePath);
+
+                        if(m_Settings.SplitMeshes)
+                        {
+                            // Load the model to get mesh count
+                            Graphics::Model tempModel(importedPath);
+                            auto& meshes = tempModel.GetMeshes();
+
+                            if(meshes.Size() > 1)
+                            {
+                                // Create parent entity
+                                Entity parentEntity = scene->GetEntityManager()->Create(entityName);
+
+                                for(int i = 0; i < meshes.Size(); i++)
+                                {
+                                    auto& mesh = meshes[i];
+                                    std::string meshName = mesh->GetName();
+                                    if(meshName.empty())
+                                    {
+                                        char buf[64];
+                                        snprintf(buf, sizeof(buf), "%s_%d", entityName.c_str(), i);
+                                        meshName = buf;
+                                    }
+
+                                    Entity childEntity = scene->GetEntityManager()->Create(meshName);
+
+                                    // Create a single-mesh model wrapping this mesh
+                                    auto singleModel = CreateSharedPtr<Graphics::Model>();
+                                    singleModel->AddMesh(mesh);
+
+                                    childEntity.AddComponent<Graphics::ModelComponent>(singleModel);
+                                    childEntity.SetParent(parentEntity);
+                                }
+                            }
+                            else
+                            {
+                                Entity modelEntity = scene->GetEntityManager()->Create(entityName);
+                                modelEntity.AddComponent<Graphics::ModelComponent>(m_SourcePath);
+                            }
+                        }
+                        else
+                        {
+                            Entity modelEntity = scene->GetEntityManager()->Create(entityName);
+                            modelEntity.AddComponent<Graphics::ModelComponent>(m_SourcePath);
+                        }
                     }
                 }
 

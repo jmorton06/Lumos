@@ -1,0 +1,16 @@
+{
+    "Settings": {
+        "ImportMaterials": true,
+        "ImportAnimations": true,
+        "GenerateCollision": false,
+        "CollisionSimplifyRatio": 0.10000000149011612,
+        "OptVertexCache": true,
+        "OptOverdraw": true,
+        "OptVertexFetch": true,
+        "MaxTextureWidth": 0,
+        "MaxTextureHeight": 0,
+        "CopySourceToProject": true,
+        "SplitMeshes": false
+    },
+    "OutputUUID": 6531884195023368835
+}

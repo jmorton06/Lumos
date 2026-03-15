@@ -52,7 +52,7 @@ namespace Lumos
             style_variable_list->first = style_variable_list->last = styleVariable;
         }
 
-        style_variable_lists[StyleVar_Padding].first->value               = { 10.0f, 7.0f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_Padding].first->value               = { 6.0f, 3.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_Border].first->value                = { 1.0f, 1.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_BorderColor].first->value           = { 0.7f, 0.7f, 0.7f, 1.0f };
         style_variable_lists[StyleVar_BackgroundColor].first->value       = { 0.95f, 0.95f, 0.95f, 1.0f };
@@ -68,6 +68,7 @@ namespace Lumos
         style_variable_lists[StyleVar_ShadowColor].first->value           = { 0.0f, 0.0f, 0.0f, 0.15f };
         style_variable_lists[StyleVar_ShadowOffset].first->value          = { 0.0f, 1.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_ShadowBlur].first->value            = { 4.0f, 0.0f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_ItemSpacing].first->value          = { 2.0f, 2.0f, 0.0f, 0.0f };
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
         style_variable_lists[StyleVar_FontSize].first->value = { 22.0f, 0.0f, 0.0f, 1.0f };
@@ -250,7 +251,7 @@ namespace Lumos
         const Vec2& mouse    = Input::Get().GetMousePosition() * s_UIState->DPIScale - s_UIState->InputOffset; // Needs to take Quality setting render scale into accoutn too
 
         bool hovering = mouse.x >= position.x && mouse.x <= position.x + size.x && mouse.y >= position.y && mouse.y <= position.y + size.y;
-        if(hovering)
+        if(hovering && !s_UIState->OverlayBlocksInput)
         {
             // If this widget is marked to drag/forward interaction to its parent, forward the hot widget to parent
             if((widget->flags & WidgetFlags_DragParent) && widget->parent)
@@ -277,8 +278,9 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         ArenaClear(s_UIState->UIFrameArena);
 
-        s_UIState->InputOffset     = inputOffset;
-        s_UIState->next_hot_widget = 0;
+        s_UIState->InputOffset         = inputOffset;
+        s_UIState->next_hot_widget     = 0;
+        s_UIState->OverlayBlocksInput  = false;
         s_UIState->CurrentTime += dt;
         s_UIState->parents.Clear();
         s_UIState->FrameIndex++;
@@ -417,8 +419,10 @@ namespace Lumos
                         s_UIState->LastClickedWidget = s_UIState->active_widget;
                     }
 
-                    // Close context menu on left click elsewhere
+                    // Close context menu and dropdown on left click elsewhere
                     s_UIState->ContextMenuOpen = false;
+                    if(s_UIState->OpenDropdown && !s_UIState->OverlayBlocksInput)
+                        s_UIState->OpenDropdown = 0;
                 }
 
                 // Right-click detection
@@ -587,6 +591,83 @@ namespace Lumos
         PopParent(GetCurrentParent());
     }
 
+    // Helper: get root (framebuffer) size
+    static Vec2 UIGetFrameBufferSize()
+    {
+        return s_UIState->root_parent.size;
+    }
+
+    // Helper: get current window widget (grandparent — panel's window widget)
+    static UI_Widget* UIGetCurrentWindow()
+    {
+        // parents stack: ... window > header > (current children)
+        // We want the window, which is 2 levels up from current
+        auto& parents = s_UIState->parents;
+        if(parents.Size() >= 2)
+            return parents[parents.Size() - 2];
+        return parents.Back();
+    }
+
+    void UIWindowDock(UIDockPosition pos, float sizePercent)
+    {
+        UI_Widget* window = UIGetCurrentWindow();
+        if(!window) return;
+
+        Vec2 fb = UIGetFrameBufferSize();
+        window->flags |= WidgetFlags_Floating_X | WidgetFlags_Floating_Y;
+
+        switch(pos)
+        {
+        case Dock_Left:
+            window->relative_position = { 0.0f, 0.0f };
+            window->semantic_size[UIAxis_X] = { SizeKind_Pixels, fb.x * sizePercent };
+            window->semantic_size[UIAxis_Y] = { SizeKind_Pixels, fb.y };
+            break;
+        case Dock_Right:
+            window->relative_position = { fb.x * (1.0f - sizePercent), 0.0f };
+            window->semantic_size[UIAxis_X] = { SizeKind_Pixels, fb.x * sizePercent };
+            window->semantic_size[UIAxis_Y] = { SizeKind_Pixels, fb.y };
+            break;
+        case Dock_Top:
+            window->relative_position = { 0.0f, 0.0f };
+            window->semantic_size[UIAxis_X] = { SizeKind_Pixels, fb.x };
+            window->semantic_size[UIAxis_Y] = { SizeKind_Pixels, fb.y * sizePercent };
+            break;
+        case Dock_Bottom:
+            window->relative_position = { 0.0f, fb.y * (1.0f - sizePercent) };
+            window->semantic_size[UIAxis_X] = { SizeKind_Pixels, fb.x };
+            window->semantic_size[UIAxis_Y] = { SizeKind_Pixels, fb.y * sizePercent };
+            break;
+        case Dock_Fill:
+            window->relative_position = { 0.0f, 0.0f };
+            window->semantic_size[UIAxis_X] = { SizeKind_Pixels, fb.x };
+            window->semantic_size[UIAxis_Y] = { SizeKind_Pixels, fb.y };
+            break;
+        }
+    }
+
+    void UIWindowCenter()
+    {
+        UI_Widget* window = UIGetCurrentWindow();
+        if(!window) return;
+        window->flags |= WidgetFlags_CentreX | WidgetFlags_CentreY;
+    }
+
+    void UIWindowFillScreen()
+    {
+        UIWindowDock(Dock_Fill);
+    }
+
+    void UIWindowSetSize(float wPercent, float hPercent)
+    {
+        UI_Widget* window = UIGetCurrentWindow();
+        if(!window) return;
+
+        Vec2 fb = UIGetFrameBufferSize();
+        window->semantic_size[UIAxis_X] = { SizeKind_Pixels, fb.x * wPercent };
+        window->semantic_size[UIAxis_Y] = { SizeKind_Pixels, fb.y * hPercent };
+    }
+
     UI_Interaction UILabelCStr(const char* str, const char* text)
     {
         return UILabel(str, Str8C((char*)text));
@@ -685,9 +766,11 @@ namespace Lumos
                                        hashSpacer,
                                        { SizeKind_ChildSum, 1.0f },
                                        { SizeKind_MaxChild, 1.0f });
- 
+        spacer->style_vars[StyleVar_Padding] = Vec4(0.0f, 3.0f, 0.0f, 0.0f);
+        spacer->style_vars[StyleVar_ItemSpacing] = Vec4(0.0f);
+
         UI_Interaction slider_interaction = {};
- 
+
         PushParent(spacer);
         {
             float lSliderWidth  = width;
@@ -770,6 +853,7 @@ namespace Lumos
                 f32 t  = (mouse.x - parent_x - slider_size_x * 0.5f) / (parent_size_x - slider_size_x);
                 t      = Maths::Clamp(t, 0.0f, 1.0f);
                 *value = min_value + (max_value - min_value) * t;
+                slider_interaction.clicked = true;
             }
 
             // Compute t from value, unless dragging, in which case use mouse pos
@@ -818,6 +902,8 @@ namespace Lumos
                                        hashSpacer,
                                        { SizeKind_ChildSum, 1.0f },
                                        { SizeKind_ChildSum, 1.0f });
+        spacer->style_vars[StyleVar_Padding] = Vec4(0.0f, 3.0f, 0.0f, 0.0f);
+        spacer->style_vars[StyleVar_ItemSpacing] = Vec4(0.0f);
         PushParent(spacer);
         {
             float fontSize   = spacer->style_vars[StyleVar_FontSize].x;
@@ -910,6 +996,81 @@ namespace Lumos
         return interaction;
     }
 
+    UI_Interaction UICheckbox(const char* str, bool* value)
+    {
+        UI_Interaction interaction = {};
+
+        u64 hash;
+        String8 text = HandleUIString(str, &hash);
+
+        String8 rowText = PushStr8F(s_UIState->UIFrameArena, "cbrow###cbrow%s", (char*)text.str);
+        u64 hashRow;
+        String8 rowText2 = HandleUIString((char*)rowText.str, &hashRow);
+
+        UI_Widget* row = PushWidget(WidgetFlags_StackHorizontally,
+                                    rowText2,
+                                    hashRow,
+                                    { SizeKind_ChildSum, 1.0f },
+                                    { SizeKind_ChildSum, 1.0f });
+        row->style_vars[StyleVar_Padding] = Vec4(0.0f, 3.0f, 0.0f, 0.0f);
+        row->style_vars[StyleVar_ItemSpacing] = Vec4(0.0f);
+        PushParent(row);
+        {
+            float fontSize   = row->style_vars[StyleVar_FontSize].x;
+            float textHeight = GetStringSize(Str8Lit("A"), fontSize).y;
+            float boxSize    = textHeight;
+
+            String8 boxText = PushStr8F(s_UIState->UIFrameArena, "cbbox###cbbox%s", (char*)text.str);
+            u64 boxHash;
+            HandleUIString((char*)boxText.str, &boxHash);
+
+            UI_Widget* box = PushWidget(WidgetFlags_Clickable | WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | WidgetFlags_CentreY,
+                                        Str8Lit(""),
+                                        boxHash,
+                                        { SizeKind_Pixels, boxSize },
+                                        { SizeKind_Pixels, boxSize });
+
+            float dp = s_UIState->DPIScale;
+            box->style_vars[StyleVar_CornerRadius] = Vec4(3.0f * dp, 0.0f, 0.0f, 0.0f);
+            box->style_vars[StyleVar_Border]       = Vec4(1.0f * dp, 1.0f * dp, 0.0f, 0.0f);
+            box->style_vars[StyleVar_Padding]      = Vec4(0.0f);
+
+            interaction = HandleWidgetInteraction(box);
+            if(interaction.clicked)
+                *value = !(*value);
+
+            if(*value)
+            {
+                box->style_vars[StyleVar_BackgroundColor] = Vec4(0.3f, 0.6f, 0.95f, 1.0f);
+                box->style_vars[StyleVar_BorderColor]     = Vec4(0.25f, 0.5f, 0.9f, 1.0f);
+            }
+            else
+            {
+                if(s_UIState->CurrentTheme == UITheme_Dark)
+                {
+                    box->style_vars[StyleVar_BackgroundColor] = Vec4(0.2f, 0.2f, 0.2f, 1.0f);
+                    box->style_vars[StyleVar_BorderColor]     = Vec4(0.4f, 0.4f, 0.4f, 1.0f);
+                }
+                else
+                {
+                    box->style_vars[StyleVar_BackgroundColor] = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+                    box->style_vars[StyleVar_BorderColor]     = Vec4(0.7f, 0.7f, 0.7f, 1.0f);
+                }
+            }
+
+            // Label
+            String8 labelText = PushStr8F(s_UIState->UIFrameArena, "cblbl###cblbl%s", (char*)text.str);
+            UI_Widget* label  = PushWidget(WidgetFlags_DrawText | WidgetFlags_CentreY,
+                                           text,
+                                           HashUIStr8Name(labelText),
+                                           { SizeKind_TextContent, 1.0f },
+                                           { SizeKind_TextContent, 1.0f });
+        }
+        PopParent(row);
+
+        return interaction;
+    }
+
     UI_Interaction UIProgressBar(const char* str,
                                   float progress,
                                   float width,
@@ -932,7 +1093,8 @@ namespace Lumos
                                     hashRow,
                                     { SizeKind_ChildSum, 1.0f },
                                     { SizeKind_MaxChild, 1.0f });
-        row->style_vars[StyleVar_Padding] = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        row->style_vars[StyleVar_Padding] = Vec4(0.0f, 3.0f, 0.0f, 0.0f);
+        row->style_vars[StyleVar_ItemSpacing] = Vec4(0.0f);
         PushParent(row);
 
         // Label
@@ -1014,6 +1176,8 @@ namespace Lumos
                                        hashSpacer,
                                        { SizeKind_ChildSum, 1.0f },
                                        { SizeKind_MaxChild, 1.0f });
+        spacer->style_vars[StyleVar_Padding] = Vec4(0.0f, 3.0f, 0.0f, 0.0f);
+        spacer->style_vars[StyleVar_ItemSpacing] = Vec4(0.0f);
 
         UI_Interaction slider_interaction = {};
 
@@ -1190,7 +1354,8 @@ namespace Lumos
                                     { SizeKind_ChildSum, 1.0f },
                                     { SizeKind_MaxChild, 1.0f });
 
-        row->style_vars[StyleVar_Padding] = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        row->style_vars[StyleVar_Padding] = Vec4(0.0f, 3.0f, 0.0f, 0.0f);
+        row->style_vars[StyleVar_ItemSpacing] = Vec4(4.0f, 0.0f, 0.0f, 0.0f);
         PushParent(row);
     }
 
@@ -1235,7 +1400,8 @@ namespace Lumos
                                     hashRow,
                                     { SizeKind_ChildSum, 1.0f },
                                     { SizeKind_MaxChild, 1.0f });
-        row->style_vars[StyleVar_Padding] = Vec4(3.0f * s_UIState->DPIScale, 3.0f * s_UIState->DPIScale, 0.0f, 0.0f);
+        float dp = s_UIState->DPIScale;
+        row->style_vars[StyleVar_Padding] = Vec4(2.0f * dp, 1.0f * dp, 0.0f, 0.0f);
 
         UI_Interaction interaction = HandleWidgetInteraction(row);
         if(interaction.clicked)
@@ -1246,7 +1412,7 @@ namespace Lumos
         PushParent(row);
 
         // Arrow indicator
-        String8 arrowText = *expanded ? Str8Lit("v") : Str8Lit(">");
+        String8 arrowText = *expanded ? Str8Lit("-") : Str8Lit("+");
         String8 arrowId   = PushStr8F(s_UIState->UIFrameArena, "arrow###arrow%s", (char*)text.str);
         u64 hashArrow;
         HandleUIString((char*)arrowId.str, &hashArrow);
@@ -1256,6 +1422,7 @@ namespace Lumos
                                       hashArrow,
                                       { SizeKind_TextContent, 1.0f },
                                       { SizeKind_TextContent, 1.0f });
+        arrow->style_vars[StyleVar_Padding] = Vec4(2.0f * dp, 0.0f, 0.0f, 0.0f);
 
         // Label
         String8 labelId = PushStr8F(s_UIState->UIFrameArena, "label###explabel%s", (char*)text.str);
@@ -1271,6 +1438,37 @@ namespace Lumos
         PopParent(row);
 
         return interaction;
+    }
+
+    static UI_Widget* s_ExpanderContentWidget = nullptr;
+
+    void UIBeginExpanderContent(const char* str)
+    {
+        u64 hash;
+        String8 text = HandleUIString(str, &hash);
+
+        String8 contentId = PushStr8F(s_UIState->UIFrameArena, "expcontent###expcontent%s", (char*)text.str);
+        u64 hashContent;
+        HandleUIString((char*)contentId.str, &hashContent);
+
+        float dp = s_UIState->DPIScale;
+        UI_Widget* content = PushWidget(WidgetFlags_StackVertically,
+                                        Str8Lit(""),
+                                        hashContent,
+                                        { SizeKind_PercentOfParent, 1.0f },
+                                        { SizeKind_ChildSum, 1.0f });
+        content->style_vars[StyleVar_Padding] = Vec4(16.0f * dp, 2.0f * dp, 0.0f, 0.0f);
+        s_ExpanderContentWidget = content;
+        PushParent(content);
+    }
+
+    void UIEndExpanderContent()
+    {
+        if(s_ExpanderContentWidget)
+        {
+            PopParent(s_ExpanderContentWidget);
+            s_ExpanderContentWidget = nullptr;
+        }
     }
 
     static UI_Widget* s_ScrollAreaWidget = nullptr;
@@ -1430,7 +1628,8 @@ namespace Lumos
                                     hashRow,
                                     { SizeKind_ChildSum, 1.0f },
                                     { SizeKind_MaxChild, 1.0f });
-        row->style_vars[StyleVar_Padding] = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        row->style_vars[StyleVar_Padding] = Vec4(0.0f, 3.0f, 0.0f, 0.0f);
+        row->style_vars[StyleVar_ItemSpacing] = Vec4(0.0f);
 
         PushParent(row);
 
@@ -1761,7 +1960,8 @@ namespace Lumos
                                     hashRow,
                                     { SizeKind_ChildSum, 1.0f },
                                     { SizeKind_MaxChild, 1.0f });
-        row->style_vars[StyleVar_Padding] = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        row->style_vars[StyleVar_Padding] = Vec4(0.0f, 3.0f, 0.0f, 0.0f);
+        row->style_vars[StyleVar_ItemSpacing] = Vec4(0.0f);
 
         PushParent(row);
 
@@ -1824,18 +2024,26 @@ namespace Lumos
             interaction.clicked = false;
         }
 
-        // Draw dropdown list if open
+        // Draw dropdown list if open - push to root for correct z-order
         if(isOpen)
         {
+            // Save current parent stack and push to root so list renders on top
+            UI_Widget* savedParent = s_UIState->parents.Back();
+            s_UIState->parents.PushBack(&s_UIState->root_parent);
+
             String8 listId = PushStr8F(s_UIState->UIFrameArena, "list###droplist%s", (char*)text.str);
             u64 hashList;
             HandleUIString((char*)listId.str, &hashList);
 
-            UI_Widget* list = PushWidget(WidgetFlags_StackVertically | WidgetFlags_DrawBackground | WidgetFlags_DrawBorder,
+            UI_Widget* list = PushWidget(WidgetFlags_StackVertically | WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | WidgetFlags_Floating_X | WidgetFlags_Floating_Y,
                                          Str8Lit(""),
                                          hashList,
-                                         { SizeKind_Pixels, 150.0f },
+                                         { SizeKind_MaxChild, 1.0f },
                                          { SizeKind_ChildSum, 1.0f });
+
+            // Position below the button using previous-frame position
+            list->relative_position.x = button->position.x;
+            list->relative_position.y = button->position.y + button->size.y;
 
             {float dp = s_UIState->DPIScale;
             list->style_vars[StyleVar_CornerRadius] = Vec4(3.0f * dp, 0.0f, 0.0f, 0.0f);
@@ -1865,7 +2073,7 @@ namespace Lumos
                 UI_Widget* option = PushWidget(WidgetFlags_Clickable | WidgetFlags_DrawBackground | WidgetFlags_DrawText,
                                                Str8C((char*)options[i]),
                                                hashOption,
-                                               { SizeKind_PercentOfParent, 1.0f },
+                                               { SizeKind_TextContent, 1.0f },
                                                { SizeKind_TextContent, 1.0f });
 
                 option->style_vars[StyleVar_Padding] = Vec4(4.0f * s_UIState->DPIScale, 2.0f * s_UIState->DPIScale, 0.0f, 0.0f);
@@ -1891,6 +2099,17 @@ namespace Lumos
             }
 
             PopParent(list);
+
+            // Block input to widgets behind the dropdown overlay
+            Vec2 mouse = Input::Get().GetMousePosition() * s_UIState->DPIScale - s_UIState->InputOffset;
+            if(mouse.x >= list->position.x && mouse.x <= list->position.x + list->size.x &&
+               mouse.y >= list->position.y && mouse.y <= list->position.y + list->size.y)
+            {
+                s_UIState->OverlayBlocksInput = true;
+            }
+
+            // Restore parent stack (remove the root we pushed)
+            s_UIState->parents.PopBack();
         }
 
         return interaction;
@@ -2038,7 +2257,8 @@ namespace Lumos
                                        { SizeKind_PercentOfParent, 1.0f },
                                        { SizeKind_ChildSum, 1.0f });
 
-        tabBar->style_vars[StyleVar_Padding] = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        tabBar->style_vars[StyleVar_Padding] = Vec4(0.0f, 3.0f, 0.0f, 0.0f);
+        tabBar->style_vars[StyleVar_ItemSpacing] = Vec4(1.0f, 0.0f, 0.0f, 0.0f);
 
         if(s_UIState->CurrentTheme == UITheme_Dark)
             tabBar->style_vars[StyleVar_BackgroundColor] = Vec4(0.12f, 0.12f, 0.12f, 1.0f);
@@ -2372,7 +2592,8 @@ namespace Lumos
                                     { SizeKind_PercentOfParent, 1.0f },
                                     { SizeKind_ChildSum, 1.0f });
 
-        row->style_vars[StyleVar_Padding] = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        row->style_vars[StyleVar_Padding] = Vec4(0.0f, 3.0f, 0.0f, 0.0f);
+        row->style_vars[StyleVar_ItemSpacing] = Vec4(0.0f);
         PushParent(row);
 
         // Label
@@ -2573,8 +2794,13 @@ namespace Lumos
             case SizeKind_ChildSum:
             {
                 f32 Sum = 0;
+                i32 childCount = 0;
                 for(UI_Widget* Child = Widget->first; Child; Child = Child->next)
                 {
+                    // Skip PercentOfParent children — they depend on parent, not vice versa
+                    if(Child->semantic_size[Axis].kind == SizeKind_PercentOfParent)
+                        continue;
+
                     if(Child->semantic_size[Axis].kind == SizeKind_ChildSum)
                     {
                         UILayoutSolveDownwardsSizes(Child, Axis);
@@ -2583,14 +2809,22 @@ namespace Lumos
                     Vec2 padding = Child->style_vars[StyleVar_Padding].ToVector2();
 
                     WidgetFlags flag = (Axis == 0 ? WidgetFlags_StackHorizontally : WidgetFlags_StackVertically);
-                    if(Widget->flags & flag) // Axis == Widget->LayoutingAxis)
+                    if(Widget->flags & flag)
                     {
                         Sum += Child->size[Axis] + padding[Axis] * 2.0f;
+                        childCount++;
                     }
                     else
                     {
                         Sum = Maths::Max(Sum, Child->size[Axis] + padding[Axis] * 2.0f);
                     }
+                }
+
+                // Add inter-widget gaps
+                if(childCount > 1)
+                {
+                    Vec2 gap = Widget->style_vars[StyleVar_ItemSpacing].ToVector2();
+                    Sum += gap[Axis] * (f32)(childCount - 1);
                 }
 
                 Widget->size[Axis] = Sum;
@@ -2601,6 +2835,10 @@ namespace Lumos
                 f32 Sum = 0;
                 for(UI_Widget* Child = Widget->first; Child; Child = Child->next)
                 {
+                    // Skip PercentOfParent children — they depend on parent, not vice versa
+                    if(Child->semantic_size[Axis].kind == SizeKind_PercentOfParent)
+                        continue;
+
                     if(Child->semantic_size[Axis].kind == SizeKind_ChildSum || Child->semantic_size[Axis].kind == SizeKind_MaxChild)
                     {
                         UILayoutSolveDownwardsSizes(Child, Axis);
@@ -2624,42 +2862,63 @@ namespace Lumos
         for(UI_Widget* Parent = Root; Parent != 0; Parent = UIWidgetRecurseDepthFirstPreOrder(Parent))
         {
             f32 LayoutPosition = 0;
+            Vec2 itemSpacing = Parent->style_vars[StyleVar_ItemSpacing].ToVector2();
             for(UI_Widget* Child = Parent->first; Child != 0; Child = Child->next)
             {
-                if(Axis == UIAxis_X && !(Child->flags & WidgetFlags_Floating_X))
+                if(Axis == UIAxis_X)
                 {
-                    float xOffset = 0;
-                    if(Child->flags & WidgetFlags_CentreX)
+                    bool floating = Child->flags & WidgetFlags_Floating_X;
+                    if(!floating)
                     {
-                        xOffset = Parent->size[Axis] * 0.5f - Child->size[Axis] * 0.5f;
-                    }
+                        float xOffset = 0;
+                        if(Child->flags & WidgetFlags_CentreX)
+                            xOffset = Parent->size[Axis] * 0.5f - Child->size[Axis] * 0.5f;
 
-                    Child->relative_position[Axis] = LayoutPosition + xOffset;
-                    LayoutPosition += (Parent->flags & WidgetFlags_StackHorizontally ? 1 : 0) * Child->size[Axis];
+                        Child->relative_position[Axis] = LayoutPosition + xOffset;
+                        if(Parent->flags & WidgetFlags_StackHorizontally)
+                        {
+                            LayoutPosition += Child->size[Axis];
+                            if(Child->next) LayoutPosition += itemSpacing.x;
+                        }
+                    }
+                    else if(Child->flags & WidgetFlags_CentreX)
+                    {
+                        Child->relative_position[Axis] = Parent->size[Axis] * 0.5f - Child->size[Axis] * 0.5f;
+                    }
                 }
-                if(Axis == UIAxis_Y && !(Child->flags & WidgetFlags_Floating_Y))
+                if(Axis == UIAxis_Y)
                 {
-                    float yOffset = 0;
-                    if(Child->flags & WidgetFlags_CentreY)
+                    bool floating = Child->flags & WidgetFlags_Floating_Y;
+                    if(!floating)
                     {
-                        yOffset = Parent->size[Axis] * 0.5f - Child->size[Axis] * 0.5f;
-                    }
+                        float yOffset = 0;
+                        if(Child->flags & WidgetFlags_CentreY)
+                            yOffset = Parent->size[Axis] * 0.5f - Child->size[Axis] * 0.5f;
 
-                    Child->relative_position[Axis] = LayoutPosition + yOffset;
-                    LayoutPosition += (Parent->flags & WidgetFlags_StackVertically ? 1 : 0) * Child->size[Axis];
+                        Child->relative_position[Axis] = LayoutPosition + yOffset;
+                        if(Parent->flags & WidgetFlags_StackVertically)
+                        {
+                            LayoutPosition += Child->size[Axis];
+                            if(Child->next) LayoutPosition += itemSpacing.y;
+                        }
+                    }
+                    else if(Child->flags & WidgetFlags_CentreY)
+                    {
+                        Child->relative_position[Axis] = Parent->size[Axis] * 0.5f - Child->size[Axis] * 0.5f;
+                    }
                 }
 
                 Vec2 padding = Child->style_vars[StyleVar_Padding].ToVector2();
 
                 if(Axis == UIAxis_X)
                 {
-                    f32 X = 0.0f;
-                    Child->position.x = Parent->position.x + Child->relative_position[Axis] - X + padding.x;
+                    f32 padX = (Child->flags & WidgetFlags_CentreX) ? 0.0f : padding.x;
+                    Child->position.x = Parent->position.x + Child->relative_position[Axis] + padX;
                 }
                 else if(Axis == UIAxis_Y)
                 {
-                    f32 Y = 0.0f;
-                    Child->position.y = Parent->position.y + Child->relative_position[Axis] - Y + padding.y;
+                    f32 padY = (Child->flags & WidgetFlags_CentreY) ? 0.0f : padding.y;
+                    Child->position.y = Parent->position.y + Child->relative_position[Axis] + padY;
                 }
             }
         }
@@ -2874,7 +3133,7 @@ namespace Lumos
     {
         Style_Variable_List* style_variable_lists = s_UIState->style_variable_lists;
 
-        style_variable_lists[StyleVar_Padding].first->value               = { 10.0f, 7.0f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_Padding].first->value               = { 6.0f, 3.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_Border].first->value                = { 1.0f, 1.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_BorderColor].first->value           = { 0.7f, 0.7f, 0.7f, 1.0f };
         style_variable_lists[StyleVar_BackgroundColor].first->value       = { 0.95f, 0.95f, 0.95f, 1.0f };
@@ -2886,14 +3145,16 @@ namespace Lumos
         style_variable_lists[StyleVar_ActiveBackgroundColor].first->value = { 0.85f, 0.9f, 0.98f, 1.0f };
         style_variable_lists[StyleVar_ActiveTextColor].first->value       = { 0.0f, 0.0f, 0.0f, 1.0f };
 
+        style_variable_lists[StyleVar_ItemSpacing].first->value          = { 2.0f, 2.0f, 0.0f, 0.0f };
+
         s_UIState->CurrentTheme = UITheme_Light;
     }
-    
+
     void UIApplyDarkTheme()
     {
         Style_Variable_List* style_variable_lists = s_UIState->style_variable_lists;
 
-        style_variable_lists[StyleVar_Padding].first->value               = { 10.0f, 7.0f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_Padding].first->value               = { 6.0f, 3.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_Border].first->value                = { 1.0f, 1.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_BorderColor].first->value           = { 0.35f, 0.35f, 0.35f, 1.0f };
         style_variable_lists[StyleVar_BackgroundColor].first->value       = { 0.15f, 0.15f, 0.15f, 1.0f };
@@ -2905,14 +3166,16 @@ namespace Lumos
         style_variable_lists[StyleVar_ActiveBackgroundColor].first->value = { 0.25f, 0.25f, 0.25f, 1.0f };
         style_variable_lists[StyleVar_ActiveTextColor].first->value       = { 1.0f, 1.0f, 1.0f, 1.0f };
 
+        style_variable_lists[StyleVar_ItemSpacing].first->value          = { 2.0f, 2.0f, 0.0f, 0.0f };
+
         s_UIState->CurrentTheme = UITheme_Dark;
     }
-    
+
     void UIApplyBlueTheme()
     {
         Style_Variable_List* style_variable_lists = s_UIState->style_variable_lists;
 
-        style_variable_lists[StyleVar_Padding].first->value               = { 10.0f, 7.0f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_Padding].first->value               = { 6.0f, 3.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_Border].first->value                = { 1.0f, 1.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_BorderColor].first->value           = { 0.3f, 0.4f, 0.6f, 1.0f };
         style_variable_lists[StyleVar_BackgroundColor].first->value       = { 0.15f, 0.2f, 0.3f, 1.0f };
@@ -2924,6 +3187,8 @@ namespace Lumos
         style_variable_lists[StyleVar_ActiveBackgroundColor].first->value = { 0.25f, 0.35f, 0.5f, 1.0f };
         style_variable_lists[StyleVar_ActiveTextColor].first->value       = { 1.0f, 1.0f, 1.0f, 1.0f };
 
+        style_variable_lists[StyleVar_ItemSpacing].first->value          = { 2.0f, 2.0f, 0.0f, 0.0f };
+
         s_UIState->CurrentTheme = UITheme_Blue;
     }
 
@@ -2931,7 +3196,7 @@ namespace Lumos
     {
         Style_Variable_List* style_variable_lists = s_UIState->style_variable_lists;
 
-        style_variable_lists[StyleVar_Padding].first->value               = { 10.0f, 7.0f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_Padding].first->value               = { 6.0f, 3.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_Border].first->value                = { 1.0f, 1.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_BorderColor].first->value           = { 0.3f, 0.5f, 0.35f, 1.0f };
         style_variable_lists[StyleVar_BackgroundColor].first->value       = { 0.12f, 0.22f, 0.15f, 1.0f };
@@ -2943,6 +3208,8 @@ namespace Lumos
         style_variable_lists[StyleVar_ActiveBackgroundColor].first->value = { 0.22f, 0.4f, 0.28f, 1.0f };
         style_variable_lists[StyleVar_ActiveTextColor].first->value       = { 1.0f, 1.0f, 1.0f, 1.0f };
 
+        style_variable_lists[StyleVar_ItemSpacing].first->value          = { 2.0f, 2.0f, 0.0f, 0.0f };
+
         s_UIState->CurrentTheme = UITheme_Green;
     }
 
@@ -2950,7 +3217,7 @@ namespace Lumos
     {
         Style_Variable_List* style_variable_lists = s_UIState->style_variable_lists;
 
-        style_variable_lists[StyleVar_Padding].first->value               = { 10.0f, 7.0f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_Padding].first->value               = { 6.0f, 3.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_Border].first->value                = { 1.0f, 1.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_BorderColor].first->value           = { 0.45f, 0.35f, 0.55f, 1.0f };
         style_variable_lists[StyleVar_BackgroundColor].first->value       = { 0.18f, 0.14f, 0.22f, 1.0f };
@@ -2961,6 +3228,8 @@ namespace Lumos
         style_variable_lists[StyleVar_ActiveBorderColor].first->value     = { 0.75f, 0.55f, 0.95f, 1.0f };
         style_variable_lists[StyleVar_ActiveBackgroundColor].first->value = { 0.32f, 0.25f, 0.42f, 1.0f };
         style_variable_lists[StyleVar_ActiveTextColor].first->value       = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+        style_variable_lists[StyleVar_ItemSpacing].first->value          = { 2.0f, 2.0f, 0.0f, 0.0f };
 
         s_UIState->CurrentTheme = UITheme_Purple;
     }
@@ -2980,6 +3249,8 @@ namespace Lumos
         style_variable_lists[StyleVar_ActiveBorderColor].first->value     = { 0.0f, 1.0f, 1.0f, 1.0f };
         style_variable_lists[StyleVar_ActiveBackgroundColor].first->value = { 0.0f, 0.2f, 0.2f, 1.0f };
         style_variable_lists[StyleVar_ActiveTextColor].first->value       = { 0.0f, 1.0f, 1.0f, 1.0f };
+
+        style_variable_lists[StyleVar_ItemSpacing].first->value          = { 2.0f, 2.0f, 0.0f, 0.0f };
 
         s_UIState->CurrentTheme = UITheme_HighContrast;
     }
@@ -3011,11 +3282,23 @@ namespace Lumos
             default: break;
         }
 
-        // Re-apply DPI scaling after theme reset
+        // Reset non-theme style vars to base values before DPI scaling
+        auto* styles = s_UIState->style_variable_lists;
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
+        styles[StyleVar_FontSize].first->value      = { 22.0f, 0.0f, 0.0f, 1.0f };
+#else
+        styles[StyleVar_FontSize].first->value      = { 20.0f, 0.0f, 0.0f, 1.0f };
+#endif
+        styles[StyleVar_CornerRadius].first->value   = { 6.0f, 0.0f, 0.0f, 0.0f };
+        styles[StyleVar_ShadowColor].first->value    = { 0.0f, 0.0f, 0.0f, 0.15f };
+        styles[StyleVar_ShadowOffset].first->value   = { 0.0f, 1.0f, 0.0f, 0.0f };
+        styles[StyleVar_ShadowBlur].first->value     = { 4.0f, 0.0f, 0.0f, 0.0f };
+        styles[StyleVar_ItemSpacing].first->value    = { 2.0f, 2.0f, 0.0f, 0.0f };
+
+        // Apply DPI scaling
         float dpi = s_UIState->DPIScale;
         if(dpi > 1.0f)
         {
-            auto* styles = s_UIState->style_variable_lists;
             styles[StyleVar_FontSize].first->value.x *= dpi;
             styles[StyleVar_Padding].first->value.x *= dpi;
             styles[StyleVar_Padding].first->value.y *= dpi;
@@ -3024,6 +3307,8 @@ namespace Lumos
             styles[StyleVar_CornerRadius].first->value.x *= dpi;
             styles[StyleVar_ShadowOffset].first->value.y *= dpi;
             styles[StyleVar_ShadowBlur].first->value.x *= dpi;
+            styles[StyleVar_ItemSpacing].first->value.x *= dpi;
+            styles[StyleVar_ItemSpacing].first->value.y *= dpi;
         }
     }
 }

@@ -65,6 +65,9 @@
 
 #include <fstream>
 #include <filesystem>
+#ifdef LUMOS_PLATFORM_IOS
+#include <Lumos/Platform/iOS/iOSOS.h>
+#endif
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/Embedded/EmbedAsset.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
@@ -297,6 +300,14 @@ namespace Lumos
             m_IniFile = IniFile(filePath);
             AddDefaultEditorSettings();
         }
+        
+#ifdef LUMOS_PLATFORM_IOS
+        std::string bundlePath  = OS::Get().GetAssetPath() + "ExampleProject";
+        std::string docsDir     = OS::Get().GetCurrentWorkingDirectory() + "/LumosEditor/ExampleProject";
+
+        if(!FileSystem::FolderExists(Str8StdS(docsDir)))
+            iOSOS::CopyBundleFolder(bundlePath, docsDir);
+#endif
 
         Application::Init();
         Application::SetEditorState(EditorState::Preview);
@@ -368,13 +379,11 @@ namespace Lumos
         m_Panels.back()->SetActive(false);
         m_Panels.emplace_back(CreateSharedPtr<GraphicsInfoPanel>());
         m_Panels.back()->SetActive(false);
-#ifndef LUMOS_PLATFORM_IOS
         {
             auto resourcePanel = CreateSharedPtr<ResourcePanel>();
             m_ResourcePanel = resourcePanel.get();
             m_Panels.emplace_back(resourcePanel);
         }
-#endif
         m_Panels.emplace_back(CreateSharedPtr<ScriptConsolePanel>());
         m_Panels.back()->SetActive(false);
         m_Panels.emplace_back(CreateSharedPtr<LuaDebugPanel>());
@@ -700,6 +709,24 @@ namespace Lumos
                 if(ImGui::MenuItem("Open Project"))
                 {
                     locationPopupOpened = true;
+#ifdef LUMOS_PLATFORM_IOS
+                    std::string docsProject = OS::Get().GetCurrentWorkingDirectory() + "/LumosEditor/ExampleProject/Example.lmproj";
+                    if(FileSystem::FileExists(Str8StdS(docsProject)))
+                    {
+                        ProjectOpenCallback(docsProject);
+                    }
+                    else
+                    {
+                        std::string docsDir = OS::Get().GetCurrentWorkingDirectory();
+                        auto& browserPath   = m_FileBrowserPanel->GetPath();
+                        browserPath         = std::filesystem::path(docsDir);
+                        m_FileBrowserPanel->SetCurrentPath(docsDir);
+                        m_FileBrowserPanel->SetFileTypeFilters({ ".lmproj" });
+                        m_FileBrowserPanel->SetOpenDirectory(false);
+                        m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
+                        m_FileBrowserPanel->Open();
+                    }
+#else
 #ifdef LUMOS_PLATFORM_LINUX
                     std::string path  = OS::Get().GetExecutablePath() + "/../../../";
                     String8 pathCopy  = PushStr8Copy(m_FrameArena, path.c_str());
@@ -714,6 +741,7 @@ namespace Lumos
                     m_FileBrowserPanel->SetOpenDirectory(false);
                     m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
                     m_FileBrowserPanel->Open();
+#endif
                 }
 
                 if(ImGui::BeginMenu("Open Recent Project", !m_Settings.m_RecentProjects.empty()))
@@ -1534,6 +1562,14 @@ namespace Lumos
 
     void Editor::DrawWelcomeScreen()
     {
+#ifdef LUMOS_PLATFORM_IOS
+        static bool projectLocationInit = false;
+        if(!projectLocationInit)
+        {
+            projectLocation     = OS::Get().GetCurrentWorkingDirectory() + "/";
+            projectLocationInit = true;
+        }
+#endif
         auto& version = Lumos::LumosVersion;
 
         ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -1644,6 +1680,26 @@ namespace Lumos
         if(ImGui::Button(ICON_MDI_FOLDER_OPEN "  Open Project", ImVec2(contentWidth, ButtonHeight)))
         {
             locationPopupOpened = true;
+#ifdef LUMOS_PLATFORM_IOS
+            // On iOS, directly open the bundled example project from Documents
+            std::string docsProject = OS::Get().GetCurrentWorkingDirectory() + "/LumosEditor/ExampleProject/Example.lmproj";
+            if(FileSystem::FileExists(Str8StdS(docsProject)))
+            {
+                ProjectOpenCallback(docsProject);
+            }
+            else
+            {
+                // Fallback to native file picker rooted at Documents
+                std::string docsDir = OS::Get().GetCurrentWorkingDirectory();
+                auto& browserPath   = m_FileBrowserPanel->GetPath();
+                browserPath         = std::filesystem::path(docsDir);
+                m_FileBrowserPanel->SetCurrentPath(docsDir);
+                m_FileBrowserPanel->SetFileTypeFilters({ ".lmproj" });
+                m_FileBrowserPanel->SetOpenDirectory(false);
+                m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
+                m_FileBrowserPanel->Open();
+            }
+#else
 #ifdef LUMOS_PLATFORM_LINUX
             std::string path  = OS::Get().GetExecutablePath() + "/../../../";
             String8 pathCopy  = PushStr8Copy(m_FrameArena, path.c_str());
@@ -1658,6 +1714,7 @@ namespace Lumos
             m_FileBrowserPanel->SetOpenDirectory(false);
             m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
             m_FileBrowserPanel->Open();
+#endif
         }
 
         ImGui::Dummy(ImVec2(0, 24));
@@ -3081,7 +3138,7 @@ namespace Lumos
                 continue;
 
             const auto& [model, trans] = group.get<Graphics::ModelComponent, Maths::Transform>(entity);
-            
+
             if(!model.ModelRef)
             {
                 LERROR("Model is Null");
@@ -3627,8 +3684,17 @@ namespace Lumos
             }
         }
 #elif defined(LUMOS_PLATFORM_IOS)
-        // TODO: StringRefactr
-        m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
+        {
+            // Bundle is read-only on iOS — copy ExampleProject to Documents on first run
+            std::string bundlePath  = OS::Get().GetAssetPath() + "ExampleProject";
+            std::string docsDir     = OS::Get().GetCurrentWorkingDirectory() + "/LumosEditor/ExampleProject";
+            std::string projectFile = docsDir + "/Example.lmproj";
+
+            if(!FileSystem::FolderExists(Str8StdS(docsDir)))
+                iOSOS::CopyBundleFolder(bundlePath, docsDir);
+
+            m_ProjectSettings.m_ProjectRoot = docsDir + "/";
+        }
 #elif defined(LUMOS_PLATFORM_LINUX)
         m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "/../../ExampleProject/";
 #endif

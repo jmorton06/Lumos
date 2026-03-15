@@ -262,7 +262,7 @@ project "Runtime"
 			['TARGETED_DEVICE_FAMILY'] = '1,2',
 			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',
 			['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = '',
-			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
+			['IPHONEOS_DEPLOYMENT_TARGET'] = '18.0',
 			['INFOPLIST_FILE'] = ios_launch_dir .. '/Info.plist',
 	        ['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
         }

@@ -42,10 +42,11 @@ namespace Lumos
         uint64_t FileSize;
         ImVec4 FileTypeColour;
 
-        bool Hidden = false;
-        bool IsFile = true;
-        bool Opened = false;
-        bool Leaf   = true;
+        bool Hidden             = false;
+        bool IsFile             = true;
+        bool Opened             = false;
+        bool Leaf               = true;
+        bool ThumbnailRequested = false;
 
     public:
         DirectoryInformation(String8 path, bool isF)

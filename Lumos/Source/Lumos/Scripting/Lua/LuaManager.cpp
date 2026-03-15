@@ -814,8 +814,12 @@ namespace Lumos
         auto modelCompType = state.new_usertype<ModelComponent>("ModelComponent");
         modelCompType["GetModel"] = [](ModelComponent& mc) -> Model* { return mc.ModelRef.get(); };
         modelCompType["ModelRef"]  = &ModelComponent::ModelRef;
+        modelCompType["LoadPrimitive"] = &ModelComponent::LoadPrimitive;
 
-        REGISTER_COMPONENT_WITH_ECS(state, ModelComponent, static_cast<ModelComponent& (Entity::*)(const std::string&)>(&Entity::AddComponent<ModelComponent, const std::string&>));
+        REGISTER_COMPONENT_WITH_ECS(state, ModelComponent, sol::overload(
+            static_cast<ModelComponent& (Entity::*)(const std::string&)>(&Entity::AddComponent<ModelComponent, const std::string&>),
+            [](Entity& e, PrimitiveType p) -> ModelComponent& { return e.AddComponent<ModelComponent>(p); }
+        ));
 
         auto material_type = state.new_usertype<Material>("Material");
         // Setters

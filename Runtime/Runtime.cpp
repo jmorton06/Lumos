@@ -1,5 +1,8 @@
 #include <string>
 #include <Lumos/Core/Application.h>
+#ifdef LUMOS_PLATFORM_IOS
+#include <Lumos/Platform/iOS/iOSOS.h>
+#endif
 #include <Lumos/Core/EntryPoint.h>
 #include <Lumos/Core/OS/Window.h>
 #include <Lumos/Core/OS/Input.h>
@@ -195,7 +198,17 @@ public:
                 }
             }
 #elif defined(LUMOS_PLATFORM_IOS)
-            m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/ExampleProject/";
+            {
+                // Bundle is read-only — copy ExampleProject to Documents on first run
+                std::string bundlePath  = OS::Get().GetAssetPath() + "ExampleProject";
+                std::string docsDir     = OS::Get().GetCurrentWorkingDirectory() + "/LumosEditor/ExampleProject";
+                std::string projectFile = docsDir + "/Example.lmproj";
+
+                if(!FileSystem::FileExists(Str8StdS(projectFile)))
+                    iOSOS::CopyBundleFolder(bundlePath, docsDir);
+
+                m_ProjectSettings.m_ProjectRoot = docsDir + "/";
+            }
             m_ProjectSettings.m_ProjectName = "Example";
 #endif
         }

@@ -10,6 +10,7 @@ namespace Lumos
     PackedAssetReader::PackedAssetReader()
     {
         m_Arena = ArenaAlloc(Megabytes(1));
+        HashMapInit(&m_Entries);
     }
 
     PackedAssetReader::~PackedAssetReader()

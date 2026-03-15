@@ -20,19 +20,16 @@ namespace Lumos::Graphics
         ModelComponent(const std::string& path);
 
         ModelComponent(PrimitiveType primitive)
-            : ModelRef(CreateSharedPtr<Model>(primitive))
         {
+            LoadPrimitive(primitive);
         }
 
         ModelComponent()
         {
         }
 
-        void LoadFromLibrary(const std::string& path);
-        void LoadPrimitive(PrimitiveType primitive)
-        {
-            ModelRef = CreateSharedPtr<Model>(primitive);
-        }
+        void LoadFromLibrary(const std::string& path, bool previewOnly = false);
+        void LoadPrimitive(PrimitiveType primitive);
 
         void ApplyMaterialOverrides();
         void ApplyAnimationOverride();

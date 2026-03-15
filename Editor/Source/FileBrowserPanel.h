@@ -39,7 +39,7 @@ namespace Lumos
         std::function<void(const std::string&)> m_Callback;
         ImGui::FileBrowser* m_FileBrowser;
 
-#ifdef LUMOS_PLATFORM_MACOS
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
         bool m_SelectDirectory = false;
         std::string m_CurrentPath;
         std::vector<std::string> m_FileFilters;

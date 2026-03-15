@@ -4,6 +4,7 @@
 #include "Core/Mutex.h"
 #include "Utilities/StringPool.h"
 #include "Utilities/Hash.h"
+#include <new>
 
 namespace Lumos
 {
@@ -124,39 +125,65 @@ namespace Lumos
 
     AssetMetaData& AssetRegistry::operator[](UUID handle)
     {
-        if(!Contains(handle))
+        ScopedMutex mutex(m_Mutex);
+        AssetMetaData* ptr = (AssetMetaData*)HashMapFindPtr(&m_AssetRegistry, handle);
+        if(!ptr)
         {
-            ScopedMutex mutex(m_Mutex);
-            AssetMetaData data;
-            HashMapInsert(&m_AssetRegistry, handle, data);
+            bool added = HashMapGetOrAddPtr(&m_AssetRegistry, handle, &ptr);
+            ASSERT(ptr, "HashMap insert failed");
+            if(added)
+                new(ptr) AssetMetaData();
         }
-        return Get(handle);
+        return *ptr;
     }
 
     const AssetMetaData& AssetRegistry::Get(UUID handle) const
     {
-        if(!Contains(handle))
-        {
-            AssetMetaData data;
-            ScopedMutex mutex(m_Mutex);
-            HashMapInsert(&m_AssetRegistry, handle, data);
-        }
-
-        return *(AssetMetaData*)HashMapFindPtr(&m_AssetRegistry, handle);
+        ScopedMutex mutex(m_Mutex);
+        AssetMetaData* dataPtr = (AssetMetaData*)HashMapFindPtr(&m_AssetRegistry, handle);
+        ASSERT(dataPtr, "AssetRegistry::Get called with unknown handle");
+        return *dataPtr;
     }
 
     AssetMetaData& AssetRegistry::Get(UUID handle)
     {
         ScopedMutex mutex(m_Mutex);
         AssetMetaData* dataPtr = (AssetMetaData*)HashMapFindPtr(&m_AssetRegistry, handle);
-
+        ASSERT(dataPtr, "AssetRegistry::Get called with unknown handle");
         return *dataPtr;
+    }
+
+    AssetMetaData* AssetRegistry::GetPtr(UUID handle)
+    {
+        ScopedMutex mutex(m_Mutex);
+        return (AssetMetaData*)HashMapFindPtr(&m_AssetRegistry, handle);
     }
 
     bool AssetRegistry::Contains(UUID handle) const
     {
         ScopedMutex mutex(m_Mutex);
         return HashMapFindPtr(&m_AssetRegistry, handle) != nullptr;
+    }
+
+    bool AssetRegistry::Insert(UUID handle, const AssetMetaData& data)
+    {
+        ScopedMutex mutex(m_Mutex);
+        AssetMetaData* ptr;
+        bool added = HashMapGetOrAddPtr(&m_AssetRegistry, handle, &ptr);
+        if(ptr)
+        {
+            if(added)
+            {
+                // Slot is zero-initialized bytes — use placement new + copy construct
+                // to properly handle SharedPtr refcounting and std::string
+                new(ptr) AssetMetaData(data);
+            }
+            else
+            {
+                *ptr = data;
+            }
+        }
+        return added;
     }
 
     void AssetRegistry::Remove(UUID handle)

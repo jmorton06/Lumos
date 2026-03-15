@@ -9,6 +9,7 @@
 #include <ozz/animation/runtime/animation.h>
 #include <ozz/base/io/archive.h>
 #include <ozz/base/io/stream.h>
+#include <ozz/base/memory/allocator.h>
 
 namespace Lumos
 {
@@ -78,7 +79,7 @@ namespace Lumos
             memStream.Write(ptr, header->SkeletonBlobSize);
             memStream.Seek(0, ozz::io::Stream::kSet);
 
-            ozz::animation::Skeleton* ozzSkel = new ozz::animation::Skeleton();
+            ozz::animation::Skeleton* ozzSkel = ozz::New<ozz::animation::Skeleton>();
             ozz::io::IArchive ia(&memStream);
             ia >> *ozzSkel;
 
@@ -137,7 +138,7 @@ namespace Lumos
             memStream.Write(ptr, blobSize);
             memStream.Seek(0, ozz::io::Stream::kSet);
 
-            ozz::animation::Animation* ozzAnim = new ozz::animation::Animation();
+            ozz::animation::Animation* ozzAnim = ozz::New<ozz::animation::Animation>();
             ozz::io::IArchive ia(&memStream);
             ia >> *ozzAnim;
 

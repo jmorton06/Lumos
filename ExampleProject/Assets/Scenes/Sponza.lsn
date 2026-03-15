@@ -43,8 +43,8 @@
     "value8": 5,
     "value9": 6,
     "value10": 7,
-    "value11": 9,
-    "value12": 3145728,
+    "value11": 3145728,
+    "value12": 1048585,
     "value13": 7,
     "value14": 7,
     "value15": {
@@ -84,7 +84,7 @@
             "value2": 2.3499996662139894
         }
     },
-    "value18": 9,
+    "value18": 3145728,
     "value19": {
         "Position": {
             "value0": 0.0,
@@ -122,27 +122,8 @@
             "value2": 1.000004768371582
         }
     },
-    "value22": 8,
+    "value22": 2,
     "value23": {
-        "Position": {
-            "value0": 0.0,
-            "value1": 20.91830825805664,
-            "value2": 0.0
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 1.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value24": 2,
-    "value25": {
         "Position": {
             "value0": 20.89605140686035,
             "value1": 4.722044944763184,
@@ -160,8 +141,8 @@
             "value2": 1.0000011920928956
         }
     },
-    "value26": 1,
-    "value27": {
+    "value24": 1,
+    "value25": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
@@ -177,6 +158,25 @@
             "value0": 1.0000011920928956,
             "value1": 1.0000063180923463,
             "value2": 1.000003457069397
+        }
+    },
+    "value26": 8,
+    "value27": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 20.91830825805664,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
         }
     },
     "value28": 7,
@@ -204,7 +204,7 @@
     "value40": {
         "Name": "ParticleEmitter"
     },
-    "value41": 9,
+    "value41": 3145728,
     "value42": {
         "Name": "Sponza.gltf"
     },
@@ -228,7 +228,7 @@
     "value50": 2,
     "value51": {
         "Scale": 1.0,
-        "Aspect": 0.822629988193512,
+        "Aspect": 1.6375442743301392,
         "FOV": 79.24700164794922,
         "Near": 0.27399998903274538,
         "Far": 831.0960083007813,
@@ -260,9 +260,9 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.5855500102043152,
-            "value1": 0.7909444570541382,
-            "value2": -0.1775895208120346,
+            "value0": 0.5855491161346436,
+            "value1": 0.7909451127052307,
+            "value2": -0.17759005725383759,
             "value3": 1.0
         },
         "value5": 128000.0,
@@ -354,9 +354,9 @@
     "value89": {
         "value0": 7682186050372134587
     },
-    "value90": 9,
+    "value90": 3145728,
     "value91": {
-        "value0": 6384487917760456513
+        "value0": 12548727994094620294
     },
     "value92": 3,
     "value93": 7,
@@ -367,12 +367,12 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "//Assets/Meshes/DamagedHelmet/glTF/Default_albedo.jpg",
-                    "Normal": "//Assets/Meshes/DamagedHelmet/glTF/Default_normal.jpg",
-                    "Metallic": "//Assets/Meshes/DamagedHelmet/glTF/Default_metalRoughness.jpg",
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
                     "Roughness": "",
-                    "Ao": "//Assets/Meshes/DamagedHelmet/glTF/Default_AO.jpg",
-                    "Emissive": "//Assets/Meshes/DamagedHelmet/glTF/Default_emissive.jpg",
+                    "Ao": "",
+                    "Emissive": "",
                     "albedoColour": {
                         "value0": 1.0,
                         "value1": 1.0,
@@ -437,10 +437,10 @@
         "MaterialOverrides": [],
         "AnimationOverride": ""
     },
-    "value97": 9,
+    "value97": 3145728,
     "value98": {
         "PrimitiveType": 8,
-        "FilePath": "//Assets/Imported/11359155952386108340.lmesh",
+        "FilePath": "//Assets/Meshes/Sponza/Sponza.gltf",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -452,33 +452,28 @@
                     "Ao": "",
                     "Emissive": "",
                     "albedoColour": {
-                        "value0": 0.00553114851936698,
-                        "value1": 0.19561977684497834,
-                        "value2": 0.639769434928894,
+                        "value0": 0.5879999995231628,
+                        "value1": 0.5879999995231628,
+                        "value2": 0.5879999995231628,
                         "value3": 1.0
                     },
-                    "roughnessValue": 0.30000001192092898,
-                    "metallicValue": 0.800000011920929,
+                    "roughnessValue": 0.699999988079071,
+                    "metallicValue": 0.699999988079071,
                     "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
+                    "albedoMapFactor": 1.0,
+                    "metallicMapFactor": 1.0,
                     "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
+                    "normalMapFactor": 1.0,
                     "aoMapFactor": 0.0,
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
+                    "workflow": 1.0,
                     "shader": "",
                     "Reflectance": 0.30000001192092898
                 }
             }
         },
-        "MaterialOverrides": [
-            {
-                "key": 0,
-                "value": "//Assets/Materials/MaterialBlue##0.lmat"
-            }
-        ],
+        "MaterialOverrides": [],
         "AnimationOverride": ""
     },
     "value99": 0,
@@ -512,7 +507,7 @@
         },
         "value7": 2.0,
         "value8": 2.0,
-        "value9": 0.03504297137260437,
+        "value9": 0.0785597562789917,
         "value10": 0.10000000149011612,
         "value11": 100,
         "value12": false,

@@ -100,6 +100,45 @@ namespace Lumos
 		}
 	}
 
+    bool iOSOS::CopyBundleFolder(const std::string& bundleSrc, const std::string& dest)
+    {
+        @autoreleasepool {
+            NSFileManager* fm = [NSFileManager defaultManager];
+            NSString* srcPath = [NSString stringWithUTF8String:bundleSrc.c_str()];
+            NSString* dstPath = [NSString stringWithUTF8String:dest.c_str()];
+
+            // Remove trailing slashes for NSFileManager
+            while([srcPath hasSuffix:@"/"] && srcPath.length > 1)
+                srcPath = [srcPath substringToIndex:srcPath.length - 1];
+            while([dstPath hasSuffix:@"/"] && dstPath.length > 1)
+                dstPath = [dstPath substringToIndex:dstPath.length - 1];
+
+            if(![fm fileExistsAtPath:srcPath])
+            {
+                LWARN("CopyBundleFolder: source not found: %s", bundleSrc.c_str());
+                return false;
+            }
+
+            // Create parent directory
+            NSString* parentDir = [dstPath stringByDeletingLastPathComponent];
+            NSError* error = nil;
+            [fm createDirectoryAtPath:parentDir withIntermediateDirectories:YES attributes:nil error:&error];
+
+            // Remove existing destination so copyItemAtPath succeeds
+            if([fm fileExistsAtPath:dstPath])
+                [fm removeItemAtPath:dstPath error:nil];
+
+            if(![fm copyItemAtPath:srcPath toPath:dstPath error:&error])
+            {
+                LWARN("CopyBundleFolder failed: %s", [[error localizedDescription] UTF8String]);
+                return false;
+            }
+
+            LINFO("Copied bundle folder %s -> %s", bundleSrc.c_str(), dest.c_str());
+            return true;
+        }
+    }
+
     void iOSOS::OnKeyPressed(char keycode, bool down, bool cmd, bool shift, bool alt, bool ctrl)
     {
         Lumos::InputCode::Key lumosKey = Lumos::iOSKeyCodes::iOSKeyToLumos(keycode);

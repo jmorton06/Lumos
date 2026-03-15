@@ -5,10 +5,16 @@
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <imgui/imgui.h>
 
-#ifdef LUMOS_PLATFORM_MACOS
+#if defined(LUMOS_PLATFORM_MACOS)
 #include "MacOSFileDialog.h"
+#elif defined(LUMOS_PLATFORM_IOS)
+#include "iOSFileDialog.h"
 #else
 #include <imgui/Plugins/ImFileBrowser.h>
+#endif
+
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
+#define LUMOS_USE_NATIVE_FILE_DIALOG
 #endif
 
 namespace Lumos
@@ -18,7 +24,7 @@ namespace Lumos
         m_Name       = "FileBrowserWindow";
         m_SimpleName = "FileBrowser";
 
-#ifndef LUMOS_PLATFORM_MACOS
+#ifndef LUMOS_USE_NATIVE_FILE_DIALOG
         m_FileBrowser = new ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_HideHiddenFiles);
 
         m_FileBrowser->SetTitle("File Browser");
@@ -31,14 +37,14 @@ namespace Lumos
 
     FileBrowserPanel::~FileBrowserPanel()
     {
-#ifndef LUMOS_PLATFORM_MACOS
+#ifndef LUMOS_USE_NATIVE_FILE_DIALOG
         delete m_FileBrowser;
 #endif
     }
 
     void FileBrowserPanel::OnImGui()
     {
-#ifndef LUMOS_PLATFORM_MACOS
+#ifndef LUMOS_USE_NATIVE_FILE_DIALOG
         m_FileBrowser->Display();
 
         if(m_FileBrowser->HasSelected())
@@ -59,7 +65,7 @@ namespace Lumos
 
     bool FileBrowserPanel::IsOpen()
     {
-#ifdef LUMOS_PLATFORM_MACOS
+#ifdef LUMOS_USE_NATIVE_FILE_DIALOG
         return false;
 #else
         return m_FileBrowser->IsOpened();
@@ -68,7 +74,7 @@ namespace Lumos
 
     void FileBrowserPanel::SetCurrentPath(const std::string& path)
     {
-#ifdef LUMOS_PLATFORM_MACOS
+#ifdef LUMOS_USE_NATIVE_FILE_DIALOG
         m_CurrentPath = path;
 #else
         m_FileBrowser->SetPwd(path);
@@ -77,7 +83,7 @@ namespace Lumos
 
     void FileBrowserPanel::Open()
     {
-#ifdef LUMOS_PLATFORM_MACOS
+#ifdef LUMOS_USE_NATIVE_FILE_DIALOG
         OpenNativeFileDialog(m_SelectDirectory, m_FileFilters, m_CurrentPath, m_Callback);
 #else
         m_FileBrowser->Open();
@@ -86,7 +92,7 @@ namespace Lumos
 
     void FileBrowserPanel::SetOpenDirectory(bool value)
     {
-#ifdef LUMOS_PLATFORM_MACOS
+#ifdef LUMOS_USE_NATIVE_FILE_DIALOG
         m_SelectDirectory = value;
 #else
         auto flags = m_FileBrowser->GetFlags();
@@ -105,7 +111,7 @@ namespace Lumos
 
     void FileBrowserPanel::SetFileTypeFilters(const std::vector<const char*>& fileFilters)
     {
-#ifdef LUMOS_PLATFORM_MACOS
+#ifdef LUMOS_USE_NATIVE_FILE_DIALOG
         m_FileFilters.clear();
         for(auto f : fileFilters)
             m_FileFilters.push_back(f);
@@ -116,7 +122,7 @@ namespace Lumos
 
     void FileBrowserPanel::ClearFileTypeFilters()
     {
-#ifdef LUMOS_PLATFORM_MACOS
+#ifdef LUMOS_USE_NATIVE_FILE_DIALOG
         m_FileFilters.clear();
 #else
         m_FileBrowser->ClearFilters();
@@ -125,7 +131,7 @@ namespace Lumos
 
     std::filesystem::path& FileBrowserPanel::GetPath()
     {
-#ifdef LUMOS_PLATFORM_MACOS
+#ifdef LUMOS_USE_NATIVE_FILE_DIALOG
         return m_Path;
 #else
         return m_FileBrowser->GetPath();

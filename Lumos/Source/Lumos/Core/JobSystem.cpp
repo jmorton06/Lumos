@@ -142,21 +142,11 @@ namespace Lumos
                     alive.store(false); // indicate that new jobs cannot be started from this point
                     bool bWakeLoop = true;
 
-#ifdef LUMOS_PLATFORM_LINUX
-                    for(auto& thread : threads)
-                    {
-                        if(thread.joinable())
-                            thread.join();
-                    }
-                    bWakeLoop = false;
-                    ConditionNotifyAll(wakeCondition);
-#else
                     std::thread waker([&]
                                       {
                         while (bWakeLoop)
                         {
                             ConditionNotifyAll(wakeCondition);
-                           // wakeCondition.notify_all(); // wakes up sleeping worker threads
                         } });
 
                     for(auto& thread : threads)
@@ -167,7 +157,6 @@ namespace Lumos
                     bWakeLoop = false;
                     if(waker.joinable())
                         waker.join();
-#endif
 
                     delete[] jobQueuePerThread;
                     ConditionDestroy(wakeCondition);

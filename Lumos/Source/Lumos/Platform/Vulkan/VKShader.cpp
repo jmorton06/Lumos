@@ -533,13 +533,16 @@ namespace Lumos
 
                     VkDescriptorSetLayoutBinding& setLayoutBinding = foundIndex >= 0 ? setLayoutBindings[foundIndex] : setLayoutBindings.EmplaceBack();
 
-                    setLayoutBinding.descriptorType = VKUtilities::DescriptorTypeToVK(info.type);
                     if(foundIndex >= 0)
                     {
+                        // Merge stage flags but don't overwrite descriptor type
                         setLayoutBinding.stageFlags |= VKUtilities::ShaderTypeToVK(info.stage);
                     }
                     else
+                    {
+                        setLayoutBinding.descriptorType = VKUtilities::DescriptorTypeToVK(info.type);
                         setLayoutBinding.stageFlags = VKUtilities::ShaderTypeToVK(info.stage);
+                    }
 
                     setLayoutBinding.binding         = info.binding;
                     setLayoutBinding.descriptorCount = info.count;
@@ -645,6 +648,19 @@ namespace Lumos
                 uint32_t binding = comp.get_decoration(u.id, spv::DecorationBinding);
                 auto& type       = comp.get_type(u.type_id);
 
+                // Skip if another stage already declared a different type at this set/binding
+                bool duplicateBinding = false;
+                for(auto& existing : m_DescriptorInfos[set].descriptors)
+                {
+                    if(existing.binding == binding && existing.type != Graphics::DescriptorType::UNIFORM_BUFFER)
+                    {
+                        duplicateBinding = true;
+                        break;
+                    }
+                }
+                if(duplicateBinding)
+                    continue;
+
                 SHADER_LOG(LINFO("Found UBO %s at set = %i, binding = %i", u.name.c_str(), set, binding));
                 m_DescriptorLayoutInfo.PushBack({ Graphics::DescriptorType::UNIFORM_BUFFER, shaderType, binding, set, type.array.size() ? uint32_t(type.array[0]) : 1 });
 
@@ -727,6 +743,41 @@ namespace Lumos
                 descriptor.textureCount = 1;
                 descriptor.name         = u.name;
                 descriptor.texture      = Graphics::Material::GetDefaultTexture().get(); // TODO: Move
+            }
+
+            for(auto& u : resources.storage_buffers)
+            {
+                uint32_t set     = comp.get_decoration(u.id, spv::DecorationDescriptorSet);
+                uint32_t binding = comp.get_decoration(u.id, spv::DecorationBinding);
+                auto& type       = comp.get_type(u.type_id);
+
+                // Skip if another stage already declared a different type at this set/binding
+                bool duplicateBinding = false;
+                for(auto& existing : m_DescriptorInfos[set].descriptors)
+                {
+                    if(existing.binding == binding && existing.type != Graphics::DescriptorType::STORAGE_BUFFER)
+                    {
+                        duplicateBinding = true;
+                        break;
+                    }
+                }
+                if(duplicateBinding)
+                    continue;
+
+                SHADER_LOG(LINFO("Found Storage Buffer %s at set = %i, binding = %i", u.name.c_str(), set, binding));
+                m_DescriptorLayoutInfo.PushBack({ Graphics::DescriptorType::STORAGE_BUFFER, shaderType, binding, set, 1 });
+
+                auto& bufferType      = comp.get_type(u.base_type_id);
+                auto bufferSize       = comp.get_declared_struct_size(bufferType);
+
+                auto& descriptorInfo  = m_DescriptorInfos[set];
+                auto& descriptor      = descriptorInfo.descriptors.EmplaceBack();
+                descriptor.binding    = binding;
+                descriptor.size       = (uint32_t)bufferSize;
+                descriptor.name       = u.name;
+                descriptor.offset     = 0;
+                descriptor.shaderType = shaderType;
+                descriptor.type       = Graphics::DescriptorType::STORAGE_BUFFER;
             }
 
             for(auto& u : resources.storage_images)

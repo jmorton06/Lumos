@@ -62,4 +62,14 @@ if [ -e "$LOWSRC" ]; then
     fi
 fi
 
+# Compile FORWARD_PLUS variant of ForwardPBR fragment shader
+PLUSSRC="ForwardPBR.frag"
+PLUSOUT="CompiledSPV/ForwardPBRPlus.frag.spv"
+if [ -e "$PLUSSRC" ]; then
+    if [ ! -e "$PLUSOUT" ] || [ "$FORCE_RECOMPILE" -eq 1 ] || [ "$PLUSSRC" = "$(ls -t1 "$PLUSSRC" "$PLUSOUT" 2>/dev/null | head -1)" ]; then
+        echo "Compiling $PLUSOUT from: $PLUSSRC (FORWARD_PLUS)"
+        $COMPILER -DFORWARD_PLUS=1 "$PLUSSRC" -o "$PLUSOUT"
+    fi
+fi
+
 echo "Finished Compiling Shaders"

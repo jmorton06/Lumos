@@ -13,7 +13,15 @@ namespace Lumos
             map->capacity = old_capacity == 0 ? 8 : old_capacity * 2;
             map->length   = 0;
 
-            void* new_data = map->arena ? ArenaPush(map->arena, (uint64_t)(map->capacity * elem_size)) : new char[map->capacity * elem_size]; // AllocatorFn(map->allocator, NULL, 0, map->capacity * elem_size, DEFAULT_ALIGNMENT);
+            void* new_data = map->arena ? ArenaPush(map->arena, (uint64_t)(map->capacity * elem_size)) : new char[map->capacity * elem_size];
+
+            if(!new_data)
+            {
+                ASSERT(false, "HashMap: allocation failed during growth");
+                map->capacity = old_capacity;
+                map->length   = old_capacity; // restore
+                return false;
+            }
 
             memcpy(&map->data, &new_data, sizeof(void*));
             memset(map->data, 0, map->capacity * elem_size); // set hash values to 0

@@ -218,7 +218,11 @@ namespace Lumos
         bool loadEmbeddedShaders = m_ForceEmbeddedShaders;
         if(!m_ForceEmbeddedShaders)
         {
+#ifdef LUMOS_PLATFORM_MACOS
             m_ProjectSettings.m_EngineAssetPath = "/Users/jmorton/Dev/Lumos-Dev/Lumos/Assets/";
+#else
+            m_ProjectSettings.m_EngineAssetPath = "/home/jmorton/Dev/Lumos-Dev/Lumos/Assets/";
+#endif
             std::string ShaderFolder = m_ProjectSettings.m_EngineAssetPath + "Shaders";
 
             if(FileSystem::FolderExists(Str8StdS(ShaderFolder)))
@@ -228,6 +232,7 @@ namespace Lumos
             }
             else
             {
+                LINFO("Engine Asset Not Folder Found");
                 loadEmbeddedShaders = true;
             }
         }
@@ -783,11 +788,13 @@ namespace Lumos
 
             static bool showSecondPanel         = false;
             static bool showDebugDearImGuiPanel = false;
+            static bool checkboxValue           = true;
             static int currentTheme             = (int)UITheme_Dark;
             static float progressValue          = 0.0f;
             static int intSliderValue           = 50;
             static float floatSliderValue       = 0.5f;
             static bool expanderOpen            = false;
+            static bool nestedExpanderOpen      = false;
             static char textBuffer[64]          = "Hello";
             static char textBuffer2[64]         = "World";
             static int dropdownSelection        = 0;
@@ -799,17 +806,43 @@ namespace Lumos
             static bool treeNode1_1             = false;
             static float colorRGB[3]            = { 1.0f, 0.5f, 0.2f };
             static float uiFontSize             = GetUIState()->style_variable_lists[StyleVar_FontSize].first->value.x;
+            static float scrollOffset           = 0.0f;
+            static int dockMode                 = -1; // -1 = floating
 
             {
-                UIBeginPanel("UI Demo", WidgetFlags_Draggable | WidgetFlags_StackVertically | WidgetFlags_CentreX | WidgetFlags_CentreY | WidgetFlags_Floating_X | WidgetFlags_Floating_Y | WidgetFlags_DragParent);
+                if(dockMode >= 0)
+                {
+                    UIBeginPanel("UI Demo",
+                        WidgetFlags_Draggable | WidgetFlags_StackVertically | WidgetFlags_DragParent | WidgetFlags_CentreX);
+                    UIWindowDock((UIDockPosition)dockMode, 0.4f);
+                }
+                else
+                {
+                    UIBeginPanel("UI Demo",
+                         WidgetFlags_StackVertically | WidgetFlags_CentreX | WidgetFlags_CentreY | WidgetFlags_Floating_X | WidgetFlags_Floating_Y | WidgetFlags_DragParent);
+                }
 
                 // Theme selector
                 static const char* themeNames[] = { "Light", "Dark", "Blue", "Green", "Purple", "High Contrast" };
                 if(UIDropdown("Theme", &currentTheme, themeNames, (int)UITheme_Count).clicked)
+                {
                     UISetTheme((UITheme)currentTheme);
+                    uiFontSize = GetUIState()->style_variable_lists[StyleVar_FontSize].first->value.x;
+                }
 
-                if(UISlider("Font Size", &uiFontSize, 12.0f, 64.0f, 200.0f).dragging)
-                    GetUIState()->style_variable_lists[StyleVar_FontSize].first->value.x = uiFontSize;
+                {
+                    auto result = UISlider("Font Size", &uiFontSize, 12.0f, 64.0f, 200.0f);
+                    if(result.dragging || result.clicked)
+                        GetUIState()->style_variable_lists[StyleVar_FontSize].first->value.x = uiFontSize;
+                }
+
+                // Dock demo
+                UIBeginRow();
+                if(UIButton("Dock L").clicked) dockMode = (int)Dock_Left;
+                if(UIButton("Dock R").clicked) dockMode = (int)Dock_Right;
+                if(UIButton("Fill").clicked)   dockMode = (int)Dock_Fill;
+                if(UIButton("Float").clicked)  dockMode = -1;
+                UIEndRow();
 
                 UISeparator();
 
@@ -836,14 +869,23 @@ namespace Lumos
                 UIExpander("More Options", &expanderOpen);
                 if(expanderOpen)
                 {
+                    UIBeginExpanderContent("More Options");
                     UITextInput("Name", textBuffer, sizeof(textBuffer));
                     UITextInput("Other", textBuffer2, sizeof(textBuffer2));
                     UIDropdown("Selection", &dropdownSelection, dropdownOptions, 3);
                     UIToggle("Option 1", &showSecondPanel);
                     UIToggle("Option 2", &showDebugDearImGuiPanel);
+                    UICheckbox("Enable Feature", &checkboxValue);
 
-                    // Color picker
-                    UIColorEdit3("Color", colorRGB);
+                    // Nested expander test
+                    UIExpander("Advanced", &nestedExpanderOpen);
+                    if(nestedExpanderOpen)
+                    {
+                        UIBeginExpanderContent("Advanced");
+                        UIColorEdit3("Color", colorRGB);
+                        UILabel("NestedInfo", Str8Lit("Nested expander content"));
+                        UIEndExpanderContent();
+                    }
 
                     // Tree view
                     if(UITreeNode("Root Node", &treeNode1))
@@ -862,6 +904,7 @@ namespace Lumos
                         UILabel("AnotherLeaf", Str8Lit("Another leaf"));
                         UITreePop();
                     }
+                    UIEndExpanderContent();
                 }
 
                 UIButton("Hover Me");

@@ -958,27 +958,8 @@
             "value2": 0.10000000149011612
         }
     },
-    "value195": 36,
+    "value195": 50,
     "value196": {
-        "Position": {
-            "value0": 0.0,
-            "value1": 2.349538803100586,
-            "value2": -0.00330352783203125
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 1.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value197": 50,
-    "value198": {
         "Position": {
             "value0": -1.5656273365020753,
             "value1": 17.825361251831056,
@@ -994,6 +975,25 @@
             "value0": 0.699999988079071,
             "value1": 0.699999988079071,
             "value2": 0.699999988079071
+        }
+    },
+    "value197": 33,
+    "value198": {
+        "Position": {
+            "value0": 41.24726486206055,
+            "value1": 19.527462005615236,
+            "value2": -48.10124969482422
+        },
+        "Rotation": {
+            "value0": -0.1918577402830124,
+            "value1": 0.6574646830558777,
+            "value2": 0.7072034478187561,
+            "value3": 0.17548249661922456
+        },
+        "Scale": {
+            "value0": 0.999998927116394,
+            "value1": 1.0000176429748536,
+            "value2": 1.0000042915344239
         }
     },
     "value199": 30,
@@ -1015,84 +1015,27 @@
             "value2": 0.9999999403953552
         }
     },
-    "value201": 33,
+    "value201": 36,
     "value202": {
         "Position": {
-            "value0": 41.24726486206055,
-            "value1": 19.527462005615236,
-            "value2": -48.10124969482422
+            "value0": 0.0,
+            "value1": 2.349538803100586,
+            "value2": -0.00330352783203125
         },
         "Rotation": {
-            "value0": -0.1918577402830124,
-            "value1": 0.6574646830558777,
-            "value2": 0.7072034478187561,
-            "value3": 0.17548249661922456
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
         },
         "Scale": {
-            "value0": 0.999998927116394,
-            "value1": 1.0000176429748536,
-            "value2": 1.0000042915344239
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
         }
     },
-    "value203": 25,
+    "value203": 28,
     "value204": {
-        "Position": {
-            "value0": 26.0,
-            "value1": 22.0,
-            "value2": 48.5
-        },
-        "Rotation": {
-            "value0": -0.18377967178821565,
-            "value1": 0.2487904578447342,
-            "value2": 0.044185034930706027,
-            "value3": 0.9499346613883972
-        },
-        "Scale": {
-            "value0": 1.0000001192092896,
-            "value1": 0.9999997615814209,
-            "value2": 1.0000001192092896
-        }
-    },
-    "value205": 51,
-    "value206": {
-        "Position": {
-            "value0": -1.5656355619430543,
-            "value1": 16.815269470214845,
-            "value2": 0.0
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 0.9999998807907105
-        },
-        "Scale": {
-            "value0": 0.699999988079071,
-            "value1": 0.699999988079071,
-            "value2": 0.699999988079071
-        }
-    },
-    "value207": 35,
-    "value208": {
-        "Position": {
-            "value0": 0.0,
-            "value1": -0.8354345560073853,
-            "value2": 76.22335815429688
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 0.9999999403953552
-        },
-        "Scale": {
-            "value0": 0.9999998211860657,
-            "value1": 0.9999998211860657,
-            "value2": 0.9999998211860657
-        }
-    },
-    "value209": 28,
-    "value210": {
         "Position": {
             "value0": 34.3039436340332,
             "value1": 15.190068244934082,
@@ -1108,6 +1051,63 @@
             "value0": 0.9999999403953552,
             "value1": 0.9999999403953552,
             "value2": 0.9999999403953552
+        }
+    },
+    "value205": 1048607,
+    "value206": {
+        "Position": {
+            "value0": 5.0,
+            "value1": 5.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 2.0,
+            "value1": 2.0,
+            "value2": 2.0
+        }
+    },
+    "value207": 26,
+    "value208": {
+        "Position": {
+            "value0": 0.002742767333984375,
+            "value1": 2.338712692260742,
+            "value2": 3.177652359008789
+        },
+        "Rotation": {
+            "value0": -0.26047149300575259,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9654815196990967
+        },
+        "Scale": {
+            "value0": 0.999993085861206,
+            "value1": 0.9999967813491821,
+            "value2": 0.9999943971633911
+        }
+    },
+    "value209": 35,
+    "value210": {
+        "Position": {
+            "value0": 0.0,
+            "value1": -0.8354345560073853,
+            "value2": 76.22335815429688
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9999999403953552
+        },
+        "Scale": {
+            "value0": 0.9999998211860657,
+            "value1": 0.9999998211860657,
+            "value2": 0.9999998211860657
         }
     },
     "value211": 54,
@@ -1129,23 +1129,23 @@
             "value2": 0.699999988079071
         }
     },
-    "value213": 26,
+    "value213": 25,
     "value214": {
         "Position": {
-            "value0": 0.002742767333984375,
-            "value1": 2.338712692260742,
-            "value2": 3.177652359008789
+            "value0": 26.0,
+            "value1": 22.0,
+            "value2": 48.5
         },
         "Rotation": {
-            "value0": -0.26047149300575259,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 0.9654815196990967
+            "value0": -0.18377967178821565,
+            "value1": 0.2487904578447342,
+            "value2": 0.044185034930706027,
+            "value3": 0.9499346613883972
         },
         "Scale": {
-            "value0": 0.999993085861206,
-            "value1": 0.9999967813491821,
-            "value2": 0.9999943971633911
+            "value0": 1.0000001192092896,
+            "value1": 0.9999997615814209,
+            "value2": 1.0000001192092896
         }
     },
     "value215": 22,
@@ -1186,23 +1186,23 @@
             "value2": 1.0
         }
     },
-    "value219": 1048607,
+    "value219": 51,
     "value220": {
         "Position": {
-            "value0": 5.0,
-            "value1": 5.0,
+            "value0": -1.5656355619430543,
+            "value1": 16.815269470214845,
             "value2": 0.0
         },
         "Rotation": {
             "value0": 0.0,
             "value1": 0.0,
             "value2": 0.0,
-            "value3": 1.0
+            "value3": 0.9999998807907105
         },
         "Scale": {
-            "value0": 2.0,
-            "value1": 2.0,
-            "value2": 2.0
+            "value0": 0.699999988079071,
+            "value1": 0.699999988079071,
+            "value2": 0.699999988079071
         }
     },
     "value221": 50,
@@ -1832,9 +1832,9 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.4564286172389984,
-            "value1": 0.3711428642272949,
-            "value2": 0.8086569309234619,
+            "value0": 0.45642873644828799,
+            "value1": 0.37114301323890688,
+            "value2": 0.8086566925048828,
             "value3": 1.0
         },
         "value5": 120000.0,
@@ -1975,7 +1975,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 17786480762669825409,
+            "UUID": 2630840258037341214,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -2049,7 +2049,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 14456596920161769552,
+            "UUID": 17921410952089188728,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -2123,7 +2123,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 3970202787115251251,
+            "UUID": 17523579642119028431,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -2197,7 +2197,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 6695482335635658947,
+            "UUID": 4926486906563694273,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -2271,7 +2271,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 6399594936834399795,
+            "UUID": 9104559595529364440,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -2343,7 +2343,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 12050239072303047506,
+            "UUID": 10077230814500327207,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -2414,7 +2414,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 10756931712572960754,
+            "UUID": 18354018238452868378,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -2488,7 +2488,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 792099513077607139,
+            "UUID": 4528891600572473175,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -2562,7 +2562,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 9937342343624950467,
+            "UUID": 11461243465112628636,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -2633,7 +2633,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 3026877681991713808,
+            "UUID": 8866287086879512302,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -2704,7 +2704,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 4585507190523172867,
+            "UUID": 652420047612284650,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -2775,7 +2775,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 17695669970117885090,
+            "UUID": 4537208399421672229,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -2849,7 +2849,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 5607017044473174936,
+            "UUID": 9753313391207039475,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -2923,7 +2923,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 685551018767973449,
+            "UUID": 3603761642686714868,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -2997,7 +2997,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 8057717743027195637,
+            "UUID": 12969685497840744684,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -3068,7 +3068,7 @@
                 "value1": 1.0,
                 "value2": 1.0
             },
-            "UUID": 1698957477663814301,
+            "UUID": 953643439123015839,
             "CollisionLayer": 0,
             "CollisionMask": 65535,
             "LinearFactor": {
@@ -3128,50 +3128,25 @@
         },
         "AnimationFrames": [
             {
-                "key": "Sleep",
+                "key": "Run",
                 "value": {
                     "PlayMode": 0,
                     "Frames": [
                         {
                             "value0": 0.0,
-                            "value1": 192.0
+                            "value1": 0.0
                         },
                         {
                             "value0": 32.0,
-                            "value1": 192.0
+                            "value1": 0.0
                         },
                         {
                             "value0": 64.0,
-                            "value1": 192.0
+                            "value1": 0.0
                         },
                         {
                             "value0": 96.0,
-                            "value1": 192.0
-                        }
-                    ],
-                    "FrameDuration": 0.10000000149011612
-                }
-            },
-            {
-                "key": "RunUp",
-                "value": {
-                    "PlayMode": 0,
-                    "Frames": [
-                        {
-                            "value0": 0.0,
-                            "value1": 64.0
-                        },
-                        {
-                            "value0": 32.0,
-                            "value1": 64.0
-                        },
-                        {
-                            "value0": 64.0,
-                            "value1": 64.0
-                        },
-                        {
-                            "value0": 96.0,
-                            "value1": 64.0
+                            "value1": 0.0
                         }
                     ],
                     "FrameDuration": 0.10000000149011612
@@ -3228,25 +3203,50 @@
                 }
             },
             {
-                "key": "Run",
+                "key": "RunUp",
                 "value": {
                     "PlayMode": 0,
                     "Frames": [
                         {
                             "value0": 0.0,
-                            "value1": 0.0
+                            "value1": 64.0
                         },
                         {
                             "value0": 32.0,
-                            "value1": 0.0
+                            "value1": 64.0
                         },
                         {
                             "value0": 64.0,
-                            "value1": 0.0
+                            "value1": 64.0
                         },
                         {
                             "value0": 96.0,
-                            "value1": 0.0
+                            "value1": 64.0
+                        }
+                    ],
+                    "FrameDuration": 0.10000000149011612
+                }
+            },
+            {
+                "key": "Sleep",
+                "value": {
+                    "PlayMode": 0,
+                    "Frames": [
+                        {
+                            "value0": 0.0,
+                            "value1": 192.0
+                        },
+                        {
+                            "value0": 32.0,
+                            "value1": 192.0
+                        },
+                        {
+                            "value0": 64.0,
+                            "value1": 192.0
+                        },
+                        {
+                            "value0": 96.0,
+                            "value1": 192.0
                         }
                     ],
                     "FrameDuration": 0.10000000149011612
@@ -3568,7 +3568,7 @@
     "value634": 35,
     "value635": {
         "PrimitiveType": 8,
-        "FilePath": "//Assets/Imported/10285625528938738229.lmesh",
+        "FilePath": "//Assets/Meshes/lowpoly_bonfire/scene.gltf",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -3607,7 +3607,7 @@
     "value636": 33,
     "value637": {
         "PrimitiveType": 8,
-        "FilePath": "//Assets/Imported/7809073756216468916.lmesh",
+        "FilePath": "//Assets/Meshes/Scene/scene.gltf",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -3646,7 +3646,7 @@
     "value638": 1048607,
     "value639": {
         "PrimitiveType": 8,
-        "FilePath": "//Assets/Imported/11108861339461690106.lmesh",
+        "FilePath": "//Assets/Meshes/DamagedHelmet/glTF/DamagedHelmet.gltf",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -5152,7 +5152,7 @@
     "value718": 2097214,
     "value719": {
         "PrimitiveType": 8,
-        "FilePath": "//Assets/Imported/3455974680525616506.lmesh",
+        "FilePath": "//Assets/Meshes/Fox.glb",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -5345,7 +5345,7 @@
         },
         "value7": 1.0,
         "value8": 0.5,
-        "value9": 0.04780720919370651,
+        "value9": 0.01854487881064415,
         "value10": 0.10000000149011612,
         "value11": 5,
         "value12": true,

@@ -41,7 +41,9 @@ namespace Lumos
             cereal::make_nvp("OptOverdraw", s.OptOverdraw),
             cereal::make_nvp("OptVertexFetch", s.OptVertexFetch),
             cereal::make_nvp("MaxTextureWidth", s.MaxTextureWidth),
-            cereal::make_nvp("MaxTextureHeight", s.MaxTextureHeight));
+            cereal::make_nvp("MaxTextureHeight", s.MaxTextureHeight),
+            cereal::make_nvp("CopySourceToProject", s.CopySourceToProject),
+            cereal::make_nvp("SplitMeshes", s.SplitMeshes));
     }
 
     template <typename Archive>
@@ -49,13 +51,75 @@ namespace Lumos
     {
         archive(
             cereal::make_nvp("Settings", m.Settings),
-            cereal::make_nvp("SourceModTime", m.SourceModTime),
             cereal::make_nvp("OutputUUID", m.OutputUUID));
     }
 
     static std::string GetMetaPath(const std::string& sourcePath)
     {
         return sourcePath + ".meta";
+    }
+
+    std::string AssetImporter::NormalizeAssetPath(const std::string& path)
+    {
+        std::string result;
+        result.reserve(path.size());
+        for(char c : path)
+        {
+            if(c == '\\')
+                c = '/';
+            if(c >= 'A' && c <= 'Z')
+                c = c + ('a' - 'A');
+            result += c;
+        }
+        while(!result.empty() && result.back() == '/')
+            result.pop_back();
+        return result;
+    }
+
+    void AssetImporter::CleanOrphanedImports()
+    {
+        ArenaTemp scratch = ScratchBegin(0, 0);
+        String8 assetsPath = FileSystem::Get().GetAssetPath();
+        String8 importedDir = PushStr8F(scratch.arena, "%s/Imported", (const char*)assetsPath.str);
+        NullTerminate(importedDir);
+
+        if(!FileSystem::FolderExists(importedDir))
+        {
+            ScratchEnd(scratch);
+            return;
+        }
+
+        int removed = 0;
+        std::error_code ec;
+        for(auto& entry : std::filesystem::directory_iterator((const char*)importedDir.str, ec))
+        {
+            if(!entry.is_regular_file())
+                continue;
+            auto ext = entry.path().extension().string();
+            if(ext == ".lmesh" || ext == ".lanim" || ext == ".limg" || ext == ".lmat")
+            {
+                // Check if a .meta file references this hash — if orphaned, delete
+                // For now just log; actual orphan detection requires scanning all source paths
+                // which we don't track globally. Skip files newer than 1 hour to avoid race conditions.
+            }
+        }
+
+        // Clean Textures subdirectory too
+        String8 texDir = PushStr8F(scratch.arena, "%s/Imported/Textures", (const char*)assetsPath.str);
+        NullTerminate(texDir);
+        if(FileSystem::FolderExists(texDir))
+        {
+            for(auto& entry : std::filesystem::directory_iterator((const char*)texDir.str, ec))
+            {
+                if(!entry.is_regular_file())
+                    continue;
+            }
+        }
+
+        if(removed > 0)
+            LINFO("AssetImporter: Cleaned %d orphaned import files", removed);
+
+        ScratchEnd(scratch);
     }
 
     static std::string CopyTextureToImported(Arena* arena, SharedPtr<Graphics::Texture2D> tex, u32 slot)
@@ -75,7 +139,8 @@ namespace Lumos
         if(!texPath.empty())
         {
             // File-based texture — load with stbi, write as .limg
-            u64 texHash = MurmurHash64A(texPath.c_str(), (int)texPath.size(), 0);
+            std::string normalizedTexPath = AssetImporter::NormalizeAssetPath(texPath);
+            u64 texHash = MurmurHash64A(normalizedTexPath.c_str(), (int)normalizedTexPath.size(), 0);
 
             uint32_t w, h, bits;
             bool isHDR = false;
@@ -133,7 +198,8 @@ namespace Lumos
 
     std::string AssetImporter::GetImportedPath(const std::string& sourcePath)
     {
-        u64 pathHash = MurmurHash64A(sourcePath.c_str(), (int)sourcePath.size(), 0);
+        std::string normalized = NormalizeAssetPath(sourcePath);
+        u64 pathHash = MurmurHash64A(normalized.c_str(), (int)normalized.size(), 0);
         char buf[256];
         snprintf(buf, sizeof(buf), "//Assets/Imported/%llu.lmesh", (unsigned long long)pathHash);
         return std::string(buf);
@@ -191,18 +257,21 @@ namespace Lumos
         std::ostringstream oss;
         {
             cereal::JSONOutputArchive archive(oss);
-            ImportMeta m = meta; // cereal needs non-const
+            ImportMeta m = meta;
             serialize(archive, m);
         }
 
         std::string json = oss.str();
 
-        String8 physicalPath;
-        if(!FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(metaPath), &physicalPath))
-        {
-            // Try writing directly if it's already a physical path
-            physicalPath = Str8StdS(metaPath);
-        }
+        // Build physical path from source path rather than ResolvePhysicalPath,
+        // because ResolvePhysicalPath returns false for non-existent files
+        // and the .meta file won't exist yet on first import.
+        String8 sourcePhysical;
+        FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(sourcePath), &sourcePhysical);
+        // ResolvePhysicalPath populates outPhysicalPath even when returning false,
+        // but for non-VFS paths it just returns the input. Construct meta path from source.
+        String8 physicalPath = PushStr8F(scratch.arena, "%s.meta", (const char*)sourcePhysical.str);
+        NullTerminate(physicalPath);
 
         bool result = FileSystem::WriteTextFile(physicalPath, Str8StdS(json));
         ScratchEnd(scratch);
@@ -213,52 +282,23 @@ namespace Lumos
     {
         ArenaTemp scratch = ScratchBegin(0, 0);
 
-        // Check if .meta exists
-        ImportMeta meta;
-        if(!LoadMeta(sourcePath, meta))
-        {
-            ScratchEnd(scratch);
-            return true;
-        }
+        // Check if .lmesh exists and has current format version
+        std::string importedPath = GetImportedPath(sourcePath);
+        bool needsImport = true;
 
-        // Check if source is newer
-        String8 physicalPath;
-        if(!FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(sourcePath), &physicalPath))
+        if(FileSystem::Get().FileExistsVFS(Str8StdS(importedPath)))
         {
-            ScratchEnd(scratch);
-            return true;
-        }
-
-        u64 modTime = FileSystem::GetFileModifiedTime(physicalPath);
-        bool needsImport = (modTime != meta.SourceModTime);
-
-        // Also check if output exists and is current version
-        if(!needsImport)
-        {
-            std::string importedPath = GetImportedPath(sourcePath);
-            if(!FileSystem::Get().FileExistsVFS(Str8StdS(importedPath)))
+            String8 physImportedPath;
+            if(FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(importedPath), &physImportedPath))
             {
-                needsImport = true;
-            }
-            else
-            {
-                // Peek at lmesh header to check version
-                String8 physImportedPath;
-                if(FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(importedPath), &physImportedPath))
+                LMeshHeader peekHeader = {};
+                int64_t fsize = FileSystem::GetFileSize(physImportedPath);
+                if(fsize >= (int64_t)sizeof(LMeshHeader))
                 {
-                    LMeshHeader peekHeader = {};
-                    int64_t fsize = FileSystem::GetFileSize(physImportedPath);
-                    if(fsize >= (int64_t)sizeof(LMeshHeader))
-                    {
-                        Arena* peekArena = ArenaAlloc(sizeof(LMeshHeader) + 64);
-                        u8* peekData = FileSystem::ReadFile(peekArena, physImportedPath);
-                        if(peekData)
-                            memcpy(&peekHeader, peekData, sizeof(LMeshHeader));
-                        ArenaRelease(peekArena);
-                    }
-                    if(peekHeader.Version != LMESH_VERSION)
-                        needsImport = true;
+                    FileSystem::ReadFile(scratch.arena, physImportedPath, &peekHeader, (int64_t)sizeof(LMeshHeader));
                 }
+                if(peekHeader.Version == LMESH_VERSION)
+                    needsImport = false;
             }
         }
 
@@ -271,6 +311,59 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         ArenaTemp scratch = ScratchBegin(0, 0);
 
+        std::string effectivePath = sourcePath;
+
+        // Copy source into project if enabled and file is outside asset root
+        if(settings.CopySourceToProject)
+        {
+            String8 assetsPathStr = FileSystem::Get().GetAssetPath();
+            std::string assetsDir((const char*)assetsPathStr.str, assetsPathStr.size);
+
+            String8 physSource;
+            bool resolved = FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(sourcePath), &physSource);
+            std::string physSourceStr = resolved ? std::string((const char*)physSource.str, physSource.size) : sourcePath;
+
+            // Check if source is under assets dir
+            if(physSourceStr.find(assetsDir) == std::string::npos)
+            {
+                // Copy to Assets/Models/
+                String8 modelsDir = PushStr8F(scratch.arena, "%s/Models", assetsDir.c_str());
+                NullTerminate(modelsDir);
+                std::filesystem::create_directories((const char*)modelsDir.str);
+
+                std::string filename = StringUtilities::GetFileName(physSourceStr);
+                std::string dstPath = std::string((const char*)modelsDir.str) + "/" + filename;
+
+                // Handle collision: append _N
+                if(std::filesystem::exists(dstPath))
+                {
+                    std::string baseName = StringUtilities::RemoveFilePathExtension(filename);
+                    std::string ext = StringUtilities::GetFilePathExtension(filename);
+                    for(int n = 1; n < 1000; n++)
+                    {
+                        char buf[16];
+                        snprintf(buf, sizeof(buf), "_%d", n);
+                        dstPath = std::string((const char*)modelsDir.str) + "/" + baseName + buf + "." + ext;
+                        if(!std::filesystem::exists(dstPath))
+                            break;
+                    }
+                }
+
+                std::error_code ec;
+                std::filesystem::copy_file(physSourceStr, dstPath, ec);
+                if(!ec)
+                {
+                    LINFO("AssetImporter: Copied source to %s", dstPath.c_str());
+                    // Build VFS path
+                    effectivePath = "//Assets/Models/" + std::filesystem::path(dstPath).filename().string();
+                }
+                else
+                {
+                    LERROR("AssetImporter: Failed to copy source: %s", ec.message().c_str());
+                }
+            }
+        }
+
         // Ensure Imported directory exists
         String8 assetsPath = FileSystem::Get().GetAssetPath();
         {
@@ -281,7 +374,8 @@ namespace Lumos
 
         // Delete existing .lmesh and .lanim before loading source, to prevent
         // LoadModel from finding stale/corrupt files and trying to load them
-        u64 pathHash = MurmurHash64A(sourcePath.c_str(), (int)sourcePath.size(), 0);
+        std::string normalizedEffective = NormalizeAssetPath(effectivePath);
+        u64 pathHash = MurmurHash64A(normalizedEffective.c_str(), (int)normalizedEffective.size(), 0);
         {
             String8 existingLMesh = PushStr8F(scratch.arena, "%s/Imported/%llu.lmesh",
                                                (const char*)assetsPath.str, (unsigned long long)pathHash);
@@ -297,10 +391,10 @@ namespace Lumos
         }
 
         // Load source model using existing loaders
-        Graphics::Model sourceModel(sourcePath);
+        Graphics::Model sourceModel(effectivePath);
         if(sourceModel.GetMeshes().Empty())
         {
-            LERROR("AssetImporter: Failed to load source %s", sourcePath.c_str());
+            LERROR("AssetImporter: Failed to load source %s", effectivePath.c_str());
             ScratchEnd(scratch);
             return "";
         }
@@ -420,7 +514,7 @@ namespace Lumos
         }
 
         // Write .lmesh
-        std::string outputPath = GetImportedPath(sourcePath);
+        std::string outputPath = GetImportedPath(effectivePath);
 
         String8 physOutputPath = PushStr8F(scratch.arena, "%s/Imported/%llu.lmesh",
                                             (const char*)assetsPath.str, (unsigned long long)pathHash);
@@ -428,7 +522,7 @@ namespace Lumos
 
         if(!LMeshWriter::Write(physOutputPath, writeData, settings))
         {
-            LERROR("AssetImporter: Failed to write lmesh for %s", sourcePath.c_str());
+            LERROR("AssetImporter: Failed to write lmesh for %s", effectivePath.c_str());
             ScratchEnd(scratch);
             return "";
         }
@@ -496,25 +590,20 @@ namespace Lumos
             NullTerminate(physAnimPath);
 
             if(LAnimWriter::Write(physAnimPath, animData))
-                LINFO("AssetImporter: Wrote .lanim for %s", sourcePath.c_str());
+                LINFO("AssetImporter: Wrote .lanim for %s", effectivePath.c_str());
             else
-                LERROR("AssetImporter: Failed to write .lanim for %s", sourcePath.c_str());
+                LERROR("AssetImporter: Failed to write .lanim for %s", effectivePath.c_str());
         }
 
         // Save .meta
         {
-            String8 physSourcePath;
-            FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(sourcePath), &physSourcePath);
-
             ImportMeta meta;
-            meta.Settings     = settings;
-            meta.SourceModTime = FileSystem::GetFileModifiedTime(physSourcePath);
-            meta.OutputUUID    = writeData.AssetUUID;
-
-            SaveMeta(sourcePath, meta);
+            meta.Settings   = settings;
+            meta.OutputUUID = writeData.AssetUUID;
+            SaveMeta(effectivePath, meta);
         }
 
-        LINFO("AssetImporter: Imported %s → %s", sourcePath.c_str(), outputPath.c_str());
+        LINFO("AssetImporter: Imported %s → %s", effectivePath.c_str(), outputPath.c_str());
         ScratchEnd(scratch);
         return outputPath;
     }

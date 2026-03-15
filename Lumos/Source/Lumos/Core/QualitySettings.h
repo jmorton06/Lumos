@@ -32,7 +32,7 @@ namespace Lumos
         ShadowResolutionSetting ShadowResolution = ShadowResolutionSetting::Low;
 
         // Post-Process
-        bool EnableBloom = false;
+        bool EnableBloom = true;
         bool EnableDOF   = false;
         bool EnableSSR   = false;
         bool EnableSSAO  = false;

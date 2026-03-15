@@ -5,7 +5,7 @@
 namespace Lumos
 {
     // .lmesh binary format version
-    static constexpr u32 LMESH_VERSION = 3;
+    static constexpr u32 LMESH_VERSION = 4;
     static constexpr u8 LMESH_MAGIC[4] = { 'L', 'M', 'S', 'H' };
 
     enum LMeshFlags : u32

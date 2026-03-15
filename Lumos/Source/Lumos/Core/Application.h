@@ -199,7 +199,7 @@ namespace Lumos
             std::string SplashPath; // VFS path to custom splash image
             float SplashBGColour[4] = { 40.0f / 256.0f, 42.0f / 256.0f, 54.0f / 256.0f, 1.0f };
             std::string StartScene; // Scene name to load on startup (v11+, replaces SceneIndex)
-            bool AutoImportMeshes  = false; // Auto-convert source models to .lmesh on load
+            bool AutoImportMeshes  = true; // Auto-convert source models to .lmesh on load
         };
 
         ProjectSettings& GetProjectSettings() { return m_ProjectSettings; }

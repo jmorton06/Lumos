@@ -10,6 +10,8 @@
 #include "Asset.h"
 #include "AssetMetaData.h"
 #include "AssetRegistry.h"
+#include <unordered_map>
+#include <string>
 
 namespace Lumos
 {
@@ -18,6 +20,7 @@ namespace Lumos
     namespace Graphics
     {
         class Model;
+        class Material;
     }
 
     class AssetManager
@@ -46,6 +49,8 @@ namespace Lumos
         SharedPtr<Graphics::Texture2D> LoadTextureAsset(const String8& filePath, bool thread);
         SharedPtr<Graphics::Texture2D> LoadTextureAsset(const String8& filePath, bool thread, const Graphics::TextureDesc& desc);
 
+        SharedPtr<Graphics::Material> LoadMaterialAsset(const String8& lmatPath);
+
         void RemoveAsset(const String8& name)
         {
             UUID id;
@@ -62,5 +67,8 @@ namespace Lumos
         Arena* m_Arena;
         SharedPtr<AssetRegistry> m_AssetRegistry;
         SharedPtr<StringPool> m_StringPool;
+
+        // Separate material cache (Material doesn't inherit Asset)
+        std::unordered_map<std::string, SharedPtr<Graphics::Material>> m_MaterialCache;
     };
 }

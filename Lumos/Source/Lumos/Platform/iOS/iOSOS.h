@@ -94,6 +94,9 @@ namespace Lumos
         static iOSOS* Get();
         static CAMetalLayer* GetStaticLayer();
 
+        // Copy a folder from the app bundle to a destination path using NSFileManager
+        static bool CopyBundleFolder(const std::string& bundleSrc, const std::string& dest);
+
     private:
         CAMetalLayer* m_LayerPtr;
         float m_X, m_Y;

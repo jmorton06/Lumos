@@ -10,6 +10,7 @@
 #include "Graphics/RHI/VertexBuffer.h"
 #include "Graphics/RHI/IndexBuffer.h"
 #include "Maths/BoundingBox.h"
+#include "Utilities/StringUtilities.h"
 
 namespace Lumos
 {
@@ -79,6 +80,14 @@ namespace Lumos
         // Read material data
         u8* matPtr = fileData + sizeof(LMeshHeader) + header->MeshCount * sizeof(LMeshDescriptor);
         u8* fileEnd = fileData + fileSize;
+
+        // Try to extract hash from lmesh filename for .lmat lookup
+        // Path pattern: //Assets/Imported/{hash}.lmesh
+        std::string pathStr((const char*)path.str, path.size);
+        std::string lmeshFilename = StringUtilities::GetFileName(pathStr);
+        // Remove .lmesh extension
+        auto dotPos = lmeshFilename.rfind('.');
+        std::string hashStr = (dotPos != std::string::npos) ? lmeshFilename.substr(0, dotPos) : lmeshFilename;
 
         // Parse materials
         TDArray<SharedPtr<Graphics::Material>> materials;
@@ -150,94 +159,140 @@ namespace Lumos
                 return false;
             }
 
-            // Load shader
-            auto shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBR"));
-            SharedPtr<Graphics::Material> material = CreateSharedPtr<Graphics::Material>();
+            // Try loading from cached .lmat file first
+            char lmatBuf[512];
+            snprintf(lmatBuf, sizeof(lmatBuf), "//Assets/Imported/Materials/%s_%u.lmat", hashStr.c_str(), m);
+            String8 lmatPath = Str8StdS(std::string(lmatBuf));
 
-            bool animated = false;
-            for(u32 mi = 0; mi < header->MeshCount; mi++)
+            SharedPtr<Graphics::Material> material = Application::Get().GetAssetManager()->LoadMaterialAsset(lmatPath);
+
+            if(!material)
             {
-                if(descriptors[mi].MaterialIndex == m && (descriptors[mi].Flags & LMeshVertexFlag_Animated))
+                // Fallback: create material inline from lmesh binary data
+                auto shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBR"));
+                material = CreateSharedPtr<Graphics::Material>();
+
+                bool animated = false;
+                for(u32 mi = 0; mi < header->MeshCount; mi++)
                 {
-                    animated = true;
-                    break;
-                }
-            }
-
-            if(animated)
-                shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBRAnim"));
-
-            if(shader)
-            {
-                auto shaderPtr = shader.As<Graphics::Shader>();
-                material = CreateSharedPtr<Graphics::Material>(shaderPtr, props);
-            }
-
-            material->SetName(matName);
-
-            Graphics::PBRMataterialTextures textures;
-
-            for(u32 t = 0; t < texCount; t++)
-            {
-                if(matPtr + 10 > fileEnd)
-                {
-                    LERROR("LMeshReader: Material %u texture %u truncated in %.*s", m, t, (int)path.size, path.str);
-                    ArenaRelease(fileArena);
-                    ScratchEnd(scratch);
-                    return false;
-                }
-
-                u32 slot;
-                memcpy(&slot, matPtr, 4); matPtr += 4;
-
-                u8 wrap   = *matPtr++;
-                u8 filter = *matPtr++;
-
-                u32 pathLen;
-                memcpy(&pathLen, matPtr, 4); matPtr += 4;
-
-                if(pathLen > 4096 || matPtr + pathLen + 1 > fileEnd)
-                {
-                    LERROR("LMeshReader: Material %u texture %u bad pathLen %u in %.*s", m, t, pathLen, (int)path.size, path.str);
-                    ArenaRelease(fileArena);
-                    ScratchEnd(scratch);
-                    return false;
-                }
-
-                std::string texPath((const char*)matPtr, pathLen);
-                matPtr += pathLen + 1;
-
-                if(slot < LMESH_MAX_TEXTURE_SLOTS)
-                {
-                    Graphics::TextureDesc texDesc;
-                    texDesc.wrap      = (Graphics::TextureWrap)wrap;
-                    texDesc.minFilter = filter != 0 ? (Graphics::TextureFilter)filter : Graphics::TextureFilter::LINEAR;
-                    texDesc.magFilter = texDesc.minFilter;
-                    auto tex = Application::Get().GetAssetManager()->LoadTextureAsset(Str8StdS(texPath), false, texDesc);
-                    if(tex)
+                    if(descriptors[mi].MaterialIndex == m && (descriptors[mi].Flags & LMeshVertexFlag_Animated))
                     {
-                        switch(slot)
+                        animated = true;
+                        break;
+                    }
+                }
+
+                if(animated)
+                    shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBRAnim"));
+
+                if(shader)
+                {
+                    auto shaderPtr = shader.As<Graphics::Shader>();
+                    material = CreateSharedPtr<Graphics::Material>(shaderPtr, props);
+                }
+
+                material->SetName(matName);
+
+                Graphics::PBRMataterialTextures textures;
+
+                for(u32 t = 0; t < texCount; t++)
+                {
+                    if(matPtr + 10 > fileEnd)
+                    {
+                        LERROR("LMeshReader: Material %u texture %u truncated in %.*s", m, t, (int)path.size, path.str);
+                        ArenaRelease(fileArena);
+                        ScratchEnd(scratch);
+                        return false;
+                    }
+
+                    u32 slot;
+                    memcpy(&slot, matPtr, 4); matPtr += 4;
+
+                    u8 wrap   = *matPtr++;
+                    u8 filter = *matPtr++;
+
+                    u32 pathLen;
+                    memcpy(&pathLen, matPtr, 4); matPtr += 4;
+
+                    if(pathLen > 4096 || matPtr + pathLen + 1 > fileEnd)
+                    {
+                        LERROR("LMeshReader: Material %u texture %u bad pathLen %u in %.*s", m, t, pathLen, (int)path.size, path.str);
+                        ArenaRelease(fileArena);
+                        ScratchEnd(scratch);
+                        return false;
+                    }
+
+                    std::string texPath((const char*)matPtr, pathLen);
+                    matPtr += pathLen + 1;
+
+                    if(slot < LMESH_MAX_TEXTURE_SLOTS)
+                    {
+                        Graphics::TextureDesc texDesc;
+                        texDesc.wrap      = (Graphics::TextureWrap)wrap;
+                        texDesc.minFilter = filter != 0 ? (Graphics::TextureFilter)filter : Graphics::TextureFilter::LINEAR;
+                        texDesc.magFilter = texDesc.minFilter;
+                        auto tex = Application::Get().GetAssetManager()->LoadTextureAsset(Str8StdS(texPath), false, texDesc);
+                        if(tex)
                         {
-                        case 0: textures.albedo    = tex; break;
-                        case 1: textures.normal    = tex; break;
-                        case 2: textures.metallic  = tex; break;
-                        case 3: textures.roughness = tex; break;
-                        case 4: textures.ao        = tex; break;
-                        case 5: textures.emissive  = tex; break;
+                            switch(slot)
+                            {
+                            case 0: textures.albedo    = tex; break;
+                            case 1: textures.normal    = tex; break;
+                            case 2: textures.metallic  = tex; break;
+                            case 3: textures.roughness = tex; break;
+                            case 4: textures.ao        = tex; break;
+                            case 5: textures.emissive  = tex; break;
+                            }
                         }
                     }
                 }
+
+                material->SetTextures(textures);
+
+                // Restore render flags from lmesh
+                if(materialFlags & (u32)Graphics::Material::RenderFlags::TWOSIDED)
+                    material->SetFlag(Graphics::Material::RenderFlags::TWOSIDED);
+                if(materialFlags & (u32)Graphics::Material::RenderFlags::ALPHABLEND)
+                    material->SetFlag(Graphics::Material::RenderFlags::ALPHABLEND);
+                if(materialFlags & (u32)Graphics::Material::RenderFlags::NOSHADOW)
+                    material->SetFlag(Graphics::Material::RenderFlags::NOSHADOW);
             }
+            else
+            {
+                // .lmat loaded - still need to skip over texture data in the binary
+                for(u32 t = 0; t < texCount; t++)
+                {
+                    if(matPtr + 10 > fileEnd)
+                    {
+                        ArenaRelease(fileArena);
+                        ScratchEnd(scratch);
+                        return false;
+                    }
 
-            material->SetTextures(textures);
+                    matPtr += 4; // slot
+                    matPtr += 1; // wrap
+                    matPtr += 1; // filter
 
-            // Restore render flags from lmesh
-            if(materialFlags & (u32)Graphics::Material::RenderFlags::TWOSIDED)
-                material->SetFlag(Graphics::Material::RenderFlags::TWOSIDED);
-            if(materialFlags & (u32)Graphics::Material::RenderFlags::ALPHABLEND)
-                material->SetFlag(Graphics::Material::RenderFlags::ALPHABLEND);
-            if(materialFlags & (u32)Graphics::Material::RenderFlags::NOSHADOW)
-                material->SetFlag(Graphics::Material::RenderFlags::NOSHADOW);
+                    u32 pathLen;
+                    memcpy(&pathLen, matPtr, 4); matPtr += 4;
+
+                    if(pathLen > 4096 || matPtr + pathLen + 1 > fileEnd)
+                    {
+                        ArenaRelease(fileArena);
+                        ScratchEnd(scratch);
+                        return false;
+                    }
+                    matPtr += pathLen + 1;
+                }
+
+                // Restore render flags from lmesh (lmat doesn't store these)
+                if(materialFlags & (u32)Graphics::Material::RenderFlags::TWOSIDED)
+                    material->SetFlag(Graphics::Material::RenderFlags::TWOSIDED);
+                if(materialFlags & (u32)Graphics::Material::RenderFlags::ALPHABLEND)
+                    material->SetFlag(Graphics::Material::RenderFlags::ALPHABLEND);
+                if(materialFlags & (u32)Graphics::Material::RenderFlags::NOSHADOW)
+                    material->SetFlag(Graphics::Material::RenderFlags::NOSHADOW);
+            }
 
             materials.PushBack(material);
         }

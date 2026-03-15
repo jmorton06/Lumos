@@ -448,6 +448,15 @@ namespace Lumos
             vkCmdDrawIndexed(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), count, 1, 0, 0, 0);
         }
 
+        void VKRenderer::DrawIndexedInstancedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t indexCount, uint32_t instanceCount, uint32_t firstInstance) const
+        {
+            LUMOS_PROFILE_FUNCTION_LOW();
+            Engine::Get().Statistics().NumDrawCalls++;
+            Engine::Get().Statistics().TriangleCount += (indexCount * instanceCount) / 3;
+
+            vkCmdDrawIndexed(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), indexCount, instanceCount, 0, 0, firstInstance);
+        }
+
         void VKRenderer::DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const
         {
             LUMOS_PROFILE_FUNCTION_LOW();

@@ -83,6 +83,7 @@ namespace Lumos
         StyleVar_ShadowColor,
         StyleVar_ShadowOffset,
         StyleVar_ShadowBlur,
+        StyleVar_ItemSpacing,   // .x = horizontal gap, .y = vertical gap between stacked children
         StyleVar_Count
     };
 
@@ -231,6 +232,7 @@ namespace Lumos
 
         // Dropdown state
         u64 OpenDropdown = 0;
+        bool OverlayBlocksInput = false;
 
         // Context menu state
         bool ContextMenuOpen    = false;
@@ -255,6 +257,13 @@ namespace Lumos
 
     void UIEndPanel();
 
+    // Window dock/positioning helpers (call between UIBeginPanel and first child)
+    enum UIDockPosition { Dock_Left, Dock_Right, Dock_Top, Dock_Bottom, Dock_Fill };
+    void UIWindowDock(UIDockPosition pos, float sizePercent = 0.5f);
+    void UIWindowCenter();
+    void UIWindowFillScreen();
+    void UIWindowSetSize(float wPercent, float hPercent);
+
     void UIPushStyle(StyleVar style_variable, float value);
     void UIPushStyle(StyleVar style_variable, const Vec2& value);
     void UIPushStyle(StyleVar style_variable, const Vec3& value);
@@ -278,6 +287,8 @@ namespace Lumos
 
     UI_Interaction UIToggle(const char* str,
                              bool* value);
+
+    UI_Interaction UICheckbox(const char* str, bool* value);
 
     // Progress bar (0.0 to 1.0)
     UI_Interaction UIProgressBar(const char* str,
@@ -309,6 +320,8 @@ namespace Lumos
 
     // Expander (collapsible section header)
     UI_Interaction UIExpander(const char* str, bool* expanded);
+    void UIBeginExpanderContent(const char* str);
+    void UIEndExpanderContent();
 
     // Scroll area
     void UIBeginScrollArea(const char* str, float height, float* scroll_offset);

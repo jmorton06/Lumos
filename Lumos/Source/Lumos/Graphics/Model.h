@@ -64,12 +64,19 @@ namespace Lumos
             Model(Model&&);
             Model& operator=(Model&&);
 
+            bool IsLoading() const { return m_Loading; }
+
+            // Load model asynchronously — file I/O + CPU parse on background thread,
+            // GPU buffer creation deferred to main thread
+            void LoadModelAsync(const std::string& path);
+
         private:
             // Move to Animation Component
             PrimitiveType m_PrimitiveType = PrimitiveType::None;
             TDArray<SharedPtr<Mesh>> m_Meshes;
             std::string m_FilePath;
             TDArray<String8> m_AnimFilePaths;
+            bool m_Loading = false;
 
             SharedPtr<Skeleton> m_Skeleton;
             TDArray<SharedPtr<Animation>> m_Animation;

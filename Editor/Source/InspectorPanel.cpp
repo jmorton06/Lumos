@@ -6,6 +6,8 @@
 #include <Lumos/Core/Application.h>
 #include <Lumos/Core/String.h>
 #include <Lumos/Core/OS/FileSystem.h>
+#include <Lumos/Core/Asset/AssetImporter.h>
+#include <Lumos/Utilities/StringUtilities.h>
 #include <Lumos/Scene/EntityManager.h>
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Scene/Component/Components.h>
@@ -2691,6 +2693,70 @@ end
         using namespace Lumos;
         ImGui::Separator();
         const auto& meshes = modelRef->GetMeshes();
+
+        // Model summary
+        {
+            int totalVerts = 0, totalTris = 0;
+            for(auto& m : meshes)
+            {
+                auto s = m->GetStats();
+                totalVerts += s.VertexCount;
+                totalTris += s.TriangleCount;
+            }
+            int meshCount = (int)meshes.Size();
+            ImGui::Columns(2);
+            ImGuiUtilities::Property("Meshes", meshCount, ImGuiUtilities::PropertyFlag::ReadOnly);
+            ImGuiUtilities::Property("Total Vertices", totalVerts, ImGuiUtilities::PropertyFlag::ReadOnly);
+            ImGuiUtilities::Property("Total Triangles", totalTris, ImGuiUtilities::PropertyFlag::ReadOnly);
+            ImGui::Columns(1);
+        }
+
+        // Import status + Reimport button
+        if(primitiveType == Graphics::PrimitiveType::File && !modelRef->GetFilePath().empty())
+        {
+            const auto& filePath = modelRef->GetFilePath();
+            std::string fileExt  = StringUtilities::GetFilePathExtension(filePath);
+            bool isSourceFile    = (fileExt == "gltf" || fileExt == "glb" || fileExt == "obj" || fileExt == "fbx" || fileExt == "FBX");
+
+            // For source paths, check if imported .lmesh exists
+            // For stale .lmesh paths, show as needing migration
+            std::string importedPath = isSourceFile ? AssetImporter::GetImportedPath(filePath) : "";
+            bool hasImported         = !importedPath.empty() && FileSystem::Get().FileExistsVFS(Str8StdS(importedPath));
+
+            ImGui::Columns(2);
+            std::string statusStr = isSourceFile ? (hasImported ? "Imported (.lmesh)" : "Source fallback")
+                                                 : "Stale .lmesh (needs migration)";
+            ImGuiUtilities::Property("Import Status", statusStr, ImGuiUtilities::PropertyFlag::ReadOnly);
+            ImGui::Columns(1);
+
+            if(ImGui::Button("Reimport"))
+            {
+                std::string sourcePath = filePath;
+
+                // If filePath is a stale .lmesh, find the actual source
+                if(!isSourceFile && filePath.find("//Assets/Imported/") != std::string::npos)
+                {
+                    auto& modelComp = reg.get<Graphics::ModelComponent>(e);
+                    // Reload via LoadFromLibrary which handles migration
+                    modelComp.LoadFromLibrary(filePath);
+                    modelComp.ApplyMaterialOverrides();
+                }
+                else if(isSourceFile)
+                {
+                    ImportSettings settings;
+                    std::string result = AssetImporter::Import(sourcePath, settings);
+                    if(!result.empty())
+                    {
+                        modelRef->GetMeshesRef().Clear();
+                        modelRef->LoadModel(sourcePath);
+                        auto& modelComp = reg.get<Graphics::ModelComponent>(e);
+                        modelComp.ApplyMaterialOverrides();
+                    }
+                }
+            }
+            ImGui::Separator();
+        }
+
         ImGui::Indent();
         if(ImGui::TreeNodeEx("Meshes", ImGuiTreeNodeFlags_Framed))
         {
@@ -2711,6 +2777,19 @@ end
                     Lumos::ImGuiUtilities::Property("Vertex Count", stats.VertexCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
                     Lumos::ImGuiUtilities::Property("Index Count", stats.IndexCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
                     Lumos::ImGuiUtilities::Property("Optimise Threshold", stats.OptimiseThreshold, 0.0f, 0.0f, 0.0f, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
+
+                    // Bounding box dimensions
+                    {
+                        auto& bb = mesh->GetBoundingBox();
+                        Lumos::Vec3 extents = bb.m_Max - bb.m_Min;
+                        char bbStr[64];
+                        snprintf(bbStr, sizeof(bbStr), "%.2f x %.2f x %.2f", extents.x, extents.y, extents.z);
+                        ImGui::TextUnformatted("Bounds (W x H x D)");
+                        ImGui::NextColumn();
+                        ImGui::TextUnformatted(bbStr);
+                        ImGui::NextColumn();
+                    }
+
                     // Material picker
                     auto& modelComp = reg.get<Lumos::Graphics::ModelComponent>(e);
                     {

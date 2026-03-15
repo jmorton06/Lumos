@@ -2,10 +2,17 @@
 #include "AssetManager.h"
 #include "AssetRegistry.h"
 #include "Core/Application.h"
+#include "Core/OS/FileSystem.h"
 #include "Graphics/RHI/Texture.h"
+#include "Graphics/RHI/Shader.h"
+#include "Graphics/Material.h"
 #include "Utilities/StringPool.h"
+#include "Maths/MathsSerialisation.h"
+#include <cereal/archives/json.hpp>
+#include <cereal/cereal.hpp>
 #include <future>
 #include <inttypes.h>
+#include <sstream>
 
 namespace Lumos
 {
@@ -49,16 +56,16 @@ namespace Lumos
     AssetMetaData& AssetManager::AddAsset(UUID ID, SharedPtr<Asset> data, bool keepUnreferenced, bool isEngineAsset)
     {
         AssetRegistry& registry = *m_AssetRegistry;
-        if(m_AssetRegistry->Contains(ID))
+        AssetMetaData* existing = registry.GetPtr(ID);
+        if(existing)
         {
-            AssetMetaData& metaData = registry[ID];
-            metaData.LastAccessed   = (float)Engine::GetTimeStep().GetElapsedSeconds();
-            metaData.Data           = data;
-            metaData.Expire         = !keepUnreferenced;
-            metaData.Type           = data ? data->GetAssetType() : AssetType::Unkown;
-            metaData.IsDataLoaded   = data ? true : false;
-            metaData.IsEngineAsset  = isEngineAsset || metaData.IsEngineAsset;
-            return metaData;
+            existing->LastAccessed  = (float)Engine::GetTimeStep().GetElapsedSeconds();
+            existing->Data          = data;
+            existing->Expire        = !keepUnreferenced;
+            existing->Type          = data ? data->GetAssetType() : AssetType::Unkown;
+            existing->IsDataLoaded  = data ? true : false;
+            existing->IsEngineAsset = isEngineAsset || existing->IsEngineAsset;
+            return *existing;
         }
 
         AssetMetaData newResource;
@@ -66,14 +73,14 @@ namespace Lumos
         newResource.TimeSinceReload = 0;
         newResource.bEmbeddedAsset  = false;
         newResource.LastAccessed    = (float)Engine::GetTimeStep().GetElapsedSeconds();
-        newResource.Type            = data->GetAssetType();
+        newResource.Type            = data ? data->GetAssetType() : AssetType::Unkown;
         newResource.Expire          = !keepUnreferenced;
         newResource.IsDataLoaded    = data ? true : false;
         newResource.IsEngineAsset   = isEngineAsset;
 
-        registry[ID] = newResource;
+        registry.Insert(ID, newResource);
 
-        return registry[ID];
+        return registry.Get(ID);
     }
 
     AssetMetaData AssetManager::GetAsset(const String8& name)
@@ -216,5 +223,121 @@ namespace Lumos
         SharedPtr<Graphics::Texture2D> texture;
         LoadTexture(filePath, texture, thread, desc);
         return texture;
+    }
+
+    SharedPtr<Graphics::Material> AssetManager::LoadMaterialAsset(const String8& lmatPath)
+    {
+        std::string key((const char*)lmatPath.str, lmatPath.size);
+        auto it = m_MaterialCache.find(key);
+        if(it != m_MaterialCache.end())
+            return it->second;
+
+        ArenaTemp scratch = ScratchBegin(0, 0);
+
+        String8 physicalPath;
+        if(!FileSystem::Get().ResolvePhysicalPath(scratch.arena, lmatPath, &physicalPath))
+        {
+            ScratchEnd(scratch);
+            return nullptr;
+        }
+
+        if(!FileSystem::FileExists(physicalPath))
+        {
+            ScratchEnd(scratch);
+            return nullptr;
+        }
+
+        int64_t fileSize = FileSystem::GetFileSize(physicalPath);
+        if(fileSize <= 0)
+        {
+            ScratchEnd(scratch);
+            return nullptr;
+        }
+
+        Arena* fileArena = ArenaAlloc((u64)fileSize + Kilobytes(1));
+        String8 data = FileSystem::ReadTextFile(fileArena, physicalPath);
+        if(data.size == 0)
+        {
+            ArenaRelease(fileArena);
+            ScratchEnd(scratch);
+            return nullptr;
+        }
+
+        // Parse .lmat JSON
+        std::istringstream iss(std::string((const char*)data.str, data.size));
+
+        static const char* texNames[] = { "Albedo", "Normal", "Metallic", "Roughness", "Ao", "Emissive" };
+
+        std::string texPaths[6];
+        Graphics::MaterialProperties props;
+        std::string shaderName;
+
+        try
+        {
+            cereal::JSONInputArchive ar(iss);
+            for(u32 s = 0; s < 6; s++)
+                ar(cereal::make_nvp(texNames[s], texPaths[s]));
+
+            ar(cereal::make_nvp("albedoColour", props.albedoColour),
+               cereal::make_nvp("roughnessValue", props.roughness),
+               cereal::make_nvp("metallicValue", props.metallic),
+               cereal::make_nvp("emissiveValue", props.emissive),
+               cereal::make_nvp("albedoMapFactor", props.albedoMapFactor),
+               cereal::make_nvp("metallicMapFactor", props.metallicMapFactor),
+               cereal::make_nvp("roughnessMapFactor", props.roughnessMapFactor),
+               cereal::make_nvp("normalMapFactor", props.normalMapFactor),
+               cereal::make_nvp("aoMapFactor", props.occlusionMapFactor),
+               cereal::make_nvp("emissiveMapFactor", props.emissiveMapFactor),
+               cereal::make_nvp("alphaCutOff", props.alphaCutoff),
+               cereal::make_nvp("workflow", props.workflow),
+               cereal::make_nvp("shader", shaderName));
+
+            ar(cereal::make_nvp("Reflectance", props.reflectance));
+        }
+        catch(...)
+        {
+            LERROR("AssetManager: Failed to parse .lmat %.*s", (int)lmatPath.size, lmatPath.str);
+            ArenaRelease(fileArena);
+            ScratchEnd(scratch);
+            return nullptr;
+        }
+
+        ArenaRelease(fileArena);
+
+        auto shaderAsset = GetAssetData(Str8Lit("ForwardPBR"));
+        if(shaderAsset)
+        {
+            auto shaderPtr = shaderAsset.As<Graphics::Shader>();
+            auto material  = CreateSharedPtr<Graphics::Material>(shaderPtr, props);
+
+            Graphics::PBRMataterialTextures textures;
+            for(u32 s = 0; s < 6; s++)
+            {
+                if(texPaths[s].empty())
+                    continue;
+
+                auto tex = LoadTextureAsset(Str8StdS(texPaths[s]), true);
+                if(tex)
+                {
+                    switch(s)
+                    {
+                    case 0: textures.albedo    = tex; break;
+                    case 1: textures.normal    = tex; break;
+                    case 2: textures.metallic  = tex; break;
+                    case 3: textures.roughness = tex; break;
+                    case 4: textures.ao        = tex; break;
+                    case 5: textures.emissive  = tex; break;
+                    }
+                }
+            }
+            material->SetTextures(textures);
+
+            m_MaterialCache[key] = material;
+            ScratchEnd(scratch);
+            return material;
+        }
+
+        ScratchEnd(scratch);
+        return nullptr;
     }
 }

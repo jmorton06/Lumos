@@ -243,7 +243,8 @@ project "LumosEditor"
 			"../Resources/AppIcons/Assets.xcassets",
 			"../Lumos/Assets/Shaders",
 			"../Lumos/Source/Lumos/Platform/iOS/Client/**",
-			ios_project_dir
+			ios_project_dir,
+			"Source/**.mm"
 		}
 
 		xcodebuildsettings
@@ -254,7 +255,7 @@ project "LumosEditor"
 			['TARGETED_DEVICE_FAMILY'] = '1,2',
 			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',
 			['CODE_SIGN_IDENTITY'] = '',
-			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
+			['IPHONEOS_DEPLOYMENT_TARGET'] = '18.0',
 			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/iOS/Editor/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
 		}

@@ -155,7 +155,8 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 			offset = SamplePoisson(index) * uvRadius;
 		}
 
-		float z = texture(shadowMap, vec3(shadowCoords.xy + offset, cascadeIndex)).r - bias;
+		vec2 sampleUV = clamp(shadowCoords.xy + offset, vec2(0.001), vec2(0.999));
+		float z = texture(shadowMap, vec3(sampleUV, cascadeIndex)).r - bias;
 		sum += step(shadowCoords.z, z);
 	}
 
@@ -193,6 +194,17 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 	if(shadowCoord.z > 0.999 || shadowCoord.z < 0.0)
 		return 1.0;
 
+	if(shadowCoord.x < 0.0 || shadowCoord.x > 1.0 || shadowCoord.y < 0.0 || shadowCoord.y > 1.0)
+		return 1.0;
+
+	// Fade shadow near cascade edges to avoid hard borders
+	float edgeFade = 1.0;
+	float edgeMargin = 0.05;
+	edgeFade *= smoothstep(0.0, edgeMargin, shadowCoord.x);
+	edgeFade *= smoothstep(0.0, edgeMargin, 1.0 - shadowCoord.x);
+	edgeFade *= smoothstep(0.0, edgeMargin, shadowCoord.y);
+	edgeFade *= smoothstep(0.0, edgeMargin, 1.0 - shadowCoord.y);
+
 	float shadowAmount = 1.0;
 
 	float uvRadius = 0.002;
@@ -222,13 +234,24 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 		{
 			vec4 shadowCoordNext = u_SceneData.BiasMatrix * u_SceneData.ShadowTransform[cascadeNext] * vec4(wsPos, 1.0);
 			shadowCoordNext = shadowCoordNext * (1.0 / shadowCoordNext.w);
-			float shadowAmount1 = PCFShadowDirectionalLight(uShadowMap, shadowCoordNext, uvRadius, lightDirection, normal, wsPos, cascadeNext);
 
-			shadowAmount =  mix(shadowAmount, shadowAmount1, cascadeFade);
+			float shadowAmount1;
+			if (u_SceneData.FilterShadows == 1)
+			{
+				shadowAmount1 = PCFShadowDirectionalLight(uShadowMap, shadowCoordNext, uvRadius, lightDirection, normal, wsPos, cascadeNext);
+			}
+			else
+			{
+				float biasNext = GetShadowBias(lightDirection, normal, cascadeNext);
+				float zNext = texture(uShadowMap, vec3(shadowCoordNext.xy, cascadeNext)).r;
+				shadowAmount1 = step(shadowCoordNext.z - biasNext, zNext);
+			}
+
+			shadowAmount = mix(shadowAmount, shadowAmount1, cascadeFade);
 		}
 	}
 
-	return 1.0 - ((1.0 - shadowAmount) * ShadowFade);
+	return 1.0 - ((1.0 - shadowAmount) * ShadowFade * edgeFade);
 }
 
 
@@ -256,9 +279,20 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 {
 	vec3 result = vec3(0.0);
 
+#ifdef FORWARD_PLUS
+	ivec2 tileID = ivec2(gl_FragCoord.xy) / u_SceneData.TileSize;
+	uint tileIdx = uint(tileID.y) * uint(u_SceneData.TileCountX) + uint(tileID.x);
+	uint tileOffset = u_LightGrid.tiles[tileIdx].x;
+	uint tileCount  = u_LightGrid.tiles[tileIdx].y;
+
+	for(uint li = 0; li < tileCount; li++)
+	{
+		Light light = u_Lights.lights[u_LightIndices.indices[tileOffset + li]];
+#else
 	for(int i = 0; i < u_SceneData.LightCount; i++)
 	{
 		Light light = u_SceneData.lights[i];
+#endif
 		float value = 0.0;
 
 		if(light.type == 2.0)

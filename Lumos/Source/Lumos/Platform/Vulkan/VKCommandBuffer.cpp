@@ -201,6 +201,13 @@ namespace Lumos
                 if(m_BoundPipeline)
                     m_BoundPipeline->End(this);
 
+                // End active render pass before binding compute pipeline
+                if(pipeline->IsCompute() && m_BoundRenderPass)
+                {
+                    m_BoundRenderPass->EndRenderPass(this);
+                    m_BoundRenderPass = nullptr;
+                }
+
                 pipeline->Bind(this);
                 m_BoundPipeline = pipeline;
             }
@@ -215,6 +222,13 @@ namespace Lumos
 
                 if(m_BoundPipeline)
                     m_BoundPipeline->End(this);
+
+                // End active render pass before binding compute pipeline
+                if(pipeline->IsCompute() && m_BoundRenderPass)
+                {
+                    m_BoundRenderPass->EndRenderPass(this);
+                    m_BoundRenderPass = nullptr;
+                }
 
                 pipeline->Bind(this, layer);
                 m_BoundPipeline = pipeline;
@@ -257,6 +271,37 @@ namespace Lumos
 
                 m_BoundRenderPass->BeginRenderPass(this, clearColour, framebuffer, SubPassContents::INLINE, width, height);
             }
+        }
+
+        void VKCommandBuffer::BufferMemoryBarrier(PipelineStage srcStage, PipelineStage dstStage)
+        {
+            auto toVkStage = [](PipelineStage stage) -> VkPipelineStageFlags
+            {
+                switch(stage)
+                {
+                case PipelineStage::COMPUTE_SHADER:  return VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+                case PipelineStage::FRAGMENT_SHADER: return VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                case PipelineStage::VERTEX_SHADER:   return VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+                case PipelineStage::TRANSFER:        return VK_PIPELINE_STAGE_TRANSFER_BIT;
+                case PipelineStage::TOP_OF_PIPE:     return VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+                case PipelineStage::BOTTOM_OF_PIPE:  return VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+                default: return VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+                }
+            };
+
+            VkMemoryBarrier memoryBarrier = {};
+            memoryBarrier.sType         = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+            memoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+            memoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            vkCmdPipelineBarrier(
+                m_CommandBuffer,
+                toVkStage(srcStage),
+                toVkStage(dstStage),
+                0,
+                1, &memoryBarrier,
+                0, nullptr,
+                0, nullptr);
         }
 
         void VKCommandBuffer::UpdateViewport(uint32_t width, uint32_t height, bool flipViewport)

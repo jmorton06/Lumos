@@ -25,6 +25,7 @@
 #include "Scene/Scene.h"
 #include "Core/String.h"
 #include "Core/Thread.h"
+#include "Core/Algorithms/Sort.h"
 #include <cereal/types/unordered_map.hpp>
 #include <cereal/types/vector.hpp>
 
@@ -348,7 +349,7 @@ namespace Lumos
             }
         }
 
-        std::sort(elems.begin(), elems.end(), [](const auto& a, const auto& b)
+        Algorithms::IntroSort(elems.begin(), elems.end(), [](const auto& a, const auto& b)
                   { return a.second < b.second; });
 
         archive(cereal::make_nvp("Version", AssetRegistrySerialisationVersion));

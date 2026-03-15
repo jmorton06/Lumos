@@ -351,7 +351,7 @@
     "value134": 2097217,
     "value135": {
         "PrimitiveType": 8,
-        "FilePath": "//Assets/Imported/11108861339461690106.lmesh",
+        "FilePath": "//Assets/Meshes/DamagedHelmet/glTF/DamagedHelmet.gltf",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,

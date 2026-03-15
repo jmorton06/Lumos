@@ -15,13 +15,14 @@ namespace Lumos
         bool OptVertexFetch          = true;
         u32 MaxTextureWidth          = 0; // 0 = no resize
         u32 MaxTextureHeight         = 0;
+        bool CopySourceToProject     = true;
+        bool SplitMeshes             = false;
     };
 
     struct ImportMeta
     {
         ImportSettings Settings;
-        u64 SourceModTime = 0;
-        u64 OutputUUID    = 0;
+        u64 OutputUUID = 0;
     };
 
     class AssetImporter
@@ -31,7 +32,7 @@ namespace Lumos
         // Returns the VFS path to the imported .lmesh, or empty string on failure
         static std::string Import(const std::string& sourcePath, const ImportSettings& settings);
 
-        // Check if a source file needs reimport (no .meta, or source newer than .meta)
+        // Check if imported .lmesh is missing or has outdated format version
         static bool NeedsImport(const std::string& sourcePath);
 
         // Load .meta sidecar file
@@ -42,5 +43,12 @@ namespace Lumos
 
         // Get the imported .lmesh path for a source file (may not exist)
         static std::string GetImportedPath(const std::string& sourcePath);
+
+        // Normalize a path for consistent hashing across platforms
+        // Lowercases, normalizes slashes, resolves ../ segments, strips trailing slashes
+        static std::string NormalizeAssetPath(const std::string& path);
+
+        // Scan Imported/ directory and delete orphaned files that don't match any known source
+        static void CleanOrphanedImports();
     };
 }

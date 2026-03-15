@@ -23,10 +23,12 @@ namespace Lumos
         AssetMetaData& operator[](const UUID handle);
         AssetMetaData& Get(const UUID handle);
         const AssetMetaData& Get(const UUID handle) const;
+        AssetMetaData* GetPtr(const UUID handle);
 
         void Update(float elapsedSeconds);
 
         bool Contains(const UUID handle) const;
+        bool Insert(const UUID handle, const AssetMetaData& data);
         void Remove(const UUID handle);
         void Clear();
         void ClearProjectAssets();

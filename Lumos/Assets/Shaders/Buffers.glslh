@@ -1,4 +1,4 @@
-#define MAX_LIGHTS 32
+#define MAX_LIGHTS 256
 #define MAX_SHADOWMAPS 4
 #define MAX_BONES 100
 
@@ -77,8 +77,24 @@ layout(std140, set = 2, binding = 5) uniform UniformSceneData
 	int PCFSamples;
 	int VogelOffset;
 	int FilterShadows;
-	
+	int TileCountX;
+	int TileSize;
+
 } u_SceneData;
+
+#ifdef FORWARD_PLUS
+layout(std430, set = 2, binding = 6) readonly buffer LightBuffer {
+	Light lights[];
+} u_Lights;
+
+layout(std430, set = 2, binding = 7) readonly buffer LightGrid {
+	uvec2 tiles[];
+} u_LightGrid;
+
+layout(std430, set = 2, binding = 8) readonly buffer LightIndices {
+	uint indices[];
+} u_LightIndices;
+#endif
 
 layout (std140, set = 3, binding = 0) uniform BoneTransforms
 {

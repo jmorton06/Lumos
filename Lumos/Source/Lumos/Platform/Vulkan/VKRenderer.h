@@ -56,6 +56,7 @@ namespace Lumos
 
             void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount) override;
             void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const override;
+            void DrawIndexedInstancedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t indexCount, uint32_t instanceCount, uint32_t firstInstance) const override;
             void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const override;
             void DrawSplashScreen(Texture* texture, const float* bgColour = nullptr) override;
             uint32_t GetGPUCount() const override;

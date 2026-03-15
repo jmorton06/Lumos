@@ -171,6 +171,24 @@ namespace Lumos
                 ImGui::Text("Num Shadow Objects %u", Engine::Get().Statistics().NumShadowObjects);
                 ImGui::Text("Bound Pipelines %u", Engine::Get().Statistics().BoundPipelines);
                 ImGui::Text("Bound RenderPasses %u", Engine::Get().Statistics().BoundRenderPasses);
+
+                auto& srStats = SceneRenderer->GetSceneRendererStats();
+                if(srStats.NumInstanceBatches > 0)
+                {
+                    ImGui::Separator();
+                    ImGui::Text("Instance Batches: %u (%u objects)", srStats.NumInstanceBatches, srStats.NumInstancedObjects);
+                    u32 showCount = srStats.NumInstanceBatches < Graphics::SceneRendererStats::MaxTrackedBatches
+                        ? srStats.NumInstanceBatches : Graphics::SceneRendererStats::MaxTrackedBatches;
+                    for(u32 b = 0; b < showCount; b++)
+                    {
+                        auto& bi = srStats.InstanceBatches[b];
+                        ImGui::Text("  %s x%u", bi.meshName ? bi.meshName : "?", bi.instanceCount);
+                    }
+                    if(srStats.NumInstanceBatches > Graphics::SceneRendererStats::MaxTrackedBatches)
+                        ImGui::Text("  ... +%u more", srStats.NumInstanceBatches - Graphics::SceneRendererStats::MaxTrackedBatches);
+                    ImGui::Separator();
+                }
+
                 if(ImGui::TreeNodeEx("Arenas", 0))
                 {
                     uint64_t totalAllocated = 0;

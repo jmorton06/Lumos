@@ -12,6 +12,13 @@
 #include <experimental/filesystem>
 #endif
 
+#ifdef LUMOS_PLATFORM_WINDOWS
+#include <sys/types.h>
+#include <sys/stat.h>
+#else
+#include <sys/stat.h>
+#endif
+
 namespace Lumos
 {
     bool FileSystem::IsRelativePath(const char* path)
@@ -276,15 +283,19 @@ namespace Lumos
 
     uint64_t FileSystem::GetFileModifiedTime(const String8& path)
     {
+#ifdef LUMOS_PLATFORM_WINDOWS
+        struct _stat64 fileStat;
         std::string pathStr((const char*)path.str, path.size);
-        std::error_code ec;
-        auto ftime = std::filesystem::last_write_time(pathStr, ec);
-        if(ec)
+        if(_stat64(pathStr.c_str(), &fileStat) != 0)
             return 0;
-
-        // Convert file_time to duration since epoch
-        auto duration = ftime.time_since_epoch();
-        return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::seconds>(duration).count());
+        return static_cast<uint64_t>(fileStat.st_mtime);
+#else
+        struct stat fileStat;
+        std::string pathStr((const char*)path.str, path.size);
+        if(stat(pathStr.c_str(), &fileStat) != 0)
+            return 0;
+        return static_cast<uint64_t>(fileStat.st_mtime);
+#endif
     }
 
     String8 FileSystem::NormalizePath(Arena* arena, const String8& path)
