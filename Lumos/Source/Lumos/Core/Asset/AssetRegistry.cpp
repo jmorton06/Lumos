@@ -168,7 +168,7 @@ namespace Lumos
     bool AssetRegistry::Insert(UUID handle, const AssetMetaData& data)
     {
         ScopedMutex mutex(m_Mutex);
-        AssetMetaData* ptr;
+        AssetMetaData* ptr = nullptr;
         bool added = HashMapGetOrAddPtr(&m_AssetRegistry, handle, &ptr);
         if(ptr)
         {

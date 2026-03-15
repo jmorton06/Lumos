@@ -2,6 +2,7 @@
 #include "Core/OS/Memory.h"
 #include "Core/Algorithms/Sort.h"
 #include <initializer_list>
+#include <cstddef>
 
 namespace Lumos
 {

@@ -45,7 +45,7 @@ namespace Lumos
         if(totalRigidBodyCount == 0)
             return;
 
-        for(i32 i = 0; i < totalRigidBodyCount; i++)
+        for(uint32_t i = 0; i < totalRigidBodyCount; i++)
         {
             RigidBody3D& current = rootObject[i];
             if(current.GetIsValid() && current.GetCollisionShape())

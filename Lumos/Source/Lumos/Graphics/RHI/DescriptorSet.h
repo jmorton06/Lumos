@@ -31,7 +31,7 @@ namespace Lumos
             virtual void SetUniform(u8 binding, const std::string& uniformName, void* data)                                         = 0;
             virtual void SetUniform(u8 binding, const std::string& uniformName, void* data, uint32_t size)                          = 0;
             virtual void SetUniformBufferData(u8 binding, void* data)                                                               = 0;
-            virtual void SetUniformBufferData(u8 binding, void* data, float size)                                                   = 0;
+            virtual void SetUniformBufferData(u8 binding, void* data, uint32_t size)                                                  = 0;
 
             virtual void TransitionImages(CommandBuffer* commandBuffer = nullptr) { }
             virtual void SetUniformDynamic(const std::string& bufferName, uint32_t size) { }

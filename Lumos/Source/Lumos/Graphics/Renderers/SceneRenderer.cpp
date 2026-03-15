@@ -1586,14 +1586,10 @@ namespace Lumos::Graphics
             Renderer::GetRenderer()->ClearRenderTarget(reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
-        LINFO("[Render] BRDFLUTPass");
         GenerateBRDFLUTPass();
 
         if(sceneRenderSettings.DepthPrePass)
-        {
-            LINFO("[Render] DepthPrePass");
             DepthPrePass();
-        }
 
         // if(m_MainTextureSamples > 1)
         // {
@@ -1603,93 +1599,51 @@ namespace Lumos::Graphics
         m_SSAOValid = false;
         if(sceneRenderSettings.SSAOEnabled && !m_DisablePostProcess && qualitySettings.EnableSSAO)
         {
-            LINFO("[Render] SSAOPass");
             SSAOPass();
 
             if(sceneRenderSettings.SSAOBlur)
-            {
-                LINFO("[Render] SSAOBlurPass");
                 SSAOBlurPass();
-            }
         }
 
         if(sceneRenderSettings.ShadowsEnabled && sceneRenderSettings.Renderer3DEnabled && qualitySettings.EnableShadows)
-        {
-            LINFO("[Render] ShadowPass");
             ShadowPass();
-        }
 
         if(m_ForwardPlusEnabled && sceneRenderSettings.Renderer3DEnabled)
-        {
-            LINFO("[Render] LightCullingPass");
             LightCullingPass();
-        }
 
         if(sceneRenderSettings.Renderer3DEnabled)
-        {
-            LINFO("[Render] ForwardPass");
             ForwardPass();
-        }
 
         if(sceneRenderSettings.SkyboxRenderEnabled)
-        {
-            LINFO("[Render] SkyboxPass");
             SkyboxPass();
-        }
 
         if(sceneRenderSettings.Renderer2DEnabled)
-        {
-            LINFO("[Render] Render2DPass");
             Render2DPass();
-        }
 
         if (sceneRenderSettings.Renderer3DEnabled)
-        {
-            LINFO("[Render] ParticlePass");
             ParticlePass();
-        }
 
         if(m_DebugRenderEnabled && sceneRenderSettings.DebugRenderEnabled)
-        {
-            LINFO("[Render] DebugPass");
             DebugPass();
-        }
 
-        LINFO("[Render] All main passes done");
         m_LastRenderTarget = m_MainTextureSamples > 1 ? m_ResolveTexture : m_MainTexture;
 
         if(sceneRenderSettings.DepthOfFieldEnabled && !m_DisablePostProcess)
-        {
-            LINFO("[Render] DepthOfFieldPass");
             DepthOfFieldPass();
-        }
 
         if(sceneRenderSettings.BloomEnabled && !m_DisablePostProcess && qualitySettings.EnableBloom)
-        {
-            LINFO("[Render] BloomPass");
             BloomPass();
-        }
 
         if(sceneRenderSettings.DebandingEnabled && !m_DisablePostProcess)
-        {
-            LINFO("[Render] DebandingPass");
             DebandingPass();
-        }
 
-        LINFO("[Render] ToneMappingPass");
         ToneMappingPass();
 
         if(sceneRenderSettings.SharpenEnabled && !m_DisablePostProcess)
-        {
-            LINFO("[Render] SharpenPass");
             SharpenPass();
-        }
 
         if(sceneRenderSettings.FXAAEnabled && !m_DisablePostProcess && qualitySettings.EnableFXAA)
-        {
-            LINFO("[Render] FXAAPass");
             FXAAPass();
-        }
 
         if(sceneRenderSettings.ChromaticAberationEnabled && !m_DisablePostProcess)
             ChromaticAberationPass();
@@ -2355,8 +2309,8 @@ namespace Lumos::Graphics
             uint32_t tileCountX;
             uint32_t tileCountY;
             uint32_t lightCount;
-            float near;
-            float far;
+            float nearPlane;
+            float farPlane;
         };
 
         LightCullingPushConstants pushData;
@@ -2366,8 +2320,8 @@ namespace Lumos::Graphics
         pushData.tileCountX    = m_TileCountX;
         pushData.tileCountY    = m_TileCountY;
         pushData.lightCount    = m_NumLights;
-        pushData.near          = m_Camera->GetNear();
-        pushData.far           = m_Camera->GetFar();
+        pushData.nearPlane     = m_Camera->GetNear();
+        pushData.farPlane      = m_Camera->GetFar();
 
         auto& pushConstants = m_LightCullingShader->GetPushConstants()[0];
         pushConstants.SetData(&pushData);

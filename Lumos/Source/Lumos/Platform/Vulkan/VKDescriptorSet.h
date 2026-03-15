@@ -37,7 +37,7 @@ namespace Lumos
             void SetUniform(u8 binding, const std::string& uniformName, void* data) override;
             void SetUniform(u8 binding, const std::string& uniformName, void* data, uint32_t size) override;
             void SetUniformBufferData(u8 binding, void* data) override;
-            void SetUniformBufferData(u8 binding, void* data, float size) override;
+            void SetUniformBufferData(u8 binding, void* data, uint32_t size) override;
 
             void TransitionImages(CommandBuffer* commandBuffer) override;
 
