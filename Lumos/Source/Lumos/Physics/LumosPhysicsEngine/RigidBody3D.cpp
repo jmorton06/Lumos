@@ -8,6 +8,7 @@
 #include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/TerrainCollisionShape.h"
 #include "Maths/MathsUtilities.h"
 
 namespace Lumos
@@ -15,7 +16,7 @@ namespace Lumos
 
     RigidBody3D::RigidBody3D(const RigidBody3DProperties& properties)
         : m_WSTransformInvalidated(true)
-        , m_RestVelocityThresholdSquared(0.004f)
+        , m_RestVelocityThresholdSquared(properties.RestVelocityThreshold)
         , m_AverageSummedVelocity(0.0f)
         , m_WSAabbInvalidated(true)
         , m_Position(properties.Position)
@@ -25,7 +26,8 @@ namespace Lumos
         , m_AngularVelocity(properties.AngularVelocity)
         , m_Torque(properties.Torque)
         , m_InvInertia(Mat3(1.0f))
-        , m_AngularFactor(1.0f)
+        , m_LinearFactor(Vec3(1.0f))
+        , m_AngularFactor(Vec3(1.0f))
         , m_WSTransform(Mat4(1.0f))
     {
         ASSERT(properties.Mass > 0.0f, "Mass <= 0");
@@ -52,6 +54,9 @@ namespace Lumos
 
         m_Elasticity     = properties.Elasticity;
         m_Friction       = properties.Friction;
+        m_Material       = properties.Material;
+        m_Material.Friction    = m_Friction;
+        m_Material.Restitution = m_Elasticity;
         m_Trigger        = properties.isTrigger;
         m_CollisionLayer = properties.CollisionLayer;
         m_CollisionMask  = properties.CollisionMask;
@@ -192,6 +197,9 @@ namespace Lumos
             break;
         case CollisionShapeType::CollisionHull:
             SetCollisionShape(CreateSharedPtr<HullCollisionShape>());
+            break;
+        case CollisionShapeType::CollisionTerrain:
+            SetCollisionShape(CreateSharedPtr<TerrainCollisionShape>());
             break;
         default:
             LERROR("Unsupported Collision shape");

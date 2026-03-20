@@ -1,6 +1,8 @@
 #pragma once
 #include "Core/OS/Memory.h"
+#include "Core/Algorithms/Sort.h"
 #include <initializer_list>
+#include <cstddef>
 
 namespace Lumos
 {
@@ -65,9 +67,12 @@ namespace Lumos
             }
             bool operator!=(const Iterator& other) const { return ptr != other.ptr; }
             bool operator==(const Iterator& other) const { return ptr == other.ptr; }
+            bool operator<(const Iterator& other) const { return ptr < other.ptr; }
 
             T& operator*() const { return *ptr; }
             Iterator operator+(int offset) const { return Iterator(ptr + offset); }
+            Iterator operator-(int offset) const { return Iterator(ptr - offset); }
+            ptrdiff_t operator-(const Iterator& other) const { return ptr - other.ptr; }
 
         private:
             T* ptr;
@@ -87,8 +92,11 @@ namespace Lumos
             }
             bool operator==(const ConstIterator& other) const { return ptr == other.ptr; }
             bool operator!=(const ConstIterator& other) const { return ptr != other.ptr; }
+            bool operator<(const ConstIterator& other) const { return ptr < other.ptr; }
             const T& operator*() const { return *ptr; }
             ConstIterator operator+(int offset) const { return ConstIterator(ptr + offset); }
+            ConstIterator operator-(int offset) const { return ConstIterator(ptr - offset); }
+            ptrdiff_t operator-(const ConstIterator& other) const { return ptr - other.ptr; }
 
         private:
             const T* ptr;
@@ -108,6 +116,9 @@ namespace Lumos
 
         template <typename CompareFunc = EqualTo<typename RemovePointer<Iterator>::type>>
         void Unique(CompareFunc compare = CompareFunc());
+
+        template <typename CompareFunc = Algorithms::SmallerThan<T>>
+        void Sort(CompareFunc compare = CompareFunc());
 
         T*& Data() { return m_Data; }
         const T* Data() const { return m_Data; }
@@ -416,10 +427,9 @@ namespace Lumos
         if(m_Size < 2)
             return;
 
-        size_t writeIndex = 1; // Start writing from the second element
+        size_t writeIndex = 1;
         for(size_t readIndex = 1; readIndex < m_Size; ++readIndex)
         {
-            // Compare with the last written element
             if(!compare(m_Data[readIndex], m_Data[writeIndex - 1]))
             {
                 m_Data[writeIndex] = Move(m_Data[readIndex]);
@@ -427,6 +437,15 @@ namespace Lumos
             }
         }
 
-        Resize(writeIndex); // Resize the array to the new size
+        Resize(writeIndex);
+    }
+
+    template <class T>
+    template <typename CompareFunc>
+    void TDArray<T>::Sort(CompareFunc compare)
+    {
+        if(m_Size < 2)
+            return;
+        Algorithms::IntroSort(m_Data, m_Data + m_Size, compare);
     }
 }

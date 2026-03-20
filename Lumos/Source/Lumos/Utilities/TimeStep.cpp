@@ -1,8 +1,8 @@
 #include "Precompiled.h"
 #include "TimeStep.h"
 #include "Timer.h"
+#include "Core/Algorithms/Sort.h"
 #include <thread>
-#include <algorithm>
 
 namespace Lumos
 {
@@ -30,7 +30,7 @@ namespace Lumos
         for(int i = 0; i < FRAME_HISTORY_SIZE; i++)
             sorted[i] = m_FrameHistory[i];
 
-        std::sort(sorted, sorted + FRAME_HISTORY_SIZE);
+        Algorithms::IntroSort(sorted, sorted + FRAME_HISTORY_SIZE);
 
         const int skipCount = 2;
         double sum          = 0.0;

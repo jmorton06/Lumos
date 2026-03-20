@@ -3,6 +3,7 @@
 #include "Core/Application.h"
 #include "Core/UUID.h"
 #include "Core/DataStructures/Map.h"
+#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 #include <sol/forward.hpp>
 #include <unordered_map>
 
@@ -38,8 +39,8 @@ namespace Lumos
         void OnCollision2DBegin();
         void OnCollision2DEnd();
 
-        void OnCollision3DBegin();
-        void OnCollision3DEnd();
+        void OnCollision3DBegin(const CollisionInfo3D& info);
+        void OnCollision3DEnd(const CollisionInfo3D& info);
 
         const sol::environment& GetSolEnvironment() const
         {
@@ -65,10 +66,20 @@ namespace Lumos
             return m_Env.get() != nullptr;
         }
 
+        bool IsErrored() const { return m_Errored; }
+        void ClearError() { m_Errored = false; }
+
+        // Check if source file changed and reload if needed
+        void CheckForReload();
+
     private:
+        void OnScriptError(const char* funcName, const char* errorMsg);
+
         Scene* m_Scene = nullptr;
         std::string m_FileName;
         std::unordered_map<int, std::string> m_Errors;
+        bool m_Errored = false;
+        uint64_t m_LastModifiedTime = 0;
 
         SharedPtr<sol::environment> m_Env;
         SharedPtr<sol::protected_function> m_OnInitFunc;

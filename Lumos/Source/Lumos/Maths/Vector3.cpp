@@ -64,7 +64,7 @@ namespace Lumos
 
         bool Vector3::IsZero() const
         {
-            return Maths::IsZero(x) || Maths::IsZero(y) || Maths::IsZero(z);
+            return Maths::IsZero(x) && Maths::IsZero(y) && Maths::IsZero(z);
         }
     }
 }

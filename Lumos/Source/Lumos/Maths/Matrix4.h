@@ -102,7 +102,7 @@ namespace Lumos
             void SetCol(unsigned int column, const Vector4& val);
             Vector3 GetPositionVector() const;
 
-#if defined(LUMOS_SSE) && defined(LUMOS_SSE)
+#if defined(LUMOS_SSE)
             Vector3 GetTranslationMemAligned() const;
 #endif
             void SetPositionVector(const Vector3& v);

@@ -10,6 +10,7 @@
 #endif
 
 #include <iomanip>
+#include <sstream>
 
 namespace Lumos
 {
@@ -458,6 +459,32 @@ namespace Lumos
                 string.size = slash_pos + 1;
             }
             return string;
+        }
+
+        String8 Str8PathExtension(String8 path)
+        {
+            uint64_t period_pos = FindSubstr8(path, Str8Lit("."), 0, MatchFlags::FindLast);
+            uint64_t slash_pos  = FindSubstr8(path, Str8Lit("/"), 0, MatchFlags(MatchFlags::SlashInsensitive | MatchFlags::FindLast));
+
+            // Only return extension if dot comes after the last slash (or there's no slash)
+            if(period_pos < path.size && (slash_pos >= path.size || period_pos > slash_pos))
+            {
+                path.str += period_pos + 1;
+                path.size -= period_pos + 1;
+                return path;
+            }
+            return Str8Lit("");
+        }
+
+        String8 Str8PathDirectory(String8 path)
+        {
+            uint64_t slash_pos = FindSubstr8(path, Str8Lit("/"), 0, MatchFlags(MatchFlags::SlashInsensitive | MatchFlags::FindLast));
+            if(slash_pos < path.size)
+            {
+                path.size = slash_pos + 1;
+                return path;
+            }
+            return Str8Lit("");
         }
 
         PathType PathTypeFromStr8(String8 path)

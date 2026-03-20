@@ -65,8 +65,10 @@ namespace Lumos
         void UpdateCursorImGui() override { };
 
         void OnKeyEvent(Lumos::InputCode::Key key, bool down);
+        void OnKeyTypedEvent(char character);
         void OnTouchEvent(uint32_t xPos, uint32_t yPos, uint32_t count, bool down);
         void OnMouseMovedEvent(uint32_t xPos, uint32_t yPos);
+        void OnScrollEvent(float xOffset, float yOffset);
         void OnResizeEvent(uint32_t width, uint32_t height);
 
         void OnGesturePinchEvent(float scale, float velocity, uint32_t x, uint32_t y, GestureState state);

@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Project Version": 8,
+        "Project Version": 12,
         "RenderAPI": 1,
         "Fullscreen": true,
         "VSync": true,
@@ -20,9 +20,23 @@
             "//Assets/Scenes/MeshCollisionTest",
             "//Assets/Scenes/CollisionPyramidTest"
         ],
-        "SceneIndex": 0,
+        "SceneIndex": 1,
         "Borderless": false,
-        "EngineAssetPath": "/Users/jmorton/Dev/Lumos/Lumos/Assets/",
-        "GPUIndex": -1
+        "EngineAssetPath": "",
+        "GPUIndex": -1,
+        "Width": 1200,
+        "Height": 800,
+        "AppScript": "",
+        "BundleIdentifier": "",
+        "Version": "1.0.0",
+        "BuildNumber": "1",
+        "IconPath": "",
+        "SplashPath": "",
+        "SplashBGR": 0.15625,
+        "SplashBGG": 0.1640625,
+        "SplashBGB": 0.2109375,
+        "SplashBGA": 1.0,
+        "StartScene": "2D",
+        "AutoImportMeshes": true
     }
 }

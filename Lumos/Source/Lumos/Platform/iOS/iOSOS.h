@@ -55,8 +55,11 @@ namespace Lumos
         bool OnFrame();
         void OnQuit();
         void OnKeyPressed(char keycode, bool down, bool cmd = false, bool shift = false, bool alt = false, bool ctrl = false);
+        void OnKeyTyped(char character);
         void OnScreenPressed(uint32_t x, uint32_t y, uint32_t count, bool down);
         void OnMouseMovedEvent(uint32_t xPos, uint32_t yPos);
+        void OnMouseButtonEvent(int button, bool down);
+        void OnScrollWheelEvent(float xOffset, float yOffset);
         void OnScreenResize(uint32_t width, uint32_t height);
 
         void OnGesturePinch(float scale, float velocity, uint32_t x, uint32_t y, GestureState state);
@@ -82,11 +85,21 @@ namespace Lumos
             return m_Y;
         }
 
+        void SetSafeAreaInsets(float t, float b, float l, float r)
+        {
+            m_SafeAreaInsets = { t, b, l, r };
+        }
+        SafeAreaInsets GetSafeAreaInsets() const override { return m_SafeAreaInsets; }
+
         static iOSOS* Get();
         static CAMetalLayer* GetStaticLayer();
+
+        // Copy a folder from the app bundle to a destination path using NSFileManager
+        static bool CopyBundleFolder(const std::string& bundleSrc, const std::string& dest);
 
     private:
         CAMetalLayer* m_LayerPtr;
         float m_X, m_Y;
+        SafeAreaInsets m_SafeAreaInsets;
     };
 }

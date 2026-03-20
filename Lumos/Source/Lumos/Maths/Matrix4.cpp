@@ -129,19 +129,19 @@ namespace Lumos
         Matrix4 Matrix4::GetRotation() const
         {
             Vector3 invScale(
-                1.0f / sqrtf(values[0] * values[0] + values[4] * values[4] + values[8] * values[8]),
-                1.0f / sqrtf(values[1] * values[1] + values[5] * values[5] + values[9] * values[9]),
-                1.0f / sqrtf(values[2] * values[2] + values[6] * values[6] + values[10] * values[10]));
+                1.0f / sqrtf(values[0] * values[0] + values[1] * values[1] + values[2] * values[2]),
+                1.0f / sqrtf(values[4] * values[4] + values[5] * values[5] + values[6] * values[6]),
+                1.0f / sqrtf(values[8] * values[8] + values[9] * values[9] + values[10] * values[10]));
 
             Matrix4 temp;
             temp.values[0]  = values[0] * invScale.x;
-            temp.values[1]  = values[1] * invScale.y;
-            temp.values[2]  = values[2] * invScale.z;
-            temp.values[4]  = values[4] * invScale.x;
+            temp.values[1]  = values[1] * invScale.x;
+            temp.values[2]  = values[2] * invScale.x;
+            temp.values[4]  = values[4] * invScale.y;
             temp.values[5]  = values[5] * invScale.y;
-            temp.values[6]  = values[6] * invScale.z;
-            temp.values[8]  = values[8] * invScale.x;
-            temp.values[9]  = values[9] * invScale.y;
+            temp.values[6]  = values[6] * invScale.y;
+            temp.values[8]  = values[8] * invScale.z;
+            temp.values[9]  = values[9] * invScale.z;
             temp.values[10] = values[10] * invScale.z;
             return temp;
         }

@@ -713,33 +713,46 @@ namespace Lumos
         return new Mesh(indices, data);
     }
 
+    static const char* PrimitiveNames[] = {
+        "Plane", "Quad", "Cube", "Pyramid", "Sphere", "Capsule", "Cylinder", "Terrain", "File", "None"
+    };
+
     Graphics::Mesh* Graphics::CreatePrimative(PrimitiveType type)
     {
+        Mesh* mesh = nullptr;
         switch(type)
         {
         case Graphics::PrimitiveType::Cube:
-            return Graphics::CreateCube();
+            mesh = Graphics::CreateCube(); break;
         case Graphics::PrimitiveType::Plane:
-            return Graphics::CreatePlane(1.0f, 1.0f, Vec3(0.0f, 1.0f, 0.0f));
+            mesh = Graphics::CreatePlane(1.0f, 1.0f, Vec3(0.0f, 1.0f, 0.0f)); break;
         case Graphics::PrimitiveType::Quad:
-            return Graphics::CreateQuad();
+            mesh = Graphics::CreateQuad(); break;
         case Graphics::PrimitiveType::Sphere:
-            return Graphics::CreateSphere();
+            mesh = Graphics::CreateSphere(); break;
         case Graphics::PrimitiveType::Pyramid:
-            return Graphics::CreatePyramid();
+            mesh = Graphics::CreatePyramid(); break;
         case Graphics::PrimitiveType::Capsule:
-            return Graphics::CreateCapsule();
+            mesh = Graphics::CreateCapsule(); break;
         case Graphics::PrimitiveType::Cylinder:
-            return Graphics::CreateCylinder();
+            mesh = Graphics::CreateCylinder(); break;
         case Graphics::PrimitiveType::Terrain:
-            return Graphics::CreateTerrain();
+            mesh = Graphics::CreateTerrain(); break;
         case Graphics::PrimitiveType::File:
             LWARN("Trying to create primitive of type File");
             return nullptr;
+        default:
+            LERROR("Primitive not supported");
+            return nullptr;
         }
 
-        LERROR("Primitive not supported");
-        return nullptr;
+        if(mesh)
+        {
+            int idx = (int)type;
+            if(idx >= 0 && idx < (int)(sizeof(PrimitiveNames) / sizeof(PrimitiveNames[0])))
+                mesh->SetName(PrimitiveNames[idx]);
+        }
+        return mesh;
     };
 
     Graphics::Mesh* Graphics::CreateTerrain()

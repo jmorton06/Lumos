@@ -224,8 +224,8 @@ namespace Lumos
         template <typename Archive>
         void load(Archive& archive)
         {
-            // m_RigidBody = CreateSharedPtr<RigidBody3D>();
             archive(*m_RigidBody);
+            m_OwnRigidBody = true;
         }
 
     private:

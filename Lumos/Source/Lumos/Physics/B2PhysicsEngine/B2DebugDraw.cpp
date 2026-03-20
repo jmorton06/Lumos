@@ -127,13 +127,13 @@ namespace Lumos
         const float k_axisScale = 0.4f;
         Vec4 red(1.0f, 0.0f, 0.0f, 1.0f);
         Vec4 green(0.0f, 1.0f, 0.0f, 1.0f);
-        b2Vec2 p1 = xf.p, p2;
+        b2Vec2 p1 = xf.p;
 
-        // p2 = p1 + k_axisScale * xf.q.GetXAxis();
-        DebugRenderer::DrawHairLine({ p1.x, p1.y, 0.0f }, { p2.x, p2.y, 0.0f }, false, { red.x, red.y, red.z, red.w });
+        b2Vec2 p2x = { p1.x + k_axisScale * xf.q.c, p1.y + k_axisScale * xf.q.s };
+        DebugRenderer::DrawHairLine({ p1.x, p1.y, 0.0f }, { p2x.x, p2x.y, 0.0f }, false, { red.x, red.y, red.z, red.w });
 
-        // p2 = p1 + k_axisScale * xf.q.GetYAxis();
-        DebugRenderer::DrawHairLine({ p1.x, p1.y, 0.0f }, { p2.x, p2.y, 0.0f }, false, { green.x, green.y, green.z, green.w });
+        b2Vec2 p2y = { p1.x + k_axisScale * (-xf.q.s), p1.y + k_axisScale * xf.q.c };
+        DebugRenderer::DrawHairLine({ p1.x, p1.y, 0.0f }, { p2y.x, p2y.y, 0.0f }, false, { green.x, green.y, green.z, green.w });
     }
 
     //

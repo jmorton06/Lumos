@@ -99,7 +99,7 @@ namespace Lumos
     HashMapClearRaw((HashMapRaw*)(MAP), HashMapElemSize(MAP))
 
 #define HashMapDeinit(MAP) \
-    HashMapDeinitRaw((HashMapRaw*)(MAP), HashMapElemSize(MAP))
+    HashMapDeinitRaw((HashMapRaw*)(MAP))
 
 #define ForHashMapEach(K, V, MAP, IT)                    \
     struct Concat(_dummy_, __LINE__)                     \

@@ -9,6 +9,7 @@
 #include "Graphics/Sprite.h"
 #include "Graphics/AnimatedSprite.h"
 #include "Graphics/ParticleManager.h"
+#include "Graphics/Camera/Camera.h"
 #include "Core/Asset/AssetManager.h"
 #include "Utilities/StringUtilities.h"
 #include "Scene/Component/ModelComponent.h"
@@ -24,11 +25,37 @@
 #include "Scene/Scene.h"
 #include "Core/String.h"
 #include "Core/Thread.h"
+#include "Core/Algorithms/Sort.h"
 #include <cereal/types/unordered_map.hpp>
 #include <cereal/types/vector.hpp>
 
 namespace Lumos
 {
+    namespace TextureCache
+    {
+        // Texture dedup cache for scene deserialization — avoids reloading the same texture file multiple times
+        inline std::unordered_map<std::string, SharedPtr<Graphics::Texture2D>>& GetCache()
+        {
+            static std::unordered_map<std::string, SharedPtr<Graphics::Texture2D>> s_Cache;
+            return s_Cache;
+        }
+
+        inline SharedPtr<Graphics::Texture2D> LoadCached(const std::string& name, const std::string& path)
+        {
+            auto& cache = GetCache();
+            auto it     = cache.find(path);
+            if(it != cache.end())
+                return it->second;
+            auto tex    = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
+            cache[path] = tex;
+            return tex;
+        }
+
+        inline void Clear()
+        {
+            GetCache().clear();
+        }
+    }
 
     template <class Archive>
     std::string save_minimal(Archive& ar, String8 const& str)
@@ -169,34 +196,54 @@ namespace Lumos
     {
         auto shape = std::unique_ptr<CollisionShape>(rigidBody.m_CollisionShape.get());
 
-        const int Version = 3;
+        const int Version = 4;
 
         archive(cereal::make_nvp("Version", Version));
         archive(cereal::make_nvp("Position", rigidBody.m_Position), cereal::make_nvp("Orientation", rigidBody.m_Orientation), cereal::make_nvp("LinearVelocity", rigidBody.m_LinearVelocity), cereal::make_nvp("Force", rigidBody.m_Force), cereal::make_nvp("Mass", 1.0f / rigidBody.m_InvMass), cereal::make_nvp("AngularVelocity", rigidBody.m_AngularVelocity), cereal::make_nvp("Torque", rigidBody.m_Torque), cereal::make_nvp("Static", rigidBody.m_Static), cereal::make_nvp("Friction", rigidBody.m_Friction), cereal::make_nvp("Elasticity", rigidBody.m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", rigidBody.m_Trigger), cereal::make_nvp("AngularFactor", rigidBody.m_AngularFactor));
         archive(cereal::make_nvp("UUID", (uint64_t)rigidBody.m_UUID));
         archive(cereal::make_nvp("CollisionLayer", rigidBody.m_CollisionLayer), cereal::make_nvp("CollisionMask", rigidBody.m_CollisionMask));
+        archive(cereal::make_nvp("LinearFactor", rigidBody.m_LinearFactor), cereal::make_nvp("Material", rigidBody.m_Material));
         shape.release();
     }
 
     template <typename Archive>
     void load(Archive& archive, RigidBody3D& rigidBody)
     {
-        auto shape = std::unique_ptr<CollisionShape>(rigidBody.m_CollisionShape.get());
+        // Release any existing shape before deserializing
+        rigidBody.m_CollisionShape = nullptr;
+        auto shape = std::unique_ptr<CollisionShape>();
 
         int Version;
         archive(cereal::make_nvp("Version", Version));
-        archive(cereal::make_nvp("Position", rigidBody.m_Position), cereal::make_nvp("Orientation", rigidBody.m_Orientation), cereal::make_nvp("LinearVelocity", rigidBody.m_LinearVelocity), cereal::make_nvp("Force", rigidBody.m_Force), cereal::make_nvp("Mass", 1.0f / rigidBody.m_InvMass), cereal::make_nvp("AngularVelocity", rigidBody.m_AngularVelocity), cereal::make_nvp("Torque", rigidBody.m_Torque), cereal::make_nvp("Static", rigidBody.m_Static), cereal::make_nvp("Friction", rigidBody.m_Friction), cereal::make_nvp("Elasticity", rigidBody.m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", rigidBody.m_Trigger), cereal::make_nvp("AngularFactor", rigidBody.m_AngularFactor));
 
-        rigidBody.m_CollisionShape = nullptr;
-        rigidBody.m_CollisionShape = SharedPtr<CollisionShape>(shape.get());
+        if(Version <= 3)
+        {
+            // V1-V3: AngularFactor was a float
+            float angularFactorScalar = 1.0f;
+            archive(cereal::make_nvp("Position", rigidBody.m_Position), cereal::make_nvp("Orientation", rigidBody.m_Orientation), cereal::make_nvp("LinearVelocity", rigidBody.m_LinearVelocity), cereal::make_nvp("Force", rigidBody.m_Force), cereal::make_nvp("Mass", 1.0f / rigidBody.m_InvMass), cereal::make_nvp("AngularVelocity", rigidBody.m_AngularVelocity), cereal::make_nvp("Torque", rigidBody.m_Torque), cereal::make_nvp("Static", rigidBody.m_Static), cereal::make_nvp("Friction", rigidBody.m_Friction), cereal::make_nvp("Elasticity", rigidBody.m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", rigidBody.m_Trigger), cereal::make_nvp("AngularFactor", angularFactorScalar));
+            rigidBody.m_AngularFactor = Vec3(angularFactorScalar);
+        }
+        else
+        {
+            // V4+: AngularFactor is Vec3
+            archive(cereal::make_nvp("Position", rigidBody.m_Position), cereal::make_nvp("Orientation", rigidBody.m_Orientation), cereal::make_nvp("LinearVelocity", rigidBody.m_LinearVelocity), cereal::make_nvp("Force", rigidBody.m_Force), cereal::make_nvp("Mass", 1.0f / rigidBody.m_InvMass), cereal::make_nvp("AngularVelocity", rigidBody.m_AngularVelocity), cereal::make_nvp("Torque", rigidBody.m_Torque), cereal::make_nvp("Static", rigidBody.m_Static), cereal::make_nvp("Friction", rigidBody.m_Friction), cereal::make_nvp("Elasticity", rigidBody.m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", rigidBody.m_Trigger), cereal::make_nvp("AngularFactor", rigidBody.m_AngularFactor));
+        }
+
+        rigidBody.m_CollisionShape = SharedPtr<CollisionShape>(shape.release());
         rigidBody.CollisionShapeUpdated();
-        shape.release();
 
         if(Version > 1)
             archive(cereal::make_nvp("UUID", (uint64_t)rigidBody.m_UUID));
-        
+
         if(Version > 2)
             archive(cereal::make_nvp("CollisionLayer", rigidBody.m_CollisionLayer), cereal::make_nvp("CollisionMask", rigidBody.m_CollisionMask));
+
+        if(Version > 3)
+        {
+            archive(cereal::make_nvp("LinearFactor", rigidBody.m_LinearFactor), cereal::make_nvp("Material", rigidBody.m_Material));
+            rigidBody.m_Friction = rigidBody.m_Material.Friction;
+            rigidBody.m_Elasticity = rigidBody.m_Material.Restitution;
+        }
     }
 
     template <typename Archive>
@@ -271,7 +318,7 @@ namespace Lumos
         archive(prefabComponent.Path);
     }
 
-    static const int AssetRegistrySerialisationVersion = 2;
+    static const int AssetRegistrySerialisationVersion = 3;
     template <typename Archive>
     void save(Archive& archive, const AssetRegistry& registry)
     {
@@ -292,13 +339,17 @@ namespace Lumos
 
             std::string nameStr = ToStdString(name);
 
+            // Skip cache entries and engine assets (shaders, default textures)
             if(!StringUtilities::StringContains(nameStr, "Cache/"))
             {
+                AssetMetaData* meta = (AssetMetaData*)HashMapFindPtr(&registry.m_AssetRegistry, uuid);
+                if(meta && meta->IsEngineAsset)
+                    continue;
                 elems.emplace_back(nameStr, uuid);
             }
         }
 
-        std::sort(elems.begin(), elems.end(), [](const auto& a, const auto& b)
+        Algorithms::IntroSort(elems.begin(), elems.end(), [](const auto& a, const auto& b)
                   { return a.second < b.second; });
 
         archive(cereal::make_nvp("Version", AssetRegistrySerialisationVersion));
@@ -307,16 +358,26 @@ namespace Lumos
         for(auto& entry : elems)
         {
             uint16_t assetType = 0;
-            AssetMetaData meta;
-            if(HashMapFind(&registry.m_AssetRegistry, entry.second, &meta))
+            std::string sourcePath;
+            std::string importedPath;
+            uint64_t sourceModTime = 0;
+
+            AssetMetaData* meta = (AssetMetaData*)HashMapFindPtr(&registry.m_AssetRegistry, entry.second);
+            if(meta)
             {
-                assetType = (uint16_t)meta.Type;
+                assetType    = (uint16_t)meta->Type;
+                sourcePath   = meta->SourcePath;
+                importedPath = meta->ImportedPath;
+                sourceModTime = meta->SourceModTime;
             }
 
             archive(
                 cereal::make_nvp("Name", entry.first),
                 cereal::make_nvp("UUID", (uint64_t)entry.second),
-                cereal::make_nvp("AssetType", assetType));
+                cereal::make_nvp("AssetType", assetType),
+                cereal::make_nvp("SourcePath", sourcePath),
+                cereal::make_nvp("ImportedPath", importedPath),
+                cereal::make_nvp("SourceModTime", sourceModTime));
         }
     }
 
@@ -333,13 +394,30 @@ namespace Lumos
             String8 key;
             uint64_t value;
             uint16_t type = 0;
+            std::string sourcePath;
+            std::string importedPath;
+            uint64_t sourceModTime = 0;
 
             if(version <= 1)
                 archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value));
-            else
+            else if(version == 2)
                 archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value), cereal::make_nvp("AssetType", type));
+            else
+                archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value), cereal::make_nvp("AssetType", type),
+                        cereal::make_nvp("SourcePath", sourcePath), cereal::make_nvp("ImportedPath", importedPath),
+                        cereal::make_nvp("SourceModTime", sourceModTime));
 
             UUID uuid = (UUID)value;
+
+            // Don't overwrite engine assets with project registry entries
+            UUID existingID;
+            if(registry.GetID(key, existingID))
+            {
+                AssetMetaData* existing = (AssetMetaData*)HashMapFindPtr(&registry.m_AssetRegistry, existingID);
+                if(existing && existing->IsEngineAsset)
+                    continue;
+            }
+
             registry.AddName(key, uuid);
 
             if(type)
@@ -359,7 +437,16 @@ namespace Lumos
                     AssetMetaData metaData;
                     metaData.IsDataLoaded = false;
                     metaData.Type         = (AssetType)type;
+                    metaData.SourcePath   = sourcePath;
+                    metaData.ImportedPath = importedPath;
+                    metaData.SourceModTime = sourceModTime;
                     HashMapInsert(&registry.m_AssetRegistry, uuid, metaData);
+                }
+                else
+                {
+                    existingMeta->SourcePath   = sourcePath;
+                    existingMeta->ImportedPath = importedPath;
+                    existingMeta->SourceModTime = sourceModTime;
                 }
             }
         }
@@ -471,6 +558,28 @@ namespace Lumos
         luaComponent.Init();
 
         ScratchEnd(temp);
+    }
+
+    template <typename Archive>
+    void save(Archive& archive, const Camera& camera)
+    {
+        archive(cereal::make_nvp("Scale", camera.m_Scale), cereal::make_nvp("Aspect", camera.m_AspectRatio), cereal::make_nvp("FOV", camera.m_Fov), cereal::make_nvp("Near", camera.m_Near), cereal::make_nvp("Far", camera.m_Far));
+
+        archive(cereal::make_nvp("Aperture", camera.m_Aperture), cereal::make_nvp("ShutterSpeed", camera.m_ShutterSpeed), cereal::make_nvp("Sensitivity", camera.m_Sensitivity));
+    }
+
+    template <typename Archive>
+    void load(Archive& archive, Camera& camera)
+    {
+        archive(cereal::make_nvp("Scale", camera.m_Scale), cereal::make_nvp("Aspect", camera.m_AspectRatio), cereal::make_nvp("FOV", camera.m_Fov), cereal::make_nvp("Near", camera.m_Near), cereal::make_nvp("Far", camera.m_Far));
+
+        if(Serialisation::CurrentSceneVersion > 11)
+        {
+            archive(cereal::make_nvp("Aperture", camera.m_Aperture), cereal::make_nvp("ShutterSpeed", camera.m_ShutterSpeed), cereal::make_nvp("Sensitivity", camera.m_Sensitivity));
+        }
+
+        camera.m_FrustumDirty    = true;
+        camera.m_ProjectionDirty = true;
     }
 
     namespace Graphics
@@ -589,18 +698,21 @@ namespace Lumos
             // TODO: Support Custom Shaders;
             material.m_Shader = nullptr;
 
-            if(!albedoFilePath.empty())
-                material.m_PBRMaterialTextures.albedo = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("albedo", albedoFilePath));
-            if(!normalFilePath.empty())
-                material.m_PBRMaterialTextures.normal = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("roughness", normalFilePath));
-            if(!metallicFilePath.empty())
-                material.m_PBRMaterialTextures.metallic = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("metallic", metallicFilePath));
-            if(!roughnessFilePath.empty())
-                material.m_PBRMaterialTextures.roughness = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("roughness", roughnessFilePath));
-            if(!emissiveFilePath.empty())
-                material.m_PBRMaterialTextures.emissive = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("emissive", emissiveFilePath));
-            if(!aoFilePath.empty())
-                material.m_PBRMaterialTextures.ao = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("ao", aoFilePath));
+            {
+                LUMOS_PROFILE_SCOPE("Material::Load::Textures");
+                if(!albedoFilePath.empty())
+                    material.m_PBRMaterialTextures.albedo = TextureCache::LoadCached("albedo", albedoFilePath);
+                if(!normalFilePath.empty())
+                    material.m_PBRMaterialTextures.normal = TextureCache::LoadCached("normal", normalFilePath);
+                if(!metallicFilePath.empty())
+                    material.m_PBRMaterialTextures.metallic = TextureCache::LoadCached("metallic", metallicFilePath);
+                if(!roughnessFilePath.empty())
+                    material.m_PBRMaterialTextures.roughness = TextureCache::LoadCached("roughness", roughnessFilePath);
+                if(!emissiveFilePath.empty())
+                    material.m_PBRMaterialTextures.emissive = TextureCache::LoadCached("emissive", emissiveFilePath);
+                if(!aoFilePath.empty())
+                    material.m_PBRMaterialTextures.ao = TextureCache::LoadCached("ao", aoFilePath);
+            }
         }
 
         template <typename Archive>
@@ -714,6 +826,14 @@ namespace Lumos
                 material.release();
                 ScratchEnd(temp);
             }
+            else
+            {
+                PrimitiveType none = PrimitiveType::None;
+                String8 empty      = Str8Lit("");
+                auto material      = std::unique_ptr<Material>();
+                archive(cereal::make_nvp("PrimitiveType", none), cereal::make_nvp("FilePath", empty), cereal::make_nvp("Material", material));
+                material.release();
+            }
         }
 
         template <typename Archive>
@@ -724,6 +844,9 @@ namespace Lumos
             archive(cereal::make_nvp("PrimitiveType", model.m_PrimitiveType), cereal::make_nvp("FilePath", model.m_FilePath), cereal::make_nvp("Material", material));
 
             model.m_Meshes.Clear();
+
+            if(model.m_PrimitiveType == PrimitiveType::None)
+                return;
 
             if(model.m_PrimitiveType != PrimitiveType::File)
             {
@@ -744,7 +867,15 @@ namespace Lumos
         void save(Archive& archive, const ModelComponent& component)
         {
             if(!component.ModelRef || component.ModelRef->GetMeshes().Size() == 0)
+            {
+                // Write sentinel so load knows this is an empty model
+                PrimitiveType none = PrimitiveType::None;
+                String8 empty      = Str8Lit("");
+                auto material      = std::unique_ptr<Material>();
+                archive(cereal::make_nvp("PrimitiveType", none), cereal::make_nvp("FilePath", empty), cereal::make_nvp("Material", material));
+                material.release();
                 return;
+            }
 
             ArenaTemp temp = ScratchBegin(nullptr, 0);
             {
@@ -759,6 +890,9 @@ namespace Lumos
                 auto material = std::unique_ptr<Material>(component.ModelRef->GetMeshes().Front()->GetMaterial().get());
                 archive(cereal::make_nvp("PrimitiveType", component.ModelRef->GetPrimitiveType()), cereal::make_nvp("FilePath", newPath), cereal::make_nvp("Material", material));
                 material.release();
+
+                archive(cereal::make_nvp("MaterialOverrides", component.MaterialOverrides));
+                archive(cereal::make_nvp("AnimationOverride", component.AnimationOverride));
             }
             ScratchEnd(temp);
         }
@@ -766,12 +900,23 @@ namespace Lumos
         template <typename Archive>
         void load(Archive& archive, ModelComponent& component)
         {
+            LUMOS_PROFILE_SCOPE("ModelComponent::Load");
             auto material = std::unique_ptr<Graphics::Material>();
 
             std::string filePath;
-            PrimitiveType primitiveType;
+            PrimitiveType primitiveType = PrimitiveType::None;
 
-            archive(cereal::make_nvp("PrimitiveType", primitiveType), cereal::make_nvp("FilePath", filePath), cereal::make_nvp("Material", material));
+            try
+            {
+                archive(cereal::make_nvp("PrimitiveType", primitiveType), cereal::make_nvp("FilePath", filePath), cereal::make_nvp("Material", material));
+            }
+            catch(...)
+            {
+                return;
+            }
+
+            if(primitiveType == PrimitiveType::None)
+                return;
 
             if(primitiveType != PrimitiveType::File)
             {
@@ -783,6 +928,18 @@ namespace Lumos
             {
                 component.LoadFromLibrary(filePath);
             }
+
+            try
+            {
+                archive(cereal::make_nvp("MaterialOverrides", component.MaterialOverrides));
+                archive(cereal::make_nvp("AnimationOverride", component.AnimationOverride));
+            }
+            catch(...)
+            {
+            }
+
+            component.ApplyMaterialOverrides();
+            component.ApplyAnimationOverride();
         }
     }
 

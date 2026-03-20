@@ -312,13 +312,27 @@ namespace Lumos
             ArenaTemp Scratch = ScratchBegin(0, 0);
 
             String8 Data = FileSystem::Get().ReadTextFileVFS(Scratch.arena, Str8StdS(filePath));
-            std::istringstream istr;
-            istr.str((const char*)Data.str);
-            cereal::JSONInputArchive input(istr);
-            auto material = std::make_unique<Graphics::Material>();
-            Lumos::Graphics::load(input, *material.get());
-            m_Material = SharedPtr<Material>(material.get());
-            material.release();
+            if(Data.size == 0 || !Data.str)
+            {
+                LERROR("Mesh::SetAndLoadMaterial: failed to read %s", filePath.c_str());
+                ScratchEnd(Scratch);
+                return;
+            }
+
+            try
+            {
+                std::istringstream istr;
+                istr.str(std::string((const char*)Data.str, Data.size));
+                cereal::JSONInputArchive input(istr);
+                auto material = std::make_unique<Graphics::Material>();
+                Lumos::Graphics::load(input, *material.get());
+                m_Material = SharedPtr<Material>(material.get());
+                material.release();
+            }
+            catch(...)
+            {
+                LERROR("Mesh::SetAndLoadMaterial: failed to parse %s", filePath.c_str());
+            }
 
             ScratchEnd(Scratch);
         }

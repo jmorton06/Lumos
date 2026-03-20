@@ -65,6 +65,8 @@ namespace Lumos
                 return m_Format;
             }
 
+            TextureDesc GetTextureParameters() const override { return m_Parameters; }
+
             static void MakeDefault();
 
         protected:

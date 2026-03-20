@@ -49,9 +49,10 @@ namespace Lumos
 
             virtual const char* GetTitleInternal() const                                                                                    = 0;
             virtual void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const             = 0;
+            virtual void DrawIndexedInstancedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t indexCount, uint32_t instanceCount, uint32_t firstInstance) const { }
             virtual void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const = 0;
             virtual void Dispatch(CommandBuffer* commandBuffer, uint32_t workGroupSizeX, uint32_t workGroupSizeY, uint32_t workGroupSizeZ) { }
-            virtual void DrawSplashScreen(Texture* texture) { }
+            virtual void DrawSplashScreen(Texture* texture, const float* bgColour = nullptr) { }
             virtual uint32_t GetGPUCount() const { return 1; }
             virtual bool SupportsCompute() { return false; }
             virtual void SaveScreenshot(const std::string& path, Graphics::Texture* texture = nullptr, bool Blur = false, float BlurRadius = 2.0f) { };
@@ -77,6 +78,10 @@ namespace Lumos
             {
                 s_Instance->DrawIndexedInternal(commandBuffer, type, count, start);
             }
+            inline static void DrawIndexedInstanced(CommandBuffer* commandBuffer, DrawType type, uint32_t indexCount, uint32_t instanceCount, uint32_t firstInstance = 0)
+            {
+                s_Instance->DrawIndexedInstancedInternal(commandBuffer, type, indexCount, instanceCount, firstInstance);
+            }
             inline static const char* GetTitle()
             {
                 return s_Instance->GetTitleInternal();
@@ -91,6 +96,7 @@ namespace Lumos
             static GraphicsContext* GetGraphicsContext();
             static SwapChain* GetMainSwapChain();
             static void DrawMesh(CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline, Graphics::Mesh* mesh);
+            static void DrawMeshInstanced(CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline, Graphics::Mesh* mesh, uint32_t instanceCount, uint32_t firstInstance = 0);
 
         protected:
             static Renderer* (*CreateFunc)();

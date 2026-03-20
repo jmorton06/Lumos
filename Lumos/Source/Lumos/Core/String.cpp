@@ -791,11 +791,12 @@ namespace Lumos
         String8 result = { 0 };
         if(in.size)
         {
-            u64 cap  = in.size * 3;
-            u8* str  = PushArrayNoZero(arena, u8, cap + 1);
-            u16* ptr = in.str;
-            u16* opl = ptr + in.size;
-            u64 size = 0;
+            u64 savedPos = ArenaPos(arena);
+            u64 cap      = in.size * 3;
+            u8* str      = PushArrayNoZero(arena, u8, cap + 1);
+            u16* ptr     = in.str;
+            u16* opl     = ptr + in.size;
+            u64 size     = 0;
             UnicodeDecode consume;
             for(; ptr < opl; ptr += consume.inc)
             {
@@ -803,7 +804,7 @@ namespace Lumos
                 size += Utf8Encode(str + size, consume.codepoint);
             }
             str[size] = 0;
-            ArenaPop(arena, (cap - size));
+            ArenaPopTo(arena, savedPos + size + 1);
             result = Str8(str, size);
         }
         return result;
@@ -814,11 +815,12 @@ namespace Lumos
         String16 result = { 0 };
         if(in.size)
         {
-            u64 cap  = in.size * 2;
-            u16* str = PushArrayNoZero(arena, u16, cap + 1);
-            u8* ptr  = in.str;
-            u8* opl  = ptr + in.size;
-            u64 size = 0;
+            u64 savedPos = ArenaPos(arena);
+            u64 cap      = in.size * 2;
+            u16* str     = PushArrayNoZero(arena, u16, cap + 1);
+            u8* ptr      = in.str;
+            u8* opl      = ptr + in.size;
+            u64 size     = 0;
             UnicodeDecode consume;
             for(; ptr < opl; ptr += consume.inc)
             {
@@ -826,7 +828,7 @@ namespace Lumos
                 size += Utf16Encode(str + size, consume.codepoint);
             }
             str[size] = 0;
-            ArenaPop(arena, (cap - size) * 2);
+            ArenaPopTo(arena, savedPos + (size + 1) * sizeof(u16));
             result = Str16(str, size);
         }
         return result;
@@ -837,17 +839,18 @@ namespace Lumos
         String8 result = { 0 };
         if(in.size)
         {
-            u64 cap  = in.size * 4;
-            u8* str  = PushArrayNoZero(arena, u8, cap + 1);
-            u32* ptr = in.str;
-            u32* opl = ptr + in.size;
-            u64 size = 0;
+            u64 savedPos = ArenaPos(arena);
+            u64 cap      = in.size * 4;
+            u8* str      = PushArrayNoZero(arena, u8, cap + 1);
+            u32* ptr     = in.str;
+            u32* opl     = ptr + in.size;
+            u64 size     = 0;
             for(; ptr < opl; ptr += 1)
             {
                 size += Utf8Encode(str + size, *ptr);
             }
             str[size] = 0;
-            ArenaPop(arena, (cap - size));
+            ArenaPopTo(arena, savedPos + size + 1);
             result = Str8(str, size);
         }
         return result;
@@ -858,11 +861,12 @@ namespace Lumos
         String32 result = { 0 };
         if(in.size)
         {
-            u64 cap  = in.size;
-            u32* str = PushArrayNoZero(arena, u32, cap + 1);
-            u8* ptr  = in.str;
-            u8* opl  = ptr + in.size;
-            u64 size = 0;
+            u64 savedPos = ArenaPos(arena);
+            u64 cap      = in.size;
+            u32* str     = PushArrayNoZero(arena, u32, cap + 1);
+            u8* ptr      = in.str;
+            u8* opl      = ptr + in.size;
+            u64 size     = 0;
             UnicodeDecode consume;
             for(; ptr < opl; ptr += consume.inc)
             {
@@ -871,7 +875,7 @@ namespace Lumos
                 size += 1;
             }
             str[size] = 0;
-            ArenaPop(arena, (cap - size) * 4);
+            ArenaPopTo(arena, savedPos + (size + 1) * sizeof(u32));
             result = Str32(str, size);
         }
         return result;

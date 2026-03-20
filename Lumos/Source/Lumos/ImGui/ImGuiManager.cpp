@@ -20,6 +20,46 @@
 #endif
 
 #include <imgui/imgui.h>
+
+#ifdef LUMOS_PLATFORM_IOS
+    static ImGuiKey LumosKeyToImGuiKey(Lumos::InputCode::Key key)
+    {
+        using namespace Lumos;
+        switch(key)
+        {
+            case InputCode::Key::Tab:        return ImGuiKey_Tab;
+            case InputCode::Key::Left:       return ImGuiKey_LeftArrow;
+            case InputCode::Key::Right:      return ImGuiKey_RightArrow;
+            case InputCode::Key::Up:         return ImGuiKey_UpArrow;
+            case InputCode::Key::Down:       return ImGuiKey_DownArrow;
+            case InputCode::Key::PageUp:     return ImGuiKey_PageUp;
+            case InputCode::Key::PageDown:   return ImGuiKey_PageDown;
+            case InputCode::Key::Home:       return ImGuiKey_Home;
+            case InputCode::Key::End:        return ImGuiKey_End;
+            case InputCode::Key::Insert:     return ImGuiKey_Insert;
+            case InputCode::Key::Delete:     return ImGuiKey_Delete;
+            case InputCode::Key::Backspace:  return ImGuiKey_Backspace;
+            case InputCode::Key::Space:      return ImGuiKey_Space;
+            case InputCode::Key::Enter:      return ImGuiKey_Enter;
+            case InputCode::Key::Escape:     return ImGuiKey_Escape;
+            case InputCode::Key::A:          return ImGuiKey_A;
+            case InputCode::Key::C:          return ImGuiKey_C;
+            case InputCode::Key::V:          return ImGuiKey_V;
+            case InputCode::Key::X:          return ImGuiKey_X;
+            case InputCode::Key::Y:          return ImGuiKey_Y;
+            case InputCode::Key::Z:          return ImGuiKey_Z;
+            case InputCode::Key::LeftControl:  return ImGuiKey_LeftCtrl;
+            case InputCode::Key::RightControl: return ImGuiKey_RightCtrl;
+            case InputCode::Key::LeftShift:    return ImGuiKey_LeftShift;
+            case InputCode::Key::RightShift:   return ImGuiKey_RightShift;
+            case InputCode::Key::LeftAlt:      return ImGuiKey_LeftAlt;
+            case InputCode::Key::RightAlt:     return ImGuiKey_RightAlt;
+            case InputCode::Key::LeftSuper:    return ImGuiKey_LeftSuper;
+            case InputCode::Key::RightSuper:   return ImGuiKey_RightSuper;
+            default: return ImGuiKey_None;
+        }
+    }
+#endif
 #include <imgui/Plugins/ImGuizmo.h>
 #include <imgui/Plugins/ImGuiAl/fonts/MaterialDesign.inl>
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoMedium.inl>
@@ -53,11 +93,11 @@ namespace Lumos
         iOSOS* iosOS = (iOSOS*)Lumos::OS::GetPtr();
         if (iosOS->GetDeviceType() == iOSOS::iOSDeviceType::iPad)
         {
-            m_FontSize = 48.0f;
+            m_FontSize = 40.0f;
         }
         else
         {
-            m_FontSize = 50.0f;
+            m_FontSize = 46.0f;
         }
 #endif
     }
@@ -123,7 +163,13 @@ namespace Lumos
         m_FontSize *= m_DPIScale;
 #endif
 
+#ifdef LUMOS_PLATFORM_IOS
+        // iOS uses io.AddKeyEvent() (modern API) - don't set legacy KeyMap
+        io.KeyRepeatDelay = 0.400f;
+        io.KeyRepeatRate  = 0.05f;
+#else
         SetImGuiKeyCodes();
+#endif
         SetImGuiStyle();
 
 #ifdef LUMOS_PLATFORM_IOS
@@ -259,7 +305,13 @@ namespace Lumos
 
     bool ImGuiManager::OnKeyPressedEvent(KeyPressedEvent& e)
     {
-        ImGuiIO& io                      = ImGui::GetIO();
+        ImGuiIO& io = ImGui::GetIO();
+
+#ifdef LUMOS_PLATFORM_IOS
+        ImGuiKey imguiKey = LumosKeyToImGuiKey(e.GetKeyCode());
+        if(imguiKey != ImGuiKey_None)
+            io.AddKeyEvent(imguiKey, true);
+#else
         io.KeysDown[(int)e.GetKeyCode()] = true;
 
         io.KeyCtrl  = io.KeysDown[(int)Lumos::InputCode::Key::LeftControl] || io.KeysDown[(int)Lumos::InputCode::Key::RightControl];
@@ -271,14 +323,22 @@ namespace Lumos
 #else
         io.KeySuper = io.KeysDown[(int)Lumos::InputCode::Key::LeftSuper] || io.KeysDown[(int)Lumos::InputCode::Key::RightSuper];
 #endif
+#endif
 
-        return io.WantTextInput && !io.KeyCtrl && !io.KeySuper;
+        return io.WantTextInput;
     }
 
     bool ImGuiManager::OnKeyReleasedEvent(KeyReleasedEvent& e)
     {
-        ImGuiIO& io                      = ImGui::GetIO();
+        ImGuiIO& io = ImGui::GetIO();
+
+#ifdef LUMOS_PLATFORM_IOS
+        ImGuiKey imguiKey = LumosKeyToImGuiKey(e.GetKeyCode());
+        if(imguiKey != ImGuiKey_None)
+            io.AddKeyEvent(imguiKey, false);
+#else
         io.KeysDown[(int)e.GetKeyCode()] = false;
+#endif
 
         return false;
     }

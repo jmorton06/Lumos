@@ -1,13 +1,22 @@
 #include "Precompiled.h"
 #include "FileSystem.h"
 #include "Core/Application.h"
+#include "Core/Asset/PackedAssetReader.h"
 #include "Maths/MathsUtilities.h"
 #include "Core/Thread.h"
+#include "Utilities/StringUtilities.h"
 
 #if __has_include(<filesystem>)
 #include <filesystem>
 #elif __has_include(<experimental/filesystem>)
 #include <experimental/filesystem>
+#endif
+
+#ifdef LUMOS_PLATFORM_WINDOWS
+#include <sys/types.h>
+#include <sys/stat.h>
+#else
+#include <sys/stat.h>
 #endif
 
 namespace Lumos
@@ -80,9 +89,25 @@ namespace Lumos
         return false;
     }
 
+    String8 FileSystem::ResolvePhysicalPath(Arena* arena, const String8& path, bool folder)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        String8 outPath;
+        if(ResolvePhysicalPath(arena, path, &outPath, folder))
+            return outPath;
+        return Str8Lit("");
+    }
+
     uint8_t* FileSystem::ReadFileVFS(Arena* arena, const String8& path)
     {
         LUMOS_PROFILE_FUNCTION();
+
+        if(m_PackReader && m_PackReader->Contains(path))
+        {
+            u64 size = 0;
+            return m_PackReader->ReadAsset(arena, path, &size);
+        }
+
         String8 physicalPath;
         return ResolvePhysicalPath(arena, path, &physicalPath) ? FileSystem::ReadFile(arena, physicalPath) : nullptr;
     }
@@ -90,6 +115,21 @@ namespace Lumos
     String8 FileSystem::ReadTextFileVFS(Arena* arena, const String8& path)
     {
         LUMOS_PROFILE_FUNCTION();
+
+        if(m_PackReader && m_PackReader->Contains(path))
+        {
+            u64 size = 0;
+            u8* data = m_PackReader->ReadAsset(arena, path, &size);
+            if(data)
+            {
+                String8 result;
+                result.str  = data;
+                result.size = size;
+                return result;
+            }
+            return Str8Lit("");
+        }
+
         String8 physicalPath;
         if(ResolvePhysicalPath(arena, path, &physicalPath))
         {
@@ -120,6 +160,61 @@ namespace Lumos
         ScratchEnd(temp);
 
         return success;
+    }
+
+    bool FileSystem::FileExistsVFS(const String8& path)
+    {
+        if(m_PackReader && m_PackReader->Contains(path))
+            return true;
+
+        ArenaTemp temp = ScratchBegin(nullptr, 0);
+        String8 physicalPath;
+        bool exists = ResolvePhysicalPath(temp.arena, path, &physicalPath) && FileSystem::FileExists(physicalPath);
+        ScratchEnd(temp);
+        return exists;
+    }
+
+    bool FileSystem::FolderExistsVFS(const String8& path)
+    {
+        ArenaTemp temp = ScratchBegin(nullptr, 0);
+        String8 physicalPath;
+        bool exists = ResolvePhysicalPath(temp.arena, path, &physicalPath, true) && FileSystem::FolderExists(physicalPath);
+        ScratchEnd(temp);
+        return exists;
+    }
+
+    int64_t FileSystem::GetFileSizeVFS(const String8& path)
+    {
+        if(m_PackReader && m_PackReader->Contains(path))
+            return m_PackReader->GetAssetSize(path);
+
+        ArenaTemp temp = ScratchBegin(nullptr, 0);
+        String8 physicalPath;
+        int64_t size = ResolvePhysicalPath(temp.arena, path, &physicalPath) ? FileSystem::GetFileSize(physicalPath) : -1;
+        ScratchEnd(temp);
+        return size;
+    }
+
+    bool FileSystem::MountPack(const String8& packPath)
+    {
+        UnmountPack();
+        m_PackReader = new PackedAssetReader();
+        if(!m_PackReader->Mount(packPath))
+        {
+            delete m_PackReader;
+            m_PackReader = nullptr;
+            return false;
+        }
+        return true;
+    }
+
+    void FileSystem::UnmountPack()
+    {
+        if(m_PackReader)
+        {
+            delete m_PackReader;
+            m_PackReader = nullptr;
+        }
     }
 
     bool FileSystem::AbsolutePathToFileSystem(Arena* arena, const String8& path, String8& outFileSystemPath, bool folder)
@@ -161,8 +256,12 @@ namespace Lumos
             std::filesystem::create_directory(fullPath);
             LINFO("Creating folder %s", ToCChar(path));
 #else
-            std::filesystem::create_directory(ToStdString(path));
-            LINFO("Creating folder %s", (const char*)path.str);
+            std::error_code ec;
+            std::filesystem::create_directory(ToStdString(path), ec);
+            if(ec)
+                LWARN("Failed to create folder %s: %s", (const char*)path.str, ec.message().c_str());
+            else
+                LINFO("Creating folder %s", (const char*)path.str);
 #endif
         }
     }
@@ -171,10 +270,45 @@ namespace Lumos
     {
         auto folderPath = std::filesystem::path(std::string(path));
 
-        if(std::filesystem::is_directory(folderPath))
+        std::error_code ec;
+        if(std::filesystem::is_directory(folderPath, ec))
         {
-            for(auto& entry : std::filesystem::directory_iterator(folderPath))
-                f(entry.path().string().c_str());
+            for(auto& entry : std::filesystem::directory_iterator(folderPath, ec))
+            {
+                if(!ec)
+                    f(entry.path().string().c_str());
+            }
         }
+    }
+
+    uint64_t FileSystem::GetFileModifiedTime(const String8& path)
+    {
+#ifdef LUMOS_PLATFORM_WINDOWS
+        struct _stat64 fileStat;
+        std::string pathStr((const char*)path.str, path.size);
+        if(_stat64(pathStr.c_str(), &fileStat) != 0)
+            return 0;
+        return static_cast<uint64_t>(fileStat.st_mtime);
+#else
+        struct stat fileStat;
+        std::string pathStr((const char*)path.str, path.size);
+        if(stat(pathStr.c_str(), &fileStat) != 0)
+            return 0;
+        return static_cast<uint64_t>(fileStat.st_mtime);
+#endif
+    }
+
+    String8 FileSystem::NormalizePath(Arena* arena, const String8& path)
+    {
+        return StringUtilities::ResolveRelativePath(arena, path);
+    }
+
+    void FileSystem::IterateFolder(const String8& path, void (*f)(const char*))
+    {
+        ArenaTemp temp = ScratchBegin(nullptr, 0);
+        String8 nullTerminated = PushStr8Copy(temp.arena, path);
+        NullTerminate(nullTerminated);
+        IterateFolder((const char*)nullTerminated.str, f);
+        ScratchEnd(temp);
     }
 }

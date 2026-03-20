@@ -32,10 +32,15 @@ namespace Lumos
                 int spin = 0;
                 while(!TryLock())
                 {
-#if !defined(LUMOS_PLATFORM_MACOS) && !defined(LUMOS_PLATFORM_IOS)
                     if(spin < 10)
                     {
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
+                        sched_yield();
+#elif defined(LUMOS_PLATFORM_WINDOWS)
                         _mm_pause(); // SMT thread swap can occur here
+#else
+                        _mm_pause();
+#endif
                     }
                     else
                     {
@@ -45,7 +50,6 @@ namespace Lumos
                         sched_yield();
 #endif // OS thread swap can occur here. It is important to keep it as fallback, to avoid any chance of lockup by busy wait
                     }
-#endif
                     spin++;
                 }
             }
@@ -138,21 +142,11 @@ namespace Lumos
                     alive.store(false); // indicate that new jobs cannot be started from this point
                     bool bWakeLoop = true;
 
-#ifdef LUMOS_PLATFORM_LINUX
-                    for(auto& thread : threads)
-                    {
-                        if(thread.joinable())
-                            thread.join();
-                    }
-                    bWakeLoop = false;
-                    ConditionNotifyAll(wakeCondition);
-#else
                     std::thread waker([&]
                                       {
                         while (bWakeLoop)
                         {
                             ConditionNotifyAll(wakeCondition);
-                           // wakeCondition.notify_all(); // wakes up sleeping worker threads
                         } });
 
                     for(auto& thread : threads)
@@ -163,7 +157,6 @@ namespace Lumos
                     bWakeLoop = false;
                     if(waker.joinable())
                         waker.join();
-#endif
 
                     delete[] jobQueuePerThread;
                     ConditionDestroy(wakeCondition);
@@ -303,12 +296,8 @@ namespace Lumos
                     thread_affinity_policy affinity_tag;
                     affinity_tag.affinity_tag = threadID + 1;
                     auto thread               = worker.native_handle();
-                    thread_policy_set(pthread_mach_thread_np(pthread_self()), THREAD_AFFINITY_POLICY, (integer_t*)&affinity_tag, THREAD_AFFINITY_POLICY_COUNT);
-
-                    // pthread_setname_np((const char*)name.str);
+                    thread_policy_set(pthread_mach_thread_np(thread), THREAD_AFFINITY_POLICY, (integer_t*)&affinity_tag, THREAD_AFFINITY_POLICY_COUNT);
 #endif
-
-                    worker.detach();
                 }
 
                 LINFO("Initialised JobSystem with [%i cores] [%i threads]", internal_state->numCores, internal_state->numThreads);

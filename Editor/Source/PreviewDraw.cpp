@@ -101,17 +101,22 @@ namespace Lumos
         }
         else
         {
-            m_PreviewObjectEntity.AddComponent<Graphics::ModelComponent>(ToStdString(path));
+            auto& comp = m_PreviewObjectEntity.AddComponent<Graphics::ModelComponent>();
+            comp.LoadFromLibrary(ToStdString(path), true);
         }
 
         Mat4 viewMat = Mat4::LookAt(Vec3(-1.0f, 0.5f, 1.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
         m_CameraEntity.GetTransform().SetLocalTransform(viewMat);
         m_CameraEntity.GetTransform().SetWorldMatrix(Mat4(1.0f));
 
-        auto bb = m_PreviewObjectEntity.GetComponent<Graphics::ModelComponent>().ModelRef->GetMeshes().Front()->GetBoundingBox();
-        viewMat = Mat4::LookAt(-(m_CameraEntity.GetTransform().GetForwardDirection()) * Maths::Distance(bb.Max(), bb.Min()), bb.Center(), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
-        m_CameraEntity.GetTransform().SetLocalTransform(viewMat);
-        m_CameraEntity.GetTransform().SetWorldMatrix(Mat4(1.0f));
+        auto& modelRef = m_PreviewObjectEntity.GetComponent<Graphics::ModelComponent>().ModelRef;
+        if(modelRef && modelRef->GetMeshes().Size() > 0)
+        {
+            auto bb = modelRef->GetMeshes().Front()->GetBoundingBox();
+            viewMat = Mat4::LookAt(-(m_CameraEntity.GetTransform().GetForwardDirection()) * Maths::Distance(bb.Max(), bb.Min()), bb.Center(), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
+            m_CameraEntity.GetTransform().SetLocalTransform(viewMat);
+            m_CameraEntity.GetTransform().SetWorldMatrix(Mat4(1.0f));
+        }
     }
 
     void PreviewDraw::LoadMaterial(String8 path)

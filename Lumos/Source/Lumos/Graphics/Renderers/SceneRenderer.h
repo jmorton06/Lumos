@@ -32,6 +32,7 @@ namespace Lumos
         struct Light;
         class VertexBuffer;
         class IndexBuffer;
+        class StorageBuffer;
 
         struct LineVertexData
         {
@@ -57,13 +58,23 @@ namespace Lumos
             }
         };
 
+        struct InstanceBatchInfo
+        {
+            const char* meshName = nullptr;
+            uint32_t instanceCount = 0;
+        };
+
         struct SceneRendererStats
         {
             uint32_t UpdatesPerSecond;
             uint32_t FramesPerSecond;
-            uint32_t NumRenderedObjects = 0;
-            uint32_t NumShadowObjects   = 0;
-            uint32_t NumDrawCalls       = 0;
+            uint32_t NumRenderedObjects  = 0;
+            uint32_t NumShadowObjects    = 0;
+            uint32_t NumDrawCalls        = 0;
+            uint32_t NumInstanceBatches  = 0;
+            uint32_t NumInstancedObjects = 0;
+            static constexpr uint32_t MaxTrackedBatches = 16;
+            InstanceBatchInfo InstanceBatches[MaxTrackedBatches];
         };
 
         class SceneRenderer
@@ -98,6 +109,7 @@ namespace Lumos
             void SSAOPass();
             void SSAOBlurPass();
             void ForwardPass();
+            void LightCullingPass();
             void ShadowPass();
             void SkyboxPass();
             void Renderer2DBeginBatch();
@@ -134,6 +146,8 @@ namespace Lumos
             float SubmitParticleTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
 
+            Texture2D* GetMainTexture() const { return m_MainTexture; }
+
             bool m_DebugRenderEnabled = false;
             bool m_EnableUIPass       = true;
             struct LUMOS_EXPORT RenderCommand2D
@@ -151,7 +165,7 @@ namespace Lumos
                 uint32_t BufferSize        = 1000 * RENDERER2D_VERTEX_SIZE * 4;
                 uint32_t IndiciesSize      = 1000 * 6;
                 uint32_t MaxTextures       = 16;
-                uint32_t MaxBatchDrawCalls = 100;
+                uint32_t MaxBatchDrawCalls = 500;
 
                 void SetMaxQuads(uint32_t quads)
                 {
@@ -182,13 +196,20 @@ namespace Lumos
                 Mat4 m_LightMatrix;
                 TDArray<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
 
-                SharedPtr<Shader> m_Shader          = nullptr;
-                SharedPtr<Shader> m_ShaderAlpha     = nullptr;
-                SharedPtr<Shader> m_ShaderAnim      = nullptr;
-                SharedPtr<Shader> m_ShaderAnimAlpha = nullptr;
+                SharedPtr<Shader> m_Shader              = nullptr;
+                SharedPtr<Shader> m_ShaderAlpha         = nullptr;
+                SharedPtr<Shader> m_ShaderAnim          = nullptr;
+                SharedPtr<Shader> m_ShaderAnimAlpha     = nullptr;
+                SharedPtr<Shader> m_ShaderInstanced     = nullptr;
+                SharedPtr<Shader> m_ShaderInstancedAlpha = nullptr;
+
+                StorageBuffer* m_InstanceTransformSSBO    = nullptr;
+                SharedPtr<DescriptorSet> m_InstanceDescriptorSet;
 
                 Maths::Frustum m_CascadeFrustums[SHADOWMAP_MAX];
             };
+
+            static constexpr uint32_t MAX_INSTANCE_COUNT = 4096;
 
             struct ForwardData
             {
@@ -206,10 +227,11 @@ namespace Lumos
 
                 TDArray<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
 
-                SharedPtr<Shader> m_Shader     = nullptr;
-                SharedPtr<Shader> m_AnimShader = nullptr;
-                Texture* m_RenderTexture       = nullptr;
-                TextureDepth* m_DepthTexture   = nullptr;
+                SharedPtr<Shader> m_Shader           = nullptr;
+                SharedPtr<Shader> m_AnimShader       = nullptr;
+                SharedPtr<Shader> m_InstancedShader  = nullptr;
+                Texture* m_RenderTexture             = nullptr;
+                TextureDepth* m_DepthTexture         = nullptr;
 
                 Maths::Frustum m_Frustum;
 
@@ -218,6 +240,9 @@ namespace Lumos
                 bool m_DepthTest           = false;
                 size_t m_DynamicAlignment;
                 Mat4* m_TransformData = nullptr;
+
+                StorageBuffer* m_InstanceTransformSSBO  = nullptr;
+                SharedPtr<DescriptorSet> m_InstanceDescriptorSet;
             };
 
             struct Renderer2DData
@@ -332,6 +357,19 @@ namespace Lumos
             Scene* m_CurrentScene  = nullptr;
             bool m_GenerateBRDFLUT = false;
             bool m_SupportCompute  = false;
+            bool m_ForwardPlusEnabled = false;
+
+            // Forward+ light culling
+            SharedPtr<Graphics::Shader> m_LightCullingShader;
+            SharedPtr<Graphics::DescriptorSet> m_LightCullingDescriptorSet;
+            Graphics::StorageBuffer* m_LightSSBO      = nullptr;
+            Graphics::StorageBuffer* m_LightGridSSBO  = nullptr;
+            Graphics::StorageBuffer* m_LightIndexSSBO = nullptr;
+            Graphics::StorageBuffer* m_GlobalIndexCountSSBO = nullptr;
+            uint32_t m_TileSize   = 16;
+            uint32_t m_TileCountX = 0;
+            uint32_t m_TileCountY = 0;
+            uint32_t m_NumLights  = 0;
 
             // Temp
             bool m_DisablePostProcess = false;
@@ -372,6 +410,7 @@ namespace Lumos
             SharedPtr<Graphics::Shader> m_DepthPrePassAlphaAnimShader;
             Texture2D* m_SSAOTexture  = nullptr;
             Texture2D* m_SSAOTexture1 = nullptr;
+            bool m_SSAOValid          = false;
 
             Texture2D* m_NoiseTexture  = nullptr;
             Texture2D* m_NormalTexture = nullptr;

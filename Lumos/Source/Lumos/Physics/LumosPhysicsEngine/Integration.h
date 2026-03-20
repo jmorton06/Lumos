@@ -25,6 +25,6 @@ namespace Lumos
         static void RK2(State& state, float t, float dt);
         static void RK4(State& state, float t, float dt);
 
-        static Derivative Evaluate(State& initial, float dt, float t, const Derivative& derivative);
+        static Derivative Evaluate(State& initial, float t, float dt, const Derivative& derivative);
     };
 }

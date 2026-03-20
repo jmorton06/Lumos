@@ -10,6 +10,7 @@
 #endif
 
 #include <fstream>
+#include <sstream>
 
 Lumos::IniFile::IniFile(const std::string& filePath)
     : m_FilePath(filePath)

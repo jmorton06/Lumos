@@ -15,8 +15,8 @@ layout (location = 0) in DATA
 
 float u_rounded_fonts = 0.0f;
 float u_rounded_outlines = 0.0f;
-float u_threshold = 0.55;
-float u_out_bias = 1.0f;
+float u_threshold = 0.5;
+float u_out_bias = 0.0f;
 float u_outline_width_absolute = 0.0f;//1/16;
 float u_outline_width_relative =  0.0f;//1/50;
 float u_outline_blur = 2.0f;
@@ -30,11 +30,12 @@ float median(float r, float g, float b)
     return max(min(r, g), min(max(r, g), b));
 }
 
-float pxRange = 4;
+float pxRange = 12.0;
 
 float ScreenPxRange()
 {
-    vec2 unitRange = vec2(pxRange)/vec2(textureSize(textures[int(fs_in.tid)], 0));
+    int texIdx = int(fs_in.tid - 0.5);
+    vec2 unitRange = vec2(pxRange)/vec2(textureSize(textures[texIdx], 0));
     vec2 screenTexSize = vec2(1.0)/fwidth(fs_in.uv);
     return max(0.5*dot(unitRange, screenTexSize), 1.0);
 }
@@ -75,11 +76,13 @@ void main()
   vec4 distances = SampleTexture();//texture2D(u_mtsdf_font, v_texcoord);
   float d_msdf = median(distances.r, distances.g, distances.b);
   float d_sdf = distances.a; // mtsdf format only
-  d_msdf = min(d_msdf, d_sdf + 0.1);  // HACK: to fix glitch in msdf near edges
+
+  // blend msdf with sdf for smoother curves while keeping sharp corners
+  float d_combined = mix(d_msdf, d_sdf, 0.25);
 
   // blend between sharp and rounded corners
-  float d_inner = mix(d_msdf, d_sdf, u_rounded_fonts);
-  float d_outer = mix(d_msdf, d_sdf, u_rounded_outlines);
+  float d_inner = mix(d_combined, d_sdf, u_rounded_fonts);
+  float d_outer = mix(d_combined, d_sdf, u_rounded_outlines);
 
   // typically 0.5 is the threshold, >0.5 inside <0.5 outside
   float inverted_threshold = 1.0 - u_threshold; // because I want the ui to be +larger -smaller
@@ -87,9 +90,9 @@ void main()
   float inner = width * (d_inner - inverted_threshold) + 0.5 + u_out_bias;
   float outer = width * (d_outer - inverted_threshold + u_outline_width_relative) + 0.5 + u_out_bias + u_outline_width_absolute;
 
-  float inner_opacity = clamp(inner, 0.0, 1.0);
+  float inner_opacity = smoothstep(0.0, 1.0, inner);
   vec4 inner_color = fs_in.colour;
-  float outer_opacity = clamp(outer, 0.0, 1.0);
+  float outer_opacity = smoothstep(0.0, 1.0, outer);
   vec4 outer_color = fs_in.outlineColour;
 
   if (u_outline_blur > 0.0) {

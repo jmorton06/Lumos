@@ -1,0 +1,27 @@
+{
+    "Albedo": "//Assets/Imported/Textures/116774103445433505.limg",
+    "Normal": "",
+    "Metallic": "",
+    "Roughness": "",
+    "Ao": "",
+    "Emissive": "",
+    "albedoColour": {
+        "value0": 1.0,
+        "value1": 1.0,
+        "value2": 1.0,
+        "value3": 1.0
+    },
+    "roughnessValue": 0.5799999833106995,
+    "metallicValue": 0.0,
+    "emissiveValue": 0.0,
+    "albedoMapFactor": 1.0,
+    "metallicMapFactor": 1.0,
+    "roughnessMapFactor": 1.0,
+    "normalMapFactor": 1.0,
+    "aoMapFactor": 1.0,
+    "emissiveMapFactor": 1.0,
+    "alphaCutOff": 0.4000000059604645,
+    "workflow": 0.0,
+    "shader": "",
+    "Reflectance": 0.30000001192092898
+}

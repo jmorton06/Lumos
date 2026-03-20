@@ -37,6 +37,10 @@ project "LumosEditor"
 		"%{IncludeDir.Lumos}",
 	}
 
+	if _OPTIONS["shaderc"] then
+		externalincludedirs { "%{IncludeDir.shaderc}" }
+	end
+
 	links
 	{
 		"Lumos",
@@ -59,9 +63,6 @@ project "LumosEditor"
 
 	filter { "files:External/**"}
 		warnings "Off"
-
-	filter 'architecture:x86_64'
-		defines { "LUMOS_SSE"  }
 
 	filter "system:windows"
 		cppdialect "C++17"
@@ -90,12 +91,19 @@ project "LumosEditor"
 		links
 		{
 			"glfw",
-			"OpenAL32"
+			"OpenAL32",
 		}
+
+		if _OPTIONS["shaderc"] then
+			links { "shaderc" }
+		end
 
 		postbuildcommands { "xcopy /Y /C \"..\\Lumos\\External\\OpenAL\\libs\\Win32\\OpenAL32.dll\" \"$(OutDir)\"" }
 
 		disablewarnings { 4307 }
+
+		filter { 'system:windows', 'architecture:x86_64' }
+		    defines { "LUMOS_SSE"  }
 
 	filter "system:macosx"
 		cppdialect "C++17"
@@ -103,23 +111,44 @@ project "LumosEditor"
 		systemversion "11.0"
 		editandcontinue "Off"
 
-		xcodebuildresources { "Assets.xcassets", "libMoltenVK.dylib" }
+		xcodebuildresources { "Assets.xcassets" }
 
 		xcodebuildsettings
 		{
-			['ARCHS'] = false,
-			['CODE_SIGN_IDENTITY'] = '',
+			['ARCHS'] = '$(ARCHS_STANDARD)',
 			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/macOS/Info.plist',
-			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
-			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
+			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
+			['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
 		}
+
+		filter {"system:macosx", "configurations:Release or Production"}
+		xcodebuildsettings
+		{
+			['ENABLE_HARDENED_RUNTIME'] = 'YES',
+			['CODE_SIGN_ENTITLEMENTS'] = '../Editor/LumosEditor.entitlements',
+			['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym',
+			['GCC_GENERATE_DEBUGGING_SYMBOLS'] = 'YES'
+		}
+
+		filter "system:macosx"
+
+		if game_project then
+			xcodebuildsettings
+			{
+				['PRODUCT_NAME'] = game_project.title .. " Editor",
+				['PRODUCT_BUNDLE_IDENTIFIER'] = game_project.bundle_id .. ".editor",
+				['MARKETING_VERSION'] = game_project.version,
+				['CURRENT_PROJECT_VERSION'] = game_project.build_number
+			}
+			xcodebuildresources { "../" .. game_project.rel_dir }
+		end
 
 		if settings.enable_signing then
 		xcodebuildsettings
 		{
-			['CODE_SIGN_IDENTITY'] = 'Mac Developer',
+			['CODE_SIGN_STYLE'] = 'Automatic',
 			['DEVELOPMENT_TEAM'] = settings.developer_team,
-				['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier
+			['PRODUCT_BUNDLE_IDENTIFIER'] = game_project and (game_project.bundle_id .. ".editor") or settings.bundle_identifier
 		}
 		end
 
@@ -128,9 +157,8 @@ project "LumosEditor"
 			"LUMOS_PLATFORM_MACOS",
 			"LUMOS_PLATFORM_UNIX",
 			"LUMOS_RENDER_API_VULKAN",
-			"VK_EXT_metal_surface",
-			"LUMOS_IMGUI",
-			"LUMOS_VOLK"
+			"VK_USE_PLATFORM_METAL_EXT",
+			"LUMOS_IMGUI"
 		}
 
 		linkoptions
@@ -139,19 +167,28 @@ project "LumosEditor"
 			"-framework IOKit",
 			"-framework CoreVideo",
 			"-framework OpenAL",
-			"-framework QuartzCore"
+			"-framework QuartzCore",
+			"-framework Metal",
+			"-framework IOSurface",
+			"-framework Foundation",
+			"-framework UniformTypeIdentifiers",
+			"../Lumos/External/vulkan/libs/macOS/libMoltenVK.a"
 		}
 
 		files
 		{
 			"../Resources/AppIcons/Assets.xcassets",
-			--"../Lumos/External/vulkan/libs/macOS/libMoltenVK.dylib"
+			"Source/**.mm"
 		}
 
 		links
 		{
 			"glfw",
 		}
+
+		if _OPTIONS["shaderc"] then
+			links { "shaderc" }
+		end
 
 	filter "system:ios"
 		cppdialect "C++17"
@@ -185,27 +222,29 @@ project "LumosEditor"
 			"AudioToolbox.framework",
 			"Foundation.framework",
 			"SystemConfiguration.framework",
-			"IOSurface.framework"
+			"IOSurface.framework",
+			"UniformTypeIdentifiers.framework",
 		}
+
+		if _OPTIONS["shaderc"] then
+			links { "shaderc" }
+		end
 
 		linkoptions
 		{
 			"../Lumos/External/vulkan/libs/iOS/libMoltenVK.a"
 		}
 
-		--Adding assets from Game Project folder. Needs rework
+		local ios_project_dir = game_project and ("../" .. game_project.rel_dir) or "../ExampleProject/"
+		local ios_project_folder = game_project and game_project.folder_name or "ExampleProject"
+
 		files
 		{
 			"../Resources/AppIcons/Assets.xcassets",
 			"../Lumos/Assets/Shaders",
 			"../Lumos/Source/Lumos/Platform/iOS/Client/**",
-			"../ExampleProject/"
-            -- "../ExampleProject/Assets/Scenes",
-            -- "../ExampleProject/Assets/Scripts",
-            -- "../ExampleProject/Assets/Meshes",
-            -- "../ExampleProject/Assets/Sounds",
-            -- "../ExampleProject/Assets/Textures",
-            -- "../ExampleProject/Example.lmproj"
+			ios_project_dir,
+			"Source/**.mm"
 		}
 
 		xcodebuildsettings
@@ -216,15 +255,24 @@ project "LumosEditor"
 			['TARGETED_DEVICE_FAMILY'] = '1,2',
 			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',
 			['CODE_SIGN_IDENTITY'] = '',
-			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
-			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/iOS/Client/Info.plist',
+			['IPHONEOS_DEPLOYMENT_TARGET'] = '18.0',
+			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/iOS/Editor/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
 		}
+
+		if game_project then
+			xcodebuildsettings
+			{
+				['PRODUCT_BUNDLE_IDENTIFIER'] = game_project.bundle_id .. ".editor",
+				['MARKETING_VERSION'] = game_project.version,
+				['CURRENT_PROJECT_VERSION'] = game_project.build_number
+			}
+		end
 
 		if settings.enable_signing then
 		xcodebuildsettings
 		{
-			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
+			['PRODUCT_BUNDLE_IDENTIFIER'] = game_project and (game_project.bundle_id .. ".editor") or settings.bundle_identifier,
 			['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
 			['DEVELOPMENT_TEAM'] = settings.developer_team
 		}
@@ -256,13 +304,7 @@ project "LumosEditor"
 			"../Lumos/Source/Platform/iOS/Client",
 			"Assets.xcassets",
             "Shaders",
-            "ExampleProject"
-            -- "Meshes",
-            -- "Scenes",
-            -- "Scripts",
-            -- "Sounds",
-            -- "Textures",
-			--"Example.lmproj"
+            ios_project_folder
 		}
 
 	filter "system:linux"
@@ -295,6 +337,10 @@ project "LumosEditor"
 			"glfw",
 		}
 
+		if _OPTIONS["shaderc"] then
+			links { "shaderc" }
+		end
+
 		links { "X11", "pthread", "dl", "atomic", "openal"}
 
 		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN"}
@@ -304,6 +350,8 @@ project "LumosEditor"
 			{
 				"-msse4.1",
 			}
+		filter { 'system:linux', 'architecture:x86_64'}
+		    defines { "LUMOS_SSE"  }
 
 
 		filter "system:android"
@@ -387,6 +435,6 @@ defines { "LUMOS_RELEASE", "NDEBUG", "TRACY_ENABLE","LUMOS_PROFILE_ENABLED","TRA
 
 	filter "configurations:Production"
 		defines { "LUMOS_PRODUCTION", "NDEBUG" }
-		symbols "Off"
+		symbols "On"
 		optimize "Full"
 		runtime "Release"

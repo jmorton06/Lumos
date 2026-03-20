@@ -18,6 +18,8 @@ layout (location = 0) out DATA
 	vec2 uv;
 	float tid;
 	vec4 colour;
+	vec2 rectSize;
+	float cornerRadius;
 } vs_out;
 
 void main()
@@ -27,4 +29,6 @@ void main()
 	vs_out.uv = uv.xy;
 	vs_out.tid = tid.x;
 	vs_out.colour = colour;
+	vs_out.rectSize = uv.zw;
+	vs_out.cornerRadius = tid.y;
 }

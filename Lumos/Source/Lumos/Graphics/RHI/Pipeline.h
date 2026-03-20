@@ -56,6 +56,7 @@ namespace Lumos
 
             virtual void ClearRenderTargets(CommandBuffer* commandBuffer) { }
             virtual Shader* GetShader() const = 0;
+            virtual bool IsCompute() const { return false; }
 
             uint32_t GetWidth();
             uint32_t GetHeight();

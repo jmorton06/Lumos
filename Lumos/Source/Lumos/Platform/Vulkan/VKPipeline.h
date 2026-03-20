@@ -41,7 +41,7 @@ namespace Lumos
             void CreateFramebuffers();
             void ClearRenderTargets(CommandBuffer* commandBuffer) override;
             void TransitionAttachments();
-            bool IsCompute() const { return m_Compute; }
+            bool IsCompute() const override { return m_Compute; }
 
             static void MakeDefault();
 

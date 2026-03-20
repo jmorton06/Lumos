@@ -1,5 +1,6 @@
 #pragma once
 #include "Graphics/Model.h"
+#include <unordered_map>
 
 namespace Lumos::Graphics
 {
@@ -19,20 +20,25 @@ namespace Lumos::Graphics
         ModelComponent(const std::string& path);
 
         ModelComponent(PrimitiveType primitive)
-            : ModelRef(CreateSharedPtr<Model>(primitive))
         {
+            LoadPrimitive(primitive);
         }
 
         ModelComponent()
         {
         }
 
-        void LoadFromLibrary(const std::string& path);
-        void LoadPrimitive(PrimitiveType primitive)
-        {
-            ModelRef = CreateSharedPtr<Model>(primitive);
-        }
+        void LoadFromLibrary(const std::string& path, bool previewOnly = false);
+        void LoadPrimitive(PrimitiveType primitive);
+
+        void ApplyMaterialOverrides();
+        void ApplyAnimationOverride();
+
+        // Reload all scene models whose source path matches. Returns true if any were found.
+        static bool ReloadSceneModels(const std::string& sourcePath);
 
         SharedPtr<Model> ModelRef;
+        std::unordered_map<u32, std::string> MaterialOverrides;
+        std::string AnimationOverride;
     };
 }

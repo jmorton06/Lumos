@@ -17,6 +17,7 @@
 #include "CompiledSPV/Headers/ForwardPBRAnimvertspv.hpp"
 #include "CompiledSPV/Headers/ForwardPBRvertspv.hpp"
 #include "CompiledSPV/Headers/ForwardPBRfragspv.hpp"
+#include "CompiledSPV/Headers/ForwardPBRLowfragspv.hpp"
 
 #include "CompiledSPV/Headers/Skyboxvertspv.hpp"
 #include "CompiledSPV/Headers/Skyboxfragspv.hpp"
@@ -61,14 +62,18 @@
 #include "CompiledSPV/Headers/Sharpenfragspv.hpp"
 #include "CompiledSPV/Headers/SSAOfragspv.hpp"
 #include "CompiledSPV/Headers/SSAOBlurfragspv.hpp"
+#include "CompiledSPV/Headers/LightCullingcompspv.hpp"
+#include "CompiledSPV/Headers/ForwardPBRPlusfragspv.hpp"
+#include "CompiledSPV/Headers/ForwardPBRInstancedvertspv.hpp"
+#include "CompiledSPV/Headers/ShadowInstancedvertspv.hpp"
 
 namespace Lumos
 {
     namespace Graphics
     {
-#define LoadShaderEmbedded(name, vertName, fragName) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_##vertName##vertspv.data(), spirv_##vertName##vertspv_size, spirv_##fragName##fragspv.data(), spirv_##fragName##fragspv_size)), true);
-#define LoadComputeShaderEmbedded(name, compName) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateCompFromEmbeddedArray(spirv_##compName##compspv.data(), spirv_##compName##compspv_size)), true);
-#define LoadShaderFromFile(name, path) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile((engineShaderPath + path).c_str())), true);
+#define LoadShaderEmbedded(name, vertName, fragName) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_##vertName##vertspv.data(), spirv_##vertName##vertspv_size, spirv_##fragName##fragspv.data(), spirv_##fragName##fragspv_size)), true, true);
+#define LoadComputeShaderEmbedded(name, compName) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateCompFromEmbeddedArray(spirv_##compName##compspv.data(), spirv_##compName##compspv_size)), true, true);
+#define LoadShaderFromFile(name, path) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile((engineShaderPath + path).c_str())), true, true);
 
         Renderer* (*Renderer::CreateFunc)() = nullptr;
 
@@ -92,6 +97,7 @@ namespace Lumos
 
         void Renderer::LoadEngineShaders(bool loadEmbeddedShaders, const std::string& engineShaderPath)
         {
+            LUMOS_PROFILE_FUNCTION();
             auto shaderLibrary = Application::Get().GetAssetManager();
             if(loadEmbeddedShaders)
             {
@@ -99,10 +105,14 @@ namespace Lumos
                 LoadShaderEmbedded(Str8Lit("Skybox"), Skybox, Skybox);
                 LoadShaderEmbedded(Str8Lit("ForwardPBR"), ForwardPBR, ForwardPBR);
                 LoadShaderEmbedded(Str8Lit("ForwardPBRAnim"), ForwardPBRAnim, ForwardPBR);
+                LoadShaderEmbedded(Str8Lit("ForwardPBR_Low"), ForwardPBR, ForwardPBRLow);
                 LoadShaderEmbedded(Str8Lit("Shadow"), Shadow, Shadow);
                 LoadShaderEmbedded(Str8Lit("ShadowAlpha"), Shadow, ShadowAlpha);
                 LoadShaderEmbedded(Str8Lit("ShadowAnim"), ShadowAnim, Shadow);
                 LoadShaderEmbedded(Str8Lit("ShadowAnimAlpha"), ShadowAnim, ShadowAlpha);
+                LoadShaderEmbedded(Str8Lit("ForwardPBRInstanced"), ForwardPBRInstanced, ForwardPBR);
+                LoadShaderEmbedded(Str8Lit("ShadowInstanced"), ShadowInstanced, Shadow);
+                LoadShaderEmbedded(Str8Lit("ShadowInstancedAlpha"), ShadowInstanced, ShadowAlpha);
                 LoadShaderEmbedded(Str8Lit("Batch2DPoint"), Batch2DPoint, Batch2DPoint);
                 LoadShaderEmbedded(Str8Lit("Batch2DLine"), Batch2DLine, Batch2DLine);
                 LoadShaderEmbedded(Str8Lit("Batch2D"), Batch2D, Batch2D);
@@ -133,6 +143,8 @@ namespace Lumos
                 {
                     LoadComputeShaderEmbedded(Str8Lit("BloomComp"), Bloom);
                     LoadComputeShaderEmbedded(Str8Lit("FXAAComp"), FXAACompute);
+                    LoadComputeShaderEmbedded(Str8Lit("LightCulling"), LightCulling);
+                    LoadShaderEmbedded(Str8Lit("ForwardPBRPlus"), ForwardPBR, ForwardPBRPlus);
                 }
             }
             else
@@ -166,7 +178,11 @@ namespace Lumos
                 LoadShaderFromFile(Str8Lit("SSAOBlur"), "Shaders/SSAOBlur.shader");
                 LoadShaderFromFile(Str8Lit("Sharpen"), "Shaders/Sharpen.shader");
                 LoadShaderFromFile(Str8Lit("ForwardPBR"), "Shaders/ForwardPBR.shader");
+                LoadShaderFromFile(Str8Lit("ForwardPBR_Low"), "Shaders/ForwardPBR_Low.shader");
                 LoadShaderFromFile(Str8Lit("ForwardPBRAnim"), "Shaders/ForwardPBRAnim.shader");
+                LoadShaderFromFile(Str8Lit("ForwardPBRInstanced"), "Shaders/ForwardPBRInstanced.shader");
+                LoadShaderFromFile(Str8Lit("ShadowInstanced"), "Shaders/ShadowInstanced.shader");
+                LoadShaderFromFile(Str8Lit("ShadowInstancedAlpha"), "Shaders/ShadowInstancedAlpha.shader");
                 LoadShaderFromFile(Str8Lit("Particle"), "Shaders/Particle.shader");
                 LoadShaderFromFile(Str8Lit("DepthPrePassAnim"), "Shaders/DepthPrePassAnim.shader");
                 LoadShaderFromFile(Str8Lit("DepthPrePassAlphaAnim"), "Shaders/DepthPrePassAlphaAnim.shader")
@@ -175,6 +191,8 @@ namespace Lumos
                 {
                     LoadShaderFromFile(Str8Lit("FXAAComp"), "Shaders/FXAACompute.shader");
                     LoadShaderFromFile(Str8Lit("BloomComp"), "Shaders/BloomComp.shader");
+                    LoadShaderFromFile(Str8Lit("LightCulling"), "Shaders/LightCulling.shader");
+                    LoadShaderFromFile(Str8Lit("ForwardPBRPlus"), "Shaders/ForwardPBRPlus.shader");
                 }
             }
         }
@@ -197,8 +215,14 @@ namespace Lumos
             mesh->GetIndexBuffer()->Bind(commandBuffer);
 
             Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
-            // mesh->GetVertexBuffer()->Unbind();
-            // mesh->GetIndexBuffer()->Unbind();
+        }
+
+        void Renderer::DrawMeshInstanced(CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline, Graphics::Mesh* mesh, uint32_t instanceCount, uint32_t firstInstance)
+        {
+            mesh->GetVertexBuffer()->Bind(commandBuffer, pipeline);
+            mesh->GetIndexBuffer()->Bind(commandBuffer);
+
+            Renderer::DrawIndexedInstanced(commandBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount(), instanceCount, firstInstance);
         }
     }
 }

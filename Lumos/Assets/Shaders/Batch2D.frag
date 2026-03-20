@@ -9,6 +9,8 @@ layout (location = 0) in DATA
 	vec2 uv;
 	float tid;
 	vec4 colour;
+	vec2 rectSize;
+	float cornerRadius;
 } fs_in;
 
 layout(set = 1, binding = 0) uniform sampler2D textures[16];
@@ -24,12 +26,19 @@ vec4 GammaCorrectTexture(vec4 samp)
 	return vec4(pow(samp.rgb, vec3(GAMMA)), samp.a);
 }
 
+// SDF rounded rectangle - returns distance to edge
+float sdRoundedRect(vec2 p, vec2 halfSize, float radius)
+{
+	vec2 q = abs(p) - halfSize + radius;
+	return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - radius;
+}
+
 void main()
 {
 	vec4 texColor = fs_in.colour;
     if (fs_in.tid > 0.0)
     {
-        
+
     switch(int(fs_in.tid - 0.5))
     {
 			case 0: texColor *= GammaCorrectTexture(texture(textures[0], fs_in.uv)); break;
@@ -66,6 +75,20 @@ void main()
 //        case 31: texColor *= texture(textures[31], fs_in.uv); break;
     }
     }
-                                    
+
+	// Apply rounded corners if radius > 0
+	if(fs_in.cornerRadius > 0.0 && fs_in.rectSize.x > 0.0)
+	{
+		vec2 localPos = (fs_in.uv - 0.5) * fs_in.rectSize;
+		vec2 halfSize = fs_in.rectSize * 0.5;
+
+		float radius = min(fs_in.cornerRadius, min(halfSize.x, halfSize.y));
+
+		float dist = sdRoundedRect(localPos, halfSize, radius);
+
+		float alpha = 1.0 - smoothstep(-1.5, 0.5, dist);
+		texColor.a *= alpha;
+	}
+
 	colour = texColor;
 }

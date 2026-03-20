@@ -4,6 +4,7 @@
 #include "Core/DataStructures/Map.h"
 #include "Core/OS/Allocators/PoolAllocator.h"
 #include "Core/DataStructures/TDArray.h"
+#include "Core/OS/KeyCodes.h"
 
 #include "Maths/Vector3.h"
 #include "Maths/Vector4.h"
@@ -30,7 +31,9 @@ namespace Lumos
         WidgetFlags_Floating_Y        = (1 << 8),
         WidgetFlags_CentreX           = (1 << 9),
 		WidgetFlags_CentreY           = (1 << 10),
-        WidgetFlags_DragParent       = (1 << 11)
+        WidgetFlags_DragParent        = (1 << 11),
+        WidgetFlags_AnimateScale      = (1 << 12), // Scale down slightly when pressed
+        WidgetFlags_IsToggle          = (1 << 13)  // For animated toggle switches
     };
 
     enum UITextAlignment : u32
@@ -80,6 +83,7 @@ namespace Lumos
         StyleVar_ShadowColor,
         StyleVar_ShadowOffset,
         StyleVar_ShadowBlur,
+        StyleVar_ItemSpacing,   // .x = horizontal gap, .y = vertical gap between stacked children
         StyleVar_Count
     };
 
@@ -100,7 +104,7 @@ namespace Lumos
         Graphics::Texture2D* texture;
         UI_Size semantic_size[UIAxis_Count];
         UIAxis LayoutingAxis = UIAxis_Y;
-        UITextAlignment TextAlignment;
+        u32 TextAlignment = 0;
 
         Vec2 cursor;
         Vec2 position;
@@ -109,6 +113,8 @@ namespace Lumos
 
         // Temp
         bool clicked;
+        bool right_clicked;
+        bool double_clicked;
 
         bool is_initial_dragging_position_set;
         bool dragging;
@@ -119,6 +125,8 @@ namespace Lumos
         
         f32 HotTransition;
         f32 ActiveTransition;
+        f32 ToggleTransition; // 0 = off, 1 = on (for animated toggles)
+        f32 ScaleAnimation;   // For press scale effect
 
         u64 LastFrameIndexActive;
     };
@@ -128,7 +136,12 @@ namespace Lumos
         UI_Widget* widget;
         bool hovering;
         bool clicked;
+        bool right_clicked;
+        bool double_clicked;
+        bool pressed;
+        bool released;
         bool dragging;
+        Vec2 drag_delta;
     };
 
     struct Style_Variable
@@ -151,7 +164,12 @@ namespace Lumos
     enum UITheme
     {
         UITheme_Light,
-        UITheme_Dark
+        UITheme_Dark,
+        UITheme_Blue,
+        UITheme_Green,
+        UITheme_Purple,
+        UITheme_HighContrast,
+        UITheme_Count
     };
 
     struct UI_State
@@ -179,6 +197,47 @@ namespace Lumos
         f32 AnimationRateDT = 10.0f;
         
         UITheme CurrentTheme = UITheme_Light;
+
+        // Double-click tracking
+        f32 LastClickTime     = 0.0f;
+        u64 LastClickedWidget = 0;
+        f32 DoubleClickTime   = 0.3f; // seconds
+        f32 CurrentTime       = 0.0f;
+
+        // Text input state
+        u64 FocusedTextInput    = 0;
+        char* TextInputBuffer   = nullptr;
+        u32 TextInputBufferSize = 0;
+        u32 TextInputCursor     = 0;
+        u32 TextInputSelStart   = 0; // Selection start
+        u32 TextInputSelEnd     = 0; // Selection end
+        bool TextInputShiftHeld = false;
+
+        // Focus navigation
+        TDArray<u64> FocusableWidgets;
+        i32 FocusIndex = -1;
+        bool TabPressed = false;
+        bool ShiftTabPressed = false;
+
+        // Tree view indent level
+        i32 TreeIndentLevel = 0;
+
+        // Tooltip state
+        u64 HoveredWidget       = 0;
+        f32 HoverStartTime      = 0.0f;
+        f32 TooltipDelay        = 0.5f; // seconds before showing
+        String8 TooltipText     = {};
+        bool ShowTooltip        = false;
+        Vec2 TooltipPos         = {};
+
+        // Dropdown state
+        u64 OpenDropdown = 0;
+        bool OverlayBlocksInput = false;
+
+        // Context menu state
+        bool ContextMenuOpen    = false;
+        Vec2 ContextMenuPos     = {};
+        u64 ContextMenuTrigger  = 0; // Widget that triggered the menu
     };
 
     UI_State* GetUIState();
@@ -197,6 +256,13 @@ namespace Lumos
     UI_Interaction UIBeginPanel(const char* str, SizeKind sizeKindX, float xValue, SizeKind sizeKindY, float yValue, u32 extraFlags = 0);
 
     void UIEndPanel();
+
+    // Window dock/positioning helpers (call between UIBeginPanel and first child)
+    enum UIDockPosition { Dock_Left, Dock_Right, Dock_Top, Dock_Bottom, Dock_Fill };
+    void UIWindowDock(UIDockPosition pos, float sizePercent = 0.5f);
+    void UIWindowCenter();
+    void UIWindowFillScreen();
+    void UIWindowSetSize(float wPercent, float hPercent);
 
     void UIPushStyle(StyleVar style_variable, float value);
     void UIPushStyle(StyleVar style_variable, const Vec2& value);
@@ -222,6 +288,84 @@ namespace Lumos
     UI_Interaction UIToggle(const char* str,
                              bool* value);
 
+    UI_Interaction UICheckbox(const char* str, bool* value);
+
+    // Progress bar (0.0 to 1.0)
+    UI_Interaction UIProgressBar(const char* str,
+                                  float progress,
+                                  float width = 200.0f,
+                                  float height = 20.0f);
+
+    // Integer slider
+    UI_Interaction UISliderInt(const char* str,
+                                int* value,
+                                int min_value = 0,
+                                int max_value = 100,
+                                float width = 250.0f,
+                                float height = 20.0f);
+
+    // Horizontal separator line
+    void UISeparator(float width = 0.0f);
+
+    // Add vertical spacing
+    void UISpacer(float height = 10.0f);
+
+    // Horizontal layout container
+    void UIBeginRow();
+    void UIEndRow();
+
+    // Vertical layout container
+    void UIBeginColumn();
+    void UIEndColumn();
+
+    // Expander (collapsible section header)
+    UI_Interaction UIExpander(const char* str, bool* expanded);
+    void UIBeginExpanderContent(const char* str);
+    void UIEndExpanderContent();
+
+    // Scroll area
+    void UIBeginScrollArea(const char* str, float height, float* scroll_offset);
+    void UIEndScrollArea();
+
+    // Text input
+    UI_Interaction UITextInput(const char* str, char* buffer, u32 buffer_size, u32* cursor_pos = nullptr);
+
+    // Dropdown/ComboBox
+    UI_Interaction UIDropdown(const char* str, int* selected_index, const char** options, int option_count);
+
+    // Tooltip - call after the widget you want to add tooltip to
+    void UITooltip(const char* text);
+
+    // Context menu - right-click popup
+    bool UIBeginContextMenu(const char* str);
+    void UIEndContextMenu();
+    UI_Interaction UIContextMenuItem(const char* str);
+
+    // Tab container
+    bool UIBeginTabBar(const char* str);
+    void UIEndTabBar();
+    bool UITabItem(const char* str, bool* open = nullptr);
+
+    // Modal dialog
+    bool UIBeginModal(const char* str, bool* open);
+    void UIEndModal();
+
+    // Tree view
+    bool UITreeNode(const char* str, bool* expanded = nullptr);
+    void UITreePop();
+
+    // Color picker
+    bool UIColorEdit3(const char* str, float* rgb); // RGB 0-1
+    bool UIColorEdit4(const char* str, float* rgba); // RGBA 0-1
+
+    // Process text input (call from app event handler)
+    void UIProcessKeyTyped(char character);
+    void UIProcessKeyPressed(InputCode::Key key);
+
+    // Focus navigation
+    void UISetFocusNext(); // Focus next focusable widget
+    void UISetFocusPrev(); // Focus previous focusable widget
+
     void UIBeginBuild();
     void UIEndBuild();
     void UILayoutRoot(UI_Widget* Root);
@@ -243,6 +387,11 @@ namespace Lumos
     
     // Theme management
     void UISetTheme(UITheme theme);
+    const char* UIGetThemeName(UITheme theme);
     void UIApplyLightTheme();
     void UIApplyDarkTheme();
+    void UIApplyBlueTheme();
+    void UIApplyGreenTheme();
+    void UIApplyPurpleTheme();
+    void UIApplyHighContrastTheme();
 }

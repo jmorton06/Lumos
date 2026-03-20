@@ -50,6 +50,7 @@ namespace Lumos
 
             void ExecuteSecondary(CommandBuffer* primaryCmdBuffer) override;
             void UpdateViewport(uint32_t width, uint32_t height, bool flipViewport) override;
+            void BufferMemoryBarrier(PipelineStage srcStage, PipelineStage dstStage) override;
 
             VkCommandBuffer GetHandle() const { return m_CommandBuffer; };
             CommandBufferState GetState() const { return m_State; }

@@ -42,11 +42,19 @@ namespace Lumos
             {
                 LINFO(
                     "Available command-line options:\n"
-                    "  --EnableVulkanValidation   Enable Vulkan API validation layers\n"
-                    "  --CleanEditorIni           Delete the editor’s INI file on startup\n"
-                    "  --help                     Show this help message\n"
-                    "  --disable-spash            Disable Splash Screen\n"
-                    "  --test-maths               Test Maths Library\n");
+                    "  --EnableVulkanValidation     Enable Vulkan API validation layers\n"
+                    "  --CleanEditorIni             Delete the editor's INI file on startup\n"
+                    "  --help                       Show this help message\n"
+                    "  --disable-splash             Disable Splash Screen\n"
+                    "  --test-maths                 Test Maths Library\n"
+                    "  --screenshot=<path>          Take screenshot on first frame and save to path\n"
+                    "  --screenshot-no-close        Don't close app after taking screenshot\n"
+                    "  --force-embedded-shaders     Force use of embedded shaders (skip disk loading)\n"
+                    "  --test-ui                    Show test UI on startup\n"
+                    "  --disable-test-ui            Hide test UI on startup\n"
+                    "  --headless                   Run without rendering (no window)\n"
+                    "  --scene=<name>               Load specific scene on startup\n"
+                    "  --benchmark=<frames>         Run for N frames, log performance, then exit\n");
             }
 
             // Init Jobsystem. Reserve 2 threads for main and render threads

@@ -1,5 +1,7 @@
 #include "Precompiled.h"
 #include "Camera.h"
+#include "Maths/Ray.h"
+#include "Scene/Serialisation/Serialisation.h"
 
 namespace Lumos
 {

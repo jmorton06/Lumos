@@ -205,7 +205,7 @@ namespace Lumos::Maths
                 float denom = a * e - b * b;
 
                 // If the segments are not parallel
-                if(denom != 0.0f)
+                if(Maths::Abs(denom) > M_EPSILON)
                 {
 
                     // Compute the closest point on line 1 to line 2 and
@@ -246,7 +246,11 @@ namespace Lumos::Maths
 
     bool AreVectorsParallel(const Vec3& v1, const Vec3& v2)
     {
-        return v1.Cross(v2).LengthSquared() < M_EPSILON;
+        float crossLenSq = Maths::Length2(v1.Cross(v2));
+        float denom = Maths::Length2(v1) * Maths::Length2(v2);
+        if(denom < M_EPSILON * M_EPSILON)
+            return true;
+        return crossLenSq < M_EPSILON * denom;
     }
 
     Vec2 WorldToScreen(const Vec3& worldPos, const Mat4& mvp, float width, float height, float winPosX, float winPosY)

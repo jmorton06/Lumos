@@ -29,6 +29,18 @@ namespace Lumos
             virtual void UnBindPipeline()                                 = 0;
             virtual void EndCurrentRenderPass()                           = 0;
 
+            // Insert a memory barrier between pipeline stages (e.g. compute write -> fragment read)
+            enum class PipelineStage : uint32_t
+            {
+                COMPUTE_SHADER = 0,
+                FRAGMENT_SHADER,
+                VERTEX_SHADER,
+                TRANSFER,
+                TOP_OF_PIPE,
+                BOTTOM_OF_PIPE
+            };
+            virtual void BufferMemoryBarrier(PipelineStage srcStage, PipelineStage dstStage) { }
+
         protected:
             static CommandBuffer* (*CreateFunc)();
         };

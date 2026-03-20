@@ -27,6 +27,8 @@
 
 #define MAX_SIMULTANEOUS_TOUCHES 10
 
+static void iOSShowKeyboard(bool show);
+
 namespace Lumos
 {
 	static CAMetalLayer* s_Layer = nullptr;
@@ -98,6 +100,45 @@ namespace Lumos
 		}
 	}
 
+    bool iOSOS::CopyBundleFolder(const std::string& bundleSrc, const std::string& dest)
+    {
+        @autoreleasepool {
+            NSFileManager* fm = [NSFileManager defaultManager];
+            NSString* srcPath = [NSString stringWithUTF8String:bundleSrc.c_str()];
+            NSString* dstPath = [NSString stringWithUTF8String:dest.c_str()];
+
+            // Remove trailing slashes for NSFileManager
+            while([srcPath hasSuffix:@"/"] && srcPath.length > 1)
+                srcPath = [srcPath substringToIndex:srcPath.length - 1];
+            while([dstPath hasSuffix:@"/"] && dstPath.length > 1)
+                dstPath = [dstPath substringToIndex:dstPath.length - 1];
+
+            if(![fm fileExistsAtPath:srcPath])
+            {
+                LWARN("CopyBundleFolder: source not found: %s", bundleSrc.c_str());
+                return false;
+            }
+
+            // Create parent directory
+            NSString* parentDir = [dstPath stringByDeletingLastPathComponent];
+            NSError* error = nil;
+            [fm createDirectoryAtPath:parentDir withIntermediateDirectories:YES attributes:nil error:&error];
+
+            // Remove existing destination so copyItemAtPath succeeds
+            if([fm fileExistsAtPath:dstPath])
+                [fm removeItemAtPath:dstPath error:nil];
+
+            if(![fm copyItemAtPath:srcPath toPath:dstPath error:&error])
+            {
+                LWARN("CopyBundleFolder failed: %s", [[error localizedDescription] UTF8String]);
+                return false;
+            }
+
+            LINFO("Copied bundle folder %s -> %s", bundleSrc.c_str(), dest.c_str());
+            return true;
+        }
+    }
+
     void iOSOS::OnKeyPressed(char keycode, bool down, bool cmd, bool shift, bool alt, bool ctrl)
     {
         Lumos::InputCode::Key lumosKey = Lumos::iOSKeyCodes::iOSKeyToLumos(keycode);
@@ -109,6 +150,24 @@ namespace Lumos
         if (ctrl) window->OnKeyEvent(Lumos::InputCode::Key::LeftControl, down);
 
         window->OnKeyEvent(lumosKey, down);
+    }
+
+    void iOSOS::OnKeyTyped(char character)
+    {
+        iOSWindow* window = (iOSWindow*)Application::Get().GetWindow();
+        window->OnKeyTypedEvent(character);
+    }
+
+    void iOSOS::OnMouseButtonEvent(int button, bool down)
+    {
+        iOSWindow* window = (iOSWindow*)Application::Get().GetWindow();
+        window->OnTouchEvent(0, 0, button, down);
+    }
+
+    void iOSOS::OnScrollWheelEvent(float xOffset, float yOffset)
+    {
+        iOSWindow* window = (iOSWindow*)Application::Get().GetWindow();
+        window->OnScrollEvent(xOffset, yOffset);
     }
 
     void iOSOS::OnScreenPressed(uint32_t x, uint32_t y, uint32_t count, bool down)
@@ -228,15 +287,7 @@ namespace Lumos
     void iOSOS::ShowKeyboard(bool bShow)
     {
         dispatch_async(dispatch_get_main_queue(), ^{
-            UIViewController *rootVC = [[[UIApplication sharedApplication] delegate] window].rootViewController;
-            if ([rootVC respondsToSelector:@selector(setKeyboardRequested:)]) {
-                [(id)rootVC setKeyboardRequested:bShow];
-                if (bShow) {
-                    [rootVC becomeFirstResponder];
-                } else {
-                    [rootVC resignFirstResponder];
-                }
-            }
+            iOSShowKeyboard(bShow);
         });
     }
 
@@ -369,12 +420,13 @@ namespace Lumos
    Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
    if(!os->OnFrame())
    {
-	   os->OnQuit();
+       view.paused = YES;
+       os->OnQuit();
+       return;
    }
 
    if(self.resizeQueue.count > 0)
    {
-	Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::GetPtr();
     for (NSValue *sizeValue in self.resizeQueue) {
         CGSize size = [sizeValue CGSizeValue];
         os->OnScreenResize((int)size.width, (int)size.height);
@@ -420,6 +472,7 @@ CALayer* layer;
 @property(nonatomic, assign) BOOL multipleTouchEnabled;
 @property(nonatomic, assign) BOOL keyboardRequested;
 @property(nonatomic, assign) BOOL keyboardVisible;
+@property(nonatomic, strong) UIView *emptyInputView;
 @property(nonatomic, strong) UIPinchGestureRecognizer *pinchGesture;
 @property(nonatomic, strong) UIPanGestureRecognizer *panGesture;
 
@@ -454,7 +507,9 @@ CALayer* layer;
 }
 
 - (UIRectEdge)preferredScreenEdgesDeferringSystemGestures {
-    return UIRectEdgeNone;//_Display->uiChrome == UserInterfaceChromeFullscreen ? UIRectEdgeBottom : UIRectEdgeNone;
+    if(Lumos::Application::Get().GetAppType() == Lumos::AppType::Editor)
+        return UIRectEdgeAll;
+    return UIRectEdgeNone;
 }
 
 - (UIView<LumosView> *)lumosView {
@@ -510,7 +565,9 @@ CALayer* layer;
 
     self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     self.multipleTouchEnabled = true;
-    
+    self.keyboardRequested = NO;
+    self.emptyInputView = [[UIView alloc] initWithFrame:CGRectZero];
+
 #if TARGET_OS_IOS
     self.view.multipleTouchEnabled = self.multipleTouchEnabled;
     [self setNeedsStatusBarAppearanceUpdate];
@@ -518,25 +575,20 @@ CALayer* layer;
                                                name:UIKeyboardWillChangeFrameNotification
                                              object:self.view.window];
 
-    // Add pointer interaction for iPad editor (iOS 13.4+)
+    // Add pointer interaction for trackpad/mouse (iOS 13.4+)
     if (@available(iOS 13.4, *)) {
-        if (Lumos::Application::Get().GetAppType() == Lumos::AppType::Editor) {
-            UIPointerInteraction *pointerInteraction = [[UIPointerInteraction alloc] initWithDelegate:self];
-            [self.view addInteraction:pointerInteraction];
-        }
+        UIPointerInteraction *pointerInteraction = [[UIPointerInteraction alloc] initWithDelegate:self];
+        [self.view addInteraction:pointerInteraction];
     }
 
-    // Add hover gesture for cursor movement (iOS 13.0+) - only for trackpad/pencil
+    // Add hover gesture for cursor movement (iOS 13.0+) - trackpad/mouse
     if (@available(iOS 13.0, *)) {
-        if (Lumos::Application::Get().GetAppType() == Lumos::AppType::Editor) {
-            UIHoverGestureRecognizer *hoverGesture = [[UIHoverGestureRecognizer alloc]
-                initWithTarget:self action:@selector(handleHover:)];
-            // Only allow indirect pointer (trackpad), not direct touches
-            if (@available(iOS 13.4, *)) {
-                hoverGesture.allowedTouchTypes = @[];  // No touch input
-            }
-            [self.view addGestureRecognizer:hoverGesture];
+        UIHoverGestureRecognizer *hoverGesture = [[UIHoverGestureRecognizer alloc]
+            initWithTarget:self action:@selector(handleHover:)];
+        if (@available(iOS 13.4, *)) {
+            hoverGesture.allowedTouchTypes = @[];
         }
+        [self.view addGestureRecognizer:hoverGesture];
     }
 
     // Add pinch gesture for zoom
@@ -577,6 +629,9 @@ CALayer* layer;
     longPress.minimumPressDuration = 0.5;
     longPress.delaysTouchesBegan = NO;
     [self.view addGestureRecognizer:longPress];
+
+    // Become first responder to receive external keyboard input
+    [self becomeFirstResponder];
 #endif
 
 	if (![self.view.layer isKindOfClass:[CAMetalLayer class]]) {
@@ -609,6 +664,15 @@ CALayer* layer;
     }];
 }
 
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    UIEdgeInsets insets = self.view.safeAreaInsets;
+    CGFloat scale = self.view.contentScaleFactor;
+    Lumos::iOSOS::Get()->SetSafeAreaInsets(
+        insets.top * scale, insets.bottom * scale,
+        insets.left * scale, insets.right * scale);
+}
+
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     printf("Receive memory warning!\n");
@@ -626,10 +690,7 @@ CALayer* layer;
 
 - (UIPointerStyle *)pointerInteraction:(UIPointerInteraction *)interaction
                         styleForRegion:(UIPointerRegion *)region API_AVAILABLE(ios(13.4)) {
-    if (Lumos::Application::Get().GetAppType() == Lumos::AppType::Editor) {
-        return [UIPointerStyle hiddenPointerStyle]; // Let ImGui draw cursor
-    }
-    return nil; // Default pointer
+    return nil; // Default system pointer
 }
 
 - (UIPointerRegion *)pointerInteraction:(UIPointerInteraction *)interaction
@@ -639,8 +700,6 @@ CALayer* layer;
 }
 
 - (void)handleHover:(UIHoverGestureRecognizer *)gesture API_AVAILABLE(ios(13.0)) {
-    if (Lumos::Application::Get().GetAppType() != Lumos::AppType::Editor) return;
-
     CGPoint location = [gesture locationInView:self.view];
     location.x *= self.view.contentScaleFactor;
     location.y *= self.view.contentScaleFactor;
@@ -807,14 +866,25 @@ CALayer* layer;
 
 #pragma mark UIKeyInput methods
 
-//// A key on the keyboard has been pressed.
 - (void)insertText:(NSString *)text {
-    unichar keycode = (text.length > 0) ? [text characterAtIndex:0] : 0;
-    [self handleKeyboardInput:keycode];
+    if (text.length == 0) return;
+
+    Lumos::iOSWindow* window = (Lumos::iOSWindow*)Lumos::Application::Get().GetWindow();
+    for (NSUInteger i = 0; i < text.length; i++) {
+        unichar ch = [text characterAtIndex:i];
+        if (ch == '\n' || ch == '\r') {
+            window->OnKeyEvent(Lumos::InputCode::Key::Enter, true);
+            window->OnKeyEvent(Lumos::InputCode::Key::Enter, false);
+        } else if (ch < 0x80) {
+            Lumos::iOSOS::Get()->OnKeyTyped((char)ch);
+        }
+    }
 }
 
 - (void)deleteBackward {
-    [self handleKeyboardInput:0x08]; // ASCII Backspace
+    Lumos::iOSWindow* window = (Lumos::iOSWindow*)Lumos::Application::Get().GetWindow();
+    window->OnKeyEvent(Lumos::InputCode::Key::Backspace, true);
+    window->OnKeyEvent(Lumos::InputCode::Key::Backspace, false);
 }
 
 typedef enum {
@@ -874,6 +944,20 @@ typedef enum {
 
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    if (@available(iOS 13.4, *)) {
+        if (event.type == UIEventTypeHover && (event.buttonMask & UIEventButtonMaskSecondary)) {
+            UITouch *touch = [touches anyObject];
+            if (touch) {
+                CGPoint location = [touch locationInView:self.view];
+                location.x *= self.view.contentScaleFactor;
+                location.y *= self.view.contentScaleFactor;
+                Lumos::iOSOS::Get()->OnMouseMovedEvent(location.x, location.y);
+                Lumos::iOSOS::Get()->OnScreenPressed(location.x, location.y, 1, true);
+            }
+            return;
+        }
+    }
+
     NSUInteger totalTouches = event.allTouches.count;
 
     if(totalTouches == 1 && !self.wasMultiTouch)
@@ -931,6 +1015,19 @@ typedef enum {
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+    if (@available(iOS 13.4, *)) {
+        if (event.type == UIEventTypeHover && (event.buttonMask & UIEventButtonMaskSecondary)) {
+            UITouch *touch = [touches anyObject];
+            if (touch) {
+                CGPoint location = [touch locationInView:self.view];
+                location.x *= self.view.contentScaleFactor;
+                location.y *= self.view.contentScaleFactor;
+                Lumos::iOSOS::Get()->OnScreenPressed(location.x, location.y, 1, false);
+            }
+            return;
+        }
+    }
+
     NSUInteger remainingTouches = 0;
     for(UITouch *touch in event.allTouches)
     {
@@ -989,7 +1086,13 @@ typedef enum {
 }
 
 - (BOOL)canBecomeFirstResponder {
-    return self.keyboardRequested;
+    return YES;
+}
+
+- (UIView *)inputView {
+    // Return empty view to suppress software keyboard when not requested
+    // nil = show default keyboard, empty view = hide keyboard
+    return self.keyboardRequested ? nil : self.emptyInputView;
 }
 
 - (NSArray<UIKeyCommand *> *)keyCommands {
@@ -1034,12 +1137,13 @@ typedef enum {
     UIKeyModifierFlags modifiers = keyCommand.modifierFlags;
 
     char keycode = 0;
-    if ([input isEqualToString:UIKeyInputUpArrow]) keycode = 0x7E;
-    else if ([input isEqualToString:UIKeyInputDownArrow]) keycode = 0x7D;
-    else if ([input isEqualToString:UIKeyInputLeftArrow]) keycode = 0x7B;
-    else if ([input isEqualToString:UIKeyInputRightArrow]) keycode = 0x7C;
-    else if ([input isEqualToString:UIKeyInputEscape]) keycode = 0x35;
-    else if ([input isEqualToString:@"\t"]) keycode = 0x30;
+    BOOL isSpecialKey = NO;
+    if ([input isEqualToString:UIKeyInputUpArrow]) { keycode = 0x7E; isSpecialKey = YES; }
+    else if ([input isEqualToString:UIKeyInputDownArrow]) { keycode = 0x7D; isSpecialKey = YES; }
+    else if ([input isEqualToString:UIKeyInputLeftArrow]) { keycode = 0x7B; isSpecialKey = YES; }
+    else if ([input isEqualToString:UIKeyInputRightArrow]) { keycode = 0x7C; isSpecialKey = YES; }
+    else if ([input isEqualToString:UIKeyInputEscape]) { keycode = 0x35; isSpecialKey = YES; }
+    else if ([input isEqualToString:@"\t"]) { keycode = 0x30; isSpecialKey = YES; }
     else if (input.length > 0) keycode = [input characterAtIndex:0];
 
     BOOL hasCmd = (modifiers & UIKeyModifierCommand) != 0;
@@ -1047,14 +1151,24 @@ typedef enum {
     BOOL hasAlt = (modifiers & UIKeyModifierAlternate) != 0;
     BOOL hasCtrl = (modifiers & UIKeyModifierControl) != 0;
 
+    // Key down
     Lumos::iOSOS::Get()->OnKeyPressed(keycode, true, hasCmd, hasShift, hasAlt, hasCtrl);
+
+    // Send typed event for printable chars without cmd modifier
+    if (!isSpecialKey && !hasCmd && input.length > 0) {
+        char ch = [input characterAtIndex:0];
+        Lumos::iOSOS::Get()->OnKeyTyped(ch);
+    }
+
+    // Key up so keys don't stick
+    Lumos::iOSOS::Get()->OnKeyPressed(keycode, false, hasCmd, hasShift, hasAlt, hasCtrl);
 }
 
 // Toggle the display of the virtual keyboard
 -(void) toggleKeyboard {
-    if (self.isFirstResponder) {
-        [self resignFirstResponder];
-    } else {
+    self.keyboardRequested = !self.keyboardRequested;
+    [self reloadInputViews];
+    if (self.keyboardRequested) {
         [self becomeFirstResponder];
     }
 }
@@ -1066,9 +1180,11 @@ typedef enum {
     }
 }
 
-// Handle keyboard input
+// Kept for compatibility — no longer used internally
 -(void) handleKeyboardInput: (unichar) keycode {
-    Lumos::iOSOS::Get()->OnKeyPressed(keycode, true);
+    Lumos::iOSOS::Get()->OnKeyPressed((char)keycode, true);
+    Lumos::iOSOS::Get()->OnKeyTyped((char)keycode);
+    Lumos::iOSOS::Get()->OnKeyPressed((char)keycode, false);
 }
 
 - (BOOL)hasNotch
@@ -1090,6 +1206,15 @@ typedef enum {
 @synthesize hasText;
 @end
 
+static void iOSShowKeyboard(bool show) {
+    LumosViewController *vc = (LumosViewController *)[[[UIApplication sharedApplication] delegate] window].rootViewController;
+    vc.keyboardRequested = show;
+    [vc reloadInputViews];
+    if (show) {
+        [vc becomeFirstResponder];
+    }
+}
+
 @implementation LumosAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -1108,13 +1233,6 @@ typedef enum {
         // Split View or Slide Over.
         self.window.frame = [[UIScreen mainScreen] bounds];
     }
-
-    UIEdgeInsets safeAreaInsets = self.window.safeAreaInsets;
-    CGRect safeAreaFrame = CGRectMake(safeAreaInsets.left,
-                                      safeAreaInsets.top,
-                                      self.window.frame.size.width - safeAreaInsets.left - safeAreaInsets.right,
-                                      self.window.frame.size.height - safeAreaInsets.top - safeAreaInsets.bottom);
-    self.window.frame = safeAreaFrame;
 
     self.window.rootViewController = [[LumosViewController alloc] init];
     [self.window makeKeyAndVisible];

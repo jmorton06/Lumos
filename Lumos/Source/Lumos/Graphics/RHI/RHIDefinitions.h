@@ -437,16 +437,19 @@ namespace Lumos
         {
             bool flipX;
             bool flipY;
+            bool storePixelData; // keep CPU-side pixel copy after GPU upload
 
             TextureLoadOptions()
             {
-                flipX = false;
-                flipY = false;
+                flipX          = false;
+                flipY          = false;
+                storePixelData = false;
             }
 
-            TextureLoadOptions(bool flipX, bool flipY)
+            TextureLoadOptions(bool flipX, bool flipY, bool storePixelData = false)
                 : flipX(flipX)
                 , flipY(flipY)
+                , storePixelData(storePixelData)
             {
             }
         };

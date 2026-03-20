@@ -82,7 +82,7 @@ namespace Lumos
                                            { vkFreeDescriptorSets(device, pool, 1, &descriptorSet); });
             }
 
-            for(auto bufferData : m_DescriptorData)
+            for(auto& bufferData : m_DescriptorData)
             {
                 bufferData.LocalStorage.Release();
             }
@@ -642,7 +642,7 @@ namespace Lumos
             LWARN("Uniform not found %d", int(binding));
         }
 
-        void VKDescriptorSet::SetUniformBufferData(u8 binding, void* data, float size)
+        void VKDescriptorSet::SetUniformBufferData(u8 binding, void* data, uint32_t size)
         {
             LUMOS_PROFILE_FUNCTION();
 

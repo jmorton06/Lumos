@@ -1,0 +1,192 @@
+#version 450
+
+#extension GL_ARB_separate_shader_objects : enable
+
+#define TILE_SIZE 16
+#define MAX_LIGHTS_PER_TILE 256
+
+layout(local_size_x = TILE_SIZE, local_size_y = TILE_SIZE, local_size_z = 1) in;
+
+struct Light
+{
+	vec4 colour;
+	vec4 position;
+	vec4 direction;
+	float intensity;
+	float radius;
+	float type;
+	float angle;
+};
+
+layout(set = 0, binding = 0) uniform sampler2D u_DepthTexture;
+
+layout(std430, set = 0, binding = 1) readonly buffer LightBuffer {
+	Light lights[];
+} u_Lights;
+
+layout(std430, set = 0, binding = 2) writeonly buffer LightGrid {
+	uvec2 tiles[];
+} u_LightGrid;
+
+layout(std430, set = 0, binding = 3) writeonly buffer LightIndices {
+	uint indices[];
+} u_LightIndices;
+
+layout(std430, set = 0, binding = 4) buffer GlobalIndexCount {
+	uint globalCount;
+} u_GlobalIndexCount;
+
+layout(push_constant) uniform PushConstants
+{
+	mat4 invProjection;
+	uint screenWidth;
+	uint screenHeight;
+	uint tileCountX;
+	uint tileCountY;
+	uint lightCount;
+	float near;
+	float far;
+} u_PushConstants;
+
+shared uint s_MinDepth;
+shared uint s_MaxDepth;
+shared uint s_LightCount;
+shared uint s_LightIndices[MAX_LIGHTS_PER_TILE];
+shared uint s_GlobalOffset;
+
+// Frustum planes for this tile
+shared vec4 s_FrustumPlanes[6];
+
+vec4 ClipToView(vec4 clip)
+{
+	vec4 view = u_PushConstants.invProjection * clip;
+	return view / view.w;
+}
+
+vec4 ScreenToView(vec2 screenCoord)
+{
+	vec2 uv = screenCoord / vec2(u_PushConstants.screenWidth, u_PushConstants.screenHeight);
+	vec4 clip = vec4(uv * 2.0 - 1.0, 1.0, 1.0);
+	// Flip Y for Vulkan
+	clip.y = -clip.y;
+	return ClipToView(clip);
+}
+
+bool SphereInsideFrustum(vec3 center, float radius)
+{
+	for(int i = 0; i < 6; i++)
+	{
+		if(dot(vec4(center, 1.0), s_FrustumPlanes[i]) < -radius)
+			return false;
+	}
+	return true;
+}
+
+void main()
+{
+	uvec2 tileID = gl_WorkGroupID.xy;
+	uint tileIndex = tileID.y * u_PushConstants.tileCountX + tileID.x;
+	uint localIndex = gl_LocalInvocationIndex;
+
+	// Init shared memory
+	if(localIndex == 0)
+	{
+		s_MinDepth = 0xFFFFFFFF;
+		s_MaxDepth = 0;
+		s_LightCount = 0;
+	}
+	barrier();
+
+	// Sample depth at this pixel
+	ivec2 pixelCoord = ivec2(gl_GlobalInvocationID.xy);
+	if(pixelCoord.x < int(u_PushConstants.screenWidth) && pixelCoord.y < int(u_PushConstants.screenHeight))
+	{
+		float depth = texelFetch(u_DepthTexture, pixelCoord, 0).r;
+		// Linearize depth for min/max (Vulkan depth is 0..1)
+		uint depthInt = floatBitsToUint(depth);
+		atomicMin(s_MinDepth, depthInt);
+		atomicMax(s_MaxDepth, depthInt);
+	}
+	barrier();
+
+	// Build tile frustum planes (first thread only)
+	if(localIndex == 0)
+	{
+		float minDepth = uintBitsToFloat(s_MinDepth);
+		float maxDepth = uintBitsToFloat(s_MaxDepth);
+
+		// Tile corners in screen space
+		vec2 tileMin = vec2(tileID) * float(TILE_SIZE);
+		vec2 tileMax = tileMin + vec2(TILE_SIZE);
+
+		// Clamp to screen
+		tileMax = min(tileMax, vec2(u_PushConstants.screenWidth, u_PushConstants.screenHeight));
+
+		// View-space corners at near plane
+		vec3 viewTL = ScreenToView(tileMin).xyz;
+		vec3 viewTR = ScreenToView(vec2(tileMax.x, tileMin.y)).xyz;
+		vec3 viewBL = ScreenToView(vec2(tileMin.x, tileMax.y)).xyz;
+		vec3 viewBR = ScreenToView(tileMax).xyz;
+
+		// Build frustum planes (normals pointing inward)
+		// Left plane
+		s_FrustumPlanes[0] = vec4(normalize(cross(viewBL, viewTL)), 0.0);
+		// Right plane
+		s_FrustumPlanes[1] = vec4(normalize(cross(viewTR, viewBR)), 0.0);
+		// Top plane
+		s_FrustumPlanes[2] = vec4(normalize(cross(viewTL, viewTR)), 0.0);
+		// Bottom plane
+		s_FrustumPlanes[3] = vec4(normalize(cross(viewBR, viewBL)), 0.0);
+		// Near plane
+		s_FrustumPlanes[4] = vec4(0.0, 0.0, 1.0, minDepth);
+		// Far plane
+		s_FrustumPlanes[5] = vec4(0.0, 0.0, -1.0, -maxDepth);
+	}
+	barrier();
+
+	// Each thread tests a subset of lights
+	uint threadCount = TILE_SIZE * TILE_SIZE;
+	for(uint i = localIndex; i < u_PushConstants.lightCount; i += threadCount)
+	{
+		Light light = u_Lights.lights[i];
+
+		// Only cull point lights and spot lights (type 1 = spot, type 2 = point)
+		if(light.type == 0.0)
+		{
+			// Directional light always visible
+			uint idx = atomicAdd(s_LightCount, 1);
+			if(idx < MAX_LIGHTS_PER_TILE)
+				s_LightIndices[idx] = i;
+		}
+		else
+		{
+			// Sphere-frustum test using light position and radius
+			vec3 lightPos = light.position.xyz;
+			float lightRadius = light.radius * 100.0; // Match CPU frustum cull scale
+
+			if(SphereInsideFrustum(lightPos, lightRadius))
+			{
+				uint idx = atomicAdd(s_LightCount, 1);
+				if(idx < MAX_LIGHTS_PER_TILE)
+					s_LightIndices[idx] = i;
+			}
+		}
+	}
+	barrier();
+
+	// First thread writes results to global buffers
+	if(localIndex == 0)
+	{
+		uint count = min(s_LightCount, uint(MAX_LIGHTS_PER_TILE));
+		s_GlobalOffset = atomicAdd(u_GlobalIndexCount.globalCount, count);
+		u_LightGrid.tiles[tileIndex] = uvec2(s_GlobalOffset, count);
+	}
+	barrier();
+
+	// All threads cooperatively write light indices to global buffer
+	uint count = min(s_LightCount, uint(MAX_LIGHTS_PER_TILE));
+	for(uint i = localIndex; i < count; i += threadCount)
+	{
+		u_LightIndices.indices[s_GlobalOffset + i] = s_LightIndices[i];
+	}
+}

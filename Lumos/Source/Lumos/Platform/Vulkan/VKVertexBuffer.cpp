@@ -9,14 +9,14 @@ namespace Lumos
     namespace Graphics
     {
         VKVertexBuffer::VKVertexBuffer(const BufferUsage& usage)
-            : VKBuffer(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, usage == BufferUsage::DYNAMIC ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT : 0, 0, nullptr)
+            : VKBuffer(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, usage == BufferUsage::DYNAMIC ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT : 0, 0, nullptr)
             , m_Usage(usage)
             , m_Size(0)
         {
         }
 
         VKVertexBuffer::VKVertexBuffer(uint32_t size, const void* data, const BufferUsage& usage)
-            : VKBuffer(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, usage == BufferUsage::DYNAMIC ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT : 0, size, data)
+            : VKBuffer(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, usage == BufferUsage::DYNAMIC ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT : 0, size, data)
             , m_Usage(usage)
             , m_Size(size)
         {

@@ -5,6 +5,7 @@
 #include <Lumos/Graphics/Camera/EditorCamera.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Core/Application.h>
+#include <Lumos/Core/JobSystem.h>
 #include <Lumos/Scene/Entity.h>
 #include <Lumos/Maths/Vector3.h>
 #include <imgui/imgui.h>
@@ -24,6 +25,7 @@ namespace Lumos
     class PreviewDraw;
     class EditorPanel;
     class ResourcePanel;
+    class ImportPanel;
     class Camera;
 
     namespace Graphics
@@ -71,6 +73,7 @@ namespace Lumos
         void ExitApp() override;
 
         void DrawMenuBar();
+        void DrawWelcomeScreen();
         void BeginDockSpace(bool gameFullScreen);
         void EndDockSpace();
 
@@ -280,6 +283,15 @@ namespace Lumos
             float m_CameraFar   = 1000.0f;
 
             std::vector<std::string> m_RecentProjects;
+            std::vector<std::string> m_RecentScenes;
+
+            struct SceneCameraState
+            {
+                std::string sceneName;
+                float posX = -31.0f, posY = 12.0f, posZ = 51.0f;
+                float rotX = 0.0f, rotY = 0.0f, rotZ = 0.0f, rotW = 1.0f;
+            };
+            TDArray<SceneCameraState> m_SceneCameraStates;
         };
 
         EditorSettings& GetSettings() { return m_Settings; }
@@ -305,6 +317,8 @@ namespace Lumos
         bool m_SceneViewActive     = false;
         bool m_NewProjectPopupOpen = false;
         bool m_GizmoUsing          = false;
+        System::JobSystem::Context m_AssetPackContext;
+        bool m_AssetPackResult = false;
 
         EditorSettings m_Settings;
         std::vector<SharedPtr<EditorPanel>> m_Panels;
@@ -313,6 +327,7 @@ namespace Lumos
 
         FileBrowserPanel* m_FileBrowserPanel;
         ResourcePanel* m_ResourcePanel = nullptr;
+        ImportPanel* m_ImportPanel     = nullptr;
         std::vector<std::string> m_CachedAssetPaths;
         PreviewDraw* m_PreviewDraw;
 
@@ -324,6 +339,7 @@ namespace Lumos
 
         SharedPtr<Graphics::GridRenderer> m_GridRenderer;
 
+        std::string m_LastSceneName;
         std::string m_TempSceneSaveFilePath;
         int m_AutoSaveSettingsTime = 15000;
         String8 m_EditorScriptPath;
@@ -334,6 +350,7 @@ namespace Lumos
         String8 m_RequestedThumbnailPath;
 
         IniFile m_IniFile;
+        std::string m_ProjectLoadError;
 
         bool m_PreviewScreenshot = false;
         bool m_QueuedScenePreviewEnd = false;

@@ -427,21 +427,18 @@ namespace Lumos
 
     void EditorCameraController::HandleGesturePinch(Maths::Transform& transform, float scale, float velocity, float dt)
     {
-        // scale is per-frame delta (1.0 = no change, >1 = zoom out, <1 = zoom in)
+        // scale is per-frame delta (1.0 = no change, >1 = pinch out/zoom in, <1 = pinch in/zoom out)
         if(m_CameraMode == EditorCameraMode::TWODIM)
         {
-            // Orthographic: multiply camera scale by pinch delta
             if(m_Camera)
             {
-                float newScale = m_Camera->GetScale() * scale;
+                float newScale = m_Camera->GetScale() / scale;
                 m_Camera->SetScale(Maths::Clamp(newScale, 0.1f, 100.0f));
             }
         }
         else
         {
-            // 3D mode: move camera forward/backward
-            // Convert scale delta to movement (invert: pinch in = move forward)
-            float zoomAmount = (1.0f - scale) * 50.0f;
+            float zoomAmount = (scale - 1.0f) * 50.0f;
             Vec3 pos = transform.GetLocalPosition();
             pos += transform.GetForwardDirection() * zoomAmount;
             transform.SetLocalPosition(pos);

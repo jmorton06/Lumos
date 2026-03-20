@@ -2,6 +2,7 @@
 #include "Editor.h"
 #include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/Core/OS/Input.h>
+#include <Lumos/Core/OS/OS.h>
 #include <Lumos/Utilities/StringUtilities.h>
 #include <Lumos/Scripting/Lua/LuaManager.h>
 
@@ -179,6 +180,20 @@ namespace Lumos
                 m_TextUnsaved = true;
 
             editor.Render(m_Name.c_str());
+
+#ifdef LUMOS_PLATFORM_IOS
+            bool editorFocused = ImGui::IsWindowFocused(ImGuiHoveredFlags_ChildWindows);
+            if(editorFocused && !m_KeyboardShowing)
+            {
+                OS::Get().ShowKeyboard(true);
+                m_KeyboardShowing = true;
+            }
+            else if(!editorFocused && m_KeyboardShowing)
+            {
+                OS::Get().ShowKeyboard(false);
+                m_KeyboardShowing = false;
+            }
+#endif
 
             if(ImGui::IsWindowFocused(ImGuiHoveredFlags_ChildWindows))
             {

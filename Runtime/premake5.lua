@@ -1,3 +1,11 @@
+local game_project_dir = nil
+local game_project_folder = nil
+
+if game_project then
+	game_project_dir = game_project.rel_dir
+	game_project_folder = game_project.folder_name
+end
+
 project "Runtime"
 	kind "WindowedApp"
 	language "C++"
@@ -30,6 +38,10 @@ project "Runtime"
 		"%{IncludeDir.Lumos}",
 	}
 
+	if _OPTIONS["shaderc"] then
+		externalincludedirs { "%{IncludeDir.shaderc}" }
+	end
+
 	includedirs
 	{
 		"../Lumos/Source/Lumos",
@@ -53,6 +65,10 @@ project "Runtime"
 	defines
 	{
 	}
+
+	if game_project then
+		defines { 'LUMOS_BUNDLED_PROJECT_NAME="' .. game_project_folder .. '"' }
+	end
 
 	filter { "files:External/**"}
 		warnings "Off"
@@ -87,8 +103,12 @@ project "Runtime"
 		links
 		{
 			"glfw",
-			"OpenAL32"
+			"OpenAL32",
 		}
+
+		if _OPTIONS["shaderc"] then
+			links { "shaderc" }
+		end
 
 		postbuildcommands { "xcopy /Y /C \"..\\Lumos\\External\\OpenAL\\libs\\Win32\\OpenAL32.dll\" \"$(OutDir)\"" }
 
@@ -112,10 +132,20 @@ project "Runtime"
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
         }
 
+		if game_project then
+			xcodebuildsettings
+			{
+				['PRODUCT_NAME'] = game_project.title,
+				['PRODUCT_BUNDLE_IDENTIFIER'] = game_project.bundle_id,
+				['MARKETING_VERSION'] = game_project.version,
+				['CURRENT_PROJECT_VERSION'] = game_project.build_number
+			}
+		end
+
         if settings.enable_signing then
             xcodebuildsettings
             {
-               	['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
+               	['PRODUCT_BUNDLE_IDENTIFIER'] = game_project and game_project.bundle_id or settings.bundle_identifier,
                	['CODE_SIGN_IDENTITY'] = 'Mac Developer',
                	['DEVELOPMENT_TEAM'] = settings.developer_team
             }
@@ -133,11 +163,16 @@ project "Runtime"
 
 		linkoptions
 		{
-			"-framework Cocoa",
-			"-framework IOKit",
-			"-framework CoreVideo",
-			"-framework OpenAL",
-			"-framework QuartzCore"
+    		"-framework Cocoa",
+    		"-framework IOKit",
+    		"-framework CoreVideo",
+    		"-framework OpenAL",
+    		"-framework QuartzCore",
+    		"-framework Metal",
+    		"-framework IOSurface",
+    		"-framework Foundation",
+    		"-framework UniformTypeIdentifiers",
+    		"../Lumos/External/vulkan/libs/macOS/libMoltenVK.a"
 		}
 
 		files
@@ -146,10 +181,19 @@ project "Runtime"
 			--"../Lumos/External/vulkan/libs/macOS/libMoltenVK.dylib"
 		}
 
+		if game_project then
+			files { "../" .. game_project_dir }
+			xcodebuildresources { "../" .. game_project_dir, "../Lumos/Assets/Shaders" }
+		end
+
 		links
 		{
 			"glfw",
 		}
+
+		if _OPTIONS["shaderc"] then
+			links { "shaderc" }
+		end
 
 	filter "system:ios"
 		cppdialect "C++17"
@@ -183,20 +227,31 @@ project "Runtime"
 			"AudioToolbox.framework",
 			"Foundation.framework",
 			"SystemConfiguration.framework",
-			"IOSurface.framework"
+			"IOSurface.framework",
+			"UniformTypeIdentifiers.framework",
 		}
+
+		if _OPTIONS["shaderc"] then
+			links { "shaderc" }
+		end
 
 		linkoptions
 		{
 			"../Lumos/External/vulkan/libs/iOS/libMoltenVK.a"
 		}
 
+		local ios_project_dir = game_project_dir and ("../" .. game_project_dir) or "../ExampleProject"
+		local ios_project_folder = game_project_folder or "ExampleProject"
+		local ios_launch_dir = game_project_dir
+			and "../bin-int/LaunchScreen"
+			or "../Lumos/Source/Lumos/Platform/iOS/Client"
+
 		files
 		{
 			"../Resources/AppIcons/Assets.xcassets",
 			"../Lumos/Assets/Shaders",
-			"../Lumos/Source/Lumos/Platform/iOS/Client/**",
-			"../ExampleProject"
+			ios_launch_dir .. "/**",
+			ios_project_dir
 		}
 
 		xcodebuildsettings
@@ -207,15 +262,24 @@ project "Runtime"
 			['TARGETED_DEVICE_FAMILY'] = '1,2',
 			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',
 			['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = '',
-			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
-			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/iOS/Client/Info.plist',
+			['IPHONEOS_DEPLOYMENT_TARGET'] = '18.0',
+			['INFOPLIST_FILE'] = ios_launch_dir .. '/Info.plist',
 	        ['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
         }
+
+		if game_project then
+			xcodebuildsettings
+			{
+				['PRODUCT_BUNDLE_IDENTIFIER'] = game_project.bundle_id,
+				['MARKETING_VERSION'] = game_project.version,
+				['CURRENT_PROJECT_VERSION'] = game_project.build_number
+			}
+		end
 
         if settings.enable_signing then
             xcodebuildsettings
             {
-               	['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
+               	['PRODUCT_BUNDLE_IDENTIFIER'] = game_project and game_project.bundle_id or settings.bundle_identifier,
                	['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
                	['DEVELOPMENT_TEAM'] = settings.developer_team
             }
@@ -246,22 +310,15 @@ project "Runtime"
 		{
 			"../Resources/AppIcons/Assets.xcassets",
 			"../Lumos/Assets/Shaders",
-			--"../Lumos/Source/Lumos/Platform/iOS/Client/**",
-			"../ExampleProject/"
-            -- "Meshes",
-            -- "Scenes",
-            -- "Scripts",
-            -- "Sounds",
-            -- "Textures",
-			--"Example.lmproj"
+			ios_project_dir .. "/"
 		}
 
-			xcodebuildresources
+		xcodebuildresources
 		{
-			"../Lumos/Source/Platform/iOS/Client",
+			ios_launch_dir,
 			"Assets.xcassets",
             "Shaders",
-            "ExampleProject"
+            ios_project_folder
 		}
 
 	filter "system:linux"
@@ -289,7 +346,11 @@ project "Runtime"
 			"-Wno-psabi"
 		}
 
-		links { "X11", "pthread", "dl", "atomic", "openal", "glfw"}
+		links { "X11", "pthread", "dl", "atomic", "openal", "glfw" }
+
+		if _OPTIONS["shaderc"] then
+			links { "shaderc" }
+		end
 
 		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN"}
 

@@ -7,6 +7,7 @@
 #include "Utilities/StringUtilities.h"
 #include "Core/Engine.h"
 #include "Core/OS/FileSystem.h"
+#include "Core/Application.h"
 
 #include <sol/sol.hpp>
 
@@ -56,14 +57,14 @@ namespace Lumos
             ArenaTemp scratch = ScratchBegin(0, 0);
             String8 virtualPath = Str8((u8*)m_FileName.c_str(), m_FileName.size());
             String8 physicalPath;
-            if(FileSystem::Get().ResolvePhysicalPath(scratch.arena, virtualPath, &physicalPath, true))
+            if(FileSystem::Get().ResolvePhysicalPath(scratch.arena, virtualPath, &physicalPath, false))
             {
                 actualPath = std::string((const char*)physicalPath.str, physicalPath.size);
             }
             ScratchEnd(scratch);
         }
 
-        auto loadFileResult = LuaManager::Get().GetState().script_file(actualPath, *m_Env, sol::script_pass_on_error);
+        auto loadFileResult = LuaManager::Get().GetState().safe_script_file(actualPath, *m_Env, sol::script_pass_on_error);
         if(!loadFileResult.valid())
         {
             sol::error err = loadFileResult;
@@ -72,13 +73,19 @@ namespace Lumos
             std::string filename = StringUtilities::GetFileName(m_FileName);
             std::string error    = std::string(err.what());
 
-            int line              = 1;
-            auto linepos          = error.find(".lua:");
-            std::string errorLine = error.substr(linepos + 5); //+4 .lua: + 1
-            auto lineposEnd       = errorLine.find(":");
-            errorLine             = errorLine.substr(0, lineposEnd);
-            line                  = std::stoi(errorLine);
-            error                 = error.substr(linepos + errorLine.size() + lineposEnd + 4); //+4 .lua:
+            int line     = 1;
+            auto linepos = error.find(".lua:");
+            if(linepos != std::string::npos)
+            {
+                std::string errorLine = error.substr(linepos + 5);
+                auto lineposEnd       = errorLine.find(":");
+                if(lineposEnd != std::string::npos)
+                {
+                    errorLine = errorLine.substr(0, lineposEnd);
+                    try { line = std::stoi(errorLine); } catch(...) {}
+                    error = error.substr(linepos + errorLine.size() + lineposEnd + 4);
+                }
+            }
 
             m_Errors[line] = std::string(error);
         }
@@ -118,31 +125,79 @@ namespace Lumos
         LuaManager::Get().GetState().collect_garbage();
     }
 
+    void LuaScriptComponent::OnScriptError(const char* funcName, const char* errorMsg)
+    {
+        LERROR("Failed to Execute Script Lua %s", funcName);
+        LERROR("Error : %s", errorMsg);
+
+        m_Errored = true;
+
+        // Pause editor on script error
+        if(Application::Get().GetEditorState() == EditorState::Play)
+        {
+            LWARN("Exiting playmode due to script error in %s", m_FileName.c_str());
+            Application::Get().ExitApp();
+        }
+    }
+
+    void LuaScriptComponent::CheckForReload()
+    {
+        if(m_FileName.empty())
+            return;
+
+        // Resolve path
+        std::string actualPath = m_FileName;
+        if(m_FileName.find("//") == 0)
+        {
+            ArenaTemp scratch = ScratchBegin(0, 0);
+            String8 virtualPath = Str8((u8*)m_FileName.c_str(), m_FileName.size());
+            String8 physicalPath;
+            if(FileSystem::Get().ResolvePhysicalPath(scratch.arena, virtualPath, &physicalPath, false))
+            {
+                actualPath = std::string((const char*)physicalPath.str, physicalPath.size);
+            }
+            ScratchEnd(scratch);
+        }
+
+        uint64_t modTime = FileSystem::GetFileModifiedTime(Str8StdS(actualPath));
+        if(m_LastModifiedTime == 0)
+        {
+            m_LastModifiedTime = modTime;
+            return;
+        }
+
+        if(modTime > m_LastModifiedTime)
+        {
+            LINFO("Hot-reloading script: %s", m_FileName.c_str());
+            m_LastModifiedTime = modTime;
+            m_Errored = false;
+            Reload();
+        }
+    }
+
     void LuaScriptComponent::OnInit()
     {
-        if(m_OnInitFunc)
+        if(m_Errored || !m_OnInitFunc)
+            return;
+
+        sol::protected_function_result result = m_OnInitFunc->call();
+        if(!result.valid())
         {
-            sol::protected_function_result result = m_OnInitFunc->call();
-            if(!result.valid())
-            {
-                sol::error err = result;
-                LERROR("Failed to Execute Script Lua Init function");
-                LERROR("Error : %s", err.what());
-            }
+            sol::error err = result;
+            OnScriptError("Init", err.what());
         }
     }
 
     void LuaScriptComponent::OnUpdate(float dt)
     {
-        if(m_UpdateFunc)
+        if(m_Errored || !m_UpdateFunc)
+            return;
+
+        sol::protected_function_result result = m_UpdateFunc->call(dt);
+        if(!result.valid())
         {
-            sol::protected_function_result result = m_UpdateFunc->call(dt);
-            if(!result.valid())
-            {
-                sol::error err = result;
-                LERROR("Failed to Execute Script Lua OnUpdate");
-                LERROR("Error : %s", err.what());
-            }
+            sol::error err = result;
+            OnScriptError("OnUpdate", err.what());
         }
     }
 
@@ -151,8 +206,15 @@ namespace Lumos
         if(m_Env)
         {
             sol::protected_function releaseFunc = (*m_Env)["OnRelease"];
-            if(releaseFunc.valid())
-                releaseFunc.call();
+            if (releaseFunc.valid())
+            {
+                sol::protected_function_result result = releaseFunc.call();
+                if (!result.valid())
+                {
+                    sol::error err = result;
+                    OnScriptError("OnRelease", err.what());
+                }
+            }
         }
 
         Init();
@@ -199,57 +261,53 @@ namespace Lumos
 
     void LuaScriptComponent::OnCollision2DBegin()
     {
-        if(m_Phys2DBeginFunc)
+        if(m_Errored || !m_Phys2DBeginFunc)
+            return;
+
+        sol::protected_function_result result = m_Phys2DBeginFunc->call();
+        if(!result.valid())
         {
-            sol::protected_function_result result = m_Phys2DBeginFunc->call();
-            if(!result.valid())
-            {
-                sol::error err = result;
-                LERROR("Failed to Execute Script Lua OnCollision2DBegin");
-                LERROR("Error : %s", err.what());
-            }
+            sol::error err = result;
+            OnScriptError("OnCollision2DBegin", err.what());
         }
     }
 
     void LuaScriptComponent::OnCollision2DEnd()
     {
-        if(m_Phys2DEndFunc)
+        if(m_Errored || !m_Phys2DEndFunc)
+            return;
+
+        sol::protected_function_result result = m_Phys2DEndFunc->call();
+        if(!result.valid())
         {
-            sol::protected_function_result result = m_Phys2DEndFunc->call();
-            if(!result.valid())
-            {
-                sol::error err = result;
-                LERROR("Failed to Execute Script Lua OnCollision2DEnd");
-                LERROR("Error : %s", err.what());
-            }
+            sol::error err = result;
+            OnScriptError("OnCollision2DEnd", err.what());
         }
     }
 
-    void LuaScriptComponent::OnCollision3DBegin()
+    void LuaScriptComponent::OnCollision3DBegin(const CollisionInfo3D& info)
     {
-        if(m_Phys3DBeginFunc)
+        if(m_Errored || !m_Phys3DBeginFunc)
+            return;
+
+        sol::protected_function_result result = m_Phys3DBeginFunc->call(info);
+        if(!result.valid())
         {
-            sol::protected_function_result result = m_Phys3DBeginFunc->call();
-            if(!result.valid())
-            {
-                sol::error err = result;
-                LERROR("Failed to Execute Script Lua OnCollision3DBegin");
-                LERROR("Error : %s", err.what());
-            }
+            sol::error err = result;
+            OnScriptError("OnCollision3DBegin", err.what());
         }
     }
 
-    void LuaScriptComponent::OnCollision3DEnd()
+    void LuaScriptComponent::OnCollision3DEnd(const CollisionInfo3D& info)
     {
-        if(m_Phys3DEndFunc)
+        if(m_Errored || !m_Phys3DEndFunc)
+            return;
+
+        sol::protected_function_result result = m_Phys3DEndFunc->call(info);
+        if(!result.valid())
         {
-            sol::protected_function_result result = m_Phys3DEndFunc->call();
-            if(!result.valid())
-            {
-                sol::error err = result;
-                LERROR("Failed to Execute Script Lua OnCollision3DEnd");
-                LERROR("Error : %s", err.what());
-            }
+            sol::error err = result;
+            OnScriptError("OnCollision3DEnd", err.what());
         }
     }
 }

@@ -6,6 +6,12 @@
 #include "Broadphase/OctreeBroadphase.h"
 #include "Integration.h"
 #include "Constraints/Constraint.h"
+#include "CollisionShapes/SphereCollisionShape.h"
+#include "CollisionShapes/CapsuleCollisionShape.h"
+#include "CollisionShapes/TerrainCollisionShape.h"
+#include "Scene/Component/ModelComponent.h"
+#include "Graphics/Model.h"
+#include "Graphics/Terrain.h"
 #include "Utilities/TimeStep.h"
 #include "Core/OS/Window.h"
 #include "Core/JobSystem.h"
@@ -38,10 +44,11 @@ namespace Lumos
         , m_BaumgarteSlop(config.BaumgarteSlop)
         , m_MaxRigidBodyCount(config.MaxRigidBodyCount)
     {
+        s_UpdateTimestep = config.TimeStep;
         m_DebugName = "Lumos3DPhysicsEngine";
         m_BroadphaseCollisionPairs.Reserve(1000);
 
-        m_FrameArena        = ArenaAlloc(Megabytes(4));
+        m_FrameArena        = ArenaAlloc(Megabytes(8));
         m_Arena             = ArenaAlloc(m_MaxRigidBodyCount * sizeof(RigidBody3D) * 2 + sizeof(Mutex));
         m_RigidBodies       = PushArray(m_Arena, RigidBody3D, m_MaxRigidBodyCount);
         m_RigidBodyFreeList = TDArray<RigidBody3D*>(m_Arena);
@@ -90,6 +97,22 @@ namespace Lumos
                 auto viewWeld   = registry.view<WeldConstraintComponent>();
 
                 m_ConstraintCount = (uint32_t)viewSpring.size() + (uint32_t)viewAxis.size() + (uint32_t)viewDis.size() + (uint32_t)viewWeld.size();
+
+                // Early-out if no dynamic awake bodies and no constraints
+                if(m_ConstraintCount == 0)
+                {
+                    bool hasActiveBodies = false;
+                    for(u32 i = 0; i < m_RigidBodyCount; i++)
+                    {
+                        if(m_RigidBodies[i].m_IsValid && !m_RigidBodies[i].GetIsStatic() && m_RigidBodies[i].IsAwake())
+                        {
+                            hasActiveBodies = true;
+                            break;
+                        }
+                    }
+                    if(!hasActiveBodies)
+                        return;
+                }
                 m_Constraints     = PushArray(m_FrameArena, SharedPtr<Constraint>, m_ConstraintCount);
 
                 uint32_t constraintIndex = 0;
@@ -130,12 +153,22 @@ namespace Lumos
             {
                 LUMOS_PROFILE_SCOPE("Physics::UpdatePhysics");
 
-                m_UpdateAccum += (float)timeStep.GetSeconds();
+                m_CollisionEvents.Clear();
+                m_CurrCollisionPairs.Clear();
+
+                m_UpdateAccum += (float)timeStep.GetSeconds() * m_TimeScale;
                 for(uint32_t i = 0; (m_UpdateAccum + Maths::M_EPSILON >= s_UpdateTimestep) && i < m_MaxUpdatesPerFrame; ++i)
                 {
                     m_UpdateAccum -= s_UpdateTimestep;
                     UpdatePhysics();
                 }
+
+                // Dispatch Lua collision callbacks after physics
+                DispatchCollisionCallbacks(scene);
+
+                // Track collision end: pairs in prev but not in curr
+                // Swap prev/curr for next frame
+                Swap(m_PrevCollisionPairs, m_CurrCollisionPairs);
 
                 float overrun = 0.0f;
                 if(m_UpdateAccum + Maths::M_EPSILON >= s_UpdateTimestep)
@@ -164,7 +197,11 @@ namespace Lumos
 
         // Check for collisions
         BroadPhaseCollisions();
-        NarrowPhaseCollisions();
+
+        if(m_ParallelNarrowphase && m_BroadphaseCollisionPairs.Size() > 32)
+            NarrowPhaseCollisionsParallel();
+        else
+            NarrowPhaseCollisions();
 
         // Solve collision constraints
         SolveConstraints();
@@ -267,6 +304,52 @@ namespace Lumos
                 trans.SetLocalOrientation(phys.GetRigidBody()->GetOrientation());
             }
         };
+
+        // Auto-attach TerrainCollisionShape to terrain entities missing collision data
+        {
+            auto terrainView = registry.view<Graphics::ModelComponent, RigidBody3DComponent>();
+            for(auto entity : terrainView)
+            {
+                auto& model = terrainView.get<Graphics::ModelComponent>(entity);
+                auto& phys  = terrainView.get<RigidBody3DComponent>(entity);
+                auto* body  = phys.GetRigidBody();
+
+                if(!body || !model.ModelRef)
+                    continue;
+                if(model.ModelRef->GetPrimitiveType() != Graphics::PrimitiveType::Terrain)
+                    continue;
+
+                // Skip if already has a terrain collision shape with populated height data
+                auto existingShape = body->GetCollisionShape();
+                if(existingShape && existingShape->GetType() == CollisionShapeType::CollisionTerrain)
+                {
+                    auto* tcs = static_cast<TerrainCollisionShape*>(existingShape.get());
+                    if(tcs->HasHeightData())
+                        continue;
+                }
+
+                // Find terrain mesh
+                auto& meshes = model.ModelRef->GetMeshes();
+                if(meshes.Empty())
+                    continue;
+
+                Terrain* terrain = dynamic_cast<Terrain*>(meshes[0].get());
+                if(!terrain || terrain->GetHeightData().Empty())
+                    continue;
+
+                // Create and populate TerrainCollisionShape
+                auto terrainShape = CreateSharedPtr<TerrainCollisionShape>();
+                terrainShape->SetHeightData(
+                    (uint32_t)terrain->GetGridWidth(),
+                    (uint32_t)terrain->GetGridHeight(),
+                    const_cast<float*>(terrain->GetHeightData().Data()),
+                    terrain->GetXScale(),
+                    terrain->GetYScale());
+
+                body->SetCollisionShape(terrainShape);
+                body->SetIsStatic(true);
+            }
+        }
     }
 
     Quat QuatMulVec3(const Quat& quat, const Vec3& b)
@@ -307,19 +390,20 @@ namespace Lumos
                 // Update linear velocity (v = u + at)
                 obj->m_LinearVelocity += obj->m_Force * obj->m_InvMass * dt;
 
-                // Linear velocity damping
+                // Linear velocity damping + factor
                 obj->m_LinearVelocity = obj->m_LinearVelocity * damping;
+                obj->m_LinearVelocity *= obj->m_LinearFactor;
 
                 // Update orientation
                 obj->m_Orientation += obj->m_Orientation * Quat(obj->m_AngularVelocity * dt);
-                // obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * dt * 0.5f) * obj->m_Orientation);
                 obj->m_Orientation.Normalise();
 
                 // Update angular velocity
                 obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * dt;
 
-                // Angular velocity damping
-                obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
+                // Angular velocity damping + factor
+                obj->m_AngularVelocity = obj->m_AngularVelocity * damping;
+                obj->m_AngularVelocity *= obj->m_AngularFactor;
 
                 break;
             }
@@ -329,8 +413,9 @@ namespace Lumos
                 // Update linear velocity (v = u + at)
                 obj->m_LinearVelocity += obj->m_Force * obj->m_InvMass * dt;
 
-                // Linear velocity damping
+                // Linear velocity damping + factor
                 obj->m_LinearVelocity = obj->m_LinearVelocity * damping;
+                obj->m_LinearVelocity *= obj->m_LinearFactor;
 
                 // Update position
                 obj->m_Position += obj->m_LinearVelocity * dt;
@@ -338,8 +423,9 @@ namespace Lumos
                 // Update angular velocity
                 obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * dt;
 
-                // Angular velocity damping
-                obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
+                // Angular velocity damping + factor
+                obj->m_AngularVelocity = obj->m_AngularVelocity * damping;
+                obj->m_AngularVelocity *= obj->m_AngularFactor;
 
                 auto angularVelocity = obj->m_AngularVelocity * dt;
 
@@ -359,14 +445,16 @@ namespace Lumos
                 obj->m_Position       = state.position;
                 obj->m_LinearVelocity = state.velocity;
 
-                // Linear velocity damping
+                // Linear velocity damping + factor
                 obj->m_LinearVelocity = obj->m_LinearVelocity * damping;
+                obj->m_LinearVelocity *= obj->m_LinearFactor;
 
                 // Update angular velocity
                 obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * dt;
 
-                // Angular velocity damping
-                obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
+                // Angular velocity damping + factor
+                obj->m_AngularVelocity = obj->m_AngularVelocity * damping;
+                obj->m_AngularVelocity *= obj->m_AngularFactor;
 
                 auto angularVelocity = obj->m_AngularVelocity * dt * 0.5f;
 
@@ -385,17 +473,18 @@ namespace Lumos
                 obj->m_Position       = state.position;
                 obj->m_LinearVelocity = state.velocity;
 
-                // Linear velocity damping
+                // Linear velocity damping + factor
                 obj->m_LinearVelocity = obj->m_LinearVelocity * damping;
+                obj->m_LinearVelocity *= obj->m_LinearFactor;
 
                 // Update angular velocity
                 obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * dt;
 
-                // Angular velocity damping
-                obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
+                // Angular velocity damping + factor
+                obj->m_AngularVelocity = obj->m_AngularVelocity * damping;
+                obj->m_AngularVelocity *= obj->m_AngularFactor;
 
                 // Update orientation
-                // Check order of quat multiplication
                 auto angularVelocity = obj->m_AngularVelocity * dt * 0.5f;
 
                 obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
@@ -485,6 +574,17 @@ namespace Lumos
                 // Detects if the objects are colliding - Seperating Axis Theorem
                 if(CollisionDetection::Get().CheckCollision(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), &colData))
                 {
+                    // Queue collision event for Lua dispatch
+                    {
+                        CollisionEvent3D evt;
+                        evt.BodyA = cp.pObjectA;
+                        evt.BodyB = cp.pObjectB;
+                        evt.InfoA = { cp.pObjectB, colData.normal, colData.pointOnPlane, colData.penetration, cp.pObjectB->GetIsTrigger() };
+                        evt.InfoB = { cp.pObjectA, -colData.normal, colData.pointOnPlane, colData.penetration, cp.pObjectA->GetIsTrigger() };
+                        m_CollisionEvents.PushBack(evt);
+                        m_CurrCollisionPairs.PushBack({ cp.pObjectA, cp.pObjectB });
+                    }
+
                     // Check to see if any of the objects have collision callbacks that dont
                     // want the objects to physically collide
                     const bool okA = cp.pObjectA->FireOnCollisionEvent(cp.pObjectA, cp.pObjectB);
@@ -492,6 +592,10 @@ namespace Lumos
 
                     if(okA && okB)
                     {
+                        // Skip physics response for triggers (they only fire callbacks)
+                        if(cp.pObjectA->GetIsTrigger() || cp.pObjectB->GetIsTrigger())
+                            continue;
+
                         // Check if we have space for another manifold
                         if(m_ManifoldCount >= m_MaxManifolds)
                         {
@@ -526,6 +630,85 @@ namespace Lumos
                 }
             }
         }
+    }
+
+    void LumosPhysicsEngine::NarrowPhaseCollisionsParallel()
+    {
+        LUMOS_PROFILE_FUNCTION();
+        if(m_BroadphaseCollisionPairs.Empty())
+            return;
+
+        m_Stats.NarrowPhaseCount = (uint32_t)m_BroadphaseCollisionPairs.Size();
+        std::atomic<uint32_t> collisionCount { 0 };
+
+        const uint32_t pairCount = (uint32_t)m_BroadphaseCollisionPairs.Size();
+        const uint32_t groupSize = 16; // Process 16 pairs per job
+
+        System::JobSystem::Context ctx;
+        System::JobSystem::Dispatch(ctx, pairCount, groupSize, [&](JobDispatchArgs args) {
+            const uint32_t i = args.jobIndex;
+            if(i >= pairCount)
+                return;
+
+            auto& cp    = m_BroadphaseCollisionPairs[i];
+            auto shapeA = cp.pObjectA->GetCollisionShape();
+            auto shapeB = cp.pObjectB->GetCollisionShape();
+
+            if(!shapeA || !shapeB)
+                return;
+
+            CollisionData colData;
+            if(!CollisionDetection::Get().CheckCollision(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), &colData))
+                return;
+
+            // Queue collision event for Lua dispatch (mutex-protected)
+            {
+                ScopedMutex lock(m_ManifoldLock);
+                CollisionEvent3D evt;
+                evt.BodyA = cp.pObjectA;
+                evt.BodyB = cp.pObjectB;
+                evt.InfoA = { cp.pObjectB, colData.normal, colData.pointOnPlane, colData.penetration, cp.pObjectB->GetIsTrigger() };
+                evt.InfoB = { cp.pObjectA, -colData.normal, colData.pointOnPlane, colData.penetration, cp.pObjectA->GetIsTrigger() };
+                m_CollisionEvents.PushBack(evt);
+                m_CurrCollisionPairs.PushBack({ cp.pObjectA, cp.pObjectB });
+            }
+
+            // Collision callbacks (may not be thread-safe, but user's responsibility)
+            const bool okA = cp.pObjectA->FireOnCollisionEvent(cp.pObjectA, cp.pObjectB);
+            const bool okB = cp.pObjectB->FireOnCollisionEvent(cp.pObjectB, cp.pObjectA);
+
+            if(!okA || !okB)
+                return;
+
+            // Skip triggers
+            if(cp.pObjectA->GetIsTrigger() || cp.pObjectB->GetIsTrigger())
+                return;
+
+            // Thread-safe manifold creation
+            {
+                ScopedMutex lock(m_ManifoldLock);
+
+                if(m_ManifoldCount >= m_MaxManifolds)
+                    return;
+
+                Manifold& manifold = m_Manifolds[m_ManifoldCount++];
+                manifold.Initiate(cp.pObjectA, cp.pObjectB, m_BaumgarteScalar, m_BaumgarteSlop);
+
+                if(CollisionDetection::Get().BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, &manifold))
+                {
+                    cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, &manifold);
+                    cp.pObjectB->FireOnCollisionManifoldCallback(cp.pObjectB, cp.pObjectA, &manifold);
+                    collisionCount.fetch_add(1);
+                }
+                else
+                {
+                    m_ManifoldCount--;
+                }
+            }
+        });
+
+        System::JobSystem::Wait(ctx);
+        m_Stats.CollisionCount = collisionCount.load();
     }
 
     void LumosPhysicsEngine::SolveConstraints()
@@ -735,4 +918,286 @@ namespace Lumos
             }
         }
     }
+
+    // Ray-AABB intersection test
+    static bool RayIntersectsAABB(const Vec3& origin, const Vec3& invDir, const Maths::BoundingBox& aabb, float& tMin, float& tMax)
+    {
+        Vec3 t1 = (aabb.Min() - origin) * invDir;
+        Vec3 t2 = (aabb.Max() - origin) * invDir;
+
+        Vec3 tmin = Maths::Min(t1, t2);
+        Vec3 tmax = Maths::Max(t1, t2);
+
+        tMin = Maths::Max(Maths::Max(tmin.x, tmin.y), tmin.z);
+        tMax = Maths::Min(Maths::Min(tmax.x, tmax.y), tmax.z);
+
+        return tMax >= Maths::Max(tMin, 0.0f);
+    }
+
+    // Ray-Sphere intersection
+    static bool RayIntersectsSphere(const Vec3& origin, const Vec3& dir, const Vec3& center, float radius, float& t)
+    {
+        Vec3 oc = origin - center;
+        float b = Maths::Dot(oc, dir);
+        float c = Maths::Dot(oc, oc) - radius * radius;
+
+        if(c > 0.0f && b > 0.0f)
+            return false;
+
+        float discriminant = b * b - c;
+        if(discriminant < 0.0f)
+            return false;
+
+        t = -b - Maths::Sqrt(discriminant);
+        if(t < 0.0f)
+            t = -b + Maths::Sqrt(discriminant);
+
+        return t >= 0.0f;
+    }
+
+    RaycastHit LumosPhysicsEngine::Raycast(const RaycastQuery& query) const
+    {
+        LUMOS_PROFILE_FUNCTION();
+        RaycastHit result;
+        float closestDist = query.MaxDistance;
+
+        Vec3 invDir = Vec3(
+            query.Direction.x != 0.0f ? 1.0f / query.Direction.x : 1e30f,
+            query.Direction.y != 0.0f ? 1.0f / query.Direction.y : 1e30f,
+            query.Direction.z != 0.0f ? 1.0f / query.Direction.z : 1e30f);
+
+        for(u32 i = 0; i < m_RigidBodyCount; i++)
+        {
+            RigidBody3D& body = m_RigidBodies[i];
+            if(!body.m_IsValid || !body.GetCollisionShape())
+                continue;
+
+            // Layer mask check
+            if((query.LayerMask & (1 << body.GetCollisionLayer())) == 0)
+                continue;
+
+            // Skip triggers if not wanted
+            if(body.GetIsTrigger() && !query.HitTriggers)
+                continue;
+
+            // AABB early-out
+            float tMin, tMax;
+            if(!RayIntersectsAABB(query.Origin, invDir, body.GetWorldSpaceAABB(), tMin, tMax))
+                continue;
+
+            if(tMin > closestDist)
+                continue;
+
+            // Shape-specific intersection
+            auto shape = body.GetCollisionShape();
+            float t    = closestDist;
+
+            switch(shape->GetType())
+            {
+            case CollisionShapeType::CollisionSphere:
+            {
+                auto* sphere = static_cast<SphereCollisionShape*>(shape.get());
+                if(RayIntersectsSphere(query.Origin, query.Direction, body.GetPosition(), sphere->GetRadius(), t))
+                {
+                    if(t < closestDist && t <= query.MaxDistance)
+                    {
+                        closestDist    = t;
+                        result.Body    = &body;
+                        result.Shape   = shape.get();
+                        result.Distance = t;
+                        result.Point   = query.Origin + query.Direction * t;
+                        result.Normal  = (result.Point - body.GetPosition()).Normalised();
+                    }
+                }
+                break;
+            }
+            case CollisionShapeType::CollisionCuboid:
+            {
+                // Use AABB result for cuboids (approximate for rotated)
+                if(tMin >= 0.0f && tMin < closestDist && tMin <= query.MaxDistance)
+                {
+                    closestDist    = tMin;
+                    result.Body    = &body;
+                    result.Shape   = shape.get();
+                    result.Distance = tMin;
+                    result.Point   = query.Origin + query.Direction * tMin;
+                    // Approximate normal from AABB
+                    Vec3 center    = body.GetWorldSpaceAABB().Center();
+                    Vec3 toCenter  = result.Point - center;
+                    Vec3 halfSize  = body.GetWorldSpaceAABB().Size() * 0.5f;
+                    Vec3 d         = toCenter / halfSize;
+                    if(Maths::Abs(d.x) > Maths::Abs(d.y) && Maths::Abs(d.x) > Maths::Abs(d.z))
+                        result.Normal = Vec3(d.x > 0 ? 1.0f : -1.0f, 0.0f, 0.0f);
+                    else if(Maths::Abs(d.y) > Maths::Abs(d.z))
+                        result.Normal = Vec3(0.0f, d.y > 0 ? 1.0f : -1.0f, 0.0f);
+                    else
+                        result.Normal = Vec3(0.0f, 0.0f, d.z > 0 ? 1.0f : -1.0f);
+                }
+                break;
+            }
+            case CollisionShapeType::CollisionCapsule:
+            {
+                auto* capsule = static_cast<CapsuleCollisionShape*>(shape.get());
+                float capRadius = capsule->GetRadius();
+                float halfH = capsule->GetHeight() * 0.5f;
+
+                // Transform ray into capsule local space (Y-aligned)
+                Mat4 invWS = Mat4::Inverse(body.GetWorldSpaceTransform());
+                Vec3 localOrigin = invWS * Vec4(query.Origin, 1.0f);
+                Vec3 localDir = (invWS * Vec4(query.Direction, 0.0f)).Normalised();
+
+                float bestT = FLT_MAX;
+                Vec3 bestLocalPoint;
+                bool hitCapsule = false;
+
+                // Ray vs infinite cylinder (radius=capRadius, Y-axis)
+                float a_cyl = localDir.x * localDir.x + localDir.z * localDir.z;
+                float b_cyl = 2.0f * (localOrigin.x * localDir.x + localOrigin.z * localDir.z);
+                float c_cyl = localOrigin.x * localOrigin.x + localOrigin.z * localOrigin.z - capRadius * capRadius;
+                float disc_cyl = b_cyl * b_cyl - 4.0f * a_cyl * c_cyl;
+
+                if(a_cyl > Maths::M_EPSILON && disc_cyl >= 0.0f)
+                {
+                    float sqrtDisc = Maths::Sqrt(disc_cyl);
+                    float t0 = (-b_cyl - sqrtDisc) / (2.0f * a_cyl);
+                    float t1 = (-b_cyl + sqrtDisc) / (2.0f * a_cyl);
+
+                    for(float tc : { t0, t1 })
+                    {
+                        if(tc < 0.0f) continue;
+                        Vec3 p = localOrigin + localDir * tc;
+                        if(p.y >= -halfH && p.y <= halfH && tc < bestT)
+                        {
+                            bestT = tc;
+                            bestLocalPoint = p;
+                            hitCapsule = true;
+                        }
+                    }
+                }
+
+                // Ray vs top hemisphere sphere
+                float tSphere;
+                Vec3 topCenter(0, halfH, 0);
+                if(RayIntersectsSphere(localOrigin, localDir, topCenter, capRadius, tSphere) && tSphere < bestT)
+                {
+                    Vec3 p = localOrigin + localDir * tSphere;
+                    if(p.y >= halfH)
+                    {
+                        bestT = tSphere;
+                        bestLocalPoint = p;
+                        hitCapsule = true;
+                    }
+                }
+
+                // Ray vs bottom hemisphere sphere
+                Vec3 bottomCenter(0, -halfH, 0);
+                if(RayIntersectsSphere(localOrigin, localDir, bottomCenter, capRadius, tSphere) && tSphere < bestT)
+                {
+                    Vec3 p = localOrigin + localDir * tSphere;
+                    if(p.y <= -halfH)
+                    {
+                        bestT = tSphere;
+                        bestLocalPoint = p;
+                        hitCapsule = true;
+                    }
+                }
+
+                if(hitCapsule)
+                {
+                    // Convert back to world space distance
+                    Vec3 worldHit = body.GetWorldSpaceTransform() * Vec4(bestLocalPoint, 1.0f);
+                    float worldT = Maths::Length(worldHit - query.Origin);
+
+                    if(worldT < closestDist && worldT <= query.MaxDistance)
+                    {
+                        closestDist    = worldT;
+                        result.Body    = &body;
+                        result.Shape   = shape.get();
+                        result.Distance = worldT;
+                        result.Point   = worldHit;
+                        // Compute normal: project hit point onto capsule segment
+                        float clampedY = Maths::Clamp(bestLocalPoint.y, -halfH, halfH);
+                        Vec3 localNormal = (bestLocalPoint - Vec3(0, clampedY, 0)).Normalised();
+                        result.Normal = (Mat4(body.GetOrientation()) * Vec4(localNormal, 0.0f)).Normalised();
+                    }
+                }
+                break;
+            }
+            default:
+                // Fall back to AABB for unknown shapes
+                if(tMin >= 0.0f && tMin < closestDist && tMin <= query.MaxDistance)
+                {
+                    closestDist    = tMin;
+                    result.Body    = &body;
+                    result.Shape   = shape.get();
+                    result.Distance = tMin;
+                    result.Point   = query.Origin + query.Direction * tMin;
+                    result.Normal  = Vec3(0.0f, 1.0f, 0.0f);
+                }
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    RaycastHit LumosPhysicsEngine::Raycast(const Vec3& origin, const Vec3& direction, float maxDistance, uint16_t layerMask) const
+    {
+        RaycastQuery query(origin, direction, maxDistance);
+        query.LayerMask = layerMask;
+        return Raycast(query);
+    }
+
+    bool LumosPhysicsEngine::RaycastAll(const RaycastQuery& query, TDArray<RaycastHit>& results, uint32_t maxResults) const
+    {
+        LUMOS_PROFILE_FUNCTION();
+
+        Vec3 invDir = Vec3(
+            query.Direction.x != 0.0f ? 1.0f / query.Direction.x : 1e30f,
+            query.Direction.y != 0.0f ? 1.0f / query.Direction.y : 1e30f,
+            query.Direction.z != 0.0f ? 1.0f / query.Direction.z : 1e30f);
+
+        for(u32 i = 0; i < m_RigidBodyCount && results.Size() < maxResults; i++)
+        {
+            RigidBody3D& body = m_RigidBodies[i];
+            if(!body.m_IsValid || !body.GetCollisionShape())
+                continue;
+
+            if((query.LayerMask & (1 << body.GetCollisionLayer())) == 0)
+                continue;
+
+            if(body.GetIsTrigger() && !query.HitTriggers)
+                continue;
+
+            float tMin, tMax;
+            if(!RayIntersectsAABB(query.Origin, invDir, body.GetWorldSpaceAABB(), tMin, tMax))
+                continue;
+
+            if(tMin > query.MaxDistance)
+                continue;
+
+            // Simplified: add hit at AABB intersection
+            RaycastHit hit;
+            hit.Body     = &body;
+            hit.Shape    = body.GetCollisionShape().get();
+            hit.Distance = tMin >= 0.0f ? tMin : 0.0f;
+            hit.Point    = query.Origin + query.Direction * hit.Distance;
+            hit.Normal   = Vec3(0.0f, 1.0f, 0.0f);
+
+            results.PushBack(hit);
+        }
+
+        // Sort by distance
+        for(u32 i = 0; i < results.Size(); i++)
+        {
+            for(u32 j = i + 1; j < results.Size(); j++)
+            {
+                if(results[j].Distance < results[i].Distance)
+                    Swap(results[i], results[j]);
+            }
+        }
+
+        return !results.Empty();
+    }
+
 }

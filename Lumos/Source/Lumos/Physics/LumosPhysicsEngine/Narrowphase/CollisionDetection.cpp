@@ -5,6 +5,7 @@
 #include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/TerrainCollisionShape.h"
 #include "Maths/MathsUtilities.h"
 
 namespace Lumos
@@ -30,6 +31,12 @@ namespace Lumos
         m_CollisionCheckFunctions[CollisionCapsule | CollisionCuboid]  = &CollisionDetection::CheckPolyhedronCapsuleCheckCollision;
         m_CollisionCheckFunctions[CollisionCapsule | CollisionPyramid] = &CollisionDetection::CheckPolyhedronCapsuleCheckCollision;
         m_CollisionCheckFunctions[CollisionCapsule | CollisionHull]    = &CollisionDetection::CheckPolyhedronCapsuleCheckCollision;
+
+        m_CollisionCheckFunctions[CollisionTerrain | CollisionSphere]  = &CollisionDetection::CheckTerrainCollision;
+        m_CollisionCheckFunctions[CollisionTerrain | CollisionCuboid]  = &CollisionDetection::CheckTerrainCollision;
+        m_CollisionCheckFunctions[CollisionTerrain | CollisionCapsule] = &CollisionDetection::CheckTerrainCollision;
+        m_CollisionCheckFunctions[CollisionTerrain | CollisionPyramid] = &CollisionDetection::CheckTerrainCollision;
+        m_CollisionCheckFunctions[CollisionTerrain | CollisionHull]    = &CollisionDetection::CheckTerrainCollision;
     }
 
     bool CollisionDetection::CheckCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
@@ -61,7 +68,8 @@ namespace Lumos
 
         colData.normal       = axis.Normalised();
         colData.penetration  = sumRadii - Maths::Sqrt(distSquared);
-        colData.pointOnPlane = obj1->GetPosition() + axis * 0.5f;
+        // Contact point on sphere1's surface
+        colData.pointOnPlane = obj1->GetPosition() + colData.normal * ((SphereCollisionShape*)shape1)->GetRadius();
 
         if(out_coldata)
             *out_coldata = colData;
@@ -476,8 +484,12 @@ namespace Lumos
                 }
                 else
                 {
-                    Vec3 normalCapsuleSpace2 = Maths::Cross(seg1, seg2);
-                    normalCapsuleSpace2.Normalise();
+                    Vec3 crossResult = Maths::Cross(seg1, seg2);
+                    Vec3 normalCapsuleSpace2;
+                    if(Maths::Length2(crossResult) < Maths::M_EPSILON)
+                        normalCapsuleSpace2 = Maths::PerpendicularVector(seg1);
+                    else
+                        normalCapsuleSpace2 = crossResult.Normalised();
 
                     const Vec3 contactPointCapsule1Local = Mat4::Inverse(capsule1ToCapsule2SpaceTransform) * (closestPointCapsule1Seg + normalCapsuleSpace2 * capsule1Radius);
                     const Vec3 contactPointCapsule2Local = closestPointCapsule2Seg - normalCapsuleSpace2 * capsule2Radius;
@@ -593,7 +605,7 @@ namespace Lumos
 
                 // Calculate contact points in world space
                 contactPointCapsuleWorld = capsuleTransform * Vec4(closestPointOnSegment - sphereCenterToSegment * capsuleRadius, 1.0f);
-                contactPointSphereWorld  = sphereTransform * Vec4(Mat4::Inverse(sphereToCapsuleSpaceTransform) * Vec4(sphereToCapsuleSpacePos + sphereCenterToSegment * sphereRadius, 1.0f), 1.0f);
+                contactPointSphereWorld  = capsuleTransform * Vec4(sphereToCapsuleSpacePos + sphereCenterToSegment * sphereRadius, 1.0f);
 
                 // Normal in capsule space points from segment to sphere center
                 // Transform to world space
@@ -629,7 +641,7 @@ namespace Lumos
                 normalWorld             = Mat4(capsuleObj->GetOrientation()) * Vec4(normalCapsuleSpace, 1.0f);
 
                 // Compute contact points in world space
-                contactPointSphereWorld  = sphereTransform * Vec4(Mat4::Inverse(sphereToCapsuleSpaceTransform) * Vec4(sphereToCapsuleSpacePos + normalCapsuleSpace * sphereRadius, 1.0f), 1.0f);
+                contactPointSphereWorld  = capsuleTransform * Vec4(sphereToCapsuleSpacePos + normalCapsuleSpace * sphereRadius, 1.0f);
                 contactPointCapsuleWorld = capsuleTransform * Vec4(sphereToCapsuleSpacePos - normalCapsuleSpace * capsuleRadius, 1.0f);
             }
 
@@ -700,6 +712,20 @@ namespace Lumos
 
         AddPossibleCollisionAxis(p_t, possibleCollisionAxes, possibleCollisionAxesCount, MAX_COLLISION_AXES);
 
+        // Add axes from capsule endpoints to closest edge points
+        float capsuleHalfHeight = capsuleShape->GetHeight() * 0.5f;
+        const Mat4& capsuleWS = capsuleObj->GetWorldSpaceTransform();
+        Vec3 capsuleTop = capsuleWS * Vec4(0, capsuleHalfHeight, 0, 1.0f);
+        Vec3 capsuleBottom = capsuleWS * Vec4(0, -capsuleHalfHeight, 0, 1.0f);
+
+        Vec3 pTop = GetClosestPointOnEdges(capsuleTop, complex_shape_edges);
+        Vec3 axisTop = capsuleTop - pTop;
+        AddPossibleCollisionAxis(axisTop, possibleCollisionAxes, possibleCollisionAxesCount, MAX_COLLISION_AXES);
+
+        Vec3 pBottom = GetClosestPointOnEdges(capsuleBottom, complex_shape_edges);
+        Vec3 axisBottom = capsuleBottom - pBottom;
+        AddPossibleCollisionAxis(axisBottom, possibleCollisionAxes, possibleCollisionAxesCount, MAX_COLLISION_AXES);
+
         for(uint32_t i = 0; i < possibleCollisionAxesCount; i++)
         {
             const Vec3& axis = possibleCollisionAxes[i];
@@ -720,6 +746,151 @@ namespace Lumos
 
         if(out_coldata)
             *out_coldata = best_colData;
+
+        return true;
+    }
+
+    bool CollisionDetection::CheckTerrainCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
+    {
+        LUMOS_PROFILE_FUNCTION_LOW();
+
+        // Determine which body is terrain
+        TerrainCollisionShape* terrainShape;
+        RigidBody3D* terrainObj;
+        RigidBody3D* otherObj;
+        CollisionShape* otherShape;
+
+        if(shape1->GetType() == CollisionShapeType::CollisionTerrain)
+        {
+            terrainShape = static_cast<TerrainCollisionShape*>(shape1);
+            terrainObj   = obj1;
+            otherObj     = obj2;
+            otherShape   = shape2;
+        }
+        else
+        {
+            terrainShape = static_cast<TerrainCollisionShape*>(shape2);
+            terrainObj   = obj2;
+            otherObj     = obj1;
+            otherShape   = shape1;
+        }
+
+        Vec3 terrainPos = terrainObj->GetPosition();
+        Vec3 otherPos   = otherObj->GetPosition();
+
+        // Local position relative to terrain origin
+        Vec3 localPos = otherPos - terrainPos;
+
+        // Collect sample points based on other shape type
+        const int MAX_SAMPLE_POINTS = 16;
+        Vec3 samplePoints[MAX_SAMPLE_POINTS];
+        float sampleRadii[MAX_SAMPLE_POINTS];
+        int sampleCount = 0;
+
+        switch(otherShape->GetType())
+        {
+        case CollisionShapeType::CollisionSphere:
+        {
+            auto* sphere         = static_cast<SphereCollisionShape*>(otherShape);
+            float r              = sphere->GetRadius();
+            samplePoints[0]     = localPos;
+            sampleRadii[0]      = r;
+            sampleCount         = 1;
+            break;
+        }
+        case CollisionShapeType::CollisionCapsule:
+        {
+            auto* capsule        = static_cast<CapsuleCollisionShape*>(otherShape);
+            float r              = capsule->GetRadius();
+            float halfH          = capsule->GetHeight() * 0.5f;
+            const Mat4& ws       = otherObj->GetWorldSpaceTransform();
+            Vec3 top             = Vec3(ws * Vec4(0, halfH, 0, 1.0f)) - terrainPos;
+            Vec3 center          = localPos;
+            Vec3 bottom          = Vec3(ws * Vec4(0, -halfH, 0, 1.0f)) - terrainPos;
+            samplePoints[0]     = top;
+            sampleRadii[0]      = r;
+            samplePoints[1]     = center;
+            sampleRadii[1]      = r;
+            samplePoints[2]     = bottom;
+            sampleRadii[2]      = r;
+            sampleCount         = 3;
+            break;
+        }
+        default:
+        {
+            // For cuboids, hulls, pyramids: sample AABB corners + center
+            Vec3 minV, maxV;
+            const Vec3 axes[3] = { Vec3(1,0,0), Vec3(0,1,0), Vec3(0,0,1) };
+            Vec3 shapeMin(FLT_MAX), shapeMax(-FLT_MAX);
+
+            for(int a = 0; a < 3; a++)
+            {
+                Vec3 mn, mx;
+                otherShape->GetMinMaxVertexOnAxis(otherObj, axes[a], &mn, &mx);
+                float minP = Maths::Dot(mn, axes[a]);
+                float maxP = Maths::Dot(mx, axes[a]);
+                if(a == 0) { shapeMin.x = minP; shapeMax.x = maxP; }
+                else if(a == 1) { shapeMin.y = minP; shapeMax.y = maxP; }
+                else { shapeMin.z = minP; shapeMax.z = maxP; }
+            }
+
+            Vec3 center = (shapeMin + shapeMax) * 0.5f;
+            samplePoints[0] = center - terrainPos;
+            sampleRadii[0]  = 0.0f;
+            sampleCount     = 1;
+
+            // 8 AABB corners
+            for(int i = 0; i < 8 && sampleCount < MAX_SAMPLE_POINTS; i++)
+            {
+                Vec3 corner;
+                corner.x = (i & 1) ? shapeMax.x : shapeMin.x;
+                corner.y = (i & 2) ? shapeMax.y : shapeMin.y;
+                corner.z = (i & 4) ? shapeMax.z : shapeMin.z;
+                samplePoints[sampleCount] = corner - terrainPos;
+                sampleRadii[sampleCount]  = 0.0f;
+                sampleCount++;
+            }
+            break;
+        }
+        }
+
+        // Find deepest penetration across all sample points
+        float bestPenetration = 0.0f;
+        Vec3 bestNormal;
+        Vec3 bestContact;
+        bool found = false;
+
+        for(int i = 0; i < sampleCount; i++)
+        {
+            Vec3 contact, normal;
+            float penetration;
+            if(terrainShape->GetContactPoint(samplePoints[i], sampleRadii[i], contact, normal, penetration))
+            {
+                if(!found || penetration > bestPenetration)
+                {
+                    bestPenetration = penetration;
+                    bestNormal      = normal;
+                    bestContact     = contact + terrainPos; // Back to world space
+                    found           = true;
+                }
+            }
+        }
+
+        if(!found)
+            return false;
+
+        if(out_coldata)
+        {
+            // Normal from GetNormalAt points away from terrain surface (upward).
+            // Convention: normal points from obj1 to obj2.
+            // If terrain is obj2, flip so normal points toward terrain.
+            if(shape2->GetType() == CollisionShapeType::CollisionTerrain)
+                bestNormal = -bestNormal;
+
+            out_coldata->normal       = bestNormal;
+            out_coldata->penetration  = -bestPenetration; // Negative = overlapping
+            out_coldata->pointOnPlane = bestContact;
+        }
 
         return true;
     }
@@ -768,6 +939,22 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION_LOW();
         if(!manifold)
             return false;
+
+        // Terrain: use collision data directly (heightfield can't produce reference polygons)
+        if(shape1->GetType() == CollisionShapeType::CollisionTerrain)
+        {
+            Vec3 globalOnA = coldata.pointOnPlane;
+            Vec3 globalOnB = coldata.pointOnPlane + coldata.normal * coldata.penetration;
+            manifold->AddContact(globalOnA, globalOnB, coldata.normal, coldata.penetration);
+            return true;
+        }
+        if(shape2->GetType() == CollisionShapeType::CollisionTerrain)
+        {
+            Vec3 globalOnA = coldata.pointOnPlane - coldata.normal * coldata.penetration;
+            Vec3 globalOnB = coldata.pointOnPlane;
+            manifold->AddContact(globalOnA, globalOnB, coldata.normal, coldata.penetration);
+            return true;
+        }
 
         ReferencePolygon poly1, poly2;
         shape1->GetIncidentReferencePolygon(obj1, coldata.normal, poly1);

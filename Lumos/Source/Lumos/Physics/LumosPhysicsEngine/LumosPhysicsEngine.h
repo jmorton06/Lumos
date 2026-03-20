@@ -2,6 +2,8 @@
 
 #include "Utilities/TSingleton.h"
 #include "Narrowphase/Manifold.h"
+#include "RigidBody3D.h"
+#include "RaycastResult.h"
 #include "Broadphase/Broadphase.h"
 #include "Scene/ISystem.h"
 #include "Core/OS/Allocators/PoolAllocator.h"
@@ -43,6 +45,25 @@ namespace Lumos
     class Constraint;
     class TimeStep;
     class Scene;
+    class LuaScriptComponent;
+
+    struct CollisionEvent3D
+    {
+        RigidBody3D* BodyA;
+        RigidBody3D* BodyB;
+        CollisionInfo3D InfoA; // Info from A's perspective (OtherBody = B)
+        CollisionInfo3D InfoB; // Info from B's perspective (OtherBody = A)
+    };
+
+    struct CollisionPairKey
+    {
+        RigidBody3D* A;
+        RigidBody3D* B;
+        bool operator==(const CollisionPairKey& other) const
+        {
+            return (A == other.A && B == other.B) || (A == other.B && B == other.A);
+        }
+    };
 
     struct PhysicsStats3D
     {
@@ -91,6 +112,12 @@ namespace Lumos
         float GetDampingFactor() const { return m_DampingFactor; }
         void SetDampingFactor(float d) { m_DampingFactor = d; }
 
+        float GetTimeScale() const { return m_TimeScale; }
+        void SetTimeScale(float scale) { m_TimeScale = scale; }
+
+        bool GetParallelNarrowphase() const { return m_ParallelNarrowphase; }
+        void SetParallelNarrowphase(bool parallel) { m_ParallelNarrowphase = parallel; }
+
         static float GetDeltaTime() { return s_UpdateTimestep; }
         SharedPtr<Broadphase> GetBroadphase() const { return m_BroadphaseDetection; }
 
@@ -126,6 +153,11 @@ namespace Lumos
 
         const PhysicsStats3D& GetStats() const { return m_Stats; }
 
+        // Raycasting
+        RaycastHit Raycast(const RaycastQuery& query) const;
+        RaycastHit Raycast(const Vec3& origin, const Vec3& direction, float maxDistance = 1000.0f, uint16_t layerMask = 0xFFFF) const;
+        bool RaycastAll(const RaycastQuery& query, TDArray<RaycastHit>& results, uint32_t maxResults = 32) const;
+
     protected:
         // The actual time-independant update function
         void UpdatePhysics();
@@ -135,6 +167,7 @@ namespace Lumos
 
         // Handles narrowphase collision detection
         void NarrowPhaseCollisions();
+        void NarrowPhaseCollisionsParallel();
 
         // Updates all Rigid Body position, orientation, velocity etc (default method uses symplectic euler integration)
         void UpdateRigidBodies();
@@ -142,6 +175,9 @@ namespace Lumos
 
         // Solves all engine constraints (constraints and manifolds)
         void SolveConstraints();
+
+        // Dispatch collision callbacks to Lua scripts
+        void DispatchCollisionCallbacks(Scene* scene);
 
     protected:
         bool m_IsPaused;
@@ -151,6 +187,8 @@ namespace Lumos
         uint32_t m_MaxUpdatesPerFrame = 5;
         uint32_t m_PositionIterations = 2;
         uint32_t m_VelocityIterations = 10;
+        float m_TimeScale             = 1.0f;
+        bool m_ParallelNarrowphase    = true;
 
         float m_BaumgarteScalar = 0.2f;   // Amount of force to add to the System to solve error
         float m_BaumgarteSlop   = 0.001f; // Amount of allowed penetration, ensures a complete manifold each frame
@@ -179,6 +217,11 @@ namespace Lumos
         Arena* m_FrameArena;
 
         PhysicsStats3D m_Stats;
+
+        // Collision event tracking for Lua callbacks
+        TDArray<CollisionEvent3D> m_CollisionEvents;
+        TDArray<CollisionPairKey> m_PrevCollisionPairs;
+        TDArray<CollisionPairKey> m_CurrCollisionPairs;
 
         static float s_UpdateTimestep;
 

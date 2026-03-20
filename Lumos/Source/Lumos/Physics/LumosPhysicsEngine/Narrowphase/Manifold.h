@@ -20,7 +20,7 @@ namespace Lumos
         Vec3 relPosA; // Position relative to objectA
         Vec3 relPosB; // Position relative to objectB
     };
-#define MAX_CONTACT_POINTS 8
+#define MAX_CONTACT_POINTS 16
 
     class LUMOS_EXPORT Manifold
     {

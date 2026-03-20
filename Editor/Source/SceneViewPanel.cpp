@@ -26,6 +26,7 @@
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Events/ApplicationEvent.h>
 #include <Lumos/Graphics/Sprite.h>
+#include <Lumos/Maths/Ray.h>
 
 #include <box2d/box2d.h>
 #include <imgui/imgui_internal.h>
@@ -212,30 +213,48 @@ namespace Lumos
             ImGui::EndTooltip();
         }
 
-        // Right-click context menu
-        if(ImGui::IsWindowFocused() && updateCamera && !ImGuizmo::IsUsing() && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonRight))
+        // Right-click context menu (only on release without drag)
+        if(ImGui::IsWindowFocused() && updateCamera && !ImGuizmo::IsUsing())
         {
-            float dpi     = Application::Get().GetWindowDPI();
-            auto clickPos = Input::Get().GetMousePosition() - Vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
-
-            Maths::Ray ray = m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
-
-            // Calculate world position based on camera mode
-            if(camera->IsOrthographic())
+            if(Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonRight))
             {
-                // For 2D mode, project onto z=0 plane
-                m_ContextMenuWorldPos = ray.Origin;
-                m_ContextMenuWorldPos.z = 0.0f;
-            }
-            else
-            {
-                // For 3D mode, place at a fixed distance from camera
-                float distance = 10.0f;
-                m_ContextMenuWorldPos = ray.Origin + ray.Direction * distance;
+                m_RightMousePressed  = true;
+                m_RightMouseDragged  = false;
+                m_RightMousePressPos = Input::Get().GetMousePosition();
             }
 
-            m_ContextMenuPending = true;
-            ImGui::OpenPopup("SceneViewContextMenu");
+            if(m_RightMousePressed && Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight))
+            {
+                Vec2 delta = Input::Get().GetMousePosition() - m_RightMousePressPos;
+                if(delta.Length() > 3.0f)
+                    m_RightMouseDragged = true;
+            }
+
+            if(m_RightMousePressed && !Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight))
+            {
+                if(!m_RightMouseDragged)
+                {
+                    float dpi     = Application::Get().GetWindowDPI();
+                    auto clickPos = m_RightMousePressPos - Vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
+
+                    Maths::Ray ray = m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
+
+                    if(camera->IsOrthographic())
+                    {
+                        m_ContextMenuWorldPos = ray.Origin;
+                        m_ContextMenuWorldPos.z = 0.0f;
+                    }
+                    else
+                    {
+                        float distance = 10.0f;
+                        m_ContextMenuWorldPos = ray.Origin + ray.Direction * distance;
+                    }
+
+                    m_ContextMenuPending = true;
+                    ImGui::OpenPopup("SceneViewContextMenu");
+                }
+                m_RightMousePressed = false;
+            }
         }
 
         // Handle pinch gesture for zoom (less restrictive for touch - gestures are 2+ fingers so won't conflict with UI)

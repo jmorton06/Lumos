@@ -5,8 +5,8 @@ namespace Lumos
     struct Version
     {
         int major = 0;
-        int minor = 3;
-        int patch = 9;
+        int minor = 4;
+        int patch = 0;
     };
 
     constexpr Version const LumosVersion = Version();

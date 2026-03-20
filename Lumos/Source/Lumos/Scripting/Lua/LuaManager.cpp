@@ -21,15 +21,21 @@
 #include "Graphics/AnimatedSprite.h"
 #include "Graphics/Light.h"
 #include "Graphics/RHI/Texture.h"
+#include "Graphics/RHI/CommandBuffer.h"
 #include "Graphics/ParticleManager.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Model.h"
+#include "Scene/Component/ModelComponent.h"
 #include "Graphics/Material.h"
+#include "Graphics/Environment.h"
+#include "Audio/AudioManager.h"
 #include "Maths/Random.h"
 #include "Scene/Entity.h"
 #include "Scene/EntityManager.h"
 #include "Scene/EntityFactory.h"
 #include "Scene/Component/SoundComponent.h"
+#include "Audio/Sound.h"
+#include "Audio/SoundNode.h"
 #include "Scene/Component/TextureMatrixComponent.h"
 #include "Scene/Component/RigidBody2DComponent.h"
 #include "Scene/Component/RigidBody3DComponent.h"
@@ -40,8 +46,20 @@
 #include "ImGuiLua.h"
 #include "PhysicsLua.h"
 #include "MathsLua.h"
+#include "LuaUtilities.h"
+#include "Core/OS/FileDialogs.h"
+#include "Graphics/RHI/Renderer.h"
+#include "Graphics/RHI/GraphicsContext.h"
+#include "Graphics/RHI/IMGUIRenderer.h"
+#include "Graphics/Renderers/SceneRenderer.h"
+#include "ImGui/ImGuiManager.h"
+#include "Utilities/LoadImage.h"
+#include "Utilities/ImageExport.h"
+#include "Graphics/ShaderCompiler.h"
+#include "Graphics/ShaderPreview.h"
 
 #include <imgui/imgui.h>
+#include "Sol2Config.h"
 #include <sol/sol.hpp>
 #if LUMOS_PROFILE
 #include <Tracy/public/tracy/TracyLua.hpp>
@@ -230,7 +248,6 @@ namespace Lumos
             "GetTransform"
         };
 
-        BindAppLua(*m_State);
         BindInputLua(*m_State);
         BindMathsLua(*m_State);
         BindImGuiLua(*m_State);
@@ -239,6 +256,9 @@ namespace Lumos
         BindSceneLua(*m_State);
         BindPhysicsLua(*m_State);
         BindUILua(*m_State);
+        BindAppLua(*m_State);
+
+        //GenerateLuaStubs(*m_State, "/Users/jmorton/Dev/Lumos-Dev/Lumos/Source/Lumos/Scripting/Lua/LuaStubs.lua");
 
         LINFO("Initialised Lua Manager");
     }
@@ -291,11 +311,15 @@ namespace Lumos
         if(view.empty())
             return;
 
-        float dt = (float)Engine::Get().GetTimeStep().GetSeconds();
+        float dt          = (float)Engine::Get().GetTimeStep().GetSeconds();
+        bool checkReload  = (m_ReloadFrameCounter++ % 60) == 0;
 
         for(auto entity : view)
         {
             auto& luaScript = registry.get<LuaScriptComponent>(entity);
+
+            if(checkReload)
+                luaScript.CheckForReload();
             luaScript.OnUpdate(dt);
         }
     }
@@ -736,7 +760,6 @@ namespace Lumos
             Lumos::Graphics::Model(Lumos::Graphics::PrimitiveType)>();
 
         // Properties
-        Modeltype["meshes"]         = &Lumos::Graphics::Model::GetMeshes;
         Modeltype["file_path"]      = &Lumos::Graphics::Model::GetFilePath;
         Modeltype["primitive_type"] = sol::property(&Lumos::Graphics::Model::GetPrimitiveType, &Lumos::Graphics::Model::SetPrimitiveType);
 
@@ -744,7 +767,59 @@ namespace Lumos
         Modeltype["add_mesh"]   = &Lumos::Graphics::Model::AddMesh;
         Modeltype["load_model"] = &Lumos::Graphics::Model::LoadModel;
 
-        REGISTER_COMPONENT_WITH_ECS(state, Model, static_cast<Model& (Entity::*)(const std::string&)>(&Entity::AddComponent<Model, const std::string&>));
+        Modeltype["GetMeshCount"] = [](Lumos::Graphics::Model& model) -> int {
+            return static_cast<int>(model.GetMeshes().Size());
+        };
+
+        Modeltype["GetTotalStats"] = [](Lumos::Graphics::Model& model, sol::this_state s) -> sol::table {
+            sol::state_view lua(s);
+            sol::table stats = lua.create_table();
+            uint32_t totalVerts = 0, totalTris = 0, totalIndices = 0;
+            auto& meshes = model.GetMeshes();
+            for(size_t i = 0; i < meshes.Size(); i++)
+            {
+                auto meshStats = meshes[i]->GetStats();
+                totalVerts += meshStats.VertexCount;
+                totalTris += meshStats.TriangleCount;
+                totalIndices += meshStats.IndexCount;
+            }
+            stats["vertices"]  = totalVerts;
+            stats["triangles"] = totalTris;
+            stats["indices"]   = totalIndices;
+            stats["meshes"]    = meshes.Size();
+            return stats;
+        };
+
+        Modeltype["GetBounds"] = [](Lumos::Graphics::Model& model, sol::this_state s) -> sol::table {
+            sol::state_view lua(s);
+            sol::table bounds = lua.create_table();
+            Vec3 bMin(FLT_MAX), bMax(-FLT_MAX);
+            auto& meshes = model.GetMeshes();
+            for(size_t i = 0; i < meshes.Size(); i++)
+            {
+                auto& bb = meshes[i]->GetBoundingBox();
+                bMin = Vec3(std::min(bMin.x, bb.m_Min.x), std::min(bMin.y, bb.m_Min.y), std::min(bMin.z, bb.m_Min.z));
+                bMax = Vec3(std::max(bMax.x, bb.m_Max.x), std::max(bMax.y, bb.m_Max.y), std::max(bMax.z, bb.m_Max.z));
+            }
+            bounds["min"] = bMin;
+            bounds["max"] = bMax;
+            Vec3 center = (bMin + bMax) * 0.5f;
+            Vec3 extents = bMax - bMin;
+            bounds["center"] = center;
+            bounds["extents"] = extents;
+            bounds["radius"] = extents.Length() * 0.5f;
+            return bounds;
+        };
+
+        auto modelCompType = state.new_usertype<ModelComponent>("ModelComponent");
+        modelCompType["GetModel"] = [](ModelComponent& mc) -> Model* { return mc.ModelRef.get(); };
+        modelCompType["ModelRef"]  = &ModelComponent::ModelRef;
+        modelCompType["LoadPrimitive"] = &ModelComponent::LoadPrimitive;
+
+        REGISTER_COMPONENT_WITH_ECS(state, ModelComponent, sol::overload(
+            static_cast<ModelComponent& (Entity::*)(const std::string&)>(&Entity::AddComponent<ModelComponent, const std::string&>),
+            [](Entity& e, PrimitiveType p) -> ModelComponent& { return e.AddComponent<ModelComponent>(p); }
+        ));
 
         auto material_type = state.new_usertype<Material>("Material");
         // Setters
@@ -793,6 +868,9 @@ namespace Lumos
         camera_type["SetIsOrthographic"]  = &Camera::SetIsOrthographic;
         camera_type["SetNearPlane"]       = &Camera::SetNear;
         camera_type["SetFarPlane"]        = &Camera::SetFar;
+        camera_type["SetFOV"]            = &Camera::SetFOV;
+        camera_type["SetAspectRatio"]    = &Camera::SetAspectRatio;
+        camera_type["SetScale"]          = &Camera::SetScale;
 
         REGISTER_COMPONENT_WITH_ECS(state, Camera, static_cast<Camera& (Entity::*)(const float&, const float&)>(&Entity::AddComponent<Camera, const float&, const float&>));
 
@@ -809,6 +887,75 @@ namespace Lumos
 
         REGISTER_COMPONENT_WITH_ECS(state, SoundComponent, static_cast<SoundComponent& (Entity::*)()>(&Entity::AddComponent<SoundComponent>));
 
+        // Sound
+        sol::usertype<Sound> sound_type = state.new_usertype<Sound>("Sound");
+        sound_type.set_function("GetLength", &Sound::GetLength);
+        sound_type.set_function("GetFilePath", &Sound::GetFilePath);
+
+        auto soundTable         = state["Sound"].get_or_create<sol::table>();
+        soundTable["Create"]    = sol::overload(
+            [](const std::string& filePath, const std::string& ext) -> SharedPtr<Sound>
+            {
+                return Sound::Create(filePath, ext);
+            },
+            [](const std::string& name, const std::string& filePath, const std::string& ext) -> SharedPtr<Sound>
+            {
+                return Sound::Create(filePath, ext);
+            });
+
+        // SoundNode
+        sol::usertype<SoundNode> soundNode_type = state.new_usertype<SoundNode>("SoundNode");
+        soundNode_type.set_function("Play", [](SoundNode& node) { node.SetPaused(false); });
+        soundNode_type.set_function("Pause", &SoundNode::Pause);
+        soundNode_type.set_function("Resume", &SoundNode::Resume);
+        soundNode_type.set_function("Stop", &SoundNode::Stop);
+        soundNode_type.set_function("SetVolume", &SoundNode::SetVolume);
+        soundNode_type.set_function("GetVolume", &SoundNode::GetVolume);
+        soundNode_type.set_function("SetLooping", &SoundNode::SetLooping);
+        soundNode_type.set_function("GetLooping", &SoundNode::GetLooping);
+        soundNode_type.set_function("SetPitch", &SoundNode::SetPitch);
+        soundNode_type.set_function("GetPitch", &SoundNode::GetPitch);
+        soundNode_type.set_function("SetSound", &SoundNode::SetSound);
+        soundNode_type.set_function("GetSound", &SoundNode::GetSound);
+
+        auto soundNodeTable      = state["SoundNode"].get_or_create<sol::table>();
+        soundNodeTable["Create"] = sol::overload(
+            []() -> SharedPtr<SoundNode>
+            {
+                return SharedPtr<SoundNode>(SoundNode::Create());
+            },
+            [](SharedPtr<Sound> sound) -> SharedPtr<SoundNode>
+            {
+                auto node = SharedPtr<SoundNode>(SoundNode::Create());
+                if(node)
+                    node->SetSound(sound);
+                return node;
+            });
+
+        sol::usertype<Environment> environment_type = state.new_usertype<Environment>("Environment");
+        environment_type.set_function("GetFilePath", &Environment::GetFilePath);
+        environment_type.set_function("GetFileType", &Environment::GetFileType);
+        environment_type.set_function("GetNumMips", &Environment::GetNumMips);
+        environment_type.set_function("GetWidth", &Environment::GetWidth);
+        environment_type.set_function("GetHeight", &Environment::GetHeight);
+        environment_type.set_function("GetMode", &Environment::GetMode);
+        environment_type.set_function("GetParameters", &Environment::GetParameters);
+        environment_type.set_function("SetFilePath", &Environment::SetFilePath);
+        environment_type.set_function("SetFileType", &Environment::SetFileType);
+        environment_type.set_function("SetNumMips", &Environment::SetNumMips);
+        environment_type.set_function("SetWidth", &Environment::SetWidth);
+        environment_type.set_function("SetHeight", &Environment::SetHeight);
+        environment_type.set_function("SetMode", &Environment::SetMode);
+        environment_type.set_function("SetParameters", &Environment::SetParameters);
+        environment_type.set_function("Load", static_cast<void (Environment::*)()>(&Environment::Load));
+
+        REGISTER_COMPONENT_WITH_ECS(state, Environment, static_cast<Environment& (Entity::*)()>(&Entity::AddComponent<Environment>));
+
+        sol::usertype<Listener> listener_type = state.new_usertype<Listener>("Listener");
+        listener_type["enabled"] = &Listener::m_Enabled;
+
+        REGISTER_COMPONENT_WITH_ECS(state, Listener, static_cast<Listener& (Entity::*)()>(&Entity::AddComponent<Listener>));
+
         auto mesh_type = state.new_usertype<Lumos::Graphics::Mesh>("Mesh",
                                                                    sol::constructors<Lumos::Graphics::Mesh(), Lumos::Graphics::Mesh(const Lumos::Graphics::Mesh&),
                                                                                      Lumos::Graphics::Mesh(const TDArray<uint32_t>&, const TDArray<Vertex>&)>());
@@ -818,6 +965,18 @@ namespace Lumos
         mesh_type["SetMaterial"]    = &Lumos::Graphics::Mesh::SetMaterial;
         mesh_type["GetBoundingBox"] = &Lumos::Graphics::Mesh::GetBoundingBox;
         mesh_type["SetName"]        = &Lumos::Graphics::Mesh::SetName;
+        mesh_type["GetName"]        = &Lumos::Graphics::Mesh::GetName;
+        mesh_type["GetStats"]       = &Lumos::Graphics::Mesh::GetStats;
+
+        auto meshStats_type              = state.new_usertype<Lumos::Graphics::MeshStats>("MeshStats");
+        meshStats_type["TriangleCount"]  = &Lumos::Graphics::MeshStats::TriangleCount;
+        meshStats_type["VertexCount"]    = &Lumos::Graphics::MeshStats::VertexCount;
+        meshStats_type["IndexCount"]     = &Lumos::Graphics::MeshStats::IndexCount;
+
+        auto bbox_type = state.new_usertype<Lumos::Maths::BoundingBox>("BoundingBox");
+        bbox_type["min"]        = &Lumos::Maths::BoundingBox::m_Min;
+        bbox_type["max"]        = &Lumos::Maths::BoundingBox::m_Max;
+        bbox_type["GetExtents"] = &Lumos::Maths::BoundingBox::GetExtents;
 
         std::initializer_list<std::pair<sol::string_view, Lumos::Graphics::TextureFilter>> textureFilter = {
             { "None", Lumos::Graphics::TextureFilter::NONE },
@@ -853,9 +1012,18 @@ namespace Lumos
         sol::usertype<Scene> scene_type = state.new_usertype<Scene>("Scene");
         scene_type.set_function("GetRegistry", &Scene::GetRegistry);
         scene_type.set_function("GetEntityManager", &Scene::GetEntityManager);
+        scene_type.set_function("CreateEntity", sol::overload(
+            static_cast<Entity (Scene::*)()>(&Scene::CreateEntity),
+            static_cast<Entity (Scene::*)(const std::string&)>(&Scene::CreateEntity)));
+
+        state.set_function("GetCurrentScene", []() -> Scene* {
+            return Application::Get().GetCurrentScene();
+        });
 
         sol::usertype<Graphics::Texture2D> texture2D_type = state.new_usertype<Graphics::Texture2D>("Texture2D");
         texture2D_type.set_function("CreateFromFile", &Graphics::Texture2D::CreateFromFile);
+        texture2D_type.set_function("GetWidth", [](Graphics::Texture2D& tex) { return tex.GetWidth(); });
+        texture2D_type.set_function("GetHeight", [](Graphics::Texture2D& tex) { return tex.GetHeight(); });
 
         state.set_function("Rand", &LuaRand);
     }
@@ -911,6 +1079,187 @@ namespace Lumos
 
         app_type.set_function("GetWindowSize", &Application::GetWindowSize);
         state.set_function("GetAppInstance", &Application::Get);
+
+        // File Dialogs
+        auto fileDialog = state["FileDialog"].get_or_create<sol::table>();
+
+        fileDialog.set_function("OpenFile", [](sol::optional<std::string> filter, sol::optional<std::string> defaultPath) -> std::string {
+            return FileDialogs::OpenFile(filter.value_or(""), defaultPath.value_or(""));
+        });
+
+        fileDialog.set_function("SaveFile", [](sol::optional<std::string> filter, sol::optional<std::string> defaultPath, sol::optional<std::string> defaultName) -> std::string {
+            return FileDialogs::SaveFile(filter.value_or(""), defaultPath.value_or(""), defaultName.value_or(""));
+        });
+
+        fileDialog.set_function("PickFolder", [](sol::optional<std::string> defaultPath) -> std::string {
+            return FileDialogs::PickFolder(defaultPath.value_or(""));
+        });
+
+        // Screenshot / Image export
+        state.set_function("SaveScreenshot", [](const std::string& path) {
+
+            auto ScreenshotCB = Graphics::CommandBuffer::Create();
+            ScreenshotCB->Init(true);
+            ScreenshotCB->BeginRecording();
+            auto renderer = Graphics::Renderer::GetRenderer();
+            auto sceneRenderer = Application::Get().GetSceneRenderer();
+            if(renderer && sceneRenderer)
+                renderer->SaveScreenshot(path, sceneRenderer->GetMainTexture());
+
+            ScreenshotCB->EndRecording();
+            ScreenshotCB->Submit();
+            ScreenshotCB->Flush();
+
+            delete ScreenshotCB;
+        });
+
+        // imgui.image - display a Texture2D in ImGui
+        sol::table imgui = state["imgui"].get_or_create<sol::table>();
+        imgui.set_function("image", sol::overload(
+            [](Graphics::Texture2D* texture, float w, float h)
+            {
+                if(!texture) return;
+                auto imguiRenderer = Application::Get().GetImGuiManager()->GetImGuiRenderer();
+                bool flip = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
+                ImGui::Image(
+                    imguiRenderer->AddTexture(texture),
+                    ImVec2(w, h),
+                    ImVec2(0.0f, flip ? 1.0f : 0.0f),
+                    ImVec2(1.0f, flip ? 0.0f : 1.0f));
+            },
+            [](Graphics::Texture2D* texture)
+            {
+                if(!texture) return;
+                float w = (float)texture->GetWidth();
+                float h = (float)texture->GetHeight();
+                auto imguiRenderer = Application::Get().GetImGuiManager()->GetImGuiRenderer();
+                bool flip = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
+                ImGui::Image(
+                    imguiRenderer->AddTexture(texture),
+                    ImVec2(w, h),
+                    ImVec2(0.0f, flip ? 1.0f : 0.0f),
+                    ImVec2(1.0f, flip ? 0.0f : 1.0f));
+            }));
+
+        // Write string to file
+        state.set_function("WriteFile", [](const std::string& path, const std::string& content) -> bool {
+            FILE* f = fopen(path.c_str(), "w");
+            if(!f) return false;
+            fwrite(content.c_str(), 1, content.size(), f);
+            fclose(f);
+            return true;
+        });
+
+        // Read file to string (supports VFS paths like //Assets/...)
+        state.set_function("ReadFile", [](const std::string& path) -> std::string {
+            std::string physicalPath = path;
+            if(path.size() >= 2 && path[0] == '/' && path[1] == '/')
+            {
+                ArenaTemp scratch = ScratchBegin(0, 0);
+                String8 resolved;
+                if(FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8C((char*)path.c_str()), &resolved))
+                    physicalPath = std::string((const char*)resolved.str, resolved.size);
+                ScratchEnd(scratch);
+            }
+            FILE* f = fopen(physicalPath.c_str(), "r");
+            if(!f) return "";
+            fseek(f, 0, SEEK_END);
+            long sz = ftell(f);
+            fseek(f, 0, SEEK_SET);
+            std::string content(sz, '\0');
+            fread(&content[0], 1, sz, f);
+            fclose(f);
+            return content;
+        });
+
+        // Pack sprite sheet: takes output path, array of image paths, cols, frameW, frameH
+        state.set_function("PackSpriteSheet", [](const std::string& outputPath, sol::table paths, int cols, int frameW, int frameH) -> bool {
+            int count = (int)paths.size();
+            if(count == 0 || cols <= 0 || frameW <= 0 || frameH <= 0)
+                return false;
+
+            int rows = (count + cols - 1) / cols;
+            int atlasW = cols * frameW;
+            int atlasH = rows * frameH;
+
+            // Allocate atlas (RGBA, zeroed)
+            std::vector<uint8_t> atlas(atlasW * atlasH * 4, 0);
+
+            for(int i = 0; i < count; i++)
+            {
+                std::string imgPath = paths[i + 1]; // Lua 1-indexed
+                uint32_t w = 0, h = 0, bits = 0;
+                uint8_t* pixels = LoadImageFromFile(imgPath.c_str(), &w, &h, &bits);
+                if(!pixels)
+                    continue;
+
+                int dstX = (i % cols) * frameW;
+                int dstY = (i / cols) * frameH;
+
+                // Copy sprite into atlas, clamp to frame bounds
+                int copyW = std::min((int)w, frameW);
+                int copyH = std::min((int)h, frameH);
+
+                for(int y = 0; y < copyH; y++)
+                {
+                    int srcOffset = y * w * 4;
+                    int dstOffset = ((dstY + y) * atlasW + dstX) * 4;
+                    memcpy(&atlas[dstOffset], &pixels[srcOffset], copyW * 4);
+                }
+
+                delete[] pixels;
+            }
+
+            return ImageExport::SavePNG(outputPath, atlasW, atlasH, atlas.data());
+        });
+
+        // CompileGLSL - runtime GLSL to SPIR-V compilation
+        state.set_function("CompileGLSL", [](const std::string& source, const std::string& typeStr) -> sol::table {
+            sol::state_view sv(LuaManager::Get().GetState());
+            sol::table result = sv.create_table();
+
+            Graphics::ShaderType type = Graphics::ShaderType::FRAGMENT;
+            if(typeStr == "vertex")
+                type = Graphics::ShaderType::VERTEX;
+            else if(typeStr == "compute")
+                type = Graphics::ShaderType::COMPUTE;
+
+            auto compileResult = Graphics::ShaderCompiler::Compile(source, type);
+            result["success"]  = compileResult.success;
+            result["error"]    = compileResult.error;
+            return result;
+        });
+
+        // ShaderPreview usertype
+        state.new_usertype<Graphics::ShaderPreview>("ShaderPreview",
+            sol::constructors<Graphics::ShaderPreview(uint32_t, uint32_t)>(),
+            "Compile", &Graphics::ShaderPreview::Compile,
+            "Render", &Graphics::ShaderPreview::Render,
+            "RenderAtResolution", &Graphics::ShaderPreview::RenderAtResolution,
+            "GetTexture", &Graphics::ShaderPreview::GetOutputTexture,
+            "GetExportTexture", &Graphics::ShaderPreview::GetExportTexture,
+            "GetError", &Graphics::ShaderPreview::GetError,
+            "IsCompiled", &Graphics::ShaderPreview::IsCompiled,
+            "SetTexture", &Graphics::ShaderPreview::SetChannelTexture,
+            "ClearTexture", &Graphics::ShaderPreview::ClearChannelTexture);
+
+        // Get the project's asset directory as a physical path
+        state.set_function("GetAssetPath", []() -> std::string {
+            auto& path = FileSystem::Get().GetAssetPath();
+            return std::string((const char*)path.str, path.size);
+        });
+
+        // Load a texture from file path
+        state.set_function("LoadTexture2D", [](const std::string& path) -> Graphics::Texture2D* {
+            return Graphics::Texture2D::CreateFromFile(path, path);
+        });
+
+        // Save an arbitrary texture to file
+        state.set_function("SaveTextureToFile", [](Graphics::Texture2D* texture, const std::string& path) {
+            auto renderer = Graphics::Renderer::GetRenderer();
+            if(renderer && texture)
+                renderer->SaveScreenshot(path, texture);
+        });
     }
 
     void LuaManager::BindUILua(sol::state& lua)
@@ -1030,7 +1379,7 @@ namespace Lumos
         lua["UILayoutRoot"] = &Lumos::UILayoutRoot;
 
         lua.set_function("UIToggle", [](const char* label, const bool& value)
-                         { 
+                         {
                     bool tempValue = value;
                     Lumos::UIToggle(label, &tempValue);
                     return tempValue; });

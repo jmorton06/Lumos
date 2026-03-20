@@ -34,7 +34,7 @@ vec3 DepthOfField(vec2 texCoord, float focusPoint, float focusScale, vec2 texelS
 	vec3 color = texture(u_Texture, texCoord).rgb;
 	float tot = 1.0;
 	float radius = RAD_SCALE;
-	for (float ang = 0.0; radius < MAX_BLUR_SIZE; ang += GOLDEN_ANGLE)
+	for (float ang = 0.0; radius < MAX_BLUR_SIZE && tot < 17.0; ang += GOLDEN_ANGLE)
 	{
 		vec2 tc = texCoord + vec2(cos(ang), sin(ang)) * texelSize * radius;
 		vec3 sampleColor = texture(u_Texture, tc).rgb;

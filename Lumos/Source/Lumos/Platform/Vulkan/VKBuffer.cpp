@@ -248,8 +248,34 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 #ifdef USE_VMA_ALLOCATOR
-            VK_CHECK_RESULT(vmaMapMemory(VKDevice::Get().GetAllocator(), m_Allocation, &m_Mapped));
-            m_Mapped = (uint8_t*)m_Mapped + offset;
+            if(m_GPUOnlyMemory)
+            {
+                // GPU-only buffer: create staging buffer and copy data back for reading
+                VkBufferCreateInfo stagingInfo = {};
+                stagingInfo.sType              = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+                stagingInfo.size               = m_Size;
+                stagingInfo.usage              = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+                stagingInfo.sharingMode        = VK_SHARING_MODE_EXCLUSIVE;
+
+                VmaAllocationCreateInfo stagingAllocInfo = {};
+                stagingAllocInfo.usage                   = VMA_MEMORY_USAGE_GPU_TO_CPU;
+
+                VK_CHECK_RESULT(vmaCreateBuffer(VKDevice::Get().GetAllocator(), &stagingInfo, &stagingAllocInfo, &m_StagingBuffer, &m_StagingAllocation, nullptr));
+
+                VkCommandBuffer cmd = VKUtilities::BeginSingleTimeCommands();
+                VkBufferCopy copyRegion = {};
+                copyRegion.size         = m_Size;
+                vkCmdCopyBuffer(cmd, m_Buffer, m_StagingBuffer, 1, &copyRegion);
+                VKUtilities::EndSingleTimeCommands(cmd);
+
+                VK_CHECK_RESULT(vmaMapMemory(VKDevice::Get().GetAllocator(), m_StagingAllocation, &m_Mapped));
+                m_Mapped = (uint8_t*)m_Mapped + offset;
+            }
+            else
+            {
+                VK_CHECK_RESULT(vmaMapMemory(VKDevice::Get().GetAllocator(), m_Allocation, &m_Mapped));
+                m_Mapped = (uint8_t*)m_Mapped + offset;
+            }
 #else
             VK_CHECK_RESULT(vkMapMemory(VKDevice::Get().GetDevice(), m_Memory, offset, size, 0, &m_Mapped));
 #endif
@@ -261,7 +287,17 @@ namespace Lumos
             if(m_Mapped)
             {
 #ifdef USE_VMA_ALLOCATOR
-                vmaUnmapMemory(VKDevice::Get().GetAllocator(), m_Allocation);
+                if(m_StagingBuffer)
+                {
+                    vmaUnmapMemory(VKDevice::Get().GetAllocator(), m_StagingAllocation);
+                    vmaDestroyBuffer(VKDevice::Get().GetAllocator(), m_StagingBuffer, m_StagingAllocation);
+                    m_StagingBuffer     = VK_NULL_HANDLE;
+                    m_StagingAllocation = {};
+                }
+                else
+                {
+                    vmaUnmapMemory(VKDevice::Get().GetAllocator(), m_Allocation);
+                }
 #else
                 vkUnmapMemory(VKDevice::Get().GetDevice(), m_Memory);
 #endif
@@ -273,6 +309,8 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 #ifdef USE_VMA_ALLOCATOR
+            if(m_StagingBuffer)
+                return; // Read-only staging readback, no flush needed
             vmaFlushAllocation(VKDevice::Get().GetAllocator(), m_Allocation, offset, size);
 #else
             VkMappedMemoryRange mappedRange = {};

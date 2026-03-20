@@ -1,6 +1,9 @@
 #include "ProjectSettingsPanel.h"
 #include "Editor.h"
 #include <Lumos/Core/Profiler.h>
+#include <Lumos/Scene/SceneManager.h>
+#include <Lumos/Core/String.h>
+#include <Lumos/Core/Thread.h>
 #if __has_include(<filesystem>)
 #include <filesystem>
 #elif __has_include(<experimental/filesystem>)
@@ -49,6 +52,43 @@ namespace Lumos
                 ImGuiUtilities::Property("Title", projectSettings.Title);
                 ImGuiUtilities::Property("RenderAPI", projectSettings.RenderAPI, 0, 1);
                 ImGuiUtilities::Property("Project Version", projectSettings.ProjectVersion, 0, 0, ImGuiUtilities::PropertyFlag::ReadOnly);
+                ImGuiUtilities::Property("Auto Import Meshes", projectSettings.AutoImportMeshes);
+
+                // Start Scene dropdown
+                {
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextUnformatted("Start Scene");
+                    ImGui::NextColumn();
+                    ImGui::PushItemWidth(-1);
+
+                    ArenaTemp scratch = ScratchBegin(0, 0);
+                    auto sceneNames   = Application::Get().GetSceneManager()->GetSceneNames(scratch.arena);
+
+                    std::string currentStart = projectSettings.StartScene;
+                    if(currentStart.empty())
+                        currentStart = "(Default - first scene)";
+
+                    if(ImGui::BeginCombo("##StartScene", currentStart.c_str()))
+                    {
+                        if(ImGui::Selectable("(Default - first scene)", projectSettings.StartScene.empty()))
+                            projectSettings.StartScene.clear();
+
+                        for(size_t i = 0; i < sceneNames.Size(); i++)
+                        {
+                            const char* name   = (const char*)sceneNames[i].str;
+                            bool isSelected    = (projectSettings.StartScene == name);
+                            if(ImGui::Selectable(name, isSelected))
+                                projectSettings.StartScene = name;
+                            if(isSelected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+                    ScratchEnd(scratch);
+
+                    ImGui::PopItemWidth();
+                    ImGui::NextColumn();
+                }
 
                 if(!ImGui::IsItemActive() && m_NameUpdated)
                 {

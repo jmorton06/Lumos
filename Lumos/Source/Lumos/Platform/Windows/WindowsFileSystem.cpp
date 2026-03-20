@@ -106,12 +106,13 @@ namespace Lumos
         int64_t size = stream.tellg();
         stream.seekg(0, std::ios::beg);
 
-        u8* buffer = PushArrayNoZero(arena, u8, size);
+        u64 savedPos = ArenaPos(arena);
+        u8* buffer   = PushArrayNoZero(arena, u8, size);
         stream.read((char*)buffer, size);
 
-        if (!stream) 
+        if (!stream)
         {
-            ArenaPop(arena, sizeof(u8) * size);
+            ArenaPopTo(arena, savedPos);
             return nullptr;
         }
 

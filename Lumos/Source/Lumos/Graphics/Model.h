@@ -38,8 +38,13 @@ namespace Lumos
 
             SharedPtr<Skeleton> GetSkeleton() const;
             const TDArray<SharedPtr<Animation>>& GetAnimations() const;
+            const TDArray<Mat4>& GetBindPoses() const;
             SharedPtr<SamplingContext> GetSamplingContext() const;
             SharedPtr<AnimationController> GetAnimationController() const;
+
+            void SetSkeleton(SharedPtr<Skeleton> skeleton);
+            void SetAnimations(const TDArray<SharedPtr<Animation>>& animations);
+            void SetBindPoses(const TDArray<Mat4>& bindPoses);
 
             uint32_t GetCurrentAnimationIndex() const { return m_CurrentAnimation; }
             void SetCurrentAnimationIndex(uint32_t index) { m_CurrentAnimation = index; }
@@ -59,12 +64,19 @@ namespace Lumos
             Model(Model&&);
             Model& operator=(Model&&);
 
+            bool IsLoading() const { return m_Loading; }
+
+            // Load model asynchronously — file I/O + CPU parse on background thread,
+            // GPU buffer creation deferred to main thread
+            void LoadModelAsync(const std::string& path);
+
         private:
             // Move to Animation Component
             PrimitiveType m_PrimitiveType = PrimitiveType::None;
             TDArray<SharedPtr<Mesh>> m_Meshes;
             std::string m_FilePath;
             TDArray<String8> m_AnimFilePaths;
+            bool m_Loading = false;
 
             SharedPtr<Skeleton> m_Skeleton;
             TDArray<SharedPtr<Animation>> m_Animation;
@@ -78,8 +90,10 @@ namespace Lumos
             void LoadOBJ(const std::string& path);
             void LoadGLTF(const std::string& path);
             void LoadFBX(const std::string& path);
+            bool LoadLMesh(const std::string& path);
 
         public:
+            bool LoadLAnim(const std::string& path);
             void LoadModel(const std::string& path);
         };
     }
