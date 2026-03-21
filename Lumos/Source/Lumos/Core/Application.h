@@ -8,11 +8,7 @@
 #include "Maths/Vector2.h"
 #include "Core/Function.h"
 #include "Core/Mutex.h"
-
-// Needed for iOS build
-#if defined(LUMOS_PLATFORM_IOS)
 #include <string>
-#endif
 
 namespace Lumos
 {
