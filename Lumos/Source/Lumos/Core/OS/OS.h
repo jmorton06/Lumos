@@ -2,6 +2,7 @@
 #include "Core/Core.h"
 #include "Maths/MathsFwd.h"
 #include "Utilities/TSingleton.h"
+#include <string>
 
 namespace Lumos
 {

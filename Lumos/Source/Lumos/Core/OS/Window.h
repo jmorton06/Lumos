@@ -8,6 +8,7 @@
 #include "Maths/MathsFwd.h"
 #include "Core/DataStructures/TDArray.h"
 #include "Core/Function.h"
+#include "Core/String.h"
 
 namespace Lumos
 {

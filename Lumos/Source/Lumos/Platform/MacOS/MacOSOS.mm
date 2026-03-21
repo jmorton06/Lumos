@@ -4,6 +4,7 @@
 #include "Core/CoreSystem.h"
 #include "Core/Application.h"
 #include "Core/OS/MemoryManager.h"
+#include "Maths/Vector4.h"
 
 #include <mach-o/dyld.h>
 
