@@ -13,12 +13,11 @@
 <a href="https://github.com/jmorton06/Lumos/releases/latest"><img alt="platforms" src="https://img.shields.io/badge/Platforms-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20iOS-blue?style=flat-square"/></a>
 <a href="https://github.com/jmorton06/Lumos/blob/main/LICENSE"><img alt="license" src="https://img.shields.io/github/license/jmorton06/Lumos?style=flat-square"/></a>
 <br/>
-
 <a href=""><img alt="stars" src="https://img.shields.io/github/stars/jmorton06/Lumos?style=flat-square"/></a>
-<a href="https://ko-fi.com/Jmorton06"><img alt="kofi" src="https://img.shields.io/badge/Ko--fi-FF6433?logo=kofi&logoColor=fff&style=flat"/></a>
-<a href="https://github.com/jmorton06/Lumos/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/jmorton06/Lumos?style=flat-square"/></a>
 <a href="https://github.com/jmorton06/Lumos/releases"><img alt="downloads" src="https://img.shields.io/github/downloads/jmorton06/Lumos/total?color=green&style=flat-square"></a>
 <a href="https://discord.gg/n9PDrNjJwt"><img alt="Discord" src="https://img.shields.io/badge/chat-on_discord-7389D8.svg?logo=discord&logoColor=ffffff&labelColor=6A7EC2&style=flat-square"/></a>
+<a href="https://ko-fi.com/Jmorton06"><img alt="kofi" src="https://img.shields.io/badge/Ko--fi-FF6433?logo=kofi&logoColor=fff&style=flat-square"/></a>
+<a href="https://joem.app/lumos/docs"><img alt="Docs" src="https://img.shields.io/badge/docs-informational?style=flat-square&color=blue"/></a>
 <br/>
 </p>
 
@@ -31,7 +30,7 @@
 ![Lumos](/Resources/Screenshot0923.png?raw=true)
 #
 
-## Building 🔨
+## Building
 
 ```
 git clone https://github.com/jmorton06/Lumos.git
