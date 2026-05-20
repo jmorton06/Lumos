@@ -20,8 +20,12 @@
 #include "PreviewDraw.h"
 #include "ImportPanel.h"
 #include "EditorPanel.h"
+#include "PhysicsDebugPanel.h"
+#include "SpriteSlicerPanel.h"
+#include "ParticleEditorPanel.h"
 #include <Lumos/Core/Asset/AssetImporter.h>
 #include <Lumos/Core/Asset/AssetPacker.h>
+#include <Lumos/Core/Asset/AssetManager.h>
 
 #include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Utilities/Timer.h>
@@ -390,6 +394,12 @@ namespace Lumos
         m_Panels.back()->SetActive(false);
         m_Panels.emplace_back(CreateSharedPtr<AboutSupportPanel>());
         m_Panels.back()->SetActive(false);
+        m_Panels.emplace_back(CreateSharedPtr<PhysicsDebugPanel>());
+        m_Panels.back()->SetActive(false);
+        m_Panels.emplace_back(CreateSharedPtr<SpriteSlicerPanel>());
+        m_Panels.back()->SetActive(false);
+        m_Panels.emplace_back(CreateSharedPtr<ParticleEditorPanel>());
+        m_Panels.back()->SetActive(false);
 
         for(auto& panel : m_Panels)
             panel->SetEditor(this);
@@ -407,6 +417,9 @@ namespace Lumos
 
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(m_Settings.m_Physics3DDebugFlags);
         Application::Get().GetSystem<B2PhysicsEngine>()->SetDebugDrawFlags(m_Settings.m_Physics2DDebugFlags);
+
+        if(auto& am = Application::Get().GetAssetManager())
+            am->SetTextureHotReloadEnabled(true);
 
         ImGuiUtilities::SetTheme(m_Settings.m_Theme);
         OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
@@ -649,17 +662,6 @@ namespace Lumos
     void Editor::DrawMenuBar()
     {
         LUMOS_PROFILE_FUNCTION();
-
-        // Reserve viewport space for safe area insets (notch, rounded corners)
-        {
-            SafeAreaInsets sa = OS::Get().GetSafeAreaInsets();
-            ImGuiViewport* vp = ImGui::GetMainViewport();
-            ImGuiWindowFlags saFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-            if(sa.top > 0.0f)    { ImGui::BeginViewportSideBar("##SafeTop", vp, ImGuiDir_Up, sa.top, saFlags); ImGui::End(); }
-            if(sa.bottom > 0.0f) { ImGui::BeginViewportSideBar("##SafeBot", vp, ImGuiDir_Down, sa.bottom, saFlags); ImGui::End(); }
-            if(sa.left > 0.0f)   { ImGui::BeginViewportSideBar("##SafeLeft", vp, ImGuiDir_Left, sa.left, saFlags); ImGui::End(); }
-            if(sa.right > 0.0f)  { ImGui::BeginViewportSideBar("##SafeRight", vp, ImGuiDir_Right, sa.right, saFlags); ImGui::End(); }
-        }
 
         bool openSaveScenePopup   = false;
         bool openNewScenePopup    = false;

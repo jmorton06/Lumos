@@ -43,8 +43,12 @@ void main()
 	mat3 transposeInv = transpose(inverse(mat3(transform)));
 
 	vec3 N = normalize(transposeInv * inNormal);
-	vec3 T = normalize(transposeInv * inTangent);
-	vec3 B = normalize(cross(N, T));
+	vec3 T = transposeInv * inTangent;
+	T = normalize(T - dot(T, N) * N);
+	vec3 Braw = transposeInv * inBitangent;
+	vec3 Bcross = cross(N, T);
+	float bs = sign(dot(Bcross, Braw));
+	vec3 B = Bcross * (bs != 0.0 ? bs : 1.0);
 
 	VertexOutput.Normal = N;
 	VertexOutput.WorldNormal = mat3(T, B, N);

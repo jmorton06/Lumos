@@ -151,6 +151,13 @@ namespace Lumos
             const SharedPtr<Material>& GetMaterial() const { return m_Material; }
             const Maths::BoundingBox& GetBoundingBox() const { return m_BoundingBox; }
 
+            // CPU-side position/index data, retained at construction time so
+            // downstream systems (mesh colliders, raycasters) don't need to
+            // round-trip through the GPU vertex buffer. Empty for meshes
+            // built without index/vertex arrays (e.g. copy-constructed).
+            const TDArray<Vec3>& GetCPUPositions() const { return m_CPUPositions; }
+            const TDArray<uint32_t>& GetCPUIndices() const { return m_CPUIndices; }
+
             void SetMaterial(const SharedPtr<Material>& material);
             void SetAndLoadMaterial(const std::string& filePath);
 
@@ -183,6 +190,9 @@ namespace Lumos
             SharedPtr<IndexBuffer> m_IndexBuffer;
             SharedPtr<Material> m_Material;
             Maths::BoundingBox m_BoundingBox;
+
+            TDArray<Vec3> m_CPUPositions;
+            TDArray<uint32_t> m_CPUIndices;
 
             std::string m_Name;
 

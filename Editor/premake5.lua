@@ -102,6 +102,8 @@ project "LumosEditor"
 
 		disablewarnings { 4307 }
 
+		files { "../Resources/AppIcons/windows/app.rc" }
+
 		filter { 'system:windows', 'architecture:x86_64' }
 		    defines { "LUMOS_SSE"  }
 

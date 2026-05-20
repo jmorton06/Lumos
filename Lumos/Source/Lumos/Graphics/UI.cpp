@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "UI.h"
 #include "Core/OS/Input.h"
+#include "Core/OS/OS.h"
 #include "Font.h"
 #include "Maths/MathsUtilities.h"
 #include "Utilities/StringUtilities.h"
@@ -324,16 +325,18 @@ namespace Lumos
             }
         }
 
+        SafeAreaInsets sa = OS::Get().GetSafeAreaInsets();
+
         UI_Widget* root_parent                    = &s_UIState->root_parent;
-        root_parent->semantic_size[UIAxis_X]      = { SizeKind_Pixels, frame_buffer_size.x };
-        root_parent->semantic_size[UIAxis_Y]      = { SizeKind_Pixels, frame_buffer_size.y };
+        root_parent->semantic_size[UIAxis_X]      = { SizeKind_Pixels, frame_buffer_size.x - sa.left - sa.right };
+        root_parent->semantic_size[UIAxis_Y]      = { SizeKind_Pixels, frame_buffer_size.y - sa.top - sa.bottom };
         root_parent->hash                         = HashUIStr8Name(Str8Lit("root"));
         root_parent->flags                        = WidgetFlags_StackVertically;
         root_parent->text                         = Str8Lit("root");
         root_parent->style_vars[StyleVar_Padding] = { 0.0f, 0.0f, 0.0f, 0.0f };
         root_parent->style_vars[StyleVar_Border]  = { 0.0f, 0.0f, 0.0f, 0.0f };
         root_parent->cursor                       = { 0.0f, 0.0f };
-        root_parent->position                     = { 0.0f, 0.0f };
+        root_parent->position                     = { sa.left, sa.top };
         root_parent->size                         = frame_buffer_size;
         root_parent->first                        = NULL;
         root_parent->last                         = NULL;

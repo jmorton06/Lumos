@@ -54,12 +54,15 @@ namespace Lumos
         if(!mesh)
             return;
 
-        // Get vertex and index data from mesh
-        // This is a simplified version - actual implementation depends on Mesh class structure
-        // For now, we assume the mesh has GetVertices() and GetIndices() methods
+        const TDArray<Vec3>& positions    = mesh->GetCPUPositions();
+        const TDArray<uint32_t>& indices  = mesh->GetCPUIndices();
+        if(positions.Empty() || indices.Empty())
+        {
+            LWARN("MeshCollisionShape::BuildFromMesh: mesh has no CPU-side position/index data; build the mesh from a TDArray<Vertex>/TDArray<uint32_t> pair so it retains positions, or call SetMeshData() directly.");
+            return;
+        }
 
-        // TODO: Implement based on actual Mesh class API
-        LWARN("MeshCollisionShape::BuildFromMesh not fully implemented");
+        SetMeshData(positions, indices);
     }
 
     void MeshCollisionShape::ComputeBounds()

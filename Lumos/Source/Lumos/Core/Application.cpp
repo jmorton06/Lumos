@@ -55,6 +55,7 @@
 #include <cereal/types/vector.hpp>
 
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 
 namespace Lumos
 {
@@ -599,7 +600,7 @@ namespace Lumos
             ImGui::NewFrame();
         }
 
-        Vec2 frameSize = { (float)m_SceneViewWidth, (float)m_SceneViewHeight }; // GetWindowSize();
+        Vec2 frameSize = { (float)m_SceneViewWidth, (float)m_SceneViewHeight };
         UIBeginFrame(frameSize, (float)ts.GetSeconds(), m_SceneViewPosition);
         UIBeginBuild();
 

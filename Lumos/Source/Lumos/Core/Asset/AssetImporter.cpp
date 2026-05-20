@@ -22,6 +22,7 @@
 
 #include <cereal/archives/json.hpp>
 #include <cereal/cereal.hpp>
+#include <cereal/types/vector.hpp>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -567,6 +568,17 @@ namespace Lumos
                        cereal::make_nvp("shader", std::string()));
 
                     ar(cereal::make_nvp("Reflectance", props.reflectance));
+
+                    // Texture sampling parameters
+                    std::vector<int> filters(LMESH_MAX_TEXTURE_SLOTS);
+                    std::vector<int> wraps(LMESH_MAX_TEXTURE_SLOTS);
+                    for(u32 s = 0; s < LMESH_MAX_TEXTURE_SLOTS; s++)
+                    {
+                        filters[s] = (int)mat.TextureFilters[s];
+                        wraps[s]   = (int)mat.TextureWraps[s];
+                    }
+                    ar(cereal::make_nvp("TextureFilters", filters));
+                    ar(cereal::make_nvp("TextureWraps", wraps));
                 }
 
                 String8 lmatPath = PushStr8F(scratch.arena, "%s/Imported/Materials/%llu_%u.lmat",

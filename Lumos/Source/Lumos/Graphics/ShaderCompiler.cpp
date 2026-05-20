@@ -26,7 +26,12 @@ namespace Lumos
             shaderc::Compiler compiler;
             shaderc::CompileOptions options;
             options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_1);
-            options.SetOptimizationLevel(shaderc_optimization_level_performance);
+            // NOTE: Do not enable performance optimisation here. shaderc's
+            // optimiser strips unused descriptor bindings, which breaks the
+            // SPIR-V reflection path used by VKShader::GetDescriptorLayout —
+            // any user shader with "unused" bindings (e.g. shadow samplers
+            // tied off in a low-quality variant) will crash on first bind.
+            options.SetOptimizationLevel(shaderc_optimization_level_zero);
 
             shaderc_shader_kind kind;
             switch(type)

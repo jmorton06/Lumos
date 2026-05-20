@@ -543,7 +543,12 @@ namespace Lumos
 #endif
 
                 VKUtilities::TransitionImageLayout(m_TextureImage, m_VKFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_MipLevels);
-                VKUtilities::CopyBufferToImage(stagingBuffer.GetBuffer(), m_TextureImage, static_cast<uint32_t>(m_Width), static_cast<uint32_t>(m_Height));
+                
+                if(m_Width > 0 && m_Height > 0)
+                {
+                    VKUtilities::CopyBufferToImage(stagingBuffer.GetBuffer(), m_TextureImage, static_cast<uint32_t>(m_Width), static_cast<uint32_t>(m_Height));
+                }
+  
                 m_ImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
             }
 

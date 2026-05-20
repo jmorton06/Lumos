@@ -60,9 +60,25 @@ namespace Lumos
 
         SharedPtr<AssetRegistry> GetAssetRegistry() { return m_AssetRegistry; }
 
+        // Texture hot-reload — when enabled, AssetManager polls source files
+        // for loaded textures and re-uploads their pixel data when the file
+        // on disk changes. Default off; editor enables it after Init.
+        void SetTextureHotReloadEnabled(bool enabled) { m_HotReloadEnabled = enabled; }
+        bool IsTextureHotReloadEnabled() const { return m_HotReloadEnabled; }
+
     protected:
         bool LoadTexture(const String8& filePath, SharedPtr<Graphics::Texture2D>& texture, bool thread);
         bool LoadTexture(const String8& filePath, SharedPtr<Graphics::Texture2D>& texture, bool thread, const Graphics::TextureDesc& desc);
+
+        struct TextureWatch
+        {
+            std::string Path;                            // physical filesystem path
+            WeakPtr<Graphics::Texture2D> Texture;        // weak so unloaded textures drop out
+            Graphics::TextureDesc Desc;
+            uint64_t LastModTime = 0;
+        };
+        void RegisterTextureWatch(const String8& physicalPath, const SharedPtr<Graphics::Texture2D>& texture, const Graphics::TextureDesc& desc);
+        void TickHotReload(float elapsedSeconds);
 
         Arena* m_Arena;
         SharedPtr<AssetRegistry> m_AssetRegistry;
@@ -70,5 +86,9 @@ namespace Lumos
 
         // Separate material cache (Material doesn't inherit Asset)
         std::unordered_map<std::string, SharedPtr<Graphics::Material>> m_MaterialCache;
+
+        std::vector<TextureWatch> m_TextureWatches;
+        float m_HotReloadAccum   = 0.0f;
+        bool m_HotReloadEnabled  = false;
     };
 }

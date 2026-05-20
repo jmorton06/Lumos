@@ -35,10 +35,13 @@ namespace Lumos
         {
             m_BoundingBox = {};
 
+            m_CPUPositions.Reserve((uint32_t)vertices.Size());
             for(auto& vertex : vertices)
             {
                 m_BoundingBox.Merge(vertex.Position);
+                m_CPUPositions.PushBack(vertex.Position);
             }
+            m_CPUIndices = indices;
 
             m_IndexBuffer  = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create((uint32_t*)indices.Data(), (uint32_t)indices.Size()));
             m_VertexBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::Vertex) * vertices.Size()), vertices.Data(), BufferUsage::STATIC));
@@ -153,7 +156,7 @@ namespace Lumos
                 Vec2 deltaUV2 = uv2 - uv0;
 
                 float den = (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-                if(den < Maths::M_EPSILON)
+                if(Maths::Abs(den) < Maths::M_EPSILON)
                     den = 1.0f;
 
                 float f = 1.0f / den;
@@ -179,7 +182,7 @@ namespace Lumos
                 else
                     vertices[i].Tangent = Vec3(0.0f);
 
-                if(Maths::Length2(vertices[i].Tangent) > Maths::M_EPSILON)
+                if(Maths::Length2(vertices[i].Bitangent) > Maths::M_EPSILON)
                     vertices[i].Bitangent = vertices[i].Bitangent.Normalised();
                 else
                     vertices[i].Bitangent = Vec3(0.0f);
