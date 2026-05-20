@@ -67,6 +67,14 @@ function LoadGameProject()
 		project_name = folder_name:gsub("[^%a%d_]", "")
 	end
 
+	-- Resolve VFS icon path to absolute path
+	local icon_abs_path = nil
+	if icon_path and icon_path ~= "" then
+		-- Strip VFS prefix (//)
+		local resolved = icon_path:gsub("^//", "")
+		icon_abs_path = path.join(project_path, resolved)
+	end
+
 	game_project = {
 		dir          = project_path,
 		rel_dir      = path.getrelative(os.getcwd(), project_path),
@@ -77,6 +85,7 @@ function LoadGameProject()
 		version      = version,
 		build_number = build_number,
 		icon_path    = icon_path,
+		icon_abs_path = icon_abs_path,
 		lmproj       = lmproj_path
 	}
 

@@ -1519,26 +1519,26 @@ namespace Lumos::Graphics
                 LUMOS_PROFILE_SCOPE("Sort Meshes by distance from camera");
                 auto camPos = m_CameraTransform->GetWorldPosition();
                 if(!m_ForwardData.m_CommandQueue.Empty())
-                    Algorithms::InsertionSort(m_ForwardData.m_CommandQueue.begin(), m_ForwardData.m_CommandQueue.end(),
-                                              [camPos](RenderCommand& a, RenderCommand& b)
-                                              {
-                                                  if(a.material->GetFlag(Material::RenderFlags::DEPTHTEST) && !b.material->GetFlag(Material::RenderFlags::DEPTHTEST))
-                                                      return true;
-                                                  if(!a.material->GetFlag(Material::RenderFlags::DEPTHTEST) && b.material->GetFlag(Material::RenderFlags::DEPTHTEST))
-                                                      return false;
+                    Algorithms::IntroSort(m_ForwardData.m_CommandQueue.begin(), m_ForwardData.m_CommandQueue.end(),
+                                          [camPos](RenderCommand& a, RenderCommand& b)
+                                          {
+                                              if(a.material->GetFlag(Material::RenderFlags::DEPTHTEST) && !b.material->GetFlag(Material::RenderFlags::DEPTHTEST))
+                                                  return true;
+                                              if(!a.material->GetFlag(Material::RenderFlags::DEPTHTEST) && b.material->GetFlag(Material::RenderFlags::DEPTHTEST))
+                                                  return false;
 
-                                                  return Maths::Length2(camPos - a.transform.Translation()) < Maths::Length2(camPos - b.transform.Translation());
-                                              });
+                                              return Maths::Length2(camPos - a.transform.Translation()) < Maths::Length2(camPos - b.transform.Translation());
+                                          });
             }
 
             {
                 LUMOS_PROFILE_SCOPE("Sort sprites by z value");
                 if(!m_Renderer2DData.m_CommandQueue2D.Empty())
-                    Algorithms::InsertionSort(m_Renderer2DData.m_CommandQueue2D.begin(), m_Renderer2DData.m_CommandQueue2D.end(),
-                                              [](RenderCommand2D& a, RenderCommand2D& b)
-                                              {
-                                                  return a.transform.Translation()[2] < b.transform.Translation()[2];
-                                              });
+                    Algorithms::IntroSort(m_Renderer2DData.m_CommandQueue2D.begin(), m_Renderer2DData.m_CommandQueue2D.end(),
+                                          [](RenderCommand2D& a, RenderCommand2D& b)
+                                          {
+                                              return a.transform.Translation()[2] < b.transform.Translation()[2];
+                                          });
             }
         }
     }
@@ -1697,6 +1697,8 @@ namespace Lumos::Graphics
             return "Normal";
         case 7:
             return "Shadow Cascades";
+        case 8:
+            return "UV";
         default:
             return "Lighting";
         }
@@ -1756,7 +1758,7 @@ namespace Lumos::Graphics
         ImGui::PushItemWidth(-1);
         if(ImGui::BeginMenu(RenderModeToString(m_ForwardData.m_RenderMode)))
         {
-            const int numRenderModes = 8;
+            const int numRenderModes = 9;
 
             for(int i = 0; i < numRenderModes; i++)
             {

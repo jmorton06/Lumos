@@ -10,6 +10,7 @@
 #include "Maths/MathsSerialisation.h"
 #include <cereal/archives/json.hpp>
 #include <cereal/cereal.hpp>
+#include <cereal/types/vector.hpp>
 #include <future>
 #include <inttypes.h>
 #include <sstream>
@@ -17,6 +18,7 @@
 namespace Lumos
 {
     static TDArray<std::future<void>> m_Futures;
+    static void LoadTexture2D(Graphics::Texture2D* tex, const String8& path, bool deferred, Graphics::TextureDesc desc);
 
     AssetManager::AssetManager()
     {
@@ -113,6 +115,51 @@ namespace Lumos
     void AssetManager::Update(float elapsedSeconds)
     {
         m_AssetRegistry->Update(elapsedSeconds);
+        if(m_HotReloadEnabled)
+            TickHotReload(elapsedSeconds);
+    }
+
+    void AssetManager::RegisterTextureWatch(const String8& physicalPath, const SharedPtr<Graphics::Texture2D>& texture, const Graphics::TextureDesc& desc)
+    {
+        if(physicalPath.size == 0 || !texture)
+            return;
+
+        TextureWatch w;
+        w.Path        = std::string((const char*)physicalPath.str, physicalPath.size);
+        w.Texture     = texture;
+        w.Desc        = desc;
+        w.LastModTime = FileSystem::GetFileModifiedTime(physicalPath);
+        m_TextureWatches.push_back(std::move(w));
+    }
+
+    void AssetManager::TickHotReload(float elapsedSeconds)
+    {
+        // Rate-limit: scan once per second.
+        m_HotReloadAccum += elapsedSeconds;
+        if(m_HotReloadAccum < 1.0f)
+            return;
+        m_HotReloadAccum = 0.0f;
+
+        for(auto it = m_TextureWatches.begin(); it != m_TextureWatches.end();)
+        {
+            SharedPtr<Graphics::Texture2D> tex = it->Texture.Lock();
+            if(!tex)
+            {
+                it = m_TextureWatches.erase(it);
+                continue;
+            }
+
+            String8 path { (u8*)it->Path.data(), (u64)it->Path.size() };
+            uint64_t mod = FileSystem::GetFileModifiedTime(path);
+            if(mod != 0 && mod > it->LastModTime)
+            {
+                it->LastModTime = mod;
+                LINFO("Hot-reloading texture: %s", it->Path.c_str());
+                // Reload via existing pipeline; uses SubmitToMainThread for GPU work.
+                LoadTexture2D(tex.get(), path, true, it->Desc);
+            }
+            ++it;
+        }
     }
 
     bool AssetManager::AssetExists(const String8& name)
@@ -182,6 +229,7 @@ namespace Lumos
             LoadTexture2D(texture.get(), filePath, false);
 
         AddAsset(filePath, texture);
+        RegisterTextureWatch(filePath, texture, Graphics::TextureDesc{});
         return true;
     }
 
@@ -194,6 +242,7 @@ namespace Lumos
             LoadTexture2D(texture.get(), filePath, false, desc);
 
         AddAsset(filePath, texture);
+        RegisterTextureWatch(filePath, texture, desc);
         return true;
     }
 
@@ -269,6 +318,9 @@ namespace Lumos
         static const char* texNames[] = { "Albedo", "Normal", "Metallic", "Roughness", "Ao", "Emissive" };
 
         std::string texPaths[6];
+        Graphics::TextureFilter texFilters[6] = {};
+        Graphics::TextureWrap texWraps[6] = {};
+        bool hasTexParams = false;
         Graphics::MaterialProperties props;
         std::string shaderName;
 
@@ -293,6 +345,20 @@ namespace Lumos
                cereal::make_nvp("shader", shaderName));
 
             ar(cereal::make_nvp("Reflectance", props.reflectance));
+
+            // Read texture sampling parameters (optional, added in newer lmat format)
+            try
+            {
+                std::vector<int> filters, wraps;
+                ar(cereal::make_nvp("TextureFilters", filters));
+                ar(cereal::make_nvp("TextureWraps", wraps));
+                for(u32 s = 0; s < 6 && s < filters.size(); s++)
+                    texFilters[s] = (Graphics::TextureFilter)filters[s];
+                for(u32 s = 0; s < 6 && s < wraps.size(); s++)
+                    texWraps[s] = (Graphics::TextureWrap)wraps[s];
+                hasTexParams = true;
+            }
+            catch(...) {}
         }
         catch(...)
         {
@@ -316,7 +382,21 @@ namespace Lumos
                 if(texPaths[s].empty())
                     continue;
 
-                auto tex = LoadTextureAsset(Str8StdS(texPaths[s]), true);
+                Graphics::TextureDesc texDesc;
+                if(hasTexParams)
+                {
+                    texDesc.minFilter = texFilters[s] != Graphics::TextureFilter::NONE ? texFilters[s] : Graphics::TextureFilter::LINEAR;
+                    texDesc.magFilter = texDesc.minFilter;
+                    texDesc.wrap      = texWraps[s] != Graphics::TextureWrap::NONE ? texWraps[s] : Graphics::TextureWrap::REPEAT;
+                }
+                else
+                {
+                    texDesc.minFilter = Graphics::TextureFilter::LINEAR;
+                    texDesc.magFilter = Graphics::TextureFilter::LINEAR;
+                    texDesc.wrap      = Graphics::TextureWrap::REPEAT;
+                }
+
+                auto tex = LoadTextureAsset(Str8StdS(texPaths[s]), false, texDesc);
                 if(tex)
                 {
                     switch(s)

@@ -160,9 +160,8 @@ namespace Lumos
             }
 
             // Try loading from cached .lmat file first
-            char lmatBuf[512];
-            snprintf(lmatBuf, sizeof(lmatBuf), "//Assets/Imported/Materials/%s_%u.lmat", hashStr.c_str(), m);
-            String8 lmatPath = Str8StdS(std::string(lmatBuf));
+            std::string lmatPathStr = "//Assets/Imported/Materials/" + hashStr + "_" + std::to_string(m) + ".lmat";
+            String8 lmatPath = Str8StdS(lmatPathStr);
 
             SharedPtr<Graphics::Material> material = Application::Get().GetAssetManager()->LoadMaterialAsset(lmatPath);
 

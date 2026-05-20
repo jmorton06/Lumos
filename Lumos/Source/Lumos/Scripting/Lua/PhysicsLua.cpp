@@ -4,8 +4,11 @@
 #include "Scene/Component/RigidBody3DComponent.h"
 #include "Core/Application.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h"
 #include "Physics/LumosPhysicsEngine/PhysicsMaterial.h"
+#include "Physics/LumosPhysicsEngine/RaycastResult.h"
+#include "Core/DataStructures/TDArray.h"
 
 #include <box2d/box2d.h>
 #include <sol/sol.hpp>
@@ -102,6 +105,61 @@ namespace Lumos
         physics3D_type.set_function("SetElasticity", &RigidBody3D::SetElasticity);
         physics3D_type.set_function("GetIsTrigger", &RigidBody3D::GetIsTrigger);
         physics3D_type.set_function("SetIsTrigger", &RigidBody3D::SetIsTrigger);
+
+        // Additional getters/setters
+        physics3D_type.set_function("GetForce", &RigidBody3D::GetForce);
+        physics3D_type.set_function("GetTorque", &RigidBody3D::GetTorque);
+        physics3D_type.set_function("SetTorque", &RigidBody3D::SetTorque);
+        physics3D_type.set_function("GetAngularVelocity", &RigidBody3D::GetAngularVelocity);
+        physics3D_type.set_function("GetOrientation", &RigidBody3D::GetOrientation);
+        physics3D_type.set_function("GetInverseMass", &RigidBody3D::GetInverseMass);
+        physics3D_type.set_function("GetMass", [](const RigidBody3D& b) -> float
+            { float inv = b.GetInverseMass(); return inv > 0.0f ? 1.0f / inv : 0.0f; });
+        physics3D_type.set_function("SetMass", &RigidBody3D::SetMass);
+        physics3D_type.set_function("WakeUp", &RigidBody3D::WakeUp);
+        physics3D_type.set_function("IsAwake", &RigidBody3D::IsAwake);
+        physics3D_type.set_function("GetCollisionLayer", &RigidBody3D::GetCollisionLayer);
+        physics3D_type.set_function("SetCollisionLayer", &RigidBody3D::SetCollisionLayer);
+        physics3D_type.set_function("GetCollisionMask", &RigidBody3D::GetCollisionMask);
+        physics3D_type.set_function("SetCollisionMask", &RigidBody3D::SetCollisionMask);
+
+        // Additive force/impulse helpers (engine only has Set; gameplay usually wants Apply)
+        physics3D_type.set_function("AddForce", [](RigidBody3D& b, const Vec3& f)
+            { b.SetForce(b.GetForce() + f); });
+        physics3D_type.set_function("AddTorque", [](RigidBody3D& b, const Vec3& t)
+            { b.SetTorque(b.GetTorque() + t); });
+        physics3D_type.set_function("ApplyImpulse", [](RigidBody3D& b, const Vec3& impulse)
+            { b.SetLinearVelocity(b.GetLinearVelocity() + impulse * b.GetInverseMass()); b.WakeUp(); });
+        physics3D_type.set_function("ApplyAngularImpulse", [](RigidBody3D& b, const Vec3& impulse)
+            { b.SetAngularVelocity(b.GetAngularVelocity() + b.GetInverseInertia() * impulse); b.WakeUp(); });
+
+        // Raycast bindings (LumosPhysicsEngine 3D)
+        sol::usertype<RaycastHit> raycastHit_type = state.new_usertype<RaycastHit>("RaycastHit");
+        raycastHit_type["body"]     = &RaycastHit::Body;
+        raycastHit_type["point"]    = &RaycastHit::Point;
+        raycastHit_type["normal"]   = &RaycastHit::Normal;
+        raycastHit_type["distance"] = &RaycastHit::Distance;
+        raycastHit_type.set_function("Hit", &RaycastHit::Hit);
+
+        sol::usertype<RaycastQuery> raycastQuery_type = state.new_usertype<RaycastQuery>("RaycastQuery",
+            sol::constructors<RaycastQuery(), RaycastQuery(const Vec3&, const Vec3&, float)>());
+        raycastQuery_type["origin"]      = &RaycastQuery::Origin;
+        raycastQuery_type["direction"]   = &RaycastQuery::Direction;
+        raycastQuery_type["maxDistance"] = &RaycastQuery::MaxDistance;
+        raycastQuery_type["layerMask"]   = &RaycastQuery::LayerMask;
+        raycastQuery_type["hitTriggers"] = &RaycastQuery::HitTriggers;
+
+        state.set_function("Raycast", [](const Vec3& origin, const Vec3& dir, float maxDist) -> RaycastHit
+            { return Application::Get().GetSystem<LumosPhysicsEngine>()->Raycast(origin, dir, maxDist); });
+        state.set_function("RaycastAll", [](const Vec3& origin, const Vec3& dir, float maxDist) -> sol::as_table_t<std::vector<RaycastHit>>
+            {
+                TDArray<RaycastHit> hits;
+                Application::Get().GetSystem<LumosPhysicsEngine>()->RaycastAll(RaycastQuery(origin, dir, maxDist), hits);
+                std::vector<RaycastHit> out;
+                out.reserve(hits.Size());
+                for(uint32_t i = 0; i < hits.Size(); ++i) out.push_back(hits[i]);
+                return sol::as_table(out);
+            });
 
         sol::usertype<PhysicsMaterial> physicsMaterial_type = state.new_usertype<PhysicsMaterial>("PhysicsMaterial");
         physicsMaterial_type["friction"]    = &PhysicsMaterial::Friction;

@@ -9,19 +9,22 @@ ROOT_DIR="$SCRIPT_DIR/../.."
 # Parse args
 PROJECT_DIR=""
 IOS_MODE=false
+SHADERC=""
 
 for arg in "$@"; do
     case "$arg" in
         --ios) IOS_MODE=true ;;
+        --shaderc) SHADERC="1" ;;
         *) PROJECT_DIR="$arg" ;;
     esac
 done
 
 if [ -z "$PROJECT_DIR" ]; then
-    echo "Usage: PackageGame.sh <project-dir> [--ios]"
+    echo "Usage: PackageGame.sh <project-dir> [--ios] [--shaderc]"
     echo ""
     echo "  <project-dir>  Path to game project directory (contains .lmproj)"
     echo "  --ios          Generate iOS Xcode project instead of building macOS .app"
+    echo "  --shaderc      Enable runtime shader compilation"
     exit 1
 fi
 
@@ -71,21 +74,13 @@ echo "Bundle ID: ${BUNDLE_ID:-auto}"
 echo "Mode:      $([ "$IOS_MODE" = true ] && echo "iOS" || echo "macOS")"
 echo ""
 
-# Prepare icon if available
-ICON_CANDIDATES=(
-    "$PROJECT_DIR/Assets/Textures/icon.png"
-    "$PROJECT_DIR/Assets/Textures/Icon.png"
-    "$PROJECT_DIR/Assets/icon.png"
-    "$PROJECT_DIR/icon.png"
-)
-
-for icon in "${ICON_CANDIDATES[@]}"; do
-    if [ -f "$icon" ]; then
-        echo "Preparing icon from $icon..."
-        "$SCRIPT_DIR/PrepareIcon.sh" "$icon"
-        break
-    fi
-done
+# Generate icons (reads IconPath from .lmproj, falls back to common locations)
+ICON_PLATFORM="macos"
+if [ "$IOS_MODE" = true ]; then
+    ICON_PLATFORM="ios"
+fi
+echo "Generating icons..."
+"$SCRIPT_DIR/../GenerateIcons.sh" "$PROJECT_DIR" --platform="$ICON_PLATFORM"
 
 # Generate customized iOS launch screen
 "$SCRIPT_DIR/GenerateLaunchScreen.sh" "$LMPROJ"
@@ -103,12 +98,17 @@ else
 fi
 
 # Run premake
+PREMAKE_ARGS="--game-project=\"$PROJECT_DIR\""
+if [ -n "$SHADERC" ]; then
+    PREMAKE_ARGS="$PREMAKE_ARGS --shaderc"
+fi
+
 if [ "$IOS_MODE" = true ]; then
     echo "Generating iOS Xcode project..."
-    Tools/premake5 xcode4 --game-project="$PROJECT_DIR" --os=ios
+    eval "Tools/premake5 xcode4 $PREMAKE_ARGS --os=ios"
 else
     echo "Generating macOS Xcode project..."
-    Tools/premake5 xcode4 --game-project="$PROJECT_DIR"
+    eval "Tools/premake5 xcode4 $PREMAKE_ARGS"
 fi
 
 # Post-process pbxproj (SKIP_INSTALL fix)

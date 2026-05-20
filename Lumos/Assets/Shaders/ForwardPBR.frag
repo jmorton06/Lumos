@@ -506,6 +506,9 @@ void main()
 				case 3 : outColour = outColour * vec4(0.8,0.8,0.2,1.0); break;
 			}
 			break;
+			case 8:
+			outColour = vec4(VertexOutput.TexCoord, 0.0, 1.0);
+			break;
 		}
 	}
 }

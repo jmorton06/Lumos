@@ -1,6 +1,7 @@
 #pragma once
 #include "Sound.h"
 #include "Maths/Vector3.h"
+#include <string>
 
 namespace Lumos
 {
@@ -30,6 +31,14 @@ namespace Lumos
 
         void SetVolume(float volume);
         float GetVolume() const { return m_Volume; }
+
+        // Mixing bus name. Defaults to "Master". AudioManager::GetBusVolume
+        // multiplies this into the effective OpenAL gain.
+        void SetBusName(const std::string& bus) { m_BusName = bus; }
+        const std::string& GetBusName() const { return m_BusName; }
+
+        // Per-sound volume * bus volume from AudioManager.
+        float GetEffectiveVolume() const;
 
         void SetLooping(bool state) { m_IsLooping = state; }
         bool GetLooping() const { return m_IsLooping; }
@@ -78,6 +87,7 @@ namespace Lumos
         float m_RollOffFactor;
         bool m_Stationary;
         double m_StreamPos;
+        std::string m_BusName = "Master";
     };
 
 }
