@@ -31,6 +31,19 @@ Exit 0 = success, exit 1 = failure.
 
 Default excludes: `Cache/`, `Imported/` subdirectories and `.meta` files.
 
+### iOS
+# Default (ExampleProject)
+./Scripts/MacOS/BuildIOS.sh
+
+# Specific project
+./Scripts/MacOS/BuildIOS.sh --project=Tools/LumosShader
+
+# Simulator build
+./Scripts/MacOS/BuildIOS.sh --project=Tools/LumosShader --simulator
+
+# Release
+./Scripts/MacOS/BuildIOS.sh --project=Tools/LumosShader --release
+
 ---
 
 ## 2. macOS Packaging
