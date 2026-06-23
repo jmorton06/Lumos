@@ -25,6 +25,7 @@ namespace Lumos
         float MaxDistance     = 1000.0f;
         uint16_t LayerMask    = 0xFFFF;
         bool HitTriggers      = false;
+        RigidBody3D* IgnoreBody = nullptr; // skip this body (e.g. a vehicle's own chassis)
 
         RaycastQuery() = default;
         RaycastQuery(const Vec3& origin, const Vec3& dir, float maxDist = 1000.0f)

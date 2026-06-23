@@ -163,6 +163,19 @@ namespace Lumos
         RigidBody3DComponent(RigidBody3D* physics);
         RigidBody3DComponent(const RigidBody3DProperties& params);
 
+        // Move constructor — without this the compiler suppresses move generation
+        // (we have a user-defined copy ctor). EnTT then falls back to copy when it
+        // relocates components internally (pool growth, swap, etc.), and each copy
+        // allocates a fresh RigidBody3D from the pool and orphans the original — a
+        // phantom body still simulating in the physics engine with no entity.
+        RigidBody3DComponent(RigidBody3DComponent&& other) noexcept
+            : m_RigidBody(other.m_RigidBody)
+            , m_OwnRigidBody(other.m_OwnRigidBody)
+        {
+            other.m_RigidBody    = nullptr;
+            other.m_OwnRigidBody = false;
+        }
+
         ~RigidBody3DComponent();
 
         RigidBody3DComponent& operator=(const RigidBody3DComponent& rhs)

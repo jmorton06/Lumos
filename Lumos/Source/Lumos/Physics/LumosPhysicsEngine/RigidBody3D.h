@@ -173,6 +173,7 @@ namespace Lumos
         void SetPosition(const Vec3& v)
         {
             m_Position               = v;
+            m_PrevPosition           = v;   // treat external writes as teleports — render must not interpolate through old pos
             m_WSTransformInvalidated = true;
             m_WSAabbInvalidated      = true;
         }
@@ -183,7 +184,22 @@ namespace Lumos
         void SetOrientation(const Quat& v)
         {
             m_Orientation            = v;
+            m_PrevOrientation        = v;
             m_WSTransformInvalidated = true;
+        }
+
+        // Render-interpolation accessors. SyncTransforms lerps between prev
+        // (state at start of last fixed step) and curr (state at end of last
+        // fixed step) using alpha = accumulator / fixed_dt, so the visible
+        // transform tracks the continuous render clock rather than the
+        // discrete physics clock. SnapshotPrev() is called once per fixed
+        // step before integration so the lerp endpoints stay aligned.
+        const Vec3& GetPrevPosition() const { return m_PrevPosition; }
+        const Quat& GetPrevOrientation() const { return m_PrevOrientation; }
+        void SnapshotPrev()
+        {
+            m_PrevPosition    = m_Position;
+            m_PrevOrientation = m_Orientation;
         }
 
         void SetAngularVelocity(const Vec3& v);
@@ -195,6 +211,23 @@ namespace Lumos
             m_AtRest = false;
         }
         void SetInverseInertia(const Mat3& v) { m_InvInertia = v; }
+
+        // Inverse inertia tensor rotated into world space: R * I^-1 * R^T.
+        // The integrator treats m_InvInertia as world-constant (fine for the
+        // symmetric shapes it handles); anything applying off-centre impulses
+        // wants the properly rotated tensor so roll/pitch behave.
+        Mat3 GetWorldInverseInertia() const;
+
+        // Velocity of a world-space point on the body (accounts for spin).
+        Vec3 GetPointVelocity(const Vec3& worldPoint) const;
+
+        // Centre-of-mass impulse (matches the Lua ApplyImpulse helper).
+        void ApplyImpulse(const Vec3& impulse);
+
+        // Off-centre impulse/force at a world point. Generates the matching
+        // angular change via r x impulse. Used by the vehicle controller.
+        void ApplyImpulseAtPoint(const Vec3& impulse, const Vec3& worldPoint);
+        void ApplyForceAtPoint(const Vec3& force, const Vec3& worldPoint);
 
         //<---------- CALLBACKS ------------>
         void SetOnCollisionCallback(PhysicsCollisionCallback& callback) { m_OnCollisionCallback = callback; }
@@ -301,6 +334,7 @@ namespace Lumos
         UUID m_UUID;
 
         Vec3 m_Position;
+        Vec3 m_PrevPosition;       // render-interp endpoint (see SnapshotPrev)
         Vec3 m_LinearVelocity;
         Vec3 m_Force;
         float m_InvMass;
@@ -310,6 +344,7 @@ namespace Lumos
         bool m_IsValid       = true;
 
         Quat m_Orientation;
+        Quat m_PrevOrientation;    // render-interp endpoint (see SnapshotPrev)
         Vec3 m_AngularVelocity;
         Vec3 m_Torque;
         Mat3 m_InvInertia;

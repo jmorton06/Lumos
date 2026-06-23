@@ -9,6 +9,8 @@
 #include "Core/OS/Allocators/PoolAllocator.h"
 #include "Core/Mutex.h"
 
+#include <unordered_map>
+
 namespace Lumos
 {
     class RigidBody3D;
@@ -46,6 +48,7 @@ namespace Lumos
     class TimeStep;
     class Scene;
     class LuaScriptComponent;
+    class RaycastVehicle;
 
     struct CollisionEvent3D
     {
@@ -80,8 +83,8 @@ namespace Lumos
         float TimeStep             = 1.0f / 120.0f;
         uint32_t RigidBodyPool     = 10000;
         Vec3 Gravity               = Vec3(0.0f, -9.81f, 0.0f);
-        float DampingFactor        = 0.9995f;
-        IntegrationType IntegrType = IntegrationType::SEMI_IMPLICIT_EULER;
+        float DampingFactor        = 0.99995f;
+        IntegrationType IntegrType = IntegrationType::RUNGE_KUTTA_2;
         float BaumgarteScalar      = 0.3f;   // Amount of force to add to the System to solve error
         float BaumgarteSlop        = 0.001f; // Amount of allowed penetration, ensures a complete manifold each frame
         float PenetrationSlop      = 0.02f;  // How much bodies are allowed to sink into each other in meters
@@ -158,6 +161,15 @@ namespace Lumos
         RaycastHit Raycast(const Vec3& origin, const Vec3& direction, float maxDistance = 1000.0f, uint16_t layerMask = 0xFFFF) const;
         bool RaycastAll(const RaycastQuery& query, TDArray<RaycastHit>& results, uint32_t maxResults = 32) const;
 
+        // Warm-start tuning
+        void SetWarmStartingEnabled(bool enabled) { m_WarmStartingEnabled = enabled; }
+        bool GetWarmStartingEnabled() const { return m_WarmStartingEnabled; }
+
+        // Raycast vehicles are engine-owned and stepped at the fixed timestep,
+        // before the solver. CreateVehicle returns a non-owning pointer.
+        RaycastVehicle* CreateVehicle(RigidBody3D* chassis);
+        void DestroyVehicle(RaycastVehicle* vehicle);
+
     protected:
         // The actual time-independant update function
         void UpdatePhysics();
@@ -175,6 +187,11 @@ namespace Lumos
 
         // Solves all engine constraints (constraints and manifolds)
         void SolveConstraints();
+
+        // Warm-starting: apply persisted impulses from previous frame as the
+        // initial guess for the solver, then save them back after solving.
+        void WarmStartManifolds();
+        void SavePersistentImpulses();
 
         // Dispatch collision callbacks to Lua scripts
         void DispatchCollisionCallbacks(Scene* scene);
@@ -229,5 +246,33 @@ namespace Lumos
         float m_OverrunHistory[kRollingBufferSize] = { 0.0f };
         int m_OverrunIndex                         = 0;
         float m_AvgOverrun                         = 0.0f;
+
+        // ---- Warm-starting persistent contact cache ----
+        // Each entry stores last frame's accumulated impulses for a body pair's contacts,
+        // keyed in body-local space so it survives body motion/rotation between frames.
+        struct PersistentContactPoint
+        {
+            Vec3 localPosA       = Vec3(0.0f); // contact pos in A's local frame
+            Vec3 localPosB       = Vec3(0.0f); // contact pos in B's local frame
+            Vec3 normalImpulse   = Vec3(0.0f); // world-space accumulated normal impulse
+            Vec3 frictionImpulse = Vec3(0.0f); // world-space accumulated friction impulse
+            Vec3 rollingImpulse  = Vec3(0.0f); // world-space accumulated rolling-friction angular impulse
+        };
+
+        struct PersistentManifoldCache
+        {
+            static constexpr int kMaxPersistedContacts = 16;
+            PersistentContactPoint contacts[kMaxPersistedContacts];
+            // Manifold.NodeA() pointer at save time. Used to detect if the body
+            // ordering flipped between frames (would invert relPosA/B semantics).
+            const RigidBody3D* savedNodeA = nullptr;
+            int count                     = 0;
+            bool usedThisFrame            = false;
+        };
+
+        std::unordered_map<uint64_t, PersistentManifoldCache> m_PersistentManifolds;
+        bool m_WarmStartingEnabled = true;
+
+        TDArray<RaycastVehicle*> m_Vehicles;
     };
 }

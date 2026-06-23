@@ -5,6 +5,7 @@
 #include "Broadphase/BruteForceBroadphase.h"
 #include "Broadphase/OctreeBroadphase.h"
 #include "Integration.h"
+#include "RaycastVehicle.h"
 #include "Constraints/Constraint.h"
 #include "CollisionShapes/SphereCollisionShape.h"
 #include "CollisionShapes/CapsuleCollisionShape.h"
@@ -48,7 +49,7 @@ namespace Lumos
         m_DebugName = "Lumos3DPhysicsEngine";
         m_BroadphaseCollisionPairs.Reserve(1000);
 
-        m_FrameArena        = ArenaAlloc(Megabytes(8));
+        m_FrameArena        = ArenaAlloc(Megabytes(32));
         m_Arena             = ArenaAlloc(m_MaxRigidBodyCount * sizeof(RigidBody3D) * 2 + sizeof(Mutex));
         m_RigidBodies       = PushArray(m_Arena, RigidBody3D, m_MaxRigidBodyCount);
         m_RigidBodyFreeList = TDArray<RigidBody3D*>(m_Arena);
@@ -72,6 +73,10 @@ namespace Lumos
 
     LumosPhysicsEngine::~LumosPhysicsEngine()
     {
+        for(u32 i = 0; i < m_Vehicles.Size(); i++)
+            delete m_Vehicles[i];
+        m_Vehicles.Clear();
+
         MutexDestroy(m_ManifoldLock);
 
         ArenaRelease(m_Arena);
@@ -98,8 +103,9 @@ namespace Lumos
 
                 m_ConstraintCount = (uint32_t)viewSpring.size() + (uint32_t)viewAxis.size() + (uint32_t)viewDis.size() + (uint32_t)viewWeld.size();
 
-                // Early-out if no dynamic awake bodies and no constraints
-                if(m_ConstraintCount == 0)
+                // Early-out if no dynamic awake bodies and no constraints.
+                // Vehicles must keep stepping so input can wake/drive the chassis.
+                if(m_ConstraintCount == 0 && m_Vehicles.Empty())
                 {
                     bool hasActiveBodies = false;
                     for(u32 i = 0; i < m_RigidBodyCount; i++)
@@ -195,6 +201,17 @@ namespace Lumos
         m_MaxManifolds  = 1000;
         m_Manifolds     = PushArrayNoZero(m_FrameArena, Manifold, m_MaxManifolds);
 
+        // Snapshot the pre-integration pose so SyncTransforms can lerp from
+        // (prev, curr) using the leftover accumulator each render frame.
+        // Done for every valid body; resting/static bodies will have prev ==
+        // curr after the step (lerp is a no-op for them).
+        for(u32 i = 0; i < m_RigidBodyCount; i++)
+        {
+            RigidBody3D& body = m_RigidBodies[i];
+            if(body.m_IsValid)
+                body.SnapshotPrev();
+        }
+
         // Check for collisions
         BroadPhaseCollisions();
 
@@ -202,6 +219,23 @@ namespace Lumos
             NarrowPhaseCollisionsParallel();
         else
             NarrowPhaseCollisions();
+
+        // Apply gravity BEFORE the solver so it sees the gravity-induced
+        // normal velocity and can compute a proper normal impulse (which
+        // in turn gives the friction cone enough room to actually stop tangential motion).
+        for(u32 i = 0; i < m_RigidBodyCount; i++)
+        {
+            RigidBody3D& body = m_RigidBodies[i];
+            if(!body.m_IsValid || body.m_Static || !body.IsAwake())
+                continue;
+            if(body.m_InvMass > 0.0f)
+                body.m_LinearVelocity += m_Gravity * s_UpdateTimestep;
+        }
+
+        // Step raycast vehicles: suspension + tyre impulses, after gravity so
+        // the springs react to the gravity-induced velocity, before the solver.
+        for(u32 i = 0; i < m_Vehicles.Size(); i++)
+            m_Vehicles[i]->Update(this, s_UpdateTimestep);
 
         // Solve collision constraints
         SolveConstraints();
@@ -281,12 +315,44 @@ namespace Lumos
         }
     }
 
+    RaycastVehicle* LumosPhysicsEngine::CreateVehicle(RigidBody3D* chassis)
+    {
+        RaycastVehicle* vehicle = new RaycastVehicle();
+        vehicle->Init(chassis);
+        m_Vehicles.PushBack(vehicle);
+        return vehicle;
+    }
+
+    void LumosPhysicsEngine::DestroyVehicle(RaycastVehicle* vehicle)
+    {
+        for(u32 i = 0; i < m_Vehicles.Size(); i++)
+        {
+            if(m_Vehicles[i] == vehicle)
+            {
+                m_Vehicles[i] = m_Vehicles.Back();
+                m_Vehicles.PopBack();
+                delete vehicle;
+                return;
+            }
+        }
+    }
+
     void LumosPhysicsEngine::SyncTransforms(Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
 
         if(!scene)
             return;
+
+        // Render-time alpha: how far we are into the next pending fixed
+        // step. With this, the entity transform tracks the render clock
+        // instead of snapping at fixed-step boundaries, which removes the
+        // 1/2-step beat-pattern stutter when render rate doesn't divide
+        // cleanly into the physics rate.
+        const float alpha = (s_UpdateTimestep > 0.0f)
+            ? Maths::Clamp(m_UpdateAccum / s_UpdateTimestep, 0.0f, 1.0f)
+            : 0.0f;
+        const bool interp = alpha > Maths::M_EPSILON && alpha < 1.0f - Maths::M_EPSILON;
 
         auto& registry = scene->GetRegistry();
         auto group     = registry.group<RigidBody3DComponent>(entt::get<Maths::Transform>);
@@ -295,13 +361,22 @@ namespace Lumos
         {
             const auto& [phys, trans] = group.get<RigidBody3DComponent, Maths::Transform>(entity);
 
-            if(!phys.GetRigidBody()->GetIsStatic() && phys.GetRigidBody()->IsAwake())
+            auto* body = phys.GetRigidBody();
+            if(!body->GetIsStatic() && body->IsAwake())
             {
-                ASSERT(phys.GetRigidBody()->GetPosition().IsValid());
-                ASSERT(phys.GetRigidBody()->GetOrientation().IsValid());
+                ASSERT(body->GetPosition().IsValid());
+                ASSERT(body->GetOrientation().IsValid());
 
-                trans.SetLocalPosition(phys.GetRigidBody()->GetPosition());
-                trans.SetLocalOrientation(phys.GetRigidBody()->GetOrientation());
+                if(interp)
+                {
+                    trans.SetLocalPosition(Vec3::Lerp(body->GetPrevPosition(), body->GetPosition(), alpha));
+                    trans.SetLocalOrientation(Quat::Slerp(body->GetPrevOrientation(), body->GetOrientation(), alpha));
+                }
+                else
+                {
+                    trans.SetLocalPosition(body->GetPosition());
+                    trans.SetLocalOrientation(body->GetOrientation());
+                }
             }
         };
 
@@ -376,9 +451,7 @@ namespace Lumos
         {
             const float damping = m_DampingFactor;
 
-            // Apply gravity
-            if(obj->m_InvMass > 0.0f)
-                obj->m_LinearVelocity += m_Gravity * dt;
+            // Gravity is applied once per frame in UpdatePhysics before SolveConstraints.
 
             switch(m_IntegrationType)
             {
@@ -725,6 +798,11 @@ namespace Lumos
             for(uint32_t index = 0; index < m_ConstraintCount; index++)
                 m_Constraints[index]->PreSolverStep(s_UpdateTimestep);
         }
+
+        // Warm-start: apply previous frame's impulses before iterating.
+        if(m_WarmStartingEnabled)
+            WarmStartManifolds();
+
         {
             LUMOS_PROFILE_SCOPE("Apply Impulses");
 
@@ -736,6 +814,187 @@ namespace Lumos
                 for(uint32_t index = 0; index < m_ConstraintCount; index++)
                     m_Constraints[index]->ApplyImpulse();
             }
+        }
+
+        if(m_WarmStartingEnabled)
+            SavePersistentImpulses();
+    }
+
+    namespace
+    {
+        // Build a canonical, well-mixed hash key for an ordered body pair.
+        // Pointers from a pool allocator cluster together so naive identity-hashing
+        // by unordered_map would bucket-collide heavily.
+        static uint64_t MakeBodyPairKey(const RigidBody3D* a, const RigidBody3D* b)
+        {
+            uintptr_t pa = reinterpret_cast<uintptr_t>(a);
+            uintptr_t pb = reinterpret_cast<uintptr_t>(b);
+            if(pa > pb)
+            {
+                uintptr_t tmp = pa;
+                pa            = pb;
+                pb            = tmp;
+            }
+            uint64_t key = static_cast<uint64_t>(pa);
+            key ^= static_cast<uint64_t>(pb) + 0x9e3779b97f4a7c15ULL + (key << 12) + (key >> 4);
+            return key;
+        }
+    }
+
+    void LumosPhysicsEngine::WarmStartManifolds()
+    {
+        LUMOS_PROFILE_FUNCTION();
+
+        for(auto& entry : m_PersistentManifolds)
+            entry.second.usedThisFrame = false;
+
+        // Body-local-space tolerance for matching new contacts to last frame's contacts.
+        // Tight enough to avoid wrong matches between distinct contacts on the same pair,
+        // loose enough to tolerate small motion and solver-driven position correction.
+        const float kMatchToleranceSq = 0.02f * 0.02f;
+
+        for(uint32_t i = 0; i < m_ManifoldCount; i++)
+        {
+            Manifold& m   = m_Manifolds[i];
+            RigidBody3D* a = m.NodeA();
+            RigidBody3D* b = m.NodeB();
+            if(!a || !b)
+                continue;
+
+            uint64_t key = MakeBodyPairKey(a, b);
+            auto it      = m_PersistentManifolds.find(key);
+            if(it == m_PersistentManifolds.end())
+                continue;
+
+            PersistentManifoldCache& cache = it->second;
+            cache.usedThisFrame            = true;
+
+            // If the manifold's node order flipped since last frame, the cached
+            // localPosA/localPosB are relative to swapped bodies — bail.
+            if(cache.savedNodeA != a)
+                continue;
+
+            ContactPoint* contacts  = m.GetContacts();
+            const uint32_t contactN = m.GetContactCount();
+
+            const Quat invOrientA = a->GetOrientation().Inverse();
+            const Quat invOrientB = b->GetOrientation().Inverse();
+
+            for(uint32_t ci = 0; ci < contactN; ci++)
+            {
+                ContactPoint& c = contacts[ci];
+
+                const Vec3 currentLocalA = invOrientA * c.relPosA;
+                const Vec3 currentLocalB = invOrientB * c.relPosB;
+
+                int bestIdx     = -1;
+                float bestDistSq = kMatchToleranceSq;
+                for(int pi = 0; pi < cache.count; pi++)
+                {
+                    Vec3 dA      = currentLocalA - cache.contacts[pi].localPosA;
+                    Vec3 dB      = currentLocalB - cache.contacts[pi].localPosB;
+                    float distSq = Maths::Length2(dA) + Maths::Length2(dB);
+                    if(distSq < bestDistSq)
+                    {
+                        bestDistSq = distSq;
+                        bestIdx    = pi;
+                    }
+                }
+
+                if(bestIdx < 0)
+                    continue;
+
+                const PersistentContactPoint& pc = cache.contacts[bestIdx];
+
+                // Decompose stored world-space impulses onto this frame's contact basis.
+                // sumImpulseContact is non-positive in this engine's convention (push-apart).
+                float jnScalar = Maths::Min(Maths::Dot(pc.normalImpulse, c.collisionNormal), 0.0f);
+                float jt1      = Maths::Dot(pc.frictionImpulse, c.frictionTangent1);
+                float jt2      = Maths::Dot(pc.frictionImpulse, c.frictionTangent2);
+                float jr1      = Maths::Dot(pc.rollingImpulse, c.frictionTangent1);
+                float jr2      = Maths::Dot(pc.rollingImpulse, c.frictionTangent2);
+
+                c.sumImpulseContact   = jnScalar;
+                c.sumImpulseFriction1 = jt1;
+                c.sumImpulseFriction2 = jt2;
+                c.sumImpulseRolling1  = jr1;
+                c.sumImpulseRolling2  = jr2;
+
+                // Apply the recovered linear+friction impulse to body velocities so the
+                // iteration loop starts from last frame's solved state, not from zero.
+                Vec3 worldImpulse = c.collisionNormal * jnScalar
+                    + c.frictionTangent1 * jt1
+                    + c.frictionTangent2 * jt2;
+
+                a->SetLinearVelocity(a->GetLinearVelocity()
+                                     + worldImpulse * a->GetInverseMass() * a->GetLinearFactor());
+                a->SetAngularVelocity(a->GetAngularVelocity()
+                                      + a->GetInverseInertia() * Maths::Cross(c.relPosA, worldImpulse) * a->GetAngularFactor());
+                b->SetLinearVelocity(b->GetLinearVelocity()
+                                     - worldImpulse * b->GetInverseMass() * b->GetLinearFactor());
+                b->SetAngularVelocity(b->GetAngularVelocity()
+                                      - b->GetInverseInertia() * Maths::Cross(c.relPosB, worldImpulse) * b->GetAngularFactor());
+
+                // Rolling friction is a pure angular impulse — applied directly, no
+                // cross product with relPos (it's a torque about the contact, not
+                // produced by a point-force lever arm).
+                Vec3 worldRolling = c.frictionTangent1 * jr1 + c.frictionTangent2 * jr2;
+                a->SetAngularVelocity(a->GetAngularVelocity()
+                                      + a->GetInverseInertia() * worldRolling * a->GetAngularFactor());
+                b->SetAngularVelocity(b->GetAngularVelocity()
+                                      - b->GetInverseInertia() * worldRolling * b->GetAngularFactor());
+            }
+        }
+    }
+
+    void LumosPhysicsEngine::SavePersistentImpulses()
+    {
+        LUMOS_PROFILE_FUNCTION();
+
+        for(uint32_t i = 0; i < m_ManifoldCount; i++)
+        {
+            Manifold& m   = m_Manifolds[i];
+            RigidBody3D* a = m.NodeA();
+            RigidBody3D* b = m.NodeB();
+            if(!a || !b)
+                continue;
+
+            uint64_t key                   = MakeBodyPairKey(a, b);
+            PersistentManifoldCache& cache = m_PersistentManifolds[key];
+            cache.usedThisFrame            = true;
+            cache.savedNodeA               = a;
+
+            const ContactPoint* contacts = m.GetContacts();
+            const uint32_t contactN      = m.GetContactCount();
+
+            const Quat invOrientA = a->GetOrientation().Inverse();
+            const Quat invOrientB = b->GetOrientation().Inverse();
+
+            const int maxStore = PersistentManifoldCache::kMaxPersistedContacts;
+            cache.count        = static_cast<int>(contactN < (uint32_t)maxStore ? contactN : (uint32_t)maxStore);
+
+            for(int ci = 0; ci < cache.count; ci++)
+            {
+                const ContactPoint& c    = contacts[ci];
+                PersistentContactPoint& pc = cache.contacts[ci];
+
+                pc.localPosA       = invOrientA * c.relPosA;
+                pc.localPosB       = invOrientB * c.relPosB;
+                pc.normalImpulse   = c.collisionNormal * c.sumImpulseContact;
+                pc.frictionImpulse = c.frictionTangent1 * c.sumImpulseFriction1
+                    + c.frictionTangent2 * c.sumImpulseFriction2;
+                pc.rollingImpulse  = c.frictionTangent1 * c.sumImpulseRolling1
+                    + c.frictionTangent2 * c.sumImpulseRolling2;
+            }
+        }
+
+        // Drop entries that didn't see a manifold this frame — contact pair separated.
+        for(auto it = m_PersistentManifolds.begin(); it != m_PersistentManifolds.end();)
+        {
+            if(!it->second.usedThisFrame)
+                it = m_PersistentManifolds.erase(it);
+            else
+                ++it;
         }
     }
 
@@ -919,17 +1178,24 @@ namespace Lumos
         }
     }
 
-    // Ray-AABB intersection test
+    // Ray-AABB intersection test (slab method). NOTE: must be component-wise —
+    // Maths::Min/Max are scalar templates (lhs<rhs?lhs:rhs), so calling them on
+    // Vec3 returns a whole vector via Vec3::operator< and breaks the test. Do
+    // each axis with floats.
     static bool RayIntersectsAABB(const Vec3& origin, const Vec3& invDir, const Maths::BoundingBox& aabb, float& tMin, float& tMax)
     {
-        Vec3 t1 = (aabb.Min() - origin) * invDir;
-        Vec3 t2 = (aabb.Max() - origin) * invDir;
+        const Vec3 lo = aabb.Min();
+        const Vec3 hi = aabb.Max();
 
-        Vec3 tmin = Maths::Min(t1, t2);
-        Vec3 tmax = Maths::Max(t1, t2);
+        const float tx1 = (lo.x - origin.x) * invDir.x;
+        const float tx2 = (hi.x - origin.x) * invDir.x;
+        const float ty1 = (lo.y - origin.y) * invDir.y;
+        const float ty2 = (hi.y - origin.y) * invDir.y;
+        const float tz1 = (lo.z - origin.z) * invDir.z;
+        const float tz2 = (hi.z - origin.z) * invDir.z;
 
-        tMin = Maths::Max(Maths::Max(tmin.x, tmin.y), tmin.z);
-        tMax = Maths::Min(Maths::Min(tmax.x, tmax.y), tmax.z);
+        tMin = Maths::Max(Maths::Max(Maths::Min(tx1, tx2), Maths::Min(ty1, ty2)), Maths::Min(tz1, tz2));
+        tMax = Maths::Min(Maths::Min(Maths::Max(tx1, tx2), Maths::Max(ty1, ty2)), Maths::Max(tz1, tz2));
 
         return tMax >= Maths::Max(tMin, 0.0f);
     }
@@ -970,6 +1236,9 @@ namespace Lumos
         {
             RigidBody3D& body = m_RigidBodies[i];
             if(!body.m_IsValid || !body.GetCollisionShape())
+                continue;
+
+            if(&body == query.IgnoreBody)
                 continue;
 
             // Layer mask check
@@ -1123,6 +1392,70 @@ namespace Lumos
                 }
                 break;
             }
+            case CollisionShapeType::CollisionTerrain:
+            {
+                // March along the ray inside the heightfield AABB, sampling the
+                // heightmap and detecting the sign change between ray.y and
+                // surface.y. Step size = half a cell so we don't tunnel through
+                // sharp ridges. Without this case, the default branch returned
+                // the AABB top — placing anything "on the ground" via raycast
+                // ended up on the global terrain peak instead.
+                auto* terrain = static_cast<TerrainCollisionShape*>(shape.get());
+                if(!terrain->HasHeightData())
+                    break;
+
+                const Vec3 bodyPos = body.GetPosition();
+                const float tStart = Maths::Max(tMin, 0.0f);
+                const float tEnd   = Maths::Min(tMax, query.MaxDistance);
+                if(tEnd <= tStart)
+                    break;
+
+                const float cell    = terrain->GetScaleXZ();
+                const float stepLen = Maths::Max(cell * 0.5f, 0.01f);
+                const float length  = tEnd - tStart;
+                int steps           = (int)(length / stepLen);
+                if(steps < 2) steps = 2;
+                if(steps > 4096) steps = 4096;
+
+                const float dt = length / (float)steps;
+
+                Vec3 startPt  = query.Origin + query.Direction * tStart;
+                Vec3 localPt  = startPt - bodyPos;
+                float prevDelta = localPt.y - terrain->GetHeightAt(localPt.x, localPt.z);
+                bool hit = false;
+                float hitT = 0.0f;
+
+                for(int s = 1; s <= steps; ++s)
+                {
+                    float t = tStart + dt * (float)s;
+                    Vec3 wp = query.Origin + query.Direction * t;
+                    Vec3 lp = wp - bodyPos;
+                    float delta = lp.y - terrain->GetHeightAt(lp.x, lp.z);
+
+                    if(prevDelta >= 0.0f && delta <= 0.0f)
+                    {
+                        // Linear interpolate between sample points for sub-cell precision.
+                        float denom = (prevDelta - delta);
+                        float frac  = denom > Maths::M_EPSILON ? prevDelta / denom : 0.0f;
+                        hitT = t - dt + frac * dt;
+                        hit  = true;
+                        break;
+                    }
+                    prevDelta = delta;
+                }
+
+                if(hit && hitT < closestDist && hitT <= query.MaxDistance)
+                {
+                    closestDist     = hitT;
+                    result.Body     = &body;
+                    result.Shape    = shape.get();
+                    result.Distance = hitT;
+                    result.Point    = query.Origin + query.Direction * hitT;
+                    Vec3 lp         = result.Point - bodyPos;
+                    result.Normal   = terrain->GetNormalAt(lp.x, lp.z);
+                }
+                break;
+            }
             default:
                 // Fall back to AABB for unknown shapes
                 if(tMin >= 0.0f && tMin < closestDist && tMin <= query.MaxDistance)
@@ -1161,6 +1494,9 @@ namespace Lumos
         {
             RigidBody3D& body = m_RigidBodies[i];
             if(!body.m_IsValid || !body.GetCollisionShape())
+                continue;
+
+            if(&body == query.IgnoreBody)
                 continue;
 
             if((query.LayerMask & (1 << body.GetCollisionLayer())) == 0)

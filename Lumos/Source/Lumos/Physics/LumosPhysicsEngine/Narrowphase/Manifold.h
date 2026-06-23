@@ -12,11 +12,19 @@ namespace Lumos
     struct LUMOS_EXPORT ContactPoint
     {
         float sumImpulseContact    = 0.0f;
-        float sumImpulseFriction   = 0.0f;
+        float sumImpulseFriction1  = 0.0f;
+        float sumImpulseFriction2  = 0.0f;
+        // Rolling friction angular impulses, along frictionTangent1/2.
+        // Decouples linear slip resistance (sumImpulseFriction*) from rolling
+        // resistance (sumImpulseRolling*); rolling axes are the same tangent plane.
+        float sumImpulseRolling1   = 0.0f;
+        float sumImpulseRolling2   = 0.0f;
         float elatisity_term       = 0.0f;
         float collisionPenetration = 0.0f;
 
         Vec3 collisionNormal;
+        Vec3 frictionTangent1;
+        Vec3 frictionTangent2;
         Vec3 relPosA; // Position relative to objectA
         Vec3 relPosB; // Position relative to objectB
     };
@@ -50,6 +58,11 @@ namespace Lumos
         {
             return m_pNodeB;
         }
+
+        // Contact accessors (used by warm-starting)
+        ContactPoint* GetContacts() { return m_vContacts; }
+        const ContactPoint* GetContacts() const { return m_vContacts; }
+        uint32_t GetContactCount() const { return m_ContactCount; }
 
     protected:
         void SolveContactPoint(ContactPoint& c) const;
