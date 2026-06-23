@@ -42,6 +42,22 @@ namespace Lumos
         }
     }
 
+    void TerrainCollisionShape::UpdateHeights(const float* heightData)
+    {
+        if(!heightData || m_HeightData.Empty())
+            return;
+
+        uint32_t dataSize = m_Width * m_Height;
+        m_MinHeight = heightData[0];
+        m_MaxHeight = heightData[0];
+        for(uint32_t i = 0; i < dataSize; i++)
+        {
+            m_HeightData[i] = heightData[i];
+            m_MinHeight = Maths::Min(m_MinHeight, heightData[i]);
+            m_MaxHeight = Maths::Max(m_MaxHeight, heightData[i]);
+        }
+    }
+
     float TerrainCollisionShape::GetHeightAt(float x, float z) const
     {
         if(m_HeightData.Empty() || m_Width < 2 || m_Height < 2)
