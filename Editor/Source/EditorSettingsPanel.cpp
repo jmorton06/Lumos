@@ -28,7 +28,7 @@ namespace Lumos
         if(!m_CurrentScene)
             return;
 
-        ImGui::Begin(m_Name.c_str(), &m_Active, 0);
+        ImGuiUtilities::BeginPanel(m_Name.c_str(), nullptr, 0);
         ImGuiUtilities::PushID();
 
         auto& version = Lumos::LumosVersion;

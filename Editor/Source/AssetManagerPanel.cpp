@@ -28,7 +28,7 @@ namespace Lumos
     void AssetManagerPanel::OnImGui()
     {
         auto flags = ImGuiWindowFlags_NoCollapse;
-        if(ImGui::Begin(m_Name.c_str(), &m_Active, flags))
+        if(ImGuiUtilities::BeginPanel(m_Name.c_str(), nullptr, flags))
         {
             ImGuiUtilities::PushID();
 

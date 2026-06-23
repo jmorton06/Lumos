@@ -21,7 +21,7 @@ namespace Lumos
 {
     GameViewPanel::GameViewPanel()
     {
-        m_Name         = ICON_MDI_GAMEPAD_VARIANT " Game###game";
+        m_Name         = "Game###game";
         m_SimpleName   = "Game";
         m_CurrentScene = nullptr;
 
@@ -97,9 +97,15 @@ namespace Lumos
 
         auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
-        if(!ImGui::Begin(m_Name.c_str(), &m_Active, flags) || !m_CurrentScene)
+        if(!ImGuiUtilities::BeginPanel(m_Name.c_str(), nullptr, flags) || !m_CurrentScene)
         {
             m_GameViewVisible = false;
+            // Game view isn't drawing (hidden tab / no scene) so it can't be
+            // consuming input. Clear SceneActive — otherwise it stays stuck at its
+            // default 'true' and the editor SceneView camera never activates until
+            // the game tab is visited once. (SceneActive only matters in-editor.)
+            if(m_Editor->GetEditorState() != EditorState::Play)
+                Application::Get().SetSceneActive(false);
             ImGui::End();
             return;
         }
@@ -121,13 +127,9 @@ namespace Lumos
 
         ImVec2 offset = { 0.0f, 0.0f };
 
-        {
-            ToolBar();
-            offset = ImGui::GetCursorPos(); // Usually ImVec2(0.0f, 50.0f);
-        }
-
         auto sceneViewSize     = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - offset * 0.5f;
-        auto sceneViewPosition = ImGui::GetWindowPos() + offset;
+        auto sceneViewPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin() + offset;
+        m_GameViewPos          = sceneViewPosition;
 
         if(m_Editor->GetEditorState() == EditorState::Play)
             ImGui::GetForegroundDrawList()->AddQuad(sceneViewPosition, sceneViewPosition + ImVec2(sceneViewSize.x, 0.0f), sceneViewPosition + ImVec2(sceneViewSize.x, sceneViewSize.y), sceneViewPosition + ImVec2(0.0f, sceneViewSize.y), ImGui::ColorConvertFloat4ToU32(ImGuiUtilities::GetSelectedColour()), 5);
@@ -191,13 +193,17 @@ namespace Lumos
         if(!Maths::Equals(aspect, camera->GetAspectRatio()))
             camera->SetAspectRatio(aspect);
 
+        const ImVec2 imageOrigin = ImGui::GetCursorScreenPos();
         ImGuiUtilities::Image(m_GameViewTexture.get(), Vec2(sceneViewSize.x, sceneViewSize.y), Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture());
 
-        if(m_ShowStats) //&& ImGui::IsWindowFocused())
+        m_GameViewPos = imageOrigin;
+        ToolBar();
+
+        if(m_ShowStats)
         {
             static bool p_open   = true;
             const float DISTANCE = 5.0f;
-            static int corner    = 0;
+            static int corner    = 1;
 
             if(corner != -1)
             {
@@ -315,47 +321,90 @@ namespace Lumos
     void GameViewPanel::ToolBar()
     {
         LUMOS_PROFILE_FUNCTION();
-        ImGui::Indent();
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-        bool selected = false;
 
+        ImGuiWindowFlags wflags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
+                                | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking
+                                | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar
+                                | ImGuiWindowFlags_NoNavFocus;
+
+        // Fixed visual button size — the icon font is shrunk via SetWindowFontScale below
+        // so it fits inside the cell regardless of the editor's text font size.
+#ifdef LUMOS_PLATFORM_IOS
+        const float btnW      = 52.0f;
+        const float padX      = 10.0f;
+        const float padY      = 6.0f;
+        const float anchorOff = 10.0f;
+        const float winRound  = 10.0f;
+#else
+        const float btnW      = 36.0f;
+        const float padX      = 8.0f;
+        const float padY      = 6.0f;
+        const float anchorOff = 10.0f;
+        const float winRound  = 8.0f;
+#endif
+        const float winW = btnW + padX * 2.0f;
+
+        ImGui::SetNextWindowPos(ImVec2(m_GameViewPos.x + anchorOff, m_GameViewPos.y + anchorOff), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(winW, 0.0f), ImGuiCond_Always);
+        ImGui::SetNextWindowSizeConstraints(ImVec2(winW, 0.0f), ImVec2(winW, FLT_MAX));
+        ImGui::SetNextWindowBgAlpha(0.45f);
+        ImGuiUtilities::ScopedStyle minSize(ImGuiStyleVar_WindowMinSize, ImVec2(8, 8));
+        ImGuiUtilities::ScopedStyle round(ImGuiStyleVar_WindowRounding, winRound);
+        ImGuiUtilities::ScopedStyle padScope(ImGuiStyleVar_WindowPadding, ImVec2(padX, padY));
+        ImGuiUtilities::ScopedStyle itemScope(ImGuiStyleVar_ItemSpacing, ImVec2(0, 2));
+        ImGuiUtilities::ScopedStyle framePad(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        if(!ImGui::Begin("Tools##game_tools", nullptr, wflags))
         {
-            selected = m_ShowStats;
-            if(selected)
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-
-            ImGui::SameLine();
-            if(ImGui::Button("Stats"))
-            {
-                m_ShowStats = !m_ShowStats;
-            }
-
-            if(selected)
-                ImGui::PopStyleColor();
-            ImGuiUtilities::Tooltip("Show Statistics");
+            ImGui::End();
+            return;
         }
 
-        ImGui::SameLine();
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine();
+        // Shrink the icon font so glyphs fit inside the fixed-size button cells.
+        const float kIconCellFrac = 0.62f;
+        const float curFont       = ImGui::GetFontSize();
+        if(curFont > btnW * kIconCellFrac)
+            ImGui::SetWindowFontScale(btnW * kIconCellFrac / curFont);
 
-        static std::string supportedAspects[] = { "Free Aspect", "16:10", "16:9", "4:3", "3:2", "9:16" };
+        static bool collapsed = false;
+        {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+            if(ImGui::Button(collapsed ? ICON_MDI_CHEVRON_DOWN : ICON_MDI_CHEVRON_UP, ImVec2(btnW, btnW)))
+                collapsed = !collapsed;
+            ImGui::PopStyleColor();
+        }
+        if(collapsed)
+        {
+            ImGui::End();
+            return;
+        }
 
-        if(ImGui::Button("Aspect " ICON_MDI_CHEVRON_DOWN))
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+        const ImVec2 btnSize(btnW, btnW);
+        const auto IconBtn = [&](const char* icon, const char* tip, bool active, auto&& action)
+        {
+            if(active) ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
+            if(ImGui::Button(icon, btnSize)) action();
+            if(active) ImGui::PopStyleColor();
+            ImGuiUtilities::Tooltip(tip);
+        };
+
+        IconBtn(ICON_MDI_CHART_BAR, "Show statistics", m_ShowStats, [&]{ m_ShowStats = !m_ShowStats; });
+        ImGui::Separator();
+
+        if(ImGui::Button(ICON_MDI_ASPECT_RATIO, btnSize))
             ImGui::OpenPopup("AspectPopup");
+        ImGuiUtilities::Tooltip("Aspect ratio");
         if(ImGui::BeginPopup("AspectPopup"))
         {
+            static std::string supportedAspects[] = { "Free Aspect", "16:10", "16:9", "4:3", "3:2", "9:16" };
             std::string currentAspect = m_Editor->GetSettings().m_FreeAspect ? "Free Aspect" : AspectToString(m_Editor->GetSettings().m_FixedAspect);
-
             for(int n = 0; n < 6; n++)
             {
                 bool is_selected = (currentAspect == supportedAspects[n]);
                 if(ImGui::Checkbox(supportedAspects[n].c_str(), &is_selected))
                 {
                     if(supportedAspects[n] == "Free Aspect")
-                    {
                         m_Editor->GetSettings().m_FreeAspect = is_selected;
-                    }
                     else
                     {
                         m_Editor->GetSettings().m_FreeAspect  = false;
@@ -366,25 +415,11 @@ namespace Lumos
             ImGui::EndPopup();
         }
 
-        ImGui::SameLine();
-
-        {
-            selected = m_Editor->FullScreenOnPlay();
-            if(m_Editor->FullScreenOnPlay())
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-
-            if(ImGui::Button("Maximise"))
-                m_Editor->FullScreenOnPlay() = !m_Editor->FullScreenOnPlay();
-            ImGuiUtilities::ScopedStyle scopedStyle(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-
-            if(ImGui::IsItemHovered())
-                ImGui::SetTooltip("Maximise on play");
-
-            if(selected)
-                ImGui::PopStyleColor();
-        }
+        ImGui::Separator();
+        IconBtn(ICON_MDI_FULLSCREEN, "Maximise on play", m_Editor->FullScreenOnPlay(),
+                [&]{ m_Editor->FullScreenOnPlay() = !m_Editor->FullScreenOnPlay(); });
 
         ImGui::PopStyleColor();
-        ImGui::Unindent();
+        ImGui::End();
     }
 }

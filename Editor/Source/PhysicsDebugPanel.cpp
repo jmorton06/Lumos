@@ -24,7 +24,7 @@ namespace Lumos
 
     void PhysicsDebugPanel::OnImGui()
     {
-        ImGui::Begin("Physics Debug", &m_Active, ImGuiWindowFlags_NoCollapse);
+        ImGuiUtilities::BeginPanel(m_Name.c_str(), &m_Active, ImGuiWindowFlags_NoCollapse);
 
         if(!m_Editor)
         {

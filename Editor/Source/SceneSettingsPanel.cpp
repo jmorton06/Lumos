@@ -28,7 +28,7 @@ namespace Lumos
         if(!m_CurrentScene)
             return;
 
-        if(ImGui::Begin(m_Name.c_str(), &m_Active, 0))
+        if(ImGuiUtilities::BeginPanel(m_Name.c_str(), nullptr, 0))
         {
             Lumos::ImGuiUtilities::ScopedStyle frameStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
             Lumos::ImGuiUtilities::PushID();
@@ -150,6 +150,48 @@ namespace Lumos
                             ImGuiUtilities::Property("SSAO Blur Radius", sceneSettings.RenderSettings.SSAOBlurRadius, 0, 16);
                             ImGuiUtilities::Property("SSAO Blur Enabled", sceneSettings.RenderSettings.SSAOBlur);
                             ImGuiUtilities::Property("SSAO Strength", sceneSettings.RenderSettings.SSAOStrength, 0.0f, 16.0f, 0.01f);
+                            ImGui::TreePop();
+                        }
+
+                        open = postprocessSetting("Adaptive Exposure", "##AdaptiveExposure", sceneSettings.RenderSettings.AdaptiveExposure, false);
+                        if(open)
+                        {
+                            ImGuiUtilities::Property("Target Luminance", sceneSettings.RenderSettings.AdaptiveTargetLuminance, 0.01f, 1.0f, 0.01f);
+                            ImGuiUtilities::Property("Min Log Luminance", sceneSettings.RenderSettings.AdaptiveMinLogLum, -20.0f, 0.0f, 0.1f);
+                            ImGuiUtilities::Property("Max Log Luminance", sceneSettings.RenderSettings.AdaptiveMaxLogLum, 0.0f, 20.0f, 0.1f);
+                            ImGuiUtilities::Property("Adapt Speed Up", sceneSettings.RenderSettings.AdaptiveSpeedUp, 0.01f, 10.0f, 0.05f);
+                            ImGuiUtilities::Property("Adapt Speed Down", sceneSettings.RenderSettings.AdaptiveSpeedDown, 0.01f, 10.0f, 0.05f);
+                            ImGui::TreePop();
+                        }
+
+                        open = postprocessSetting("Vignette", "##Vignette", sceneSettings.RenderSettings.VignetteEnabled, false);
+                        if(open)
+                        {
+                            ImGuiUtilities::Property("Vignette Intensity", sceneSettings.RenderSettings.VignetteIntensity, 0.0f, 1.0f, 0.01f);
+                            ImGuiUtilities::Property("Vignette Smoothness", sceneSettings.RenderSettings.VignetteSmoothness, 0.0f, 1.0f, 0.01f);
+                            ImGuiUtilities::Property("Vignette Roundness", sceneSettings.RenderSettings.VignetteRoundness, 0.0f, 2.0f, 0.01f);
+                            ImGuiUtilities::Property("Vignette Colour", sceneSettings.RenderSettings.VignetteColour, ImGuiUtilities::PropertyFlag::ColourProperty);
+                            ImGui::TreePop();
+                        }
+
+                        open = postprocessSetting("Motion Blur", "##MotionBlur", sceneSettings.RenderSettings.MotionBlurEnabled, false);
+                        if(open)
+                        {
+                            ImGuiUtilities::Property("Motion Blur Strength", sceneSettings.RenderSettings.MotionBlurStrength, 0.0f, 2.0f, 0.01f);
+                            ImGuiUtilities::Property("Motion Blur Samples", sceneSettings.RenderSettings.MotionBlurSamples, 1, 32);
+                            ImGui::TreePop();
+                        }
+
+                        open = postprocessSetting("SSR", "##SSR", sceneSettings.RenderSettings.SSREnabled, false);
+                        if(open)
+                        {
+                            ImGuiUtilities::Property("SSR Max Distance", sceneSettings.RenderSettings.SSRMaxDistance, 1.0f, 200.0f, 0.5f);
+                            ImGuiUtilities::Property("SSR Max Steps", sceneSettings.RenderSettings.SSRMaxSteps, 8, 128);
+                            ImGuiUtilities::Property("SSR Binary Steps", sceneSettings.RenderSettings.SSRBinarySteps, 0, 16);
+                            ImGuiUtilities::Property("SSR Thickness", sceneSettings.RenderSettings.SSRThickness, 0.01f, 5.0f, 0.01f);
+                            ImGuiUtilities::Property("SSR Strength", sceneSettings.RenderSettings.SSRStrength, 0.0f, 1.0f, 0.01f);
+                            ImGuiUtilities::Property("SSR Max Roughness", sceneSettings.RenderSettings.SSRMaxRoughness, 0.0f, 1.0f, 0.01f);
+                            ImGuiUtilities::Property("SSR Env Fallback", sceneSettings.RenderSettings.SSREnvIntensity, 0.0f, 2.0f, 0.01f);
                             ImGui::TreePop();
                         }
 

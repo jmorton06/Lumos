@@ -16,7 +16,7 @@ namespace Lumos
 {
     LuaDebugPanel::LuaDebugPanel()
     {
-        m_Name       = ICON_MDI_BUG " Lua Debug###luadebug";
+        m_Name       = "Lua Debug###luadebug";
         m_SimpleName = "LuaDebug";
     }
 
@@ -27,7 +27,7 @@ namespace Lumos
 
     void LuaDebugPanel::OnImGui()
     {
-        if(ImGui::Begin(m_Name.c_str(), &m_Active))
+        if(ImGuiUtilities::BeginPanel(m_Name.c_str()))
         {
             if(m_AutoRefresh)
             {

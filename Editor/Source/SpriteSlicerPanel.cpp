@@ -59,7 +59,7 @@ namespace Lumos
 
     void SpriteSlicerPanel::OnImGui()
     {
-        ImGui::Begin("Sprite Slicer", &m_Active, ImGuiWindowFlags_NoCollapse);
+        ImGuiUtilities::BeginPanel(m_Name.c_str(), &m_Active, ImGuiWindowFlags_NoCollapse);
 
         static char pathBuf[512] = "";
         ImGui::InputText("Texture Path", pathBuf, sizeof(pathBuf));

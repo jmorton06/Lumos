@@ -20,6 +20,7 @@
 #include <Lumos/Core/Asset/AssetManager.h>
 #include <Lumos/Core/Asset/AssetImporter.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
+#include <Lumos/Graphics/RHI/Renderer.h>
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #include <Shellapi.h>
@@ -87,6 +88,20 @@ namespace Lumos
         { FileType::Audio, { 0.20f, 0.80f, 0.50f, 1.00f } },
     };
 
+    static const std::unordered_map<FileType, const char*> s_TypeAbbrev = {
+        { FileType::Unknown,  "FIL" },
+        { FileType::Scene,    "SCN" },
+        { FileType::Prefab,   "PRE" },
+        { FileType::Script,   "LUA" },
+        { FileType::Shader,   "SHD" },
+        { FileType::Texture,  "TEX" },
+        { FileType::Font,     "FNT" },
+        { FileType::Cubemap,  "HDR" },
+        { FileType::Model,    "MSH" },
+        { FileType::Audio,    "AUD" },
+        { FileType::Material, "MAT" },
+    };
+
     static const std::unordered_map<FileType, const char*> s_FileTypesToIcon = {
         { FileType::Unknown, ICON_MDI_FILE },
         { FileType::Scene, ICON_MDI_FILE },
@@ -103,7 +118,7 @@ namespace Lumos
     ResourcePanel::ResourcePanel()
     {
         LUMOS_PROFILE_FUNCTION();
-        m_Name       = ICON_MDI_FOLDER_STAR " Resources###resources";
+        m_Name       = "Resources###resources";
         m_SimpleName = "Resources";
 
         m_Arena = ArenaAlloc(Megabytes(8));
@@ -114,10 +129,16 @@ namespace Lumos
 #endif
 
         float dpi  = Application::Get().GetWindow()->GetDPIScale();
-        m_GridSize = 120.0f;
-        m_GridSize *= dpi;
-        MinGridSize *= dpi;
-        MaxGridSize *= dpi;
+        if(dpi <= 0.0f)
+            dpi = 1.0f;
+        m_GridSize = 120.0f * dpi;
+        MinGridSize = 50.0f * dpi;
+        MaxGridSize = 400.0f * dpi;
+#ifdef LUMOS_PLATFORM_IOS
+        // Touch: keep cells finger-sized and seed a slightly bigger default than desktop.
+        m_GridSize  = 260.0f * dpi;
+        MinGridSize = 90.0f  * dpi;
+#endif
         m_BasePath = PushStr8F(m_Arena, "%sAssets", Application::Get().GetProjectSettings().m_ProjectRoot.c_str());
 
         String8 assetsBasePath;
@@ -390,7 +411,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        if(ImGui::Begin(m_Name.c_str(), &m_Active))
+        if(ImGuiUtilities::BeginPanel(m_Name.c_str()))
         {
             FileIndex        = 0;
             auto windowSize  = ImGui::GetWindowSize();
@@ -497,7 +518,7 @@ namespace Lumos
 
                         if(!m_IsInListView)
                         {
-                            ImGui::SliderFloat("##GridSize", &m_GridSize, 40.0f, 400.0f);
+                            ImGui::SliderFloat("##GridSize", &m_GridSize, MinGridSize, MaxGridSize);
                         }
 
                         ImGui::EndPopup();
@@ -952,7 +973,9 @@ namespace Lumos
                         break;
                     }
             }
-            bool flipImage = false;
+            
+            bool isRenderedThumbnail = CurrentEnty->IsFile && (CurrentEnty->Type == FileType::Scene || CurrentEnty->Type == FileType::Model || CurrentEnty->Type == FileType::Material);
+            bool flipImage           = isRenderedThumbnail && Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
 
             bool highlight = false;
             {
@@ -1114,7 +1137,7 @@ namespace Lumos
             if(ImGui::IsItemHovered() && m_CurrentDir->Children[dirIndex]->Thumbnail)
             {
                 Vec2 TooltipSize = GetAspectCorrectedSize(Vec2(textureId->GetWidth(), textureId->GetHeight()), 512);
-                ImGuiUtilities::Tooltip(m_CurrentDir->Children[dirIndex]->Thumbnail, TooltipSize, (const char*)(m_CurrentDir->Children[dirIndex]->AssetPath.str));
+                ImGuiUtilities::Tooltip(m_CurrentDir->Children[dirIndex]->Thumbnail, TooltipSize, (const char*)(m_CurrentDir->Children[dirIndex]->AssetPath.str), flipImage);
             }
             else
                 ImGuiUtilities::Tooltip((const char*)(m_CurrentDir->Children[dirIndex]->AssetPath.str));
@@ -1150,11 +1173,35 @@ namespace Lumos
             Vec2 correctedSize = GetAspectCorrectedSize(Vec2(textureId->GetWidth(), textureId->GetHeight()), thumbnailSize);
             Vec2 padding2      = (Vec2(thumbnailSize) - correctedSize) * 0.5f;
             ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(padding2.x, padding2.y));
-            ImGuiUtilities::Image(textureId, correctedSize);
+            ImGuiUtilities::Image(textureId, correctedSize, flipImage);
 
             const ImVec2 typeColorFrameSize = { scaledThumbnailSizeX, scaledThumbnailSizeX * 0.03f };
             ImGui::SetCursorPosX(cursorPos.x + padding);
             ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(Graphics::Material::GetDefaultTexture())), typeColorFrameSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f), !CurrentEnty->IsFile ? ImVec4(0.0f, 0.0f, 0.0f, 0.0f) : CurrentEnty->FileTypeColour);
+
+            // Type-abbreviation chip — top-left of thumbnail.
+            if(CurrentEnty->IsFile)
+            {
+                const char* abbrev = "FIL";
+                const auto& it = s_TypeAbbrev.find(CurrentEnty->Type);
+                if(it != s_TypeAbbrev.end())
+                    abbrev = it->second;
+
+                ImFont* chipFont = (ImGui::GetIO().Fonts->Fonts.Size > 3) ? ImGui::GetIO().Fonts->Fonts[3] : ImGui::GetIO().Fonts->Fonts[2];
+                ImDrawList* dl   = ImGui::GetWindowDrawList();
+                const float fs   = chipFont->FontSize;
+                ImVec2 ts        = chipFont->CalcTextSizeA(fs, FLT_MAX, 0.0f, abbrev);
+                const float chipPadX = 4.0f, chipPadY = 1.0f;
+                ImVec2 chipMin = { cursorScreenPos.x + padding + 4.0f, cursorScreenPos.y + padding + 4.0f };
+                ImVec2 chipMax = { chipMin.x + ts.x + chipPadX * 2, chipMin.y + ts.y + chipPadY * 2 };
+                const ImVec4& c = CurrentEnty->FileTypeColour;
+                ImU32 bg        = ImGui::ColorConvertFloat4ToU32(c);
+                // Relative luminance — pick dark text on bright chips, light on dark.
+                const float lum = 0.299f * c.x + 0.587f * c.y + 0.114f * c.z;
+                ImU32 fg        = (lum > 0.55f) ? IM_COL32(18, 14, 12, 255) : IM_COL32(238, 232, 220, 255);
+                dl->AddRectFilled(chipMin, chipMax, bg, 3.0f);
+                dl->AddText(chipFont, fs, { chipMin.x + chipPadX, chipMin.y + chipPadY }, fg, abbrev);
+            }
 
             const float smallFontSize = ImGui::GetIO().Fonts->Fonts[2]->FontSize;
             const float dpiScale = (float)m_Editor->GetWindow()->GetDPIScale();

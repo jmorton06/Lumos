@@ -16,7 +16,7 @@ namespace Lumos
 
     void ParticleEditorPanel::OnImGui()
     {
-        ImGui::Begin("Particle Editor", &m_Active, ImGuiWindowFlags_NoCollapse);
+        ImGuiUtilities::BeginPanel(m_Name.c_str(), &m_Active, ImGuiWindowFlags_NoCollapse);
 
         if(!m_Editor)
         {

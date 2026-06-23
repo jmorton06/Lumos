@@ -34,5 +34,6 @@ namespace Lumos
         UniquePtr<Graphics::SceneRenderer> m_SceneRenderer;
         bool m_GameViewVisible = false;
         bool m_ShowStats       = false;
+        ImVec2 m_GameViewPos   = ImVec2(0.0f, 0.0f);
     };
 }
