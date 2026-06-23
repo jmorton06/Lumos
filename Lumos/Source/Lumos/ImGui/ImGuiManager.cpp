@@ -65,6 +65,7 @@
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoMedium.inl>
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoRegular.inl>
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoBold.inl>
+#include <imgui/Plugins/ImGuiAl/fonts/JetBrainsMono-Regular.inl>
 #include <imgui/Plugins/implot/implot.h>
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
@@ -180,17 +181,30 @@ namespace Lumos
         {
             // iPad scaling
             ImGui::GetStyle().ScaleAllSizes(iosOS->IsLandscape() ? 1.8f : 2.0f);
-            style.ScrollbarSize = 24;
-            style.TouchExtraPadding = ImVec2(6, 6);
-            style.ItemSpacing = ImVec2(8, 4);
+            style.ScrollbarSize        = 36;
+            style.GrabMinSize          = 32;
+            style.TouchExtraPadding    = ImVec2(12, 12);
+            style.ItemSpacing          = ImVec2(10, 6);
+            style.FramePadding         = ImVec2(8, 6);
+            style.WindowMinSize        = ImVec2(60, 60);
         }
         else
         {
             // iPhone scaling
             ImGui::GetStyle().ScaleAllSizes(1.5f);
-            style.ScrollbarSize = 18;
-            style.TouchExtraPadding = ImVec2(4, 4);
+            style.ScrollbarSize        = 28;
+            style.GrabMinSize          = 28;
+            style.TouchExtraPadding    = ImVec2(10, 10);
+            style.ItemSpacing          = ImVec2(8, 5);
+            style.FramePadding         = ImVec2(6, 5);
+            style.WindowMinSize        = ImVec2(40, 40);
         }
+        // Persistent, opaque scrollbar track so it's easy to grab on touch.
+        style.ScrollbarRounding = style.ScrollbarSize * 0.5f;
+        style.GrabRounding      = style.GrabMinSize * 0.25f;
+        ImVec4 sbBg             = style.Colors[ImGuiCol_ScrollbarBg];
+        sbBg.w                  = 0.85f;
+        style.Colors[ImGuiCol_ScrollbarBg] = sbBg;
 #endif
 #ifdef LUMOS_PLATFORM_MACOS
         ImGui::GetStyle().ScaleAllSizes(m_DPIScale);
@@ -231,6 +245,9 @@ namespace Lumos
         dispatcher.Dispatch<KeyReleasedEvent>(BIND_EVENT_FN(ImGuiManager::OnKeyReleasedEvent));
         dispatcher.Dispatch<KeyTypedEvent>(BIND_EVENT_FN(ImGuiManager::OnKeyTypedEvent));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(ImGuiManager::OnWindowResizeEvent));
+        dispatcher.Dispatch<GestureLongPressEvent>(BIND_EVENT_FN(ImGuiManager::OnGestureLongPressEvent));
+        dispatcher.Dispatch<GesturePanEvent>(BIND_EVENT_FN(ImGuiManager::OnGesturePanEvent));
+        dispatcher.Dispatch<GestureSwipeEvent>(BIND_EVENT_FN(ImGuiManager::OnGestureSwipeEvent));
     }
 
     void ImGuiManager::OnRender(Scene* scene)
@@ -353,6 +370,46 @@ namespace Lumos
         return false;
     }
 
+    bool ImGuiManager::OnGestureLongPressEvent(GestureLongPressEvent& e)
+    {
+        // Long-press → right-click. Began places mouse + presses RMB; Ended releases.
+        ImGuiIO& io = ImGui::GetIO();
+        const Vec2& loc = e.GetLocation();
+        if(e.GetState() == GestureState::Began)
+        {
+            io.MousePos = ImVec2(loc.x, loc.y);
+            io.MouseDown[1] = true;
+        }
+        else if(e.GetState() == GestureState::Ended || e.GetState() == GestureState::Cancelled)
+        {
+            io.MouseDown[1] = false;
+        }
+        return false;
+    }
+
+    bool ImGuiManager::OnGesturePanEvent(GesturePanEvent& e)
+    {
+        // Two-finger pan → scroll wheel. Only trigger on Changed (velocity-based delta).
+        if(e.GetNumTouches() != 2)
+            return false;
+        if(e.GetState() != GestureState::Changed)
+            return false;
+
+        ImGuiIO& io = ImGui::GetIO();
+        const Vec2& vel = e.GetVelocity();
+        // Velocity is in points/sec — scale down for usable wheel deltas.
+        const float kScale = 1.0f / 600.0f;
+        io.AddMouseWheelEvent(vel.x * kScale, -vel.y * kScale);
+        return false;
+    }
+
+    bool ImGuiManager::OnGestureSwipeEvent(GestureSwipeEvent& /*e*/)
+    {
+        // Swipe → undo/redo is handled in Editor::OnEvent. Stub kept so the dispatcher
+        // call site stays symmetric with the other gesture handlers.
+        return false;
+    }
+
     bool ImGuiManager::OnWindowResizeEvent(WindowResizeEvent& e)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -423,13 +480,19 @@ namespace Lumos
             0,
         };
 
-        io.Fonts->AddFontFromMemoryCompressedTTF(RobotoRegular_compressed_data, RobotoRegular_compressed_size, m_FontSize, &icons_config, ranges);
+        // Editor font set — JetBrains Mono at four sizes.
+        // Fonts[0] body, Fonts[1] "bold" (larger regular for headers/emphasis),
+        // Fonts[2] small (existing callsites), Fonts[3] tiny (chips/breadcrumb/badges).
+        io.Fonts->AddFontFromMemoryCompressedTTF(JetBrainsMonoRegular_compressed_data, JetBrainsMonoRegular_compressed_size, m_FontSize, &icons_config, ranges);
         AddIconFont();
 
-        io.Fonts->AddFontFromMemoryCompressedTTF(RobotoBold_compressed_data, RobotoBold_compressed_size, m_FontSize + 2.0f, &icons_config, ranges);
+        io.Fonts->AddFontFromMemoryCompressedTTF(JetBrainsMonoRegular_compressed_data, JetBrainsMonoRegular_compressed_size, m_FontSize + 2.0f, &icons_config, ranges);
+        AddIconFont();
 
-        io.Fonts->AddFontFromMemoryCompressedTTF(RobotoRegular_compressed_data, RobotoRegular_compressed_size, m_FontSize * 0.8f, &icons_config, ranges);
+        io.Fonts->AddFontFromMemoryCompressedTTF(JetBrainsMonoRegular_compressed_data, JetBrainsMonoRegular_compressed_size, m_FontSize * 0.8f, &icons_config, ranges);
         // AddIconFont();
+
+        io.Fonts->AddFontFromMemoryCompressedTTF(JetBrainsMonoRegular_compressed_data, JetBrainsMonoRegular_compressed_size, m_FontSize * 0.7f, &icons_config, ranges);
 
         // io.Fonts->AddFontDefault();
         // AddIconFont();
@@ -443,14 +506,12 @@ namespace Lumos
 
         ImGuiStyle& style = ImGui::GetStyle();
 
-        style.WindowPadding     = ImVec2(5, 5);
-        style.FramePadding      = ImVec2(4, 4);
-        style.ItemSpacing       = ImVec2(6, 2);
+        style.WindowPadding     = ImVec2(10, 10);
+        style.FramePadding      = ImVec2(10, 10);
+        style.ItemSpacing       = ImVec2(16, 10);
         style.ItemInnerSpacing  = ImVec2(2, 2);
         style.IndentSpacing     = 6.0f;
-        style.TouchExtraPadding = ImVec2(4, 4);
-
-        style.ScrollbarSize = 10;
+        style.TouchExtraPadding = ImVec2(8, 8);
 
         style.WindowBorderSize = 0;
         style.ChildBorderSize  = 1;

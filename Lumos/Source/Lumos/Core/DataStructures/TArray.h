@@ -127,19 +127,11 @@ namespace Lumos
 
     template <class T, size_t _Size>
     TArray<T, _Size>::TArray(TArray<T, _Size>&& other) noexcept
-        : m_Size(other.m_Size)
+        : m_Data(other.m_Data)
+        , m_Size(other.m_Size)
         , m_Arena(other.m_Arena)
     {
-        m_Data = nullptr;
-        if(m_Arena)
-            m_Data = PushArrayNoZero(m_Arena, T, m_Size);
-        else
-            m_Data = new T[m_Size];
-
-        for(size_t i = 0; i < m_Size; ++i)
-        {
-            m_Data[i] = Move(other.m_Data[i]);
-        }
+        other.m_Data = nullptr;
         other.m_Size = 0;
     }
 
@@ -164,8 +156,18 @@ namespace Lumos
     {
         if(this != &other)
         {
-            m_Size  = other.m_Size;
-            m_Arena = other.m_Arena;
+            // If we were moved-from we have no buffer — allocate one before
+            // copying. Otherwise the existing buffer is the right size (size
+            // is fixed by the template parameter), so copy in place.
+            if(!m_Data)
+            {
+                m_Arena = other.m_Arena;
+                if(m_Arena)
+                    m_Data = PushArrayNoZero(m_Arena, T, _Size);
+                else
+                    m_Data = new T[_Size];
+            }
+            m_Size = other.m_Size;
             for(size_t i = 0; i < m_Size; ++i)
             {
                 m_Data[i] = other.m_Data[i];
@@ -180,19 +182,11 @@ namespace Lumos
     {
         if(this != &other)
         {
-            m_Size  = other.m_Size;
-            m_Arena = other.m_Arena;
-
-            m_Data = nullptr;
-            if(m_Arena)
-                m_Data = PushArrayNoZero(m_Arena, T, m_Size);
-            else
-                m_Data = new T[m_Size];
-
-            for(size_t i = 0; i < m_Size; ++i)
-            {
-                m_Data[i] = Move(other.m_Data[i]);
-            }
+            Destroy();
+            m_Data       = other.m_Data;
+            m_Size       = other.m_Size;
+            m_Arena      = other.m_Arena;
+            other.m_Data = nullptr;
             other.m_Size = 0;
         }
         return *this;
@@ -253,7 +247,7 @@ namespace Lumos
     template <class T, size_t _Size>
     size_t TArray<T, _Size>::Capacity() const noexcept
     {
-        return Size;
+        return _Size;
     }
 
     // Modifiers implementations

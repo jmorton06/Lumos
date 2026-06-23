@@ -3,6 +3,7 @@
 #include "Core/Algorithms/Sort.h"
 #include <initializer_list>
 #include <cstddef>
+#include <new>
 
 namespace Lumos
 {
@@ -166,27 +167,24 @@ namespace Lumos
 
     template <class T>
     TDArray<T>::TDArray(size_t size, const T& initial, Arena* arena)
-        : m_Size(0)
-        , m_Capacity(0)
-        , m_Arena(arena)
+        : m_Arena(arena)
     {
         Reserve(size);
         for(size_t i = 0; i < size; ++i)
-            m_Data[i] = initial;
+            new(&m_Data[i]) T(initial);
 
         m_Size = size;
     }
 
     template <class T>
     TDArray<T>::TDArray(std::initializer_list<T> values, Arena* arena)
-        : m_Size(values.size())
-        , m_Capacity(0)
-        , m_Arena(arena)
+        : m_Arena(arena)
     {
-        Reserve(m_Size);
+        Reserve(values.size());
         size_t index = 0;
         for(auto& value : values)
-            m_Data[index++] = value;
+            new(&m_Data[index++]) T(value);
+        m_Size = values.size();
     }
 
     // Destructor implementation
@@ -213,15 +211,14 @@ namespace Lumos
     template <class T>
     TDArray<T>& TDArray<T>::operator=(TDArray<T>&& other) noexcept
     {
-        Swap(m_Data, other.m_Data);
-        Swap(m_Arena, other.m_Arena);
-        Swap(m_Size, other.m_Size);
-        Swap(m_Capacity, other.m_Capacity);
-
-        other.m_Capacity = 0;
-        other.m_Data     = nullptr;
-        other.m_Arena    = nullptr;
-        other.m_Size     = 0;
+        if(this != &other)
+        {
+            // Hand our buffer to `other` via swap so its destructor frees it.
+            Swap(m_Data, other.m_Data);
+            Swap(m_Arena, other.m_Arena);
+            Swap(m_Size, other.m_Size);
+            Swap(m_Capacity, other.m_Capacity);
+        }
         return *this;
     }
 
@@ -291,17 +288,20 @@ namespace Lumos
 
         T* newData = nullptr;
         if(m_Arena)
-            newData = PushArrayNoZero(m_Arena, T, capacity);
+            newData = (T*)PushArrayNoZero(m_Arena, T, capacity);
         else
-            newData = new T[capacity];
+            newData = (T*)::operator new(capacity * sizeof(T), std::align_val_t(alignof(T)));
 
         if(m_Data)
         {
             for(size_t i = 0; i < m_Size; ++i)
-                newData[i] = Move(m_Data[i]);
+            {
+                new(&newData[i]) T(Move(m_Data[i]));
+                m_Data[i].~T();
+            }
 
             if(!m_Arena)
-                delete[] m_Data;
+                ::operator delete(m_Data, std::align_val_t(alignof(T)));
         }
 
         m_Data     = newData;
@@ -311,9 +311,17 @@ namespace Lumos
     template <class T>
     void TDArray<T>::Resize(size_t size, const T& value)
     {
-        Reserve(size);
-        for(size_t i = m_Size; i < size; ++i)
-            m_Data[i] = value;
+        if(size < m_Size)
+        {
+            for(size_t i = size; i < m_Size; ++i)
+                m_Data[i].~T();
+        }
+        else if(size > m_Size)
+        {
+            Reserve(size);
+            for(size_t i = m_Size; i < size; ++i)
+                new(&m_Data[i]) T(value);
+        }
         m_Size = size;
     }
 
@@ -322,12 +330,7 @@ namespace Lumos
     void TDArray<T>::Clear() noexcept
     {
         for(size_t i = 0; i < m_Size; ++i)
-        {
             m_Data[i].~T();
-        }
-
-        if(m_Data)
-            MemorySet(m_Data, 0, m_Size * sizeof(T));
         m_Size = 0;
     }
 
@@ -336,7 +339,8 @@ namespace Lumos
     {
         if(m_Size == m_Capacity)
             Reserve(m_Capacity == 0 ? 1 : m_Capacity * 2);
-        m_Data[m_Size++] = value;
+        new(&m_Data[m_Size]) T(value);
+        ++m_Size;
     }
 
     template <class T>
@@ -344,7 +348,8 @@ namespace Lumos
     {
         if(m_Size == m_Capacity)
             Reserve(m_Capacity == 0 ? 1 : m_Capacity * 2);
-        m_Data[m_Size++] = Move(value);
+        new(&m_Data[m_Size]) T(Move(value));
+        ++m_Size;
     }
 
     template <class T>
@@ -354,7 +359,7 @@ namespace Lumos
         if(m_Size == m_Capacity)
             Reserve(m_Capacity == 0 ? 1 : m_Capacity * 2);
 
-        m_Data[m_Size] = T(Forward<Args>(args)...);
+        new(&m_Data[m_Size]) T(Forward<Args>(args)...);
         return m_Data[m_Size++];
     }
 
@@ -372,9 +377,9 @@ namespace Lumos
     template <class T>
     void TDArray<T>::CopyElements(const TDArray<T>& other)
     {
-        Reserve(other.m_Capacity);
+        Reserve(other.m_Size);
         for(size_t i = 0; i < other.m_Size; ++i)
-            m_Data[i] = other.m_Data[i];
+            new(&m_Data[i]) T(other.m_Data[i]);
         m_Size = other.m_Size;
     }
 
@@ -383,17 +388,10 @@ namespace Lumos
     {
         if(m_Data)
         {
-            if(m_Arena)
-            {
-                for(size_t i = 0; i < m_Size; ++i)
-                {
-                    m_Data[i].~T();
-                }
-            }
-            else
-            {
-                delete[] m_Data;
-            }
+            for(size_t i = 0; i < m_Size; ++i)
+                m_Data[i].~T();
+            if(!m_Arena)
+                ::operator delete(m_Data, std::align_val_t(alignof(T)));
         }
 
         m_Data     = nullptr;

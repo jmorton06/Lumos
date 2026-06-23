@@ -77,39 +77,22 @@ namespace Lumos
                 uint32_t sharedmemory_size;
             };
 
-            struct JobQueue
+            // Cache-line aligned so adjacent worker queues don't false-share
+            // their internal state. TSQueue is already thread-safe so the
+            // earlier extra mutex wrapper here was redundant — push/pop now
+            // take exactly one lock per op.
+            struct alignas(64) JobQueue
             {
                 TSQueue<Job> queue;
-                Mutex* locker;
-
-                JobQueue()
-                {
-                    locker = new Mutex();
-                    MutexInit(locker);
-                }
-
-                ~JobQueue()
-                {
-                    MutexDestroy(locker);
-                    delete locker;
-                }
 
                 inline void push_back(const Job& item)
                 {
-                    ScopedMutex lock(locker);
                     queue.PushBack(item);
                 }
 
                 inline bool pop_front(Job& item)
                 {
-                    ScopedMutex lock(locker);
-                    if(queue.Empty())
-                    {
-                        return false;
-                    }
-                    item = Move(queue.Front());
-                    queue.PopFront();
-                    return true;
+                    return queue.PopFront(item);
                 }
             };
 
@@ -124,6 +107,11 @@ namespace Lumos
                 ConditionVar* wakeCondition;
                 Mutex* wakeMutex;
                 std::atomic<uint32_t> nextQueue { 0 };
+                // Global count of pushed-but-not-yet-popped jobs across all
+                // worker queues. Used as the predicate for ConditionWait so
+                // workers never sleep through a notify that arrived between
+                // their last pop and entering the wait.
+                std::atomic<uint32_t> pendingJobs { 0 };
                 TDArray<std::thread> threads;
 
                 InternalState()
@@ -139,24 +127,21 @@ namespace Lumos
                 {
                     LUMOS_PROFILE_FUNCTION_LOW();
 
-                    alive.store(false); // indicate that new jobs cannot be started from this point
-                    bool bWakeLoop = true;
-
-                    std::thread waker([&]
-                                      {
-                        while (bWakeLoop)
-                        {
-                            ConditionNotifyAll(wakeCondition);
-                        } });
+                    // Set alive=false WHILE holding wakeMutex so any worker
+                    // that's between its predicate check and ConditionWait
+                    // sees the new value before sleeping. A single NotifyAll
+                    // is then sufficient — no busy-waker required.
+                    {
+                        ScopedMutex lock(wakeMutex);
+                        alive.store(false);
+                    }
+                    ConditionNotifyAll(wakeCondition);
 
                     for(auto& thread : threads)
                     {
                         if(thread.joinable())
                             thread.join();
                     }
-                    bWakeLoop = false;
-                    if(waker.joinable())
-                        waker.join();
 
                     delete[] jobQueuePerThread;
                     ConditionDestroy(wakeCondition);
@@ -179,6 +164,7 @@ namespace Lumos
                     JobQueue& job_queue = internal_state->jobQueuePerThread[startingQueue % internal_state->numThreads];
                     while(job_queue.pop_front(job))
                     {
+                        internal_state->pendingJobs.fetch_sub(1, std::memory_order_relaxed);
                         JobDispatchArgs args;
                         args.groupID = job.groupID;
                         if(job.sharedmemory_size > 0)
@@ -241,9 +227,18 @@ namespace Lumos
                                 {
                                     work(threadID);
 
-                                    // finished with jobs, put to sleep
+                                    // Predicate-protected sleep — only block when
+                                    // there's genuinely nothing pending. Producers
+                                    // increment pendingJobs under wakeMutex (see
+                                    // Execute/Dispatch) so this check + ConditionWait
+                                    // cannot race a notify that arrived between the
+                                    // last pop and entering wait.
                                     MutexLock(internal_state->wakeMutex);
-                                    ConditionWait(internal_state->wakeCondition, internal_state->wakeMutex);
+                                    while(internal_state->alive.load() &&
+                                          internal_state->pendingJobs.load(std::memory_order_acquire) == 0)
+                                    {
+                                        ConditionWait(internal_state->wakeCondition, internal_state->wakeMutex);
+                                    }
                                     MutexUnlock(internal_state->wakeMutex);
                                 } });
 
@@ -251,10 +246,17 @@ namespace Lumos
                     // Do Windows-specific thread setup:
                     HANDLE handle = (HANDLE)worker.native_handle();
 
-                    // Put each thread on to dedicated core
-                    DWORD_PTR affinityMask    = 1ull << threadID;
-                    DWORD_PTR affinity_result = SetThreadAffinityMask(handle, affinityMask);
-                    ASSERT(affinity_result > 0);
+                    // Put each thread on to dedicated core. Single-group
+                    // affinity mask only spans 64 logical processors; on
+                    // bigger hosts SetThreadGroupAffinity would be needed
+                    // (left to OS scheduler for now beyond core 64 rather
+                    // than invoking UB via 1ull << 64).
+                    if(threadID < 64)
+                    {
+                        DWORD_PTR affinityMask    = 1ull << threadID;
+                        DWORD_PTR affinity_result = SetThreadAffinityMask(handle, affinityMask);
+                        ASSERT(affinity_result > 0);
+                    }
 
                     // Increase thread priority:
                     // BOOL priority_result = SetThreadPriority(handle, THREAD_PRIORITY_HIGHEST);
@@ -329,6 +331,13 @@ namespace Lumos
                 job.sharedmemory_size = 0;
 
                 internal_state->jobQueuePerThread[internal_state->nextQueue.fetch_add(1) % internal_state->numThreads].push_back(job);
+
+                // Publish the new pending count under wakeMutex so a worker
+                // checking the predicate can't miss it before sleeping.
+                {
+                    ScopedMutex lock(internal_state->wakeMutex);
+                    internal_state->pendingJobs.fetch_add(1, std::memory_order_release);
+                }
                 ConditionNotifyOne(internal_state->wakeCondition);
             }
 
@@ -360,7 +369,18 @@ namespace Lumos
                     internal_state->jobQueuePerThread[internal_state->nextQueue.fetch_add(1) % internal_state->numThreads].push_back(job);
                 }
 
-                ConditionNotifyOne(internal_state->wakeCondition);
+                // Publish the new pending count under wakeMutex so workers
+                // checking the predicate can't miss it before sleeping.
+                {
+                    ScopedMutex lock(internal_state->wakeMutex);
+                    internal_state->pendingJobs.fetch_add(groupCount, std::memory_order_release);
+                }
+                // NotifyAll for batches so the work goes wide instead of one
+                // worker serialising the whole dispatch.
+                if(groupCount > 1)
+                    ConditionNotifyAll(internal_state->wakeCondition);
+                else
+                    ConditionNotifyOne(internal_state->wakeCondition);
             }
 
             uint32_t DispatchGroupCount(uint32_t jobCount, uint32_t groupSize)

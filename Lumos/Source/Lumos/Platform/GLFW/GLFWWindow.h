@@ -28,6 +28,7 @@ namespace Lumos
         void UpdateCursorImGui() override;
         void ProcessInput() override;
         void Maximise() override;
+        void Show() override;
         void UpdateControllers() override;
 
         inline void* GetHandle() override
@@ -74,6 +75,7 @@ namespace Lumos
         }
 
         void SetIcon(const WindowDesc& desc) override;
+        void RefreshSize() override;
         float GetMonitorXScale();
 
         static void MakeDefault();

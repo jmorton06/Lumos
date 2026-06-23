@@ -102,19 +102,32 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
+        // Loose files win over the pack so edits show up without re-packing.
+        // Shipped builds have no mounted folders, so the pack still serves there.
+        String8 physicalPath;
+        if(ResolvePhysicalPath(arena, path, &physicalPath) && FileSystem::FileExists(physicalPath))
+            return FileSystem::ReadFile(arena, physicalPath);
+
         if(m_PackReader && m_PackReader->Contains(path))
         {
             u64 size = 0;
             return m_PackReader->ReadAsset(arena, path, &size);
         }
 
-        String8 physicalPath;
-        return ResolvePhysicalPath(arena, path, &physicalPath) ? FileSystem::ReadFile(arena, physicalPath) : nullptr;
+        return nullptr;
     }
 
     String8 FileSystem::ReadTextFileVFS(Arena* arena, const String8& path)
     {
         LUMOS_PROFILE_FUNCTION();
+
+        // Loose-first, pack fallback — keeps dev edits live without re-packing.
+        String8 physicalPath;
+        if(ResolvePhysicalPath(arena, path, &physicalPath) && FileSystem::FileExists(physicalPath))
+        {
+            String8 text = FileSystem::ReadTextFile(arena, physicalPath);
+            return text;
+        }
 
         if(m_PackReader && m_PackReader->Contains(path))
         {
@@ -130,12 +143,6 @@ namespace Lumos
             return Str8Lit("");
         }
 
-        String8 physicalPath;
-        if(ResolvePhysicalPath(arena, path, &physicalPath))
-        {
-            String8 text = FileSystem::ReadTextFile(arena, physicalPath);
-            return text;
-        }
         return Str8Lit("");
     }
 
@@ -164,14 +171,14 @@ namespace Lumos
 
     bool FileSystem::FileExistsVFS(const String8& path)
     {
-        if(m_PackReader && m_PackReader->Contains(path))
-            return true;
-
         ArenaTemp temp = ScratchBegin(nullptr, 0);
         String8 physicalPath;
         bool exists = ResolvePhysicalPath(temp.arena, path, &physicalPath) && FileSystem::FileExists(physicalPath);
         ScratchEnd(temp);
-        return exists;
+        if(exists)
+            return true;
+
+        return m_PackReader && m_PackReader->Contains(path);
     }
 
     bool FileSystem::FolderExistsVFS(const String8& path)
@@ -185,13 +192,15 @@ namespace Lumos
 
     int64_t FileSystem::GetFileSizeVFS(const String8& path)
     {
-        if(m_PackReader && m_PackReader->Contains(path))
-            return m_PackReader->GetAssetSize(path);
-
         ArenaTemp temp = ScratchBegin(nullptr, 0);
         String8 physicalPath;
-        int64_t size = ResolvePhysicalPath(temp.arena, path, &physicalPath) ? FileSystem::GetFileSize(physicalPath) : -1;
+        int64_t size = -1;
+        if(ResolvePhysicalPath(temp.arena, path, &physicalPath) && FileSystem::FileExists(physicalPath))
+            size = FileSystem::GetFileSize(physicalPath);
         ScratchEnd(temp);
+
+        if(size < 0 && m_PackReader && m_PackReader->Contains(path))
+            return m_PackReader->GetAssetSize(path);
         return size;
     }
 
@@ -250,11 +259,18 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_IOS
             const char* home = std::getenv("HOME");
             if(!home)
-                throw std::runtime_error("Can't obtain HOME");
+                return;
 
-            auto fullPath = std::filesystem::path(home) / "Documents/Lumos" / ToStdString(path);
-            std::filesystem::create_directory(fullPath);
-            LINFO("Creating folder %s", ToCChar(path));
+            // Strip leading separator so the bundle path becomes relative under Documents/Lumos
+            std::string rel = ToStdString(path);
+            while(!rel.empty() && (rel.front() == '/' || rel.front() == '\\'))
+                rel.erase(rel.begin());
+
+            std::error_code ec;
+            auto fullPath = std::filesystem::path(home) / "Documents/Lumos" / rel;
+            std::filesystem::create_directories(fullPath, ec);
+            if(!ec)
+                LINFO("Creating folder %s", fullPath.c_str());
 #else
             std::error_code ec;
             std::filesystem::create_directory(ToStdString(path), ec);

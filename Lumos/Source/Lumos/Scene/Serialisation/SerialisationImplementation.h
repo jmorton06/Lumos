@@ -60,26 +60,15 @@ namespace Lumos
     template <class Archive>
     std::string save_minimal(Archive& ar, String8 const& str)
     {
-        // Save number of chars + the data
-        // ar( str.size );
-
         return str.size > 0 ? ToStdString(str) : std::string();
-        // ar( cereal::binary_data((char*)str.str, static_cast<std::size_t>(str.size * sizeof(u8))) );
     }
 
     template <class Archive>
     void load_minimal(Archive& ar, String8& str, const std::string& value)
     {
-        // u64 size;
-        // ar( size );
-
-        // std::string stringCopy = ToStdString(str);
-        // ar( value);
-
-        if(!value.empty())
-            str = PushStr8Copy(Application::Get().GetFrameArena(), value.c_str());
-        // PushStr8FillByte(Application::Get().GetFrameArena(), size, 0);
-        // ar( cereal::binary_data( (char*)str.str, static_cast<std::size_t>(size * sizeof(u8)) ) );
+        Arena* arena = Application::Get().GetFrameArena();
+        ASSERT(arena != nullptr, "load_minimal(String8): FrameArena is null — Application not initialised, or Application::Get() returned a phantom singleton");
+        str = PushStr8Copy(arena, value.c_str());
     }
 
     template <typename Archive>
@@ -137,6 +126,8 @@ namespace Lumos
         archive(scene.m_Settings.RenderSettings.Brightness, scene.m_Settings.RenderSettings.Saturation, scene.m_Settings.RenderSettings.Contrast);
 
         archive(scene.m_Settings.RenderSettings.SharpenEnabled);
+
+        archive(cereal::make_nvp("SSREnabled", scene.m_Settings.RenderSettings.SSREnabled), cereal::make_nvp("SSRMaxDistance", scene.m_Settings.RenderSettings.SSRMaxDistance), cereal::make_nvp("SSRMaxSteps", scene.m_Settings.RenderSettings.SSRMaxSteps), cereal::make_nvp("SSRBinarySteps", scene.m_Settings.RenderSettings.SSRBinarySteps), cereal::make_nvp("SSRThickness", scene.m_Settings.RenderSettings.SSRThickness), cereal::make_nvp("SSRStrength", scene.m_Settings.RenderSettings.SSRStrength), cereal::make_nvp("SSRMaxRoughness", scene.m_Settings.RenderSettings.SSRMaxRoughness), cereal::make_nvp("SSREnvIntensity", scene.m_Settings.RenderSettings.SSREnvIntensity));
     }
 
     template <typename Archive>
@@ -177,6 +168,9 @@ namespace Lumos
 
         if(Serialisation::CurrentSceneVersion > 18)
             archive(scene.m_Settings.RenderSettings.SharpenEnabled);
+
+        if(Serialisation::CurrentSceneVersion > 32)
+            archive(cereal::make_nvp("SSREnabled", scene.m_Settings.RenderSettings.SSREnabled), cereal::make_nvp("SSRMaxDistance", scene.m_Settings.RenderSettings.SSRMaxDistance), cereal::make_nvp("SSRMaxSteps", scene.m_Settings.RenderSettings.SSRMaxSteps), cereal::make_nvp("SSRBinarySteps", scene.m_Settings.RenderSettings.SSRBinarySteps), cereal::make_nvp("SSRThickness", scene.m_Settings.RenderSettings.SSRThickness), cereal::make_nvp("SSRStrength", scene.m_Settings.RenderSettings.SSRStrength), cereal::make_nvp("SSRMaxRoughness", scene.m_Settings.RenderSettings.SSRMaxRoughness), cereal::make_nvp("SSREnvIntensity", scene.m_Settings.RenderSettings.SSREnvIntensity));
     }
 
     template <typename Archive>
@@ -550,14 +544,8 @@ namespace Lumos
     {
         luaComponent.m_Scene = Application::Get().GetCurrentScene();
         archive(cereal::make_nvp("FilePath", luaComponent.m_FileName));
-
-        ArenaTemp temp = ScratchBegin(nullptr, 0);
-        String8 newPath;
-        FileSystem::Get().ResolvePhysicalPath(temp.arena, Str8StdS(luaComponent.m_FileName), &newPath);
-        luaComponent.m_FileName = ToStdString(newPath);
+        // Keep the VFS path; LoadScript resolves to a packed entry or disk as appropriate.
         luaComponent.Init();
-
-        ScratchEnd(temp);
     }
 
     template <typename Archive>

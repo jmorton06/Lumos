@@ -37,6 +37,13 @@ namespace Lumos
 
     static void GLFWErrorCallback(int error, const char* description)
     {
+        // 65545 = GLFW_FORMAT_UNAVAILABLE — fires every time Cocoa's NSPasteboard
+        // has no string for us (very common, harmless). Demote to a trace.
+        if(error == 65545)
+        {
+            LINFO("GLFW: %s", description);
+            return;
+        }
         LERROR("GLFW Error - %i : %s", error, description);
     }
 
@@ -153,8 +160,16 @@ namespace Lumos
         if(m_Data.m_RenderAPI == Graphics::RenderAPI::VULKAN)
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 #endif
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
-        m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, (const char*)properties.Title.str, nullptr, nullptr);
+#ifdef LUMOS_PLATFORM_MACOS
+        // macOS: create a normal window and switch to native fullscreen post-init so the
+        // traffic-light buttons + system menu bar are preserved (GLFW exclusive fullscreen hides them).
+        GLFWmonitor* fullscreenMonitor = nullptr;
+#else
+        GLFWmonitor* fullscreenMonitor = properties.Fullscreen ? monitor : nullptr;
+#endif
+        m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, (const char*)properties.Title.str, fullscreenMonitor, nullptr);
 
         int w, h;
         glfwGetFramebufferSize(m_Handle, &w, &h);
@@ -405,7 +420,8 @@ namespace Lumos
     void GLFWWindow::SetWindowTitle(const std::string& title)
     {
         LUMOS_PROFILE_FUNCTION();
-        glfwSetWindowTitle(m_Handle, title.c_str());
+        if(!title.empty())
+            glfwSetWindowTitle(m_Handle, title.c_str());
     }
 
     void GLFWWindow::ToggleVSync()
@@ -528,6 +544,11 @@ namespace Lumos
         }
     }
 
+    void GLFWWindow::Show()
+    {
+        glfwShowWindow(m_Handle);
+    }
+
     void GLFWWindow::Maximise()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -608,5 +629,24 @@ namespace Lumos
         glfwGetMonitorContentScale(monitor, &xscale, &yscale);
 
         return xscale;
+    }
+
+    void GLFWWindow::RefreshSize()
+    {
+        int winW, winH, fbW, fbH;
+        glfwGetWindowSize(m_Handle, &winW, &winH);
+        glfwGetFramebufferSize(m_Handle, &fbW, &fbH);
+        if(winW <= 0 || winH <= 0)
+            return;
+        float dpi          = (float)fbW / (float)winW;
+        uint32_t newWidth  = uint32_t(winW * dpi);
+        uint32_t newHeight = uint32_t(winH * dpi);
+        if(newWidth == m_Data.Width && newHeight == m_Data.Height)
+            return;
+        m_Data.DPIScale = dpi;
+        m_Data.Width    = newWidth;
+        m_Data.Height   = newHeight;
+        WindowResizeEvent event(m_Data.Width, m_Data.Height, m_Data.DPIScale);
+        m_Data.EventCallback(event);
     }
 }

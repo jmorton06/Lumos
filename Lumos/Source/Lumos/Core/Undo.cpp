@@ -6,6 +6,8 @@
 namespace Lumos
 {
     static UndoData* s_Undo = nullptr;
+    static UndoChangedCallback s_ChangedCb = nullptr;
+    static void* s_ChangedUserdata = nullptr;
 
     void InitialiseUndo()
     {
@@ -107,6 +109,9 @@ namespace Lumos
             Delta first           = s_Undo->delta[n];
             s_Undo->copyRedoStart = first.copy;
             s_Undo->undo          = n;
+
+            if(s_ChangedCb)
+                s_ChangedCb(s_ChangedUserdata);
         }
     }
 
@@ -140,6 +145,38 @@ namespace Lumos
 
             s_Undo->copyRedoStart = header.copy;
             s_Undo->undo            = N + 1;
+
+            if(s_ChangedCb)
+                s_ChangedCb(s_ChangedUserdata);
         }
+    }
+
+    void UndoClear()
+    {
+        if(!s_Undo)
+            return;
+        ArenaClear(s_Undo->copy);
+        s_Undo->undo          = 0;
+        s_Undo->redo          = 0;
+        s_Undo->temp          = 0;
+        s_Undo->tag           = 0;
+        s_Undo->copyTempStart = (u8*)s_Undo->copy->Ptr + s_Undo->copy->Position;
+        s_Undo->copyRedoStart = (u8*)s_Undo->copy->Ptr + s_Undo->copy->Position;
+    }
+
+    i32 UndoStackDepth()
+    {
+        return s_Undo ? s_Undo->undo : 0;
+    }
+
+    i32 RedoStackDepth()
+    {
+        return s_Undo ? (s_Undo->redo - s_Undo->undo) : 0;
+    }
+
+    void SetUndoChangedCallback(UndoChangedCallback cb, void* userdata)
+    {
+        s_ChangedCb       = cb;
+        s_ChangedUserdata = userdata;
     }
 }
