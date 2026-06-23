@@ -50,21 +50,37 @@ namespace Lumos
         m_FileName = fileName;
         m_Env      = CreateSharedPtr<sol::environment>(LuaManager::Get().GetState(), sol::create, LuaManager::Get().GetState().globals());
 
-        // Resolve virtual //Assets paths to physical paths
-        std::string actualPath = m_FileName;
-        if(m_FileName.find("//") == 0)
-        {
+        LINFO("[Lua] LoadScript '%s'", m_FileName.c_str());
+
+        // Prefer pack-aware VFS read (handles //Assets paths and mounted .lpak),
+        // then fall back to direct file load for absolute disk paths.
+        auto loadFileResult = [&]() {
             ArenaTemp scratch = ScratchBegin(0, 0);
-            String8 virtualPath = Str8((u8*)m_FileName.c_str(), m_FileName.size());
-            String8 physicalPath;
-            if(FileSystem::Get().ResolvePhysicalPath(scratch.arena, virtualPath, &physicalPath, false))
+            String8 vfsPath = Str8((u8*)m_FileName.c_str(), m_FileName.size());
+            String8 contents = FileSystem::Get().ReadTextFileVFS(scratch.arena, vfsPath);
+            if(contents.size > 0 && contents.str != nullptr)
             {
-                actualPath = std::string((const char*)physicalPath.str, physicalPath.size);
+                std::string code((const char*)contents.str, contents.size);
+                ScratchEnd(scratch);
+                LINFO("[Lua] loaded %zu bytes via VFS for '%s'", code.size(), m_FileName.c_str());
+                return LuaManager::Get().GetState().safe_script(code, *m_Env, sol::script_pass_on_error);
             }
             ScratchEnd(scratch);
-        }
 
-        auto loadFileResult = LuaManager::Get().GetState().safe_script_file(actualPath, *m_Env, sol::script_pass_on_error);
+            std::string actualPath = m_FileName;
+            if(m_FileName.find("//") == 0)
+            {
+                ArenaTemp scratch2 = ScratchBegin(0, 0);
+                String8 virtualPath = Str8((u8*)m_FileName.c_str(), m_FileName.size());
+                String8 physicalPath;
+                if(FileSystem::Get().ResolvePhysicalPath(scratch2.arena, virtualPath, &physicalPath, false))
+                    actualPath = std::string((const char*)physicalPath.str, physicalPath.size);
+                ScratchEnd(scratch2);
+            }
+            LINFO("[Lua] VFS miss, falling back to disk path '%s'", actualPath.c_str());
+            return LuaManager::Get().GetState().safe_script_file(actualPath, *m_Env, sol::script_pass_on_error);
+        }();
+
         if(!loadFileResult.valid())
         {
             sol::error err = loadFileResult;
@@ -121,6 +137,12 @@ namespace Lumos
         m_Phys3DEndFunc = CreateSharedPtr<sol::protected_function>((*m_Env)["OnCollision3DEnd"]);
         if(!m_Phys3DEndFunc->valid())
             m_Phys3DEndFunc.reset();
+
+        LINFO("[Lua] bound script='%s' OnInit=%d OnUpdate=%d errored=%d",
+              m_FileName.c_str(),
+              m_OnInitFunc ? 1 : 0,
+              m_UpdateFunc ? 1 : 0,
+              m_Errored ? 1 : 0);
 
         LuaManager::Get().GetState().collect_garbage();
     }
@@ -215,6 +237,23 @@ namespace Lumos
                     OnScriptError("OnRelease", err.what());
                 }
             }
+        }
+
+        // Drop the require() cache for user modules so dependent files pick up edits.
+        // Built-in libraries (math, string, table, ...) use simple names without '/' or '.';
+        // user modules look like "game/Camera" / "util/Math" — clear only those.
+        {
+            sol::table loaded = LuaManager::Get().GetState()["package"]["loaded"];
+            std::vector<std::string> toRemove;
+            for(auto& kv : loaded)
+            {
+                if(!kv.first.is<std::string>()) continue;
+                std::string key = kv.first.as<std::string>();
+                if(key.find('/') != std::string::npos || key.find('.') != std::string::npos)
+                    toRemove.push_back(key);
+            }
+            //for(const auto& k : toRemove)
+              //  loaded[k] = sol::nil;
         }
 
         Init();

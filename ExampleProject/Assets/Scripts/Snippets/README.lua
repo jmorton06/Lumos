@@ -1,0 +1,53 @@
+-- ============================================================================
+--                  LUMOS LUA SNIPPET LIBRARY  (copy-paste ready)
+-- ============================================================================
+-- Each file is a catalogue of self-contained snippets you can paste into the
+-- script currently open in the editor. Look for the banner:
+--
+--     -- ===== Snippet: <name> ===========================================
+--     ...code...
+--     -- =================================================================
+--
+-- Files
+--   00_Skeleton.lua    Script lifecycle + module boilerplate
+--   01_Math.lua        clamp/lerp/damp/easing/vec helpers (+ Dot, Cross, Slerp)
+--   02_Input.lua       keyboard, mouse, gamepad, touch pads
+--   03_Entities.lua    create/find/destroy entities, component access
+--   04_Movement.lua    WASD, follow, lerp/damp, MoveTowards, lookAt
+--   05_Physics.lua     rigidbody, impulses, raycast, terrain query, triggers
+--   06_Camera.lua      orbit, third-person, shake, fly cam
+--   07_Spawning.lua    primitives, decor, projectiles, factories
+--   08_Particles.lua   bursts, dust, trail, fire
+--   09_Audio.lua       sfx one-shot, looping, ambient music, pitch by speed
+--   10_Lights.lua      point/spot/dir, flicker, day/night sweep
+--   11_HUD.lua         score/lives/timer overlay, health bar, minimap dot
+--   12_Menus.lua       main menu, pause menu, confirm dialog
+--   13_Settings.lua    sliders+toggles wired to Save
+--   14_ImGuiDebug.lua  tweak panels, plot lines, demo windows
+--   15_StateMachine.lua  FSM pattern (idle/run/jump)
+--   16_Timers.lua      cooldowns, delay, every-N-seconds, debounce
+--   17_Tween.lua       tween library + chains
+--   18_Save.lua        persistent values, high scores, settings
+--   19_Triggers.lua    collision callbacks, AOE damage, zones
+--   20_Scenes.lua      switch scene, load on key, fade overlay
+--   21_Spawn_Tools.lua mouse picking, screen-to-world, AOE
+--   22_Random.lua      seeded rand, weighted pick, jitter, shuffle
+--   23_AI.lua          patrol, chase, flee, line-of-sight
+--   24_DebugDraw.lua   DebugLine/DebugPoint helpers (axes, sphere, box)
+--   25_Materials.lua   apply textures, swap colour, emissive pulse
+--
+-- Lifecycle hooks the engine calls on a LuaScriptComponent:
+--   OnInit()                          -- one-shot on attach
+--   OnUpdate(dt)                      -- every frame
+--   OnRelease()                       -- on detach / scene unload
+--   OnCollision2DBegin() / End()
+--   OnCollision3DBegin(info) / End(info)
+--
+-- Globals always available:
+--   scene, entity                     -- this script's owning context
+--   Input, Key, MouseButton           -- input
+--   Vec2/Vec3/Vec4/Quat/Mat4          -- maths
+--   Log.Info/Warn/Error/Trace/FATAL   -- logging
+--   GetCurrentScene(), GetAppInstance()
+--   DebugLine(a,b,thick,col), DebugPoint(p,r,col)
+-- ============================================================================

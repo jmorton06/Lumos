@@ -3,13 +3,19 @@
 #include "Scene/Component/RigidBody2DComponent.h"
 #include "Scene/Component/RigidBody3DComponent.h"
 #include "Core/Application.h"
+#include "Scene/Scene.h"
+#include "Scene/SceneManager.h"
+#include <entt/entity/registry.hpp>
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/TerrainCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 #include "Physics/LumosPhysicsEngine/PhysicsMaterial.h"
 #include "Physics/LumosPhysicsEngine/RaycastResult.h"
+#include "Physics/LumosPhysicsEngine/RaycastVehicle.h"
 #include "Core/DataStructures/TDArray.h"
-
 #include <box2d/box2d.h>
 #include <sol/sol.hpp>
 
@@ -42,6 +48,16 @@ namespace Lumos
     static void SetB2DGravity(const Vec2& gravity)
     {
         Application::Get().GetSystem<B2PhysicsEngine>()->SetGravity(gravity);
+    }
+
+    static void SetGravity3D(const Vec3& gravity)
+    {
+        Application::Get().GetSystem<LumosPhysicsEngine>()->SetGravity(gravity);
+    }
+
+    static Vec3 GetGravity3D()
+    {
+        return Application::Get().GetSystem<LumosPhysicsEngine>()->GetGravity();
     }
 
     SharedPtr<RigidBody3D> CreateSharedPhysics3D()
@@ -133,6 +149,11 @@ namespace Lumos
         physics3D_type.set_function("ApplyAngularImpulse", [](RigidBody3D& b, const Vec3& impulse)
             { b.SetAngularVelocity(b.GetAngularVelocity() + b.GetInverseInertia() * impulse); b.WakeUp(); });
 
+        // Off-centre force/impulse + point velocity (needed for vehicles, ropes, etc.)
+        physics3D_type.set_function("ApplyImpulseAtPoint", &RigidBody3D::ApplyImpulseAtPoint);
+        physics3D_type.set_function("ApplyForceAtPoint", &RigidBody3D::ApplyForceAtPoint);
+        physics3D_type.set_function("GetPointVelocity", &RigidBody3D::GetPointVelocity);
+
         // Raycast bindings (LumosPhysicsEngine 3D)
         sol::usertype<RaycastHit> raycastHit_type = state.new_usertype<RaycastHit>("RaycastHit");
         raycastHit_type["body"]     = &RaycastHit::Body;
@@ -151,6 +172,34 @@ namespace Lumos
 
         state.set_function("Raycast", [](const Vec3& origin, const Vec3& dir, float maxDist) -> RaycastHit
             { return Application::Get().GetSystem<LumosPhysicsEngine>()->Raycast(origin, dir, maxDist); });
+
+        // Direct heightmap sample (world-space x, z). Walks the rigid body
+        // list looking for the first TerrainCollisionShape, samples it. Skips
+        // the raycast path entirely so it works regardless of the raycast
+        // implementation's terrain support.
+        state.set_function("TerrainHeightAt", [](float wx, float wz) -> sol::optional<float>
+            {
+                auto* phys = Application::Get().GetSystem<LumosPhysicsEngine>();
+                if(!phys) return sol::nullopt;
+                auto* scene = Application::Get().GetCurrentScene();
+                if(!scene) return sol::nullopt;
+                auto& reg = scene->GetRegistry();
+                auto view = reg.view<RigidBody3DComponent>();
+                for(auto e : view)
+                {
+                    auto* body = view.get<RigidBody3DComponent>(e).GetRigidBody();
+                    if(!body) continue;
+                    auto shape = body->GetCollisionShape();
+                    if(!shape || shape->GetType() != CollisionShapeType::CollisionTerrain)
+                        continue;
+                    auto* terrain = static_cast<TerrainCollisionShape*>(shape.get());
+                    if(!terrain->HasHeightData()) continue;
+                    Vec3 bp = body->GetPosition();
+                    float h = terrain->GetHeightAt(wx - bp.x, wz - bp.z);
+                    return bp.y + h;
+                }
+                return sol::nullopt;
+            });
         state.set_function("RaycastAll", [](const Vec3& origin, const Vec3& dir, float maxDist) -> sol::as_table_t<std::vector<RaycastHit>>
             {
                 TDArray<RaycastHit> hits;
@@ -162,8 +211,9 @@ namespace Lumos
             });
 
         sol::usertype<PhysicsMaterial> physicsMaterial_type = state.new_usertype<PhysicsMaterial>("PhysicsMaterial");
-        physicsMaterial_type["friction"]    = &PhysicsMaterial::Friction;
-        physicsMaterial_type["restitution"] = &PhysicsMaterial::Restitution;
+        physicsMaterial_type["friction"]         = &PhysicsMaterial::Friction;
+        physicsMaterial_type["restitution"]      = &PhysicsMaterial::Restitution;
+        physicsMaterial_type["rolling_friction"] = &PhysicsMaterial::RollingFriction;
         physicsMaterial_type.set_function("Default", &PhysicsMaterial::Default);
         physicsMaterial_type.set_function("Bouncy", &PhysicsMaterial::Bouncy);
         physicsMaterial_type.set_function("Ice", &PhysicsMaterial::Ice);
@@ -209,5 +259,57 @@ namespace Lumos
 
         state.set_function("SetCallback", &SetCallback);
         state.set_function("SetB2DGravity", &SetB2DGravity);
+
+        // ---- Raycast vehicle ----
+        sol::usertype<VehicleWheelConfig> wheelConfig_type = state.new_usertype<VehicleWheelConfig>("VehicleWheelConfig");
+        wheelConfig_type["connectionPoint"]    = &VehicleWheelConfig::ConnectionPointLocal;
+        wheelConfig_type["radius"]             = &VehicleWheelConfig::Radius;
+        wheelConfig_type["suspensionRest"]     = &VehicleWheelConfig::SuspensionRest;
+        wheelConfig_type["suspensionStiffness"] = &VehicleWheelConfig::SuspensionStiffness;
+        wheelConfig_type["suspensionDamping"]  = &VehicleWheelConfig::SuspensionDamping;
+        wheelConfig_type["maxTravel"]          = &VehicleWheelConfig::MaxTravel;
+        wheelConfig_type["gripLateral"]        = &VehicleWheelConfig::GripLateral;
+        wheelConfig_type["gripForward"]        = &VehicleWheelConfig::GripForward;
+        wheelConfig_type["steerable"]          = &VehicleWheelConfig::Steerable;
+        wheelConfig_type["powered"]            = &VehicleWheelConfig::Powered;
+        wheelConfig_type["brakes"]             = &VehicleWheelConfig::Brakes;
+
+        sol::usertype<RaycastVehicle> vehicle_type = state.new_usertype<RaycastVehicle>("RaycastVehicle");
+        vehicle_type.set_function("AddWheel", &RaycastVehicle::AddWheel);
+        vehicle_type.set_function("SetInputs", [](RaycastVehicle& v, float throttle, float brake, float steer, sol::optional<bool> handbrake)
+            { v.SetInputs(throttle, brake, steer, handbrake.value_or(false)); });
+        vehicle_type.set_function("NumWheels", &RaycastVehicle::NumWheels);
+        vehicle_type.set_function("IsGrounded", &RaycastVehicle::IsGrounded);
+        vehicle_type.set_function("WheelPosition", &RaycastVehicle::WheelPosition);
+        vehicle_type.set_function("WheelRotation", &RaycastVehicle::WheelRotation);
+        vehicle_type.set_function("GetForwardSpeed", &RaycastVehicle::GetForwardSpeed);
+        vehicle_type.set_function("SetEngineForce", &RaycastVehicle::SetEngineForce);
+        vehicle_type.set_function("SetBrakeForce", &RaycastVehicle::SetBrakeForce);
+        vehicle_type.set_function("SetMaxSteerAngle", &RaycastVehicle::SetMaxSteerAngle);
+        vehicle_type.set_function("SetSteerSpeed", &RaycastVehicle::SetSteerSpeed);
+        vehicle_type.set_function("SetAntiRoll", &RaycastVehicle::SetAntiRoll);
+        vehicle_type.set_function("SetGrip", &RaycastVehicle::SetGrip);
+        vehicle_type.set_function("SetSuspension", &RaycastVehicle::SetSuspension);
+
+        auto physics = state["Physics"].get_or_create<sol::table>();
+        physics.set_function("SetGravity3D", &SetGravity3D);
+        physics.set_function("GetGravity3D", &GetGravity3D);
+        physics.set_function("CreateVehicle", [](RigidBody3D* chassis) -> RaycastVehicle*
+            { return Application::Get().GetSystem<LumosPhysicsEngine>()->CreateVehicle(chassis); });
+        physics.set_function("DestroyVehicle", [](RaycastVehicle* v)
+            { Application::Get().GetSystem<LumosPhysicsEngine>()->DestroyVehicle(v); });
+
+        // Build properties for a sized cuboid body (Lua can't set the shape on
+        // RigidBodyParameters3D directly). Pass to entity:AddRigidBody3DComponent.
+        physics.set_function("BoxProperties", [](const Vec3& pos, const Vec3& halfExtents, float mass, bool isStatic) -> RigidBody3DProperties
+            {
+                RigidBody3DProperties p;
+                p.Position                    = pos;
+                p.Mass                        = mass > 0.0f ? mass : 1.0f;
+                p.Static                      = isStatic;
+                SharedPtr<CollisionShape> box = CreateSharedPtr<CuboidCollisionShape>(halfExtents);
+                p.Shape                       = box;
+                return p;
+            });
     }
 }

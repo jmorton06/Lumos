@@ -129,6 +129,32 @@ namespace Lumos
             return Maths::Distance2(a, b);
         };
 
+        Vec3type["Dot"] = [](const Vec3& a, const Vec3& b)
+        {
+            return Maths::Dot(a, b);
+        };
+
+        Vec3type["Cross"] = [](const Vec3& a, const Vec3& b)
+        {
+            return Maths::Cross(a, b);
+        };
+
+        // Linear interpolate two vectors.
+        Vec3type["Lerp"] = [](const Vec3& a, const Vec3& b, float t)
+        {
+            return a + (b - a) * t;
+        };
+
+        // Step current toward target by at most maxStep units.
+        Vec3type["MoveTowards"] = [](const Vec3& current, const Vec3& target, float maxStep)
+        {
+            Vec3 d  = target - current;
+            float l = Maths::Length(d);
+            if(l <= maxStep || l < 1e-6f)
+                return target;
+            return current + (d / l) * maxStep;
+        };
+
         auto Vec4type = state.new_usertype<Vec4>("Vec4", sol::constructors<Vec4(), Vec4(float, float, float, float)>());
 
         // Fields
@@ -207,11 +233,6 @@ namespace Lumos
             return a + b;
         };
 
-        QuaternionType[sol::meta_function::multiplication] = [](const Quat& a, const Quat& b)
-        {
-            return a * b;
-        };
-
         QuaternionType[sol::meta_function::subtraction] = [](const Quat& a, const Quat& b)
         {
             return a - b;
@@ -227,6 +248,29 @@ namespace Lumos
         {
             return q.Normalised();
         };
+
+        // Rotate a vector by this quaternion.
+        QuaternionType["Transform"] = [](const Quat& q, const Vec3& v) -> Vec3
+        {
+            return q.Transform(v);
+        };
+
+        // q * v overload: rotate vector. Keeps q * q for composition.
+        QuaternionType[sol::meta_function::multiplication] = sol::overload(
+            [](const Quat& a, const Quat& b) -> Quat { return a * b; },
+            [](const Quat& q, const Vec3& v) -> Vec3 { return q.Transform(v); });
+
+        // Static-like helper: orientation that looks from -> to with given up.
+        state.set_function("QuatLookAt", [](const Vec3& from, const Vec3& to, sol::optional<Vec3> up) -> Quat
+                           {
+                               return Quat::LookAt(from, to, up.value_or(Vec3(0.0f, 1.0f, 0.0f)));
+                           });
+
+        // Spherical interpolation between two quaternions.
+        state.set_function("QuatSlerp", [](const Quat& a, const Quat& b, float t) -> Quat
+                           {
+                               return Quat::Slerp(a, b, t);
+                           });
 
         auto Matrix3Type = state.new_usertype<Mat3>("Matrix3", sol::constructors<Mat3(float, float, float, float, float, float, float, float, float), Mat3()>());
 
