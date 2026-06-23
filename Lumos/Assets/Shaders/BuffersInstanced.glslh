@@ -78,7 +78,8 @@ layout(std140, set = 2, binding = 5) uniform UniformSceneData
 	int FilterShadows;
 	int TileCountX;
 	int TileSize;
-
+	vec4 FogColour;
+	vec4 FogParams;
 } u_SceneData;
 
 // Set 3 reserved for instance SSBO — declared in individual shaders

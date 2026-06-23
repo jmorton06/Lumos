@@ -70,7 +70,7 @@ vec2 integrateBRDF(float roughness, float NoV)
         float VoH = saturate(dot(V, H));
         
         if(NoL > 0.0) {
-            float V_pdf = V_SmithGGXCorrelated(NoV, NoL, roughness) * VoH * NoL / NoH;
+            float V_pdf = V_SmithGGXCorrelated(NoV, NoL, roughness * roughness) * VoH * NoL / NoH;
             float Fc = pow(1.0 - VoH, 5.0);
             A += (1.0 - Fc) * V_pdf;
             B += Fc * V_pdf;

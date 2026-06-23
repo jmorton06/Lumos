@@ -1,0 +1,29 @@
+#ifndef OCTAHEDRAL_GLSLH
+#define OCTAHEDRAL_GLSLH
+
+// Octahedral normal encoding. Packs a unit normal into two [0,1] channels so
+// the G-buffer can keep normal + depth + roughness in a single RGBA target
+// (which is what lets SSR survive MSAA — only one colour attachment resolves).
+
+vec2 OctWrap(vec2 v)
+{
+    return (1.0 - abs(v.yx)) * vec2(v.x >= 0.0 ? 1.0 : -1.0, v.y >= 0.0 ? 1.0 : -1.0);
+}
+
+vec2 OctEncodeNormal(vec3 n)
+{
+    n /= (abs(n.x) + abs(n.y) + abs(n.z));
+    n.xy = n.z >= 0.0 ? n.xy : OctWrap(n.xy);
+    return n.xy * 0.5 + 0.5;
+}
+
+vec3 OctDecodeNormal(vec2 f)
+{
+    f = f * 2.0 - 1.0;
+    vec3 n  = vec3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
+    float t = max(-n.z, 0.0);
+    n.xy += vec2(n.x >= 0.0 ? -t : t, n.y >= 0.0 ? -t : t);
+    return normalize(n);
+}
+
+#endif

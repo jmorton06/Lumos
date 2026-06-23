@@ -70,7 +70,7 @@ void main()
     {
         float EnvMapSize = float(textureSize(u_Texture, 0).s);
         
-        const uint SAMPLE_COUNT = (PARAM_ROUGHNESS < 0.2) ? 64u : 32u;
+        const uint SAMPLE_COUNT = (PARAM_ROUGHNESS < 0.2) ? 128u : 64u;
     
         for(uint i = 0u; i < SAMPLE_COUNT; ++i)
         {
@@ -85,8 +85,9 @@ void main()
                 float fNdotH = saturate(dot(N, H));
                 float fVdotH = saturate(dot(V, H));
 
-                // Probability Distribution Function
-                float fPdf =  D_GGX(fNdotH, PARAM_ROUGHNESS) * fNdotH / (4.0f * fVdotH);
+                // Probability Distribution Function (D_GGX expects alpha)
+                float alpha = PARAM_ROUGHNESS * PARAM_ROUGHNESS;
+                float fPdf =  D_GGX(fNdotH, alpha) * fNdotH / (4.0f * fVdotH);
 
                 // Solid angle represented by this sample
                 //float fOmegaS = 1.0 / (SAMPLE_COUNT * fPdf);
@@ -97,8 +98,14 @@ void main()
                 float fMipBias = 1.0f;
                 float fMipLevel = max(0.5 * log2(max(fOmegaS / fOmegaP, 1e-6)) + fMipBias, 0.0f);
 
-                prefilteredColor += texture(u_Texture, L, fMipLevel).rgb * NdotL;
-                totalWeight      += NdotL;
+                vec3 sampleColour = texture(u_Texture, L, fMipLevel).rgb;
+                // Karis' firefly fix: down-weight bright samples so a lone HDR
+                // pixel (the sun) cannot dominate the average and speckle the
+                // prefiltered mip. Without this, mid-roughness surfaces reflect
+                // that baked-in noise as speckles all over.
+                float sampleWeight = NdotL / (1.0 + dot(sampleColour, vec3(0.2126, 0.7152, 0.0722)));
+                prefilteredColor += sampleColour * sampleWeight;
+                totalWeight      += sampleWeight;
             }
         }
         prefilteredColor = prefilteredColor / max(totalWeight, 0.0001f);
