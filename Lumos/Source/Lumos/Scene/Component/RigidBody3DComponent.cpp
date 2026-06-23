@@ -10,17 +10,23 @@ namespace Lumos
 {
     RigidBody3DComponent::RigidBody3DComponent()
     {
-        m_RigidBody = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
+        m_RigidBody    = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
+        m_OwnRigidBody = true;
     }
 
     RigidBody3DComponent::RigidBody3DComponent(RigidBody3D* physics)
     {
-        m_RigidBody = physics;
+        // Take ownership of the passed-in body. All existing callers create the body
+        // immediately before constructing the component and don't keep a reference,
+        // so the component is the sole owner.
+        m_RigidBody    = physics;
+        m_OwnRigidBody = true;
     }
 
     RigidBody3DComponent::RigidBody3DComponent(const RigidBody3DProperties& properties)
     {
-        m_RigidBody = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody(properties);
+        m_RigidBody    = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody(properties);
+        m_OwnRigidBody = true;
     }
 
     RigidBody3DComponent::RigidBody3DComponent(const RigidBody3DComponent& other)
@@ -38,6 +44,8 @@ namespace Lumos
             m_RigidBody    = nullptr;
             m_OwnRigidBody = false;
         }
+
+        LINFO("Creating duplicate RigidBody3D");
     }
 
     RigidBody3DComponent::~RigidBody3DComponent()

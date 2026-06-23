@@ -14,8 +14,13 @@ namespace Lumos
     {
         float Friction              = 0.5f;
         float Restitution           = 0.5f;
-        PhysicsMaterialCombineMode FrictionCombine    = PhysicsMaterialCombineMode::Average;
-        PhysicsMaterialCombineMode RestitutionCombine = PhysicsMaterialCombineMode::Average;
+        // Bullet convention: units of length (meters). Effective torque arm used
+        // to convert the normal impulse into a max rolling-friction angular impulse.
+        // Default 0 (off, opt-in). Typical values: 0.001-0.005 for cubes/boxes.
+        float RollingFriction       = 0.0f;
+        PhysicsMaterialCombineMode FrictionCombine        = PhysicsMaterialCombineMode::Average;
+        PhysicsMaterialCombineMode RestitutionCombine     = PhysicsMaterialCombineMode::Average;
+        PhysicsMaterialCombineMode RollingFrictionCombine = PhysicsMaterialCombineMode::Average;
 
         static float CombineValues(float a, float b, PhysicsMaterialCombineMode mode)
         {

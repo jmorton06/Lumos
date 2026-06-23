@@ -50,36 +50,28 @@ namespace Lumos
         Vec3& r1 = c.relPosA;
         Vec3& r2 = c.relPosB;
 
-        Vec3 v0 = m_pNodeA->GetLinearVelocity() + Maths::Cross(m_pNodeA->GetAngularVelocity(), r1);
-        Vec3 v1 = m_pNodeB->GetLinearVelocity() + Maths::Cross(m_pNodeB->GetAngularVelocity(), r2);
-
         Vec3& normal = c.collisionNormal;
-        Vec3 dv      = v0 - v1;
 
-        // Collision Resoluton
+        // ---- Normal (contact) impulse ----
         {
-            const float constraintMass = (m_pNodeA->GetInverseMass()
-                                          + m_pNodeB->GetInverseMass())
+            Vec3 v0 = m_pNodeA->GetLinearVelocity() + Maths::Cross(m_pNodeA->GetAngularVelocity(), r1);
+            Vec3 v1 = m_pNodeB->GetLinearVelocity() + Maths::Cross(m_pNodeB->GetAngularVelocity(), r2);
+            Vec3 dv = v0 - v1;
+
+            const float constraintMass = (m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass())
                 + Maths::Dot(normal,
-                             Maths::Cross(m_pNodeA->GetInverseInertia()
-                                              * Maths::Cross(r1, normal),
-                                          r1)
-                                 + Maths::Cross(m_pNodeB->GetInverseInertia()
-                                                    * Maths::Cross(r2, normal),
-                                                r2));
-            // Baumgarte Offset ( Adds energy to the System to counter
-            // slight solving errors that accumulate over time
-            // called as �constraint drift �)
+                             Maths::Cross(m_pNodeA->GetInverseInertia() * Maths::Cross(r1, normal), r1)
+                                 + Maths::Cross(m_pNodeB->GetInverseInertia() * Maths::Cross(r2, normal), r2));
 
-            float penetrationSlop      = Maths::Min(c.collisionPenetration + m_BaumgarteSlop, 0.0f);
-            float b                    = -(m_BaumgarteScalar / LumosPhysicsEngine::GetDeltaTime()) * penetrationSlop;
-            float b_real               = Maths::Max(b, c.elatisity_term + b * 0.2f);
-            float jn                   = -(Maths::Dot(dv, normal) + b_real) / constraintMass;
-            float oldSumImpulseContact = c.sumImpulseContact;
+            float penetrationSlop = Maths::Min(c.collisionPenetration + m_BaumgarteSlop, 0.0f);
+            float b               = -(m_BaumgarteScalar / LumosPhysicsEngine::GetDeltaTime()) * penetrationSlop;
+            float b_real          = Maths::Max(b, c.elatisity_term + b * 0.2f);
+            float jn              = -(Maths::Dot(dv, normal) + b_real) / constraintMass;
 
-            jn                  = Maths::Min(jn, 0.0f);
-            c.sumImpulseContact = Maths::Min(c.sumImpulseContact + jn, 0.0f);
-            jn                  = c.sumImpulseContact - oldSumImpulseContact;
+            // Clamp accumulated impulse (not the per-iter delta) — allows iterations to refine
+            float oldSum        = c.sumImpulseContact;
+            c.sumImpulseContact = Maths::Min(oldSum + jn, 0.0f);
+            jn                  = c.sumImpulseContact - oldSum;
 
             m_pNodeA->SetLinearVelocity(m_pNodeA->GetLinearVelocity()
                                         + normal * (jn * m_pNodeA->GetInverseMass()) * m_pNodeA->GetLinearFactor());
@@ -87,47 +79,133 @@ namespace Lumos
                                         - normal * (jn * m_pNodeB->GetInverseMass()) * m_pNodeB->GetLinearFactor());
 
             m_pNodeA->SetAngularVelocity(m_pNodeA->GetAngularVelocity()
-                                         + m_pNodeA->GetInverseInertia()
-                                             * Maths::Cross(r1, normal * jn) * m_pNodeA->GetAngularFactor());
+                                         + m_pNodeA->GetInverseInertia() * Maths::Cross(r1, normal * jn) * m_pNodeA->GetAngularFactor());
             m_pNodeB->SetAngularVelocity(m_pNodeB->GetAngularVelocity()
-                                         - m_pNodeB->GetInverseInertia()
-                                             * Maths::Cross(r2, normal * jn) * m_pNodeB->GetAngularFactor());
+                                         - m_pNodeB->GetInverseInertia() * Maths::Cross(r2, normal * jn) * m_pNodeB->GetAngularFactor());
         }
-        // Friction
+
+        // ---- 2D friction (Box2D-style, fixed tangent basis) ----
         {
-            Vec3 tangent      = dv - normal * Maths::Dot(dv, normal);
-            float tangent_len = Maths::Length(tangent);
+            // Recompute dv after normal impulse was applied
+            Vec3 v0 = m_pNodeA->GetLinearVelocity() + Maths::Cross(m_pNodeA->GetAngularVelocity(), r1);
+            Vec3 v1 = m_pNodeB->GetLinearVelocity() + Maths::Cross(m_pNodeB->GetAngularVelocity(), r2);
+            Vec3 dv = v0 - v1;
 
-            if(tangent_len > Maths::M_EPSILON)
+            const auto& matA   = m_pNodeA->GetMaterial();
+            const auto& matB   = m_pNodeB->GetMaterial();
+            float frictionCoef = PhysicsMaterial::CombineValues(matA.Friction, matB.Friction, matA.FrictionCombine);
+
+            const Vec3& t1 = c.frictionTangent1;
+            const Vec3& t2 = c.frictionTangent2;
+
+            float frictionalMass1 = (m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass())
+                + Maths::Dot(t1, Maths::Cross(m_pNodeA->GetInverseInertia() * Maths::Cross(r1, t1), r1)
+                                     + Maths::Cross(m_pNodeB->GetInverseInertia() * Maths::Cross(r2, t1), r2));
+            float frictionalMass2 = (m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass())
+                + Maths::Dot(t2, Maths::Cross(m_pNodeA->GetInverseInertia() * Maths::Cross(r1, t2), r1)
+                                     + Maths::Cross(m_pNodeB->GetInverseInertia() * Maths::Cross(r2, t2), r2));
+
+            if(frictionalMass1 < Maths::M_EPSILON || frictionalMass2 < Maths::M_EPSILON)
+                return;
+
+            float jt1 = -Maths::Dot(dv, t1) / frictionalMass1;
+            float jt2 = -Maths::Dot(dv, t2) / frictionalMass2;
+
+            float oldSum1 = c.sumImpulseFriction1;
+            float oldSum2 = c.sumImpulseFriction2;
+
+            float newSum1 = oldSum1 + jt1;
+            float newSum2 = oldSum2 + jt2;
+
+            // Clamp the 2D accumulated friction impulse vector to the Coulomb cone.
+            // sumImpulseContact is non-positive in this convention, so cone radius = -friction * sumImpulseContact.
+            float maxFriction = -frictionCoef * c.sumImpulseContact;
+            float mag2        = newSum1 * newSum1 + newSum2 * newSum2;
+            if(mag2 > maxFriction * maxFriction && mag2 > Maths::M_EPSILON)
             {
-                tangent = tangent * (1.0f / tangent_len);
+                float scale = maxFriction / Maths::Sqrt(mag2);
+                newSum1 *= scale;
+                newSum2 *= scale;
+            }
 
-                float frictionalMass = (m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass())
-                    + Maths::Dot(tangent, Maths::Cross(m_pNodeA->GetInverseInertia() * Maths::Cross(r1, tangent), r1) + Maths::Cross(m_pNodeB->GetInverseInertia() * Maths::Cross(r2, tangent), r2));
-                const auto& matA = m_pNodeA->GetMaterial();
-                const auto& matB = m_pNodeB->GetMaterial();
-                float frictionCoef = PhysicsMaterial::CombineValues(matA.Friction, matB.Friction, matA.FrictionCombine);
-                float jt           = -1.0f * frictionCoef * Maths::Dot(dv, tangent) / frictionalMass;
+            c.sumImpulseFriction1 = newSum1;
+            c.sumImpulseFriction2 = newSum2;
 
-                // Clamp friction to never apply more force than the main collision
-                // resolution force
+            float delta1 = newSum1 - oldSum1;
+            float delta2 = newSum2 - oldSum2;
 
-                float oldImpulseTangent = c.sumImpulseFriction;
-                float maxJt             = frictionCoef * c.sumImpulseContact;
-                c.sumImpulseFriction    = Maths::Min(Maths::Max(oldImpulseTangent + jt, maxJt), -maxJt);
-                jt                      = c.sumImpulseFriction - oldImpulseTangent;
+            Vec3 impulseA = t1 * delta1 + t2 * delta2;
 
-                m_pNodeA->SetLinearVelocity(m_pNodeA->GetLinearVelocity()
-                                            + tangent * (jt * m_pNodeA->GetInverseMass()) * m_pNodeA->GetLinearFactor());
-                m_pNodeB->SetLinearVelocity(m_pNodeB->GetLinearVelocity()
-                                            - tangent * (jt * m_pNodeB->GetInverseMass()) * m_pNodeB->GetLinearFactor());
+            m_pNodeA->SetLinearVelocity(m_pNodeA->GetLinearVelocity()
+                                        + impulseA * m_pNodeA->GetInverseMass() * m_pNodeA->GetLinearFactor());
+            m_pNodeB->SetLinearVelocity(m_pNodeB->GetLinearVelocity()
+                                        - impulseA * m_pNodeB->GetInverseMass() * m_pNodeB->GetLinearFactor());
 
-                m_pNodeA->SetAngularVelocity(m_pNodeA->GetAngularVelocity()
-                                             + m_pNodeA->GetInverseInertia()
-                                                 * Maths::Cross(r1, tangent * jt) * m_pNodeA->GetAngularFactor());
-                m_pNodeB->SetAngularVelocity(m_pNodeB->GetAngularVelocity()
-                                             - m_pNodeB->GetInverseInertia()
-                                                 * Maths::Cross(r2, tangent * jt) * m_pNodeB->GetAngularFactor());
+            m_pNodeA->SetAngularVelocity(m_pNodeA->GetAngularVelocity()
+                                         + m_pNodeA->GetInverseInertia() * Maths::Cross(r1, impulseA) * m_pNodeA->GetAngularFactor());
+            m_pNodeB->SetAngularVelocity(m_pNodeB->GetAngularVelocity()
+                                         - m_pNodeB->GetInverseInertia() * Maths::Cross(r2, impulseA) * m_pNodeB->GetAngularFactor());
+        }
+
+        // ---- Rolling friction (Bullet-style: coefficient is a torque arm in meters) ----
+        // Opposes the component of relative angular velocity in the contact plane —
+        // the rotational analogue of sliding friction. Without this, sliding friction
+        // can leave the body in a pure-rolling state where the contact point is
+        // stationary but the body still translates. Combined with sliding friction
+        // it drives both linear and angular relative motion to zero.
+        {
+            float rollCoef = PhysicsMaterial::CombineValues(
+                m_pNodeA->GetMaterial().RollingFriction,
+                m_pNodeB->GetMaterial().RollingFriction,
+                m_pNodeA->GetMaterial().RollingFrictionCombine);
+
+            if(rollCoef > 0.0f)
+            {
+                Vec3 relAng = m_pNodeA->GetAngularVelocity() - m_pNodeB->GetAngularVelocity();
+
+                const Vec3& t1 = c.frictionTangent1;
+                const Vec3& t2 = c.frictionTangent2;
+
+                // Effective rotational inertia about each tangent axis.
+                float rMass1 = Maths::Dot(t1, m_pNodeA->GetInverseInertia() * t1)
+                    + Maths::Dot(t1, m_pNodeB->GetInverseInertia() * t1);
+                float rMass2 = Maths::Dot(t2, m_pNodeA->GetInverseInertia() * t2)
+                    + Maths::Dot(t2, m_pNodeB->GetInverseInertia() * t2);
+
+                if(rMass1 > Maths::M_EPSILON && rMass2 > Maths::M_EPSILON)
+                {
+                    // Unconstrained angular impulse to zero the rolling component.
+                    float jr1 = -Maths::Dot(relAng, t1) / rMass1;
+                    float jr2 = -Maths::Dot(relAng, t2) / rMass2;
+
+                    float oldR1 = c.sumImpulseRolling1;
+                    float oldR2 = c.sumImpulseRolling2;
+                    float newR1 = oldR1 + jr1;
+                    float newR2 = oldR2 + jr2;
+
+                    // Dimensionally: rollCoef [m] * |normalImpulse [kg m/s]| = [kg m^2/s] (angular impulse).
+                    float maxRoll = rollCoef * Maths::Abs(c.sumImpulseContact);
+                    float mag2    = newR1 * newR1 + newR2 * newR2;
+                    if(mag2 > maxRoll * maxRoll && mag2 > Maths::M_EPSILON)
+                    {
+                        float scale = maxRoll / Maths::Sqrt(mag2);
+                        newR1 *= scale;
+                        newR2 *= scale;
+                    }
+
+                    c.sumImpulseRolling1 = newR1;
+                    c.sumImpulseRolling2 = newR2;
+
+                    float dR1 = newR1 - oldR1;
+                    float dR2 = newR2 - oldR2;
+
+                    Vec3 angularImpulse = t1 * dR1 + t2 * dR2;
+
+                    m_pNodeA->SetAngularVelocity(m_pNodeA->GetAngularVelocity()
+                                                 + m_pNodeA->GetInverseInertia() * angularImpulse * m_pNodeA->GetAngularFactor());
+                    m_pNodeB->SetAngularVelocity(m_pNodeB->GetAngularVelocity()
+                                                 - m_pNodeB->GetInverseInertia() * angularImpulse * m_pNodeB->GetAngularFactor());
+                }
             }
         }
     }
@@ -147,8 +225,24 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION_LOW();
 
         // Reset total impulse forces computed this physics timestep
-        contact.sumImpulseContact  = 0.0f;
-        contact.sumImpulseFriction = 0.0f;
+        contact.sumImpulseContact   = 0.0f;
+        contact.sumImpulseFriction1 = 0.0f;
+        contact.sumImpulseFriction2 = 0.0f;
+        contact.sumImpulseRolling1  = 0.0f;
+        contact.sumImpulseRolling2  = 0.0f;
+
+        // Build a stable orthonormal tangent basis from the contact normal so that
+        // friction is solved in a consistent direction across iterations.
+        const Vec3& n = contact.collisionNormal;
+        Vec3 ref      = (Maths::Abs(n.x) > 0.57735f) ? Vec3(0.0f, 1.0f, 0.0f) : Vec3(1.0f, 0.0f, 0.0f);
+        Vec3 t1       = Maths::Cross(ref, n);
+        float len     = Maths::Length(t1);
+        if(len > Maths::M_EPSILON)
+            t1 = t1 * (1.0f / len);
+        else
+            t1 = Vec3(1.0f, 0.0f, 0.0f);
+        contact.frictionTangent1 = t1;
+        contact.frictionTangent2 = Maths::Cross(n, t1);
 
         // Compute Elasticity Term - must be computed prior to solving
         // ANY constraints otherwise the objects velocities may have
@@ -198,9 +292,12 @@ namespace Lumos
         contact.relPosB              = r2;
         contact.collisionNormal      = _normal;
         contact.collisionPenetration = _penetration;
-        contact.elatisity_term       = 1.0f;
-        contact.sumImpulseContact    = 0.0f;
-        contact.sumImpulseFriction   = 0.0f;
+        contact.elatisity_term        = 1.0f;
+        contact.sumImpulseContact     = 0.0f;
+        contact.sumImpulseFriction1   = 0.0f;
+        contact.sumImpulseFriction2   = 0.0f;
+        contact.sumImpulseRolling1    = 0.0f;
+        contact.sumImpulseRolling2    = 0.0f;
 
         // Check to see if we already contain a contact point almost in that location
         const float min_allowed_dist_sq = 0.2f * 0.2f;

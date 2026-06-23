@@ -20,9 +20,11 @@ namespace Lumos
         , m_AverageSummedVelocity(0.0f)
         , m_WSAabbInvalidated(true)
         , m_Position(properties.Position)
+        , m_PrevPosition(properties.Position)
         , m_LinearVelocity(properties.LinearVelocity)
         , m_Force(properties.Force)
         , m_Orientation(properties.Orientation)
+        , m_PrevOrientation(properties.Orientation)
         , m_AngularVelocity(properties.AngularVelocity)
         , m_Torque(properties.Torque)
         , m_InvInertia(Mat3(1.0f))
@@ -216,6 +218,46 @@ namespace Lumos
             m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
             AutoResizeBoundingBox();
         }
+    }
+
+    Mat3 RigidBody3D::GetWorldInverseInertia() const
+    {
+        const Mat3 R = Mat3(m_Orientation);
+        return R * m_InvInertia * Mat3::Transpose(R);
+    }
+
+    Vec3 RigidBody3D::GetPointVelocity(const Vec3& worldPoint) const
+    {
+        return m_LinearVelocity + Maths::Cross(m_AngularVelocity, worldPoint - m_Position);
+    }
+
+    void RigidBody3D::ApplyImpulse(const Vec3& impulse)
+    {
+        if(m_Static)
+            return;
+        m_LinearVelocity += impulse * m_InvMass * m_LinearFactor;
+        WakeUp();
+    }
+
+    void RigidBody3D::ApplyImpulseAtPoint(const Vec3& impulse, const Vec3& worldPoint)
+    {
+        if(m_Static)
+            return;
+        m_LinearVelocity += impulse * m_InvMass * m_LinearFactor;
+
+        const Vec3 r = worldPoint - m_Position;
+        m_AngularVelocity += (GetWorldInverseInertia() * Maths::Cross(r, impulse)) * m_AngularFactor;
+        WakeUp();
+    }
+
+    void RigidBody3D::ApplyForceAtPoint(const Vec3& force, const Vec3& worldPoint)
+    {
+        if(m_Static)
+            return;
+        m_Force += force;
+        const Vec3 r = worldPoint - m_Position;
+        m_Torque += Maths::Cross(r, force);
+        WakeUp();
     }
 
     void RigidBody3D::SetAngularVelocity(const Vec3& v)
