@@ -259,6 +259,17 @@ project "Runtime"
 		local ios_project_folder = game_project_folder or "ExampleProject"
 		local ios_launch_dir = "../Lumos/Source/Lumos/Platform/iOS/Client"
 
+		-- Resolve actual .lmproj filename (may differ from folder name, e.g. Example.lmproj inside ExampleProject/)
+		local ios_lmproj_name = nil
+		if game_project and game_project.lmproj then
+			ios_lmproj_name = path.getname(game_project.lmproj)
+		else
+			local lmproj_matches = os.matchfiles(ios_project_dir .. "/*.lmproj")
+			if #lmproj_matches > 0 then
+				ios_lmproj_name = path.getname(lmproj_matches[1])
+			end
+		end
+
 		-- Check if packed assets exist (prefer .lpak over raw Assets/)
 		local ios_has_lpak = game_project and os.isfile(game_project.dir .. "/Assets.lpak")
 
@@ -276,17 +287,46 @@ project "Runtime"
 			files { ios_project_dir }
 		end
 
+		-- Orientation arrays injected via INFOPLIST_KEY_* override values in Info.plist.
+		-- IMPORTANT: must be Lua tables (premake emits each entry as a separate array
+		-- element). Passing a space-joined string gets serialised as a 1-element array
+		-- containing the literal joined string, which iOS treats as a bogus single
+		-- orientation and silently falls back to "all orientations" (landscape included).
+		local orient_phone = { 'UIInterfaceOrientationPortrait', 'UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight' }
+		local orient_pad   = { 'UIInterfaceOrientationPortrait', 'UIInterfaceOrientationPortraitUpsideDown', 'UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight' }
+		local device_family_str = '1,2'
+		local min_ios_target    = '16.0'
+		if game_project then
+			if game_project.orientation == 1 then
+				orient_phone = { 'UIInterfaceOrientationPortrait', 'UIInterfaceOrientationPortraitUpsideDown' }
+				orient_pad   = { 'UIInterfaceOrientationPortrait', 'UIInterfaceOrientationPortraitUpsideDown' }
+			elseif game_project.orientation == 2 then
+				orient_phone = { 'UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight' }
+				orient_pad   = { 'UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight' }
+			end
+			if game_project.device_family == 1 then device_family_str = '1'
+			elseif game_project.device_family == 2 then device_family_str = '2'
+			else device_family_str = '1,2' end
+			min_ios_target = game_project.min_ios or min_ios_target
+		end
+
 		xcodebuildsettings
 		{
 			['ARCHS'] = '$(ARCHS_STANDARD)',
 			['ONLY_ACTIVE_ARCH'] = 'NO',
 			['SDKROOT'] = 'iphoneos',
-			['TARGETED_DEVICE_FAMILY'] = '1,2',
+			['TARGETED_DEVICE_FAMILY'] = device_family_str,
 			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',
 			['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = '',
-			['IPHONEOS_DEPLOYMENT_TARGET'] = '18.0',
+			['IPHONEOS_DEPLOYMENT_TARGET'] = min_ios_target,
 			['INFOPLIST_FILE'] = ios_launch_dir .. '/Info.plist',
-	        ['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
+			-- Required for INFOPLIST_KEY_* values to actually land in the
+			-- compiled plist. Without it Xcode copies INFOPLIST_FILE verbatim
+			-- and silently ignores every INFOPLIST_KEY_* build setting.
+			['GENERATE_INFOPLIST_FILE'] = 'YES',
+	        ['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
+			['INFOPLIST_KEY_UISupportedInterfaceOrientations'] = orient_phone,
+			['INFOPLIST_KEY_UISupportedInterfaceOrientations~ipad'] = orient_pad,
         }
 
 		if game_project then
@@ -295,8 +335,23 @@ project "Runtime"
 				['PRODUCT_NAME'] = game_project.title,
 				['PRODUCT_BUNDLE_IDENTIFIER'] = game_project.bundle_id,
 				['MARKETING_VERSION'] = game_project.version,
-				['CURRENT_PROJECT_VERSION'] = game_project.build_number
+				['CURRENT_PROJECT_VERSION'] = game_project.build_number,
+				['INFOPLIST_KEY_UIStatusBarHidden'] = game_project.status_bar_hidden and 'YES' or 'NO',
+				['INFOPLIST_KEY_ITSAppUsesNonExemptEncryption'] = game_project.non_exempt_enc and 'YES' or 'NO',
 			}
+
+			if game_project.camera_usage ~= '' then
+				xcodebuildsettings { ['INFOPLIST_KEY_NSCameraUsageDescription'] = game_project.camera_usage }
+			end
+			if game_project.mic_usage ~= '' then
+				xcodebuildsettings { ['INFOPLIST_KEY_NSMicrophoneUsageDescription'] = game_project.mic_usage }
+			end
+			if game_project.photo_usage ~= '' then
+				xcodebuildsettings { ['INFOPLIST_KEY_NSPhotoLibraryUsageDescription'] = game_project.photo_usage }
+			end
+			if game_project.location_usage ~= '' then
+				xcodebuildsettings { ['INFOPLIST_KEY_NSLocationWhenInUseUsageDescription'] = game_project.location_usage }
+			end
 		end
 
         if settings.enable_signing then
@@ -330,12 +385,13 @@ project "Runtime"
 		}
 
 		if ios_has_lpak then
+			local lmproj_resource = ios_project_dir .. "/" .. (ios_lmproj_name or (ios_project_folder .. ".lmproj"))
 			xcodebuildresources
 			{
 				"../Resources/AppIcons/Assets.xcassets",
 				"../Lumos/Assets/Shaders",
 				ios_project_dir .. "/Assets.lpak",
-				ios_project_dir .. "/" .. ios_project_folder .. ".lmproj"
+				lmproj_resource
 			}
 		else
 			xcodebuildresources

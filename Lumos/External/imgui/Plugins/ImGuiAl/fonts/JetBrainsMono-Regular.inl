@@ -1,7 +1,7 @@
 // File: 'JetBrainsMono-Regular.ttf' (142628 bytes)
 // Exported using binary_to_compressed_c.cpp
-static const unsigned int JetBrainsMono-Regular_compressed_size = 91605;
-static const unsigned int JetBrainsMono-Regular_compressed_data[91608/4] =
+static const unsigned int JetBrainsMonoRegular_compressed_size = 91605;
+static const unsigned int JetBrainsMonoRegular_compressed_data[91608/4] =
 {
     0x0000bc57, 0x00000000, 0x242d0200, 0x00000400, 0x00010025, 0x82120000, 0x00042604, 0x49534420, 0x240d8247, 0x2d020001, 0x2c07821c, 0x45444708, 
     0x11531146, 0x01000038, 0x280f822c, 0x4f50472e, 0x7a416d53, 0x200f82fb, 0x280f825c, 0x5553478c, 0x746e3442, 0x300f82df, 0x4b0000e8, 0x2f534f58, 

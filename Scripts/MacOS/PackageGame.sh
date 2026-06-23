@@ -87,14 +87,35 @@ echo "Generating icons..."
 
 cd "$ROOT_DIR"
 
-# Pack assets into .lpak
-RUNTIME_BIN="$ROOT_DIR/bin/Release-macosx-x86_64/Runtime.app/Contents/MacOS/Runtime"
+# Pack assets into .lpak — needs a macOS Runtime binary. Builds one on demand if missing,
+# since iOS-only build pipelines wipe the macOS bin/ tree.
 PACK_OUTPUT="$PROJECT_DIR/Assets.lpak"
-if [ -f "$RUNTIME_BIN" ]; then
-    echo "Packing assets..."
-    "$RUNTIME_BIN" --project="$PROJECT_DIR" --pack-assets="$PACK_OUTPUT" || echo "Warning: asset packing failed, bundling raw assets"
+RUNTIME_BIN=$(find "$ROOT_DIR/bin" -path "*macosx*" -name "Runtime" -type f -perm -u+x 2>/dev/null | head -1)
+
+if [ -z "$RUNTIME_BIN" ] || [ ! -f "$RUNTIME_BIN" ]; then
+    echo "macOS Runtime missing — building it for asset packing..."
+
+    # Regenerate Xcode projects for macOS. iOS pass later in this script overwrites them again.
+    echo "  Generating macOS Xcode project..."
+    ( cd "$ROOT_DIR" && Tools/premake5 xcode4 )
+
+    HOST_ARCH=$(uname -m)
+    ( cd "$ROOT_DIR" && xcodebuild -project Runtime/Runtime.xcodeproj \
+        -parallelizeTargets -jobs 4 -configuration Release \
+        -sdk macosx -arch "$HOST_ARCH" \
+        CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+        2>&1 | tail -20 )
+
+    RUNTIME_BIN=$(find "$ROOT_DIR/bin" -path "*macosx*" -name "Runtime" -type f -perm -u+x 2>/dev/null | head -1)
+fi
+
+if [ -n "$RUNTIME_BIN" ] && [ -f "$RUNTIME_BIN" ]; then
+    echo "Packing assets via $RUNTIME_BIN ..."
+    "$RUNTIME_BIN" --project="$PROJECT_DIR" --pack-assets="$PACK_OUTPUT" \
+        || { echo "Error: asset packing failed"; exit 1; }
 else
-    echo "Warning: Runtime binary not found, skipping asset packing"
+    echo "Error: failed to obtain a macOS Runtime binary for packing"
+    exit 1
 fi
 
 # Run premake
@@ -111,9 +132,35 @@ else
     eval "Tools/premake5 xcode4 $PREMAKE_ARGS"
 fi
 
-# Post-process pbxproj (SKIP_INSTALL fix)
+# Post-process pbxproj (SKIP_INSTALL fix + orientation array split)
 python3 -c "
 import re, glob
+
+# Premake serialises a Lua string with spaces as one quoted element in an array.
+# Split any UISupportedInterfaceOrientations entry that still holds a joined
+# string into proper per-orientation array elements so iOS honours the lock.
+ORIENT_KEY = re.compile(r'(INFOPLIST_KEY_UISupportedInterfaceOrientations(?:~ipad)?)\s*=\s*\(\s*((?:\"[^\"]*\",?\s*)+)\)\s*;')
+
+def fix_orient(m):
+    key = m.group(1)
+    body = m.group(2)
+    tokens = []
+    for s in re.findall(r'\"([^\"]*)\"', body):
+        for t in s.split():
+            t = t.strip()
+            if t and t.startswith('UIInterfaceOrientation'):
+                tokens.append(t)
+    # Dedup preserving order
+    seen = set()
+    out = []
+    for t in tokens:
+        if t not in seen:
+            seen.add(t)
+            out.append(t)
+    if not out:
+        return m.group(0)
+    inner = ',\n\t\t\t\t\t'.join('\"%s\"' % t for t in out)
+    return '%s = (\n\t\t\t\t\t%s,\n\t\t\t\t);' % (key, inner)
 
 for pbx in glob.glob('**/project.pbxproj', recursive=True):
     with open(pbx, 'r') as f:
@@ -126,6 +173,7 @@ for pbx in glob.glob('**/project.pbxproj', recursive=True):
         content = re.sub(r'SKIP_INSTALL = \(\s*YES,?\s*\);', 'SKIP_INSTALL = NO;', content)
         content = re.sub(r'SKIP_INSTALL = YES;', 'SKIP_INSTALL = NO;', content)
         content = re.sub(r'INSTALL_PATH = .*?;', 'INSTALL_PATH = \"/Applications\";', content)
+        content = ORIENT_KEY.sub(fix_orient, content)
     else:
         content = re.sub(r'SKIP_INSTALL = \(\s*YES,?\s*\);', 'SKIP_INSTALL = YES;', content)
 

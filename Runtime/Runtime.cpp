@@ -1,4 +1,5 @@
 #include <string>
+#include <filesystem>
 #include <Lumos/Core/Application.h>
 #ifdef LUMOS_PLATFORM_IOS
 #include <Lumos/Platform/iOS/iOSOS.h>
@@ -35,24 +36,31 @@ using namespace Lumos;
 // Find .lmproj in a directory
 static std::string FindLmproj(const std::string& dir)
 {
-    // TODO: proper directory scan. For now, try common patterns.
-    // The project name usually matches the folder name.
-    std::string folder = dir;
-    if(!folder.empty() && (folder.back() == '/' || folder.back() == '\\'))
-        folder.pop_back();
-
-    // Extract folder name
-    size_t sep = folder.find_last_of("/\\");
-    std::string name = (sep != std::string::npos) ? folder.substr(sep + 1) : folder;
-
     std::string path = dir;
-    if(path.back() != '/' && path.back() != '\\')
+    if(!path.empty() && path.back() != '/' && path.back() != '\\')
         path += "/";
 
-    std::string candidate = path + name + ".lmproj";
-    if(FileSystem::FileExists(Str8StdS(candidate)))
-        return candidate;
+    // Prefer <folderName>.lmproj if present
+    std::string folder = path;
+    folder.pop_back();
+    size_t sep = folder.find_last_of("/\\");
+    std::string name = (sep != std::string::npos) ? folder.substr(sep + 1) : folder;
+    std::string preferred = path + name + ".lmproj";
+    if(FileSystem::FileExists(Str8StdS(preferred)))
+        return preferred;
 
+    // Scan dir for any *.lmproj
+    std::error_code ec;
+    std::filesystem::path dirPath(path);
+    if(std::filesystem::is_directory(dirPath, ec))
+    {
+        for(auto& entry : std::filesystem::directory_iterator(dirPath, ec))
+        {
+            if(ec) break;
+            if(entry.is_regular_file(ec) && entry.path().extension() == ".lmproj")
+                return entry.path().string();
+        }
+    }
     return "";
 }
 
@@ -135,7 +143,17 @@ public:
             const char* bundledName = LUMOS_BUNDLED_PROJECT_NAME;
 
             #ifdef LUMOS_PLATFORM_IOS
-            m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/" + bundledName + "/";
+            {
+                std::string assetPath = OS::Get().GetAssetPath();
+                if(!assetPath.empty() && assetPath.back() != '/')
+                    assetPath += "/";
+                // Try <bundle>/<name>/ first (folder reference), fall back to bundle root (flat resources)
+                std::string subfolder = assetPath + bundledName + "/";
+                if(FileSystem::FolderExists(Str8StdS(subfolder)) && !FindLmproj(subfolder).empty())
+                    m_ProjectSettings.m_ProjectRoot = subfolder;
+                else
+                    m_ProjectSettings.m_ProjectRoot = assetPath;
+            }
             #else
             std::string exeDir = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath());
             m_ProjectSettings.m_ProjectRoot = exeDir + "../Resources/" + bundledName + "/";
