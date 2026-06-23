@@ -16,6 +16,14 @@
 #include <Lumos/Scene/Component/RigidBody3DComponent.h>
 #include <Lumos/Scene/Component/RigidBody2DComponent.h>
 #include <Lumos/Scene/Component/TextureMatrixComponent.h>
+#include <Lumos/Scene/Component/TerrainComponent.h>
+#include <Lumos/Scene/Component/VoxelWorldComponent.h>
+#include <Lumos/Scene/EntityFactory.h>
+#include <Lumos/Scene/Entity.h>
+#include <Lumos/Scene/EntityManager.h>
+#include <Lumos/Scene/Scene.h>
+#include <Lumos/Scene/SceneManager.h>
+#include <Lumos/Graphics/Terrain.h>
 #include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Graphics/Sprite.h>
 #include <Lumos/Graphics/AnimatedSprite.h>
@@ -570,7 +578,7 @@ end
         auto rotation   = transform.GetLocalOrientation().ToEuler();
         auto position   = transform.GetLocalPosition();
         auto scale      = transform.GetLocalScale();
-        float itemWidth = (ImGui::GetContentRegionAvail().x - (ImGui::GetFontSize() * 3.0f)) / 3.0f;
+        float itemWidth = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x * 2.0f) / 3.0f;
 
         // Call this to fix alignment with columns
         ImGui::AlignTextToFramePadding();
@@ -603,12 +611,48 @@ end
         ImGui::Columns(1);
         ImGui::Separator();
 
-        if(ImGui::Button("Copy Editor Camera Transforn", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text) * ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f,0.0f,0.0f,0.0f));// ImGui::GetStyleColorVec4(ImGuiCol_Button));
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.5f);
+
+        if(ImGui::Button("Copy Editor Camera Transform", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
         {
             Lumos::Application* app     = &Lumos::Editor::Get();
             Lumos::Mat4 cameraTransform = ((Lumos::Editor*)app)->GetEditorCameraTransform().GetWorldMatrix();
             transform.SetLocalTransform(cameraTransform);
         }
+
+        // Draw dashed border
+        ImDrawList* drawList = ImGui::GetWindowDrawList();
+        ImVec2 buttonMin = ImGui::GetItemRectMin();
+        ImVec2 buttonMax = ImGui::GetItemRectMax();
+        ImU32 borderColor = ImGui::GetColorU32(ImGuiCol_Border);
+        float dashSize = 4.0f;
+        float gapSize = 2.0f;
+
+        // Top
+        for(float x = buttonMin.x; x < buttonMax.x; x += dashSize + gapSize)
+        {
+            drawList->AddLine(ImVec2(x, buttonMin.y), ImVec2(std::min(x + dashSize, buttonMax.x), buttonMin.y), borderColor, 1.5f);
+        }
+        // Bottom
+        for(float x = buttonMin.x; x < buttonMax.x; x += dashSize + gapSize)
+        {
+            drawList->AddLine(ImVec2(x, buttonMax.y), ImVec2(std::min(x + dashSize, buttonMax.x), buttonMax.y), borderColor, 1.5f);
+        }
+        // Left
+        for(float y = buttonMin.y; y < buttonMax.y; y += dashSize + gapSize)
+        {
+            drawList->AddLine(ImVec2(buttonMin.x, y), ImVec2(buttonMin.x, std::min(y + dashSize, buttonMax.y)), borderColor, 1.5f);
+        }
+        // Right
+        for(float y = buttonMin.y; y < buttonMax.y; y += dashSize + gapSize)
+        {
+            drawList->AddLine(ImVec2(buttonMax.x, y), ImVec2(buttonMax.x, std::min(y + dashSize, buttonMax.y)), borderColor, 1.5f);
+        }
+
+        ImGui::PopStyleVar();
+        ImGui::PopStyleColor(2);
     }
 
     static void CuboidCollisionShapeInspector(Lumos::CuboidCollisionShape* shape, const Lumos::RigidBody3DComponent& phys)
@@ -1075,6 +1119,10 @@ end
         const char* combineModes[] = { "Average", "Minimum", "Maximum", "Multiply" };
         auto material = phys.GetRigidBody()->GetMaterial();
 
+        // Rolling friction (units of length, Bullet convention). 0 = off.
+        if(Lumos::ImGuiUtilities::Property("Rolling Friction", material.RollingFriction, 0.0f, 0.1f))
+            phys.GetRigidBody()->SetMaterial(material);
+
         int frictionCombine = (int)material.FrictionCombine;
         if(Lumos::ImGuiUtilities::PropertyDropdown("Friction Combine", combineModes, 4, &frictionCombine))
         {
@@ -1086,6 +1134,13 @@ end
         if(Lumos::ImGuiUtilities::PropertyDropdown("Restitution Combine", combineModes, 4, &restitutionCombine))
         {
             material.RestitutionCombine = (Lumos::PhysicsMaterialCombineMode)restitutionCombine;
+            phys.GetRigidBody()->SetMaterial(material);
+        }
+
+        int rollingFrictionCombine = (int)material.RollingFrictionCombine;
+        if(Lumos::ImGuiUtilities::PropertyDropdown("Rolling Friction Combine", combineModes, 4, &rollingFrictionCombine))
+        {
+            material.RollingFrictionCombine = (Lumos::PhysicsMaterialCombineMode)rollingFrictionCombine;
             phys.GetRigidBody()->SetMaterial(material);
         }
 
@@ -1126,10 +1181,10 @@ end
         for(int i = 0; i < 16; i++)
         {
             bool layerEnabled = (collisionMask & (1 << i)) != 0;
-            
+
             char label[32];
             snprintf(label, sizeof(label), "L%d##mask%d", i, i);
-            
+
             if(ImGui::Checkbox(label, &layerEnabled))
             {
                 if(layerEnabled)
@@ -2378,7 +2433,87 @@ end
         return "";
     };
 
-    void TextureWidget(const char* label, Lumos::Graphics::Material* material, Lumos::Graphics::Texture2D* tex, bool flipImage, float& usingMapProperty, Lumos::Vec4& colourProperty, const std::function<void(const std::string&)>& callback, const ImVec2& imageButtonSize = ImVec2(64, 64), bool defaultOpen = false)
+    static const char* RHIFormatString(Lumos::Graphics::RHIFormat f)
+    {
+        using F = Lumos::Graphics::RHIFormat;
+        switch(f)
+        {
+        case F::R8_Unorm:           return "R8";
+        case F::R8G8_Unorm:         return "RG8";
+        case F::R8G8B8_Unorm:       return "RGB8";
+        case F::R8G8B8A8_Unorm:     return "RGBA8";
+        case F::R8_UInt:            return "R8u";
+        case F::R11G11B10_Float:    return "R11G11B10F";
+        case F::R10G10B10A2_Unorm:  return "RGB10A2";
+        case F::R16_Float:          return "R16F";
+        case F::R16G16_Float:       return "RG16F";
+        case F::R16G16B16_Float:    return "RGB16F";
+        case F::R16G16B16A16_Float: return "RGBA16F";
+        case F::R32_Float:          return "R32F";
+        case F::R32G32_Float:       return "RG32F";
+        case F::R32G32B32_Float:    return "RGB32F";
+        case F::R32G32B32A32_Float: return "RGBA32F";
+        case F::D16_Unorm:          return "D16";
+        case F::D32_Float:          return "D32F";
+        case F::D24_Unorm_S8_UInt:  return "D24S8";
+        default:                    return "?";
+        }
+    }
+
+    static const char* WrapString(Lumos::Graphics::TextureWrap w)
+    {
+        using W = Lumos::Graphics::TextureWrap;
+        switch(w)
+        {
+        case W::REPEAT:          return "Repeat";
+        case W::CLAMP:           return "Clamp";
+        case W::MIRRORED_REPEAT: return "Mirror";
+        case W::CLAMP_TO_EDGE:   return "ClampEdge";
+        case W::CLAMP_TO_BORDER: return "ClampBorder";
+        default:                 return "None";
+        }
+    }
+
+    static const char* FilterString(Lumos::Graphics::TextureFilter f)
+    {
+        using TF = Lumos::Graphics::TextureFilter;
+        switch(f)
+        {
+        case TF::LINEAR:  return "Linear";
+        case TF::NEAREST: return "Nearest";
+        default:          return "None";
+        }
+    }
+
+    static void DrawTextureInfo(Lumos::Graphics::Texture2D* tex, const char* expectedSpace = nullptr)
+    {
+        if(!tex) return;
+        auto desc = tex->GetTextureParameters();
+        ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
+        ImGui::Text("Format: %s", RHIFormatString(tex->GetFormat()));
+        ImGui::Text("Mips: %u", tex->GetMipMapLevels());
+
+        // sRGB indicator — colour-code: green if matches expected, red if mismatch
+        bool srgb = desc.srgb;
+        ImVec4 srgbCol(0.6f, 0.9f, 0.6f, 1.0f);
+        const char* warn = "";
+        if(expectedSpace)
+        {
+            bool wantSrgb = (strcmp(expectedSpace, "sRGB") == 0);
+            if(srgb != wantSrgb)
+            {
+                srgbCol = ImVec4(1.0f, 0.5f, 0.5f, 1.0f);
+                warn = wantSrgb ? "  (expected sRGB!)" : "  (expected Linear!)";
+            }
+        }
+        ImGui::TextColored(srgbCol, "Colour: %s%s", srgb ? "sRGB" : "Linear", warn);
+
+        ImGui::Text("Filter: %s/%s", FilterString(desc.minFilter), FilterString(desc.magFilter));
+        ImGui::Text("Wrap: %s", WrapString(desc.wrap));
+        ImGui::Text("Aniso: %s", desc.anisotropicFiltering ? "on" : "off");
+    }
+
+    void TextureWidget(const char* label, Lumos::Graphics::Material* material, Lumos::Graphics::Texture2D* tex, bool flipImage, float& usingMapProperty, Lumos::Vec4& colourProperty, const std::function<void(const std::string&)>& callback, const ImVec2& imageButtonSize = ImVec2(64, 64), bool defaultOpen = false, const char* expectedSpace = nullptr)
     {
         using namespace Lumos;
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Framed;
@@ -2458,11 +2593,7 @@ end
             ImGui::NextColumn();
             // ImGui::PushItemWidth(-1);
 
-            if(tex)
-            {
-                ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
-                ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
-            }
+            DrawTextureInfo(tex, expectedSpace);
 
             // ImGui::TextUnformatted("Use Map");
             // ImGui::SameLine();
@@ -2492,7 +2623,7 @@ end
         }
     }
 
-    void TextureWidget(const char* label, Lumos::Graphics::Material* material, Lumos::Graphics::Texture2D* tex, bool flipImage, float& usingMapProperty, float& amount, bool hasAmountValue, const std::function<void(const std::string&)>& callback, const ImVec2& imageButtonSize = ImVec2(64, 64), bool defaultOpen = false)
+    void TextureWidget(const char* label, Lumos::Graphics::Material* material, Lumos::Graphics::Texture2D* tex, bool flipImage, float& usingMapProperty, float& amount, bool hasAmountValue, const std::function<void(const std::string&)>& callback, const ImVec2& imageButtonSize = ImVec2(64, 64), bool defaultOpen = false, const char* expectedSpace = nullptr)
     {
         using namespace Lumos;
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Framed;
@@ -2570,11 +2701,7 @@ end
 
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-            if(tex)
-            {
-                ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
-                ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
-            }
+            DrawTextureInfo(tex, expectedSpace);
             ImGui::PopItemWidth();
             /*      ImGui::TextUnformatted("Use Map");
                   ImGui::SameLine();
@@ -2632,28 +2759,21 @@ end
         {
             for(int n = 0; n < 8; n++)
             {
-                bool is_selected = (shape_current.c_str() == shapes[n]);
-                if(ImGui::Selectable(shapes[n], shape_current.c_str()))
+                bool is_selected = (shape_current == shapes[n]);
+                if(ImGui::Selectable(shapes[n], is_selected))
                 {
-                    if(reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
-                        model.GetMeshesRef().Clear();
-
+                    // Re-point this component's ModelRef rather than mutating the
+                    // shared cached primitive model — LoadPrimitive caches one
+                    // Model per primitive type, so editing the shared meshes in
+                    // place changed every entity using that primitive.
+                    auto& mc = reg.get<Lumos::Graphics::ModelComponent>(e);
                     if(strcmp(shapes[n], "File") != 0)
                     {
-                        if(reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
-                        {
-                            model.GetMeshesRef().PushBack(Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
-                            model.SetPrimitiveType(GetPrimativeName(shapes[n]));
-                        }
-                        else
-                        {
-                            reg.get<Lumos::Graphics::ModelComponent>(e).LoadPrimitive(GetPrimativeName(shapes[n]));
-                        }
+                        mc.LoadPrimitive(GetPrimativeName(shapes[n]));
                     }
-                    else
+                    else if(mc.ModelRef)
                     {
-                        if(reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
-                            model.SetPrimitiveType(Lumos::Graphics::PrimitiveType::File);
+                        mc.ModelRef->SetPrimitiveType(Lumos::Graphics::PrimitiveType::File);
                     }
                 }
                 if(is_selected)
@@ -2938,11 +3058,25 @@ end
 
         if(ImGui::TreeNodeEx("Materials", ImGuiTreeNodeFlags_Framed))
         {
+            // Resolve materials the same way SceneRenderer does: per-mesh
+            // InstanceMaterials override first, then the mesh's own material.
+            // Without this, entities built programmatically (EntityFactory::AddTarget
+            // etc. — and anything set up from Lua) show "Empty Material" because
+            // their mesh comes from the AssetManager primitive cache with no
+            // material attached.
+            auto& modelCompMats = reg.get<Lumos::Graphics::ModelComponent>(e);
             Lumos::Graphics::Material* MaterialShown[1000];
             uint32_t MaterialCount = 0;
+            u32 matMeshIdx = 0;
             for(auto mesh : meshes)
             {
-                auto material       = mesh->GetMaterial();
+                const u32 currentMeshIdx = matMeshIdx++;
+                Lumos::SharedPtr<Lumos::Graphics::Material> material;
+                auto instIt = modelCompMats.InstanceMaterials.find(currentMeshIdx);
+                if(instIt != modelCompMats.InstanceMaterials.end())
+                    material = instIt->second;
+                else
+                    material = mesh->GetMaterial();
                 std::string matName = material ? material->GetName() : "";
 
                 bool materialFound = false;
@@ -2980,7 +3114,12 @@ end
                 {
                     ImGui::TextUnformatted("Empty Material");
                     if(ImGui::Button("Add Material", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
-                        mesh->SetMaterial(Lumos::CreateSharedPtr<Lumos::Graphics::Material>());
+                    {
+                        // Add as a per-instance override instead of stomping the
+                        // shared primitive mesh's material, which would affect
+                        // every entity using that primitive.
+                        modelCompMats.InstanceMaterials[currentMeshIdx] = Lumos::CreateSharedPtr<Lumos::Graphics::Material>();
+                    }
                 }
                 else if(ImGui::TreeNodeEx((void*)(intptr_t)material.get(), ImGuiTreeNodeFlags_Framed, matName.c_str()))
                 {
@@ -3075,13 +3214,13 @@ end
                     float normal                       = 0.0f;
                     auto& textures                     = material->GetTextures();
                     Vec2 textureSize                   = Vec2(100.0f, 100.0f);
-                    TextureWidget("Albedo", material.get(), textures.albedo.get(), flipImage, prop->albedoMapFactor, prop->albedoColour, std::bind(&Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI(), true);
+                    TextureWidget("Albedo", material.get(), textures.albedo.get(), flipImage, prop->albedoMapFactor, prop->albedoColour, std::bind(&Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI(), true, "Linear");
 
-                    TextureWidget("Normal", material.get(), textures.normal.get(), flipImage, prop->normalMapFactor, normal, false, std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
+                    TextureWidget("Normal", material.get(), textures.normal.get(), flipImage, prop->normalMapFactor, normal, false, std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI(), false, "Linear");
 
-                    TextureWidget("Metallic", material.get(), textures.metallic.get(), flipImage, prop->metallicMapFactor, prop->metallic, true, std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
+                    TextureWidget("Metallic", material.get(), textures.metallic.get(), flipImage, prop->metallicMapFactor, prop->metallic, true, std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI(), false, "Linear");
 
-                    TextureWidget("Roughness", material.get(), textures.roughness.get(), flipImage, prop->roughnessMapFactor, prop->roughness, true, std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
+                    TextureWidget("Roughness", material.get(), textures.roughness.get(), flipImage, prop->roughnessMapFactor, prop->roughness, true, std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI(), false, "Linear");
 
                     if(ImGui::TreeNodeEx("Reflectance", ImGuiTreeNodeFlags_Framed))
                     {
@@ -3089,9 +3228,9 @@ end
                         ImGui::TreePop();
                     }
 
-                    TextureWidget("AO", material.get(), textures.ao.get(), flipImage, prop->occlusionMapFactor, normal, false, std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
+                    TextureWidget("AO", material.get(), textures.ao.get(), flipImage, prop->occlusionMapFactor, normal, false, std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI(), false, "Linear");
 
-                    TextureWidget("Emissive", material.get(), textures.emissive.get(), flipImage, prop->emissiveMapFactor, prop->emissive, true, std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
+                    TextureWidget("Emissive", material.get(), textures.emissive.get(), flipImage, prop->emissiveMapFactor, prop->emissive, true, std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI(), false, "Linear");
 
                     material->SetMaterialProperites(*prop);
                     ImGui::Unindent();
@@ -3322,49 +3461,38 @@ end
     void ComponentEditorWidget<Lumos::Graphics::Environment>(entt::registry& reg, entt::registry::entity_type e)
     {
         LUMOS_PROFILE_FUNCTION();
-        auto& environment = reg.get<Lumos::Graphics::Environment>(e);
-        // Disable image until texturecube is supported
-        // Lumos::ImGuiUtilities::Image(environment.GetEnvironmentMap(), Vec2(200, 200));
-
-        uint8_t mode       = environment.GetMode();
-        Lumos::Vec4 params = environment.GetParameters();
-        ImGui::PushItemWidth(-1);
-
-        const char* modes[]      = { "Textures", "Preetham", "Generic" };
-        const char* mode_current = modes[mode];
-        if(ImGui::BeginCombo("", mode_current, 0)) // The second parameter is the label previewed before opening the combo.
-        {
-            for(int n = 0; n < 3; n++)
-            {
-                bool is_selected = (mode_current == modes[n]);
-                if(ImGui::Selectable(modes[n], mode_current))
-                {
-                    environment.SetMode(n);
-                }
-                if(is_selected)
-                    ImGui::SetItemDefaultFocus();
-            }
-            ImGui::EndCombo();
-        }
+        using namespace Lumos;
+        auto& environment = reg.get<Graphics::Environment>(e);
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+
+        // Mode dropdown — anything non-zero is treated as procedural by the
+        // shader, so we collapse the legacy three-way ("Textures/Preetham/Generic")
+        // into two options and clamp on display.
+        static const char* kModes[] = { "Textures", "Procedural" };
+        int32_t modeIndex           = environment.GetMode() == 0 ? 0 : 1;
+
         ImGui::Columns(2);
         ImGui::Separator();
 
-        if(mode == 0)
+        if(ImGuiUtilities::PropertyDropdown("Mode", kModes, IM_ARRAYSIZE(kModes), &modeIndex))
+            environment.SetMode((uint8_t)modeIndex);
+
+        ImGui::Columns(1);
+
+        if(modeIndex == 0)
         {
+            ImGui::Columns(2);
+
+            ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted("File Path");
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-
             static char filePath[INPUT_BUF_SIZE];
-            strcpy(filePath, environment.GetFilePath().c_str());
-
+            strncpy(filePath, environment.GetFilePath().c_str(), INPUT_BUF_SIZE - 1);
+            filePath[INPUT_BUF_SIZE - 1] = '\0';
             if(ImGui::InputText("##filePath", filePath, IM_ARRAYSIZE(filePath), 0))
-            {
                 environment.SetFilePath(filePath);
-            }
-
             ImGui::PopItemWidth();
             ImGui::NextColumn();
 
@@ -3372,75 +3500,261 @@ end
             ImGui::TextUnformatted("File Type");
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-
             static char fileType[INPUT_BUF_SIZE];
-            strcpy(fileType, environment.GetFileType().c_str());
-
+            strncpy(fileType, environment.GetFileType().c_str(), INPUT_BUF_SIZE - 1);
+            fileType[INPUT_BUF_SIZE - 1] = '\0';
             if(ImGui::InputText("##fileType", fileType, IM_ARRAYSIZE(fileType), 0))
-            {
                 environment.SetFileType(fileType);
-            }
-
             ImGui::PopItemWidth();
             ImGui::NextColumn();
 
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Width");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            int width = environment.GetWidth();
+            int width = (int)environment.GetWidth();
+            if(ImGuiUtilities::Property("Width", width, 1, 8192))
+                environment.SetWidth((uint32_t)Maths::Max(width, 1));
 
-            if(ImGui::DragInt("##Width", &width))
-            {
-                environment.SetWidth(width);
-            }
+            int height = (int)environment.GetHeight();
+            if(ImGuiUtilities::Property("Height", height, 1, 8192))
+                environment.SetHeight((uint32_t)Maths::Max(height, 1));
 
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
+            int numMips = (int)environment.GetNumMips();
+            if(ImGuiUtilities::Property("Num Mips", numMips, 1, 16))
+                environment.SetNumMips((uint32_t)Maths::Max(numMips, 1));
 
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Height");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            int height = environment.GetHeight();
-
-            if(ImGui::DragInt("##Height", &height))
-            {
-                environment.SetHeight(height);
-            }
-
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
-
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Num Mips");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            int numMips = environment.GetNumMips();
-            if(ImGui::InputInt("##NumMips", &numMips))
-            {
-                environment.SetNumMips(numMips);
-            }
-
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
+            ImGui::Columns(1);
         }
-        else if(mode == 1)
+        else
         {
-            bool valueUpdated = false;
-            valueUpdated |= Lumos::ImGuiUtilities::Property("Turbidity", params.x, 1.7f, 100.0f, 0.01f);
-            valueUpdated |= Lumos::ImGuiUtilities::Property("Azimuth", params.y, -1000.0f, 1000.f, 0.01f);
-            valueUpdated |= Lumos::ImGuiUtilities::Property("Inclination", params.z, -1000.0f, 1000.f, 0.01f);
+            // ---- Sky ------------------------------------------------------
+            if(ImGui::TreeNodeEx(ICON_MDI_WEATHER_SUNNY " Sky", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed))
+            {
+                ImGui::Columns(2);
 
-            if(valueUpdated)
-                environment.SetParameters(params);
+                Vec4 horizon = environment.GetHorizonColour();
+                if(ImGuiUtilities::Property("Horizon", horizon, false, ImGuiUtilities::PropertyFlag::ColourProperty))
+                    environment.SetHorizonColour(horizon);
+
+                Vec4 zenith = environment.GetZenithColour();
+                if(ImGuiUtilities::Property("Zenith", zenith, false, ImGuiUtilities::PropertyFlag::ColourProperty))
+                    environment.SetZenithColour(zenith);
+
+                ImGui::Columns(1);
+                ImGui::TreePop();
+            }
+
+            // ---- Sun ------------------------------------------------------
+            if(ImGui::TreeNodeEx(ICON_MDI_WHITE_BALANCE_SUNNY " Sun", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed))
+            {
+                ImGui::Columns(2);
+
+                Vec4 sun     = environment.GetSunDirection();
+                Vec3 sunDir  = Vec3(sun.x, sun.y, sun.z);
+                float sunInt = sun.w;
+                bool sunChanged = false;
+
+                if(ImGuiUtilities::Property("Direction", sunDir, -1.0f, 1.0f))
+                    sunChanged = true;
+
+                if(ImGui::Button("Normalise", ImVec2(-1, 0)))
+                {
+                    float len = Maths::Sqrt(sunDir.x * sunDir.x + sunDir.y * sunDir.y + sunDir.z * sunDir.z);
+                    if(len > 1e-5f)
+                    {
+                        sunDir.x /= len; sunDir.y /= len; sunDir.z /= len;
+                        sunChanged = true;
+                    }
+                }
+                ImGui::NextColumn();
+                ImGui::NextColumn();
+
+                if(ImGuiUtilities::Property("Intensity", sunInt, 0.0f, 8.0f, 0.01f, ImGuiUtilities::PropertyFlag::DragValue))
+                    sunChanged = true;
+
+                if(sunChanged)
+                    environment.SetSunDirection(Vec4(sunDir.x, sunDir.y, sunDir.z, sunInt));
+
+                ImGui::Columns(1);
+                ImGui::TreePop();
+            }
+
+            // ---- Fog ------------------------------------------------------
+            if(ImGui::TreeNodeEx(ICON_MDI_WEATHER_FOG " Fog", ImGuiTreeNodeFlags_Framed))
+            {
+                ImGui::Columns(2);
+
+                Vec4 fogCol   = environment.GetFogColour();
+                Vec3 fogRgb   = Vec3(fogCol.x, fogCol.y, fogCol.z);
+                float fogStr  = fogCol.w;
+                bool fogChanged = false;
+
+                if(ImGuiUtilities::Property("Colour", fogRgb, ImGuiUtilities::PropertyFlag::ColourProperty))
+                    fogChanged = true;
+                if(ImGuiUtilities::Property("Strength", fogStr, 0.0f, 1.0f, 0.01f, ImGuiUtilities::PropertyFlag::SliderValue))
+                    fogChanged = true;
+
+                if(fogChanged)
+                    environment.SetFogColour(Vec4(fogRgb.x, fogRgb.y, fogRgb.z, fogStr));
+
+                Vec4 fogParams       = environment.GetFogParams();
+                bool fogParamChanged = false;
+                if(ImGuiUtilities::Property("Density", fogParams.x, 0.0f, 1.0f, 0.001f, ImGuiUtilities::PropertyFlag::DragValue))
+                    fogParamChanged = true;
+                if(ImGuiUtilities::Property("Height Falloff", fogParams.y, 0.0f, 1.0f, 0.001f, ImGuiUtilities::PropertyFlag::DragValue))
+                    fogParamChanged = true;
+                if(ImGuiUtilities::Property("Linear Start", fogParams.z, 0.0f, 10000.0f, 0.5f, ImGuiUtilities::PropertyFlag::DragValue))
+                    fogParamChanged = true;
+                if(ImGuiUtilities::Property("Linear End", fogParams.w, 0.0f, 10000.0f, 0.5f, ImGuiUtilities::PropertyFlag::DragValue))
+                    fogParamChanged = true;
+
+                if(fogParamChanged)
+                    environment.SetFogParams(fogParams);
+
+                ImGui::Columns(1);
+                ImGui::TreePop();
+            }
+
+            // ---- Clouds ---------------------------------------------------
+            if(ImGui::TreeNodeEx(ICON_MDI_CLOUD " Clouds", ImGuiTreeNodeFlags_Framed))
+            {
+                ImGui::Columns(2);
+
+                Vec4 cloudParams = environment.GetCloudParams();
+                int style        = (int)(cloudParams.w < 0.0f ? 0 : (cloudParams.w < 0.5f ? 1 : 2));
+                static const char* kStyles[] = { "Off", "Stylised", "Realistic" };
+                if(ImGuiUtilities::PropertyDropdown("Style", kStyles, IM_ARRAYSIZE(kStyles), &style))
+                {
+                    cloudParams.w = (style == 0) ? -1.0f : (style == 1 ? 0.0f : 1.0f);
+                    environment.SetCloudParams(cloudParams);
+                }
+
+                if(style != 0)
+                {
+                    Vec4 cloudCol = environment.GetCloudColour();
+                    Vec3 cloudRgb = Vec3(cloudCol.x, cloudCol.y, cloudCol.z);
+                    float shadow  = cloudCol.w;
+                    bool ccChanged = false;
+                    if(ImGuiUtilities::Property("Tint", cloudRgb, ImGuiUtilities::PropertyFlag::ColourProperty))
+                        ccChanged = true;
+                    if(ImGuiUtilities::Property("Shadow Strength", shadow, 0.0f, 1.0f, 0.01f, ImGuiUtilities::PropertyFlag::SliderValue))
+                        ccChanged = true;
+                    if(ccChanged)
+                        environment.SetCloudColour(Vec4(cloudRgb.x, cloudRgb.y, cloudRgb.z, shadow));
+
+                    bool cpChanged = false;
+                    if(ImGuiUtilities::Property("Coverage", cloudParams.x, 0.0f, 1.0f, 0.01f, ImGuiUtilities::PropertyFlag::SliderValue))
+                        cpChanged = true;
+                    if(ImGuiUtilities::Property("Density", cloudParams.y, 0.0f, 1.0f, 0.01f, ImGuiUtilities::PropertyFlag::SliderValue))
+                        cpChanged = true;
+                    if(ImGuiUtilities::Property("Speed", cloudParams.z, 0.0f, 1.0f, 0.001f, ImGuiUtilities::PropertyFlag::DragValue))
+                        cpChanged = true;
+                    if(cpChanged)
+                        environment.SetCloudParams(cloudParams);
+
+                    Vec4 wind        = environment.GetCloudWindDir();
+                    Vec2 windXZ      = Vec2(wind.x, wind.z);
+                    float altitude   = wind.y;
+                    float thickness  = wind.w;
+                    bool windChanged = false;
+                    if(ImGuiUtilities::Property("Wind Direction", windXZ, -1.0f, 1.0f))
+                        windChanged = true;
+                    if(ImGuiUtilities::Property("Altitude", altitude, 0.0f, 1.0f, 0.01f, ImGuiUtilities::PropertyFlag::SliderValue))
+                        windChanged = true;
+                    if(ImGuiUtilities::Property("Thickness", thickness, 0.0f, 2.0f, 0.01f, ImGuiUtilities::PropertyFlag::DragValue))
+                        windChanged = true;
+                    if(windChanged)
+                        environment.SetCloudWindDir(Vec4(windXZ.x, altitude, windXZ.y, thickness));
+                }
+
+                ImGui::Columns(1);
+                ImGui::TreePop();
+            }
+
+            // ---- Stars ----------------------------------------------------
+            if(ImGui::TreeNodeEx(ICON_MDI_STAR " Stars", ImGuiTreeNodeFlags_Framed))
+            {
+                ImGui::Columns(2);
+
+                Vec4 starParams = environment.GetStarParams();
+                bool spChanged  = false;
+                if(ImGuiUtilities::Property("Density", starParams.x, 0.0f, 1.0f, 0.01f, ImGuiUtilities::PropertyFlag::SliderValue))
+                    spChanged = true;
+                if(ImGuiUtilities::Property("Brightness", starParams.y, 0.0f, 4.0f, 0.01f, ImGuiUtilities::PropertyFlag::DragValue))
+                    spChanged = true;
+                if(ImGuiUtilities::Property("Twinkle Speed", starParams.z, 0.0f, 4.0f, 0.01f, ImGuiUtilities::PropertyFlag::DragValue))
+                    spChanged = true;
+                if(ImGuiUtilities::Property("Sky Threshold", starParams.w, 0.0f, 1.0f, 0.01f, ImGuiUtilities::PropertyFlag::SliderValue))
+                    spChanged = true;
+                if(spChanged)
+                    environment.SetStarParams(starParams);
+
+                Vec4 starCol = environment.GetStarColour();
+                Vec3 starRgb = Vec3(starCol.x, starCol.y, starCol.z);
+                if(ImGuiUtilities::Property("Tint", starRgb, ImGuiUtilities::PropertyFlag::ColourProperty))
+                    environment.SetStarColour(Vec4(starRgb.x, starRgb.y, starRgb.z, starCol.w));
+
+                ImGui::Columns(1);
+                ImGui::TreePop();
+            }
+
+            // ---- Aurora ---------------------------------------------------
+            if(ImGui::TreeNodeEx(ICON_MDI_WEATHER_NIGHT " Aurora", ImGuiTreeNodeFlags_Framed))
+            {
+                ImGui::Columns(2);
+
+                Vec4 auroraParams = environment.GetAuroraParams();
+                bool apChanged    = false;
+                if(ImGuiUtilities::Property("Intensity", auroraParams.x, 0.0f, 3.0f, 0.01f, ImGuiUtilities::PropertyFlag::DragValue))
+                    apChanged = true;
+                if(ImGuiUtilities::Property("Height", auroraParams.y, 0.0f, 1.0f, 0.01f, ImGuiUtilities::PropertyFlag::SliderValue))
+                    apChanged = true;
+                if(ImGuiUtilities::Property("Speed", auroraParams.z, 0.0f, 3.0f, 0.01f, ImGuiUtilities::PropertyFlag::DragValue))
+                    apChanged = true;
+                if(ImGuiUtilities::Property("Width", auroraParams.w, 0.05f, 1.0f, 0.01f, ImGuiUtilities::PropertyFlag::SliderValue))
+                    apChanged = true;
+                if(apChanged)
+                    environment.SetAuroraParams(auroraParams);
+
+                Vec4 auroraCol = environment.GetAuroraColour();
+                Vec3 auroraRgb = Vec3(auroraCol.x, auroraCol.y, auroraCol.z);
+                float tipBlend = auroraCol.w;
+                bool acChanged = false;
+                if(ImGuiUtilities::Property("Base Colour", auroraRgb, ImGuiUtilities::PropertyFlag::ColourProperty))
+                    acChanged = true;
+                if(ImGuiUtilities::Property("Tip Blend", tipBlend, 0.0f, 1.0f, 0.01f, ImGuiUtilities::PropertyFlag::SliderValue))
+                    acChanged = true;
+                if(acChanged)
+                    environment.SetAuroraColour(Vec4(auroraRgb.x, auroraRgb.y, auroraRgb.z, tipBlend));
+
+                ImGui::Columns(1);
+                ImGui::TreePop();
+            }
         }
-
-        ImGui::Columns(1);
-        if(ImGui::Button("Reload", ImVec2(ImGui::GetContentRegionAvail().x, 0.0)))
-            environment.Load();
 
         ImGui::Separator();
+        ImGui::Spacing();
+
+        if(ImGui::Button(ICON_MDI_RELOAD " Reload", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+            environment.Load();
+
+        if(modeIndex != 0)
+        {
+            ImGui::Spacing();
+            if(ImGui::Button("Reset Sky Defaults", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+            {
+                environment.SetHorizonColour(Vec4(0.66f, 0.78f, 0.92f, 1.0f));
+                environment.SetZenithColour(Vec4(0.13f, 0.34f, 0.78f, 1.0f));
+                environment.SetSunDirection(Vec4(0.0f, 0.6f, 0.8f, 1.0f));
+                environment.SetFogColour(Vec4(0.66f, 0.78f, 0.92f, 0.0f));
+                environment.SetFogParams(Vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                environment.SetCloudColour(Vec4(1.0f, 1.0f, 1.0f, 0.45f));
+                environment.SetCloudParams(Vec4(0.5f, 0.7f, 0.02f, -1.0f));
+                environment.SetCloudWindDir(Vec4(1.0f, 0.0f, 0.2f, 0.5f));
+                environment.SetStarParams(Vec4(0.0f, 1.0f, 0.0f, 0.35f));
+                environment.SetStarColour(Vec4(0.95f, 0.95f, 1.0f, 1.0f));
+                environment.SetAuroraColour(Vec4(0.2f, 0.9f, 0.5f, 0.5f));
+                environment.SetAuroraParams(Vec4(0.0f, 0.45f, 0.3f, 0.35f));
+            }
+        }
+
         ImGui::PopStyleVar();
     }
 
@@ -3687,13 +4001,150 @@ end
     void ComponentEditorWidget<Lumos::Listener>(entt::registry& reg, entt::registry::entity_type e)
     {
     }
+
+    template <>
+    void ComponentEditorWidget<Lumos::TerrainComponent>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        using namespace Lumos;
+        LUMOS_PROFILE_FUNCTION();
+        auto& tc = reg.get<TerrainComponent>(e);
+
+        // Persistent inspector state for the Generate UI. Static is fine — only
+        // one entity is inspected at a time, and the values reset back to the
+        // component's current params each time a new entity is selected.
+        static int s_GridSize       = 256;
+        static float s_ScaleXZ      = 1.0f;
+        static float s_HeightScale  = 60.0f;
+        static bool s_WithCollision = true;
+        static entt::entity s_LastEntity = entt::null;
+        if(s_LastEntity != e)
+        {
+            s_LastEntity   = e;
+            if(tc.GridW > 1) s_GridSize     = tc.GridW;
+            if(tc.ScaleXZ > 0.0f) s_ScaleXZ = tc.ScaleXZ;
+            if(tc.ScaleY > 0.0f) s_HeightScale = tc.ScaleY;
+        }
+
+        const bool hasMesh = tc.GridW > 1 && tc.Heights.Size() == (size_t)(tc.GridW * tc.GridH);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGui::Columns(2);
+        ImGui::Separator();
+
+        if(hasMesh)
+        {
+            ImGui::TextUnformatted("Grid");        ImGui::NextColumn();
+            ImGui::Text("%d x %d", tc.GridW, tc.GridH); ImGui::NextColumn();
+            ImGui::TextUnformatted("Scale XZ");    ImGui::NextColumn();
+            ImGui::Text("%.2f", tc.ScaleXZ);       ImGui::NextColumn();
+            ImGui::TextUnformatted("Height Scale"); ImGui::NextColumn();
+            ImGui::Text("%.2f", tc.ScaleY);        ImGui::NextColumn();
+            ImGui::TextUnformatted("Tile Origin"); ImGui::NextColumn();
+            ImGui::Text("(%d, %d)", tc.TileOriginX, tc.TileOriginZ); ImGui::NextColumn();
+            ImGui::TextUnformatted("Custom Edits"); ImGui::NextColumn();
+            ImGui::TextUnformatted(tc.HasCustomEdits ? "yes" : "no (procedural)"); ImGui::NextColumn();
+            if(!tc.HeightmapPath.empty())
+            {
+                ImGui::TextUnformatted("Heightmap"); ImGui::NextColumn();
+                ImGui::TextUnformatted(tc.HeightmapPath.c_str()); ImGui::NextColumn();
+            }
+        }
+        else
+        {
+            ImGui::TextDisabled("No terrain mesh yet — configure parameters below and click Generate.");
+            ImGui::NextColumn();
+            ImGui::NextColumn();
+        }
+
+        ImGui::TextUnformatted("Grid Size");    ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        ImGui::DragInt("##gridsize", &s_GridSize, 1.0f, 8, 1024);
+        ImGui::PopItemWidth();                  ImGui::NextColumn();
+
+        ImGui::TextUnformatted("Scale XZ");     ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        ImGui::DragFloat("##scalexz", &s_ScaleXZ, 0.05f, 0.05f, 100.0f);
+        ImGui::PopItemWidth();                  ImGui::NextColumn();
+
+        ImGui::TextUnformatted("Height Scale"); ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        ImGui::DragFloat("##heightscale", &s_HeightScale, 0.5f, 0.0f, 1000.0f);
+        ImGui::PopItemWidth();                  ImGui::NextColumn();
+
+        ImGui::TextUnformatted("Collision");    ImGui::NextColumn();
+        ImGui::Checkbox("##collision", &s_WithCollision);
+        ImGui::NextColumn();
+
+        ImGui::Columns(1);
+        ImGui::Separator();
+
+        if(ImGui::Button(hasMesh ? "Regenerate" : "Generate Terrain", ImVec2(-1, 0)))
+        {
+            Scene* scene = Application::Get().GetSceneManager()->GetCurrentScene();
+            if(scene)
+            {
+                Entity ent(e, scene);
+                EntityFactory::TerrainMaterial mat;
+                mat.noCollider = !s_WithCollision;
+                EntityFactory::BuildTerrainOnEntity(ent, s_GridSize, s_ScaleXZ, s_HeightScale, mat);
+            }
+        }
+
+        if(hasMesh && tc.HasCustomEdits)
+        {
+            if(ImGui::Button("Clear Sculpt Edits (Reset to Procedural)", ImVec2(-1, 0)))
+            {
+                Scene* scene = Application::Get().GetSceneManager()->GetCurrentScene();
+                if(scene)
+                {
+                    Entity ent(e, scene);
+                    EntityFactory::TerrainMaterial mat;
+                    mat.noCollider = !s_WithCollision;
+                    EntityFactory::BuildTerrainOnEntity(ent, tc.GridW, tc.ScaleXZ, tc.ScaleY, mat);
+                }
+            }
+        }
+
+        ImGui::Columns(1);
+        ImGui::Separator();
+        ImGui::PopStyleVar();
+    }
+
+    template <>
+    void ComponentEditorWidget<Lumos::VoxelWorldComponent>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        using namespace Lumos;
+        LUMOS_PROFILE_FUNCTION();
+        auto& vwc = reg.get<VoxelWorldComponent>(e);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGui::Columns(2);
+        ImGui::Separator();
+
+        ImGui::TextUnformatted("Loaded Chunks"); ImGui::NextColumn();
+        ImGui::Text("%zu", vwc.World ? vwc.World->GetLoadedChunkCount() : 0); ImGui::NextColumn();
+
+        ImGui::TextUnformatted("View Radius");   ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if(ImGui::DragInt("##voxelradius", &vwc.ViewRadius, 1.0f, 1, 16) && vwc.World)
+            vwc.World->SetViewRadius(vwc.ViewRadius);
+        ImGui::PopItemWidth();                   ImGui::NextColumn();
+
+        ImGui::Columns(1);
+        ImGui::Separator();
+
+        if(vwc.World && ImGui::Button("Regenerate", ImVec2(-1, 0)))
+            vwc.World->Clear(); // re-streams from noise next frame
+
+        ImGui::PopStyleVar();
+    }
 }
 
 namespace Lumos
 {
     InspectorPanel::InspectorPanel()
     {
-        m_Name       = ICON_MDI_INFORMATION " Inspector###inspector";
+        m_Name       = "Inspector###inspector";
         m_SimpleName = "Inspector";
     }
 
@@ -3709,16 +4160,13 @@ namespace Lumos
         auto& registry = scene->GetRegistry();
         auto& iconMap  = m_Editor->GetComponentIconMap();
 
-#define TRIVIAL_COMPONENT(ComponentType, ComponentName)                      \
-    {                                                                        \
-        std::string Name;                                                    \
-        if(iconMap.find(typeid(ComponentType).hash_code()) != iconMap.end()) \
-            Name += iconMap[typeid(ComponentType).hash_code()];              \
-        else                                                                 \
-            Name += iconMap[typeid(Editor).hash_code()];                     \
-        Name += "\t";                                                        \
-        Name += (ComponentName);                                             \
-        m_EnttEditor.registerComponent<ComponentType>(Name.c_str());         \
+#define TRIVIAL_COMPONENT(ComponentType, ComponentName)                                          \
+    {                                                                                            \
+        const char* iconStr = (iconMap.find(typeid(ComponentType).hash_code()) != iconMap.end()) \
+                                  ? iconMap[typeid(ComponentType).hash_code()]                   \
+                                  : iconMap[typeid(Editor).hash_code()];                         \
+        auto& ci = m_EnttEditor.registerComponent<ComponentType>(std::string(ComponentName));    \
+        ci.icon  = iconStr;                                                                      \
     }
         TRIVIAL_COMPONENT(Maths::Transform, "Transform");
         // TRIVIAL_COMPONENT(Graphics::Model, "Model");
@@ -3739,6 +4187,8 @@ namespace Lumos
         TRIVIAL_COMPONENT(Listener, "Listener");
         TRIVIAL_COMPONENT(TextComponent, "Text");
         TRIVIAL_COMPONENT(ParticleEmitter, "ParticleEmitter");
+        TRIVIAL_COMPONENT(TerrainComponent, "Terrain");
+        TRIVIAL_COMPONENT(VoxelWorldComponent, "Voxel World");
     }
 
     void InspectorPanel::OnImGui()
@@ -3747,8 +4197,17 @@ namespace Lumos
 
         const auto& selectedEntities = m_Editor->GetSelected();
 
-        if(ImGui::Begin(m_Name.c_str(), &m_Active))
+        if(ImGuiUtilities::BeginPanel(m_Name.c_str()))
         {
+#ifdef LUMOS_PLATFORM_IOS
+            // Bigger headers + roomier item layout for touch. DragFloat deadzone widens
+            // via MouseDragThreshold so finger jitter doesn't kick scrub mode instantly.
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 10.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,  ImVec2(8.0f, 8.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 24.0f);
+            const float kPrevDragThreshold = ImGui::GetIO().MouseDragThreshold;
+            ImGui::GetIO().MouseDragThreshold = 12.0f;
+#endif
             ImGuiUtilities::PushID();
 
             Scene* currentScene = Application::Get().GetSceneManager()->GetCurrentScene();
@@ -3757,6 +4216,10 @@ namespace Lumos
             {
                 m_Editor->SetSelected({});
                 ImGuiUtilities::PopID();
+#ifdef LUMOS_PLATFORM_IOS
+                ImGui::GetIO().MouseDragThreshold = kPrevDragThreshold;
+                ImGui::PopStyleVar(3);
+#endif
                 ImGui::End();
                 return;
             }
@@ -3766,8 +4229,41 @@ namespace Lumos
             // Handle no selection
             if(selectedEntities.empty())
             {
-                ImGui::TextDisabled("No entity selected");
+                ImVec2 avail  = ImGui::GetContentRegionAvail();
+                ImVec2 center = ImGui::GetCursorScreenPos();
+                center.x += avail.x * 0.5f;
+                center.y += avail.y * 0.4f;
+
+                const float iconSize = ImGui::GetFontSize() * 3.0f;
+                ImVec2 iconPos = ImVec2(center.x - iconSize * 0.5f, center.y - iconSize * 0.8f);
+
+                ImDrawList* dl = ImGui::GetWindowDrawList();
+                ImU32 dimCol   = IM_COL32(120, 120, 130, 60);
+                ImU32 textCol  = IM_COL32(120, 120, 130, 120);
+                dl->AddRectFilled(ImVec2(iconPos.x - 8, iconPos.y - 8),
+                                  ImVec2(iconPos.x + iconSize + 8, iconPos.y + iconSize + 8),
+                                  dimCol, 8.0f);
+                ImGui::SetWindowFontScale(3.0f);
+                dl->AddText(ImGui::GetFont(), ImGui::GetFontSize(), iconPos, textCol, ICON_MDI_CUBE_OUTLINE);
+                ImGui::SetWindowFontScale(1.0f);
+
+                const char* msg = "No entity selected";
+                ImVec2 msgSize  = ImGui::CalcTextSize(msg);
+                ImGui::SetCursorScreenPos(ImVec2(center.x - msgSize.x * 0.5f, iconPos.y + iconSize + 16.0f));
+                ImGui::TextDisabled("%s", msg);
+
+                const char* hint = "Select an entity in the hierarchy";
+                ImVec2 hintSize  = ImGui::CalcTextSize(hint);
+                ImGui::SetCursorScreenPos(ImVec2(center.x - hintSize.x * 0.5f, iconPos.y + iconSize + 16.0f + ImGui::GetTextLineHeightWithSpacing()));
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.35f, 0.35f, 0.38f, 1.0f));
+                ImGui::TextUnformatted(hint);
+                ImGui::PopStyleColor();
+
                 ImGuiUtilities::PopID();
+#ifdef LUMOS_PLATFORM_IOS
+                ImGui::GetIO().MouseDragThreshold = kPrevDragThreshold;
+                ImGui::PopStyleVar(3);
+#endif
                 ImGui::End();
                 return;
             }
@@ -3777,6 +4273,10 @@ namespace Lumos
             {
                 DrawMultiEntityInspector(currentScene, selectedEntities);
                 ImGuiUtilities::PopID();
+#ifdef LUMOS_PLATFORM_IOS
+                ImGui::GetIO().MouseDragThreshold = kPrevDragThreshold;
+                ImGui::PopStyleVar(3);
+#endif
                 ImGui::End();
                 return;
             }
@@ -3786,6 +4286,10 @@ namespace Lumos
             {
                 m_Editor->SetSelected({});
                 ImGuiUtilities::PopID();
+#ifdef LUMOS_PLATFORM_IOS
+                ImGui::GetIO().MouseDragThreshold = kPrevDragThreshold;
+                ImGui::PopStyleVar(3);
+#endif
                 ImGui::End();
                 return;
             }
@@ -3793,55 +4297,165 @@ namespace Lumos
             auto selected         = selectedEntities.front();
             Entity SelectedEntity = { selected, currentScene };
 
-            // active checkbox
             auto activeComponent = registry.try_get<ActiveComponent>(selected);
             bool active          = activeComponent ? activeComponent->active : true;
-            if(ImGui::Checkbox("##ActiveCheckbox", &active))
-            {
-                if(!activeComponent)
-                    registry.emplace<ActiveComponent>(selected, active);
-                else
-                    activeComponent->active = active;
-            }
-            ImGui::SameLine();
-            ImGui::TextUnformatted(ICON_MDI_CUBE);
-            ImGui::SameLine();
 
             bool hasName     = registry.all_of<NameComponent>(selected);
             std::string name = selected.GetName();
 
-            if(m_DebugMode)
+            // Resolve same icon as hierarchy
+            const char* entityIcon = ICON_MDI_CUBE_OUTLINE;
             {
-                if(selected.Valid())
+                auto& iconMap = m_Editor->GetComponentIconMap();
+                if(SelectedEntity.HasComponent<Camera>())
                 {
-                    ImGui::Text("entt ID: %u", static_cast<uint32_t>(selected));
+                    auto it = iconMap.find(typeid(Camera).hash_code());
+                    if(it != iconMap.end()) entityIcon = it->second;
                 }
-                else
+                else if(SelectedEntity.HasComponent<LuaScriptComponent>())
                 {
-                    ImGui::TextUnformatted("INVALID ENTITY");
+                    auto it = iconMap.find(typeid(LuaScriptComponent).hash_code());
+                    if(it != iconMap.end()) entityIcon = it->second;
+                }
+                else if(SelectedEntity.HasComponent<SoundComponent>())
+                {
+                    auto it = iconMap.find(typeid(SoundComponent).hash_code());
+                    if(it != iconMap.end()) entityIcon = it->second;
+                }
+                else if(SelectedEntity.HasComponent<RigidBody2DComponent>())
+                {
+                    auto it = iconMap.find(typeid(RigidBody2DComponent).hash_code());
+                    if(it != iconMap.end()) entityIcon = it->second;
+                }
+                else if(SelectedEntity.HasComponent<Graphics::Light>())
+                {
+                    auto it = iconMap.find(typeid(Graphics::Light).hash_code());
+                    if(it != iconMap.end()) entityIcon = it->second;
+                }
+                else if(SelectedEntity.HasComponent<Graphics::Environment>())
+                {
+                    auto it = iconMap.find(typeid(Graphics::Environment).hash_code());
+                    if(it != iconMap.end()) entityIcon = it->second;
+                }
+                else if(SelectedEntity.HasComponent<Graphics::Sprite>())
+                {
+                    auto it = iconMap.find(typeid(Graphics::Sprite).hash_code());
+                    if(it != iconMap.end()) entityIcon = it->second;
+                }
+                else if(SelectedEntity.HasComponent<TextComponent>())
+                {
+                    auto it = iconMap.find(typeid(TextComponent).hash_code());
+                    if(it != iconMap.end()) entityIcon = it->second;
                 }
             }
 
-            ImGui::SameLine();
-            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - ImGui::GetFontSize() * 4.0f);
+            // Row 1: icon badge + name + id
             {
-                ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
-                if(ImGuiUtilities::InputText(name, "##InspectorNameChange"))
-                    registry.get_or_emplace<NameComponent>(selected).name = name;
+                const float fs   = ImGui::GetFontSize();
+                const float pad  = ImGui::GetStyle().FramePadding.y;
+                const float nameH = ImGui::GetFrameHeight();
+                const float idH  = ImGui::GetIO().Fonts->Fonts.Size > 3
+                                   ? ImGui::GetIO().Fonts->Fonts[3]->FontSize
+                                   : ImGui::GetIO().Fonts->Fonts[2]->FontSize;
+                const float totalTextH = nameH + 4.0f + idH;
+                // box must be >= text block so it drives the row height
+                const float box  = totalTextH + 8.0f;
+
+                ImDrawList* dl  = ImGui::GetWindowDrawList();
+                ImVec2 cursor   = ImGui::GetCursorScreenPos();
+
+                const Vec4 iconCol = ImGuiUtilities::GetIconColour();
+                const ImU32 bg = IM_COL32((int)(iconCol.x * 255), (int)(iconCol.y * 255), (int)(iconCol.z * 255), 30);
+                const ImU32 border = IM_COL32((int)(iconCol.x * 255), (int)(iconCol.y * 255), (int)(iconCol.z * 255), 60);
+                const ImU32 fg = IM_COL32((int)(iconCol.x * 255), (int)(iconCol.y * 255), (int)(iconCol.z * 255), 200);
+
+                // box is taller than text, so groupOffsetY > 0 and Dummy drives row height
+                const float groupOffsetY = (box - totalTextH) * 0.5f;
+                // Dummy inside the group adds ItemSpacing.y before first item — account for that
+                const float boxY = cursor.y + groupOffsetY + ImGui::GetStyle().ItemSpacing.y;
+
+                dl->AddRectFilled(ImVec2(cursor.x, boxY), ImVec2(cursor.x + box, boxY + totalTextH), bg, 6.0f);
+                dl->AddRect(ImVec2(cursor.x, boxY), ImVec2(cursor.x + box, boxY + totalTextH), border, 6.0f);
+
+                ImVec2 iconSz = ImGui::CalcTextSize(entityIcon);
+                dl->AddText(ImVec2(cursor.x + (box - iconSz.x) * 0.5f,
+                                   boxY + (totalTextH - iconSz.y) * 0.5f),
+                            fg, entityIcon);
+
+                ImGui::Dummy(ImVec2(box + ImGui::GetStyle().ItemSpacing.x, box));
+                ImGui::SameLine(0, 0);
+
+                ImGui::BeginGroup();
+                ImGui::Dummy(ImVec2(0.0f, groupOffsetY));
+                ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+                {
+                    ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
+                    if(ImGuiUtilities::InputText(name, "##InspectorNameChange"))
+                        registry.get_or_emplace<NameComponent>(selected).name = name;
+                }
+                ImGui::PopItemWidth();
+
+                {
+                    ImGuiUtilities::ScopedFont tiny(ImGui::GetIO().Fonts->Fonts.Size > 3 ? ImGui::GetIO().Fonts->Fonts[3] : ImGui::GetIO().Fonts->Fonts[2]);
+                    uint64_t uuid = 0;
+                    if(auto idc = registry.try_get<IDComponent>(selected))
+                        uuid = (uint64_t)idc->ID;
+                    ImGui::TextDisabled("id");
+                    ImGui::SameLine(0, 5);
+                    ImGui::Text("0x%08llx", (unsigned long long)(uuid & 0xFFFFFFFFull));
+                }
+                ImGui::EndGroup();
             }
-            ImGui::SameLine();
 
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
+            ImGui::Spacing();
 
-            if(ImGui::Button(ICON_MDI_FLOPPY))
-                ImGui::OpenPopup("SavePrefab");
+            // Row 2: active toggle + action buttons — aligned right
+            {
+                const float btnSize = ImGui::GetFrameHeight();
+                const float spacing = ImGui::GetStyle().ItemSpacing.x;
+                // 3 icon buttons: floppy, tune, bug
+                const float buttonsW = (btnSize + spacing) * 3 - spacing;
+                const float avail    = ImGui::GetContentRegionAvail().x;
 
-            ImGuiUtilities::Tooltip("Save Entity As Prefab");
+                // Active checkbox left-aligned
+                ImGui::PushStyleColor(ImGuiCol_FrameBg,        ImVec4(0.15f, 0.15f, 0.18f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.22f, 0.22f, 0.28f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_FrameBgActive,  ImVec4(0.28f, 0.28f, 0.35f, 1.0f));
+                if(ImGui::Checkbox("Active", &active))
+                {
+                    if(!activeComponent)
+                        registry.emplace<ActiveComponent>(selected, active);
+                    else
+                        activeComponent->active = active;
+                }
+                ImGui::PopStyleColor(3);
 
-            ImGui::SameLine();
-            if(ImGui::Button(ICON_MDI_TUNE))
-                ImGui::OpenPopup("SetDebugMode");
-            ImGui::PopStyleColor();
+                // Push buttons to right side
+                ImGui::SameLine(avail - buttonsW + ImGui::GetStyle().WindowPadding.x);
+
+                ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.15f, 0.15f, 0.18f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.22f, 0.22f, 0.28f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.28f, 0.28f, 0.35f, 1.0f));
+
+                if(ImGui::Button(ICON_MDI_FLOPPY, ImVec2(btnSize, btnSize)))
+                    ImGui::OpenPopup("SavePrefab");
+                ImGuiUtilities::Tooltip("Save as Prefab");
+                ImGui::SameLine(0, spacing);
+                if(ImGui::Button(ICON_MDI_TUNE, ImVec2(btnSize, btnSize)))
+                    ImGui::OpenPopup("SetDebugMode");
+                ImGuiUtilities::Tooltip("Settings");
+                ImGui::SameLine(0, spacing);
+
+
+                if(ImGui::Button(ICON_MDI_BUG, ImVec2(btnSize, btnSize)))
+                    m_DebugMode = !m_DebugMode;
+                
+                ImGuiUtilities::Tooltip("Toggle Debug Info");
+                
+                ImGui::PopStyleColor(3);
+            }
+
+            ImGui::Spacing();
 
             if(ImGui::BeginPopup("SetDebugMode", 3))
             {
@@ -3976,6 +4590,10 @@ namespace Lumos
             ImGui::EndChild();
 
             ImGuiUtilities::PopID();
+#ifdef LUMOS_PLATFORM_IOS
+            ImGui::GetIO().MouseDragThreshold = kPrevDragThreshold;
+            ImGui::PopStyleVar(3);
+#endif
         }
         ImGui::End();
     }

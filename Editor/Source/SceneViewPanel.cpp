@@ -14,6 +14,7 @@
 #include <Lumos/Graphics/Model.h>
 #include <Lumos/Scene/Component/SoundComponent.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
+#include <Lumos/Scene/Component/VoxelWorldComponent.h>
 #include <Lumos/Scripting/Lua/LuaScriptComponent.h>
 #include <Lumos/Graphics/Renderers/GridRenderer.h>
 #include <Lumos/Physics/LumosPhysicsEngine/LumosPhysicsEngine.h>
@@ -28,6 +29,8 @@
 #include <Lumos/Graphics/Sprite.h>
 #include <Lumos/Maths/Ray.h>
 
+#include "TerrainEditorPanel.h"
+
 #include <box2d/box2d.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/Plugins/ImGuizmo.h>
@@ -37,7 +40,7 @@ namespace Lumos
 {
     SceneViewPanel::SceneViewPanel()
     {
-        m_Name         = ICON_MDI_GAMEPAD_VARIANT " Scene###scene";
+        m_Name         = "Scene###scene";
         m_SimpleName   = "Scene";
         m_CurrentScene = nullptr;
 
@@ -47,6 +50,8 @@ namespace Lumos
 
         m_Width  = 800;
         m_Height = 600;
+
+        m_bRequestCameraUpdate = true;
 
         Application::Get().GetSceneRenderer()->SetDisablePostProcess(false);
     }
@@ -60,7 +65,7 @@ namespace Lumos
 
         auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
-        if(!ImGui::Begin(m_Name.c_str(), &m_Active, flags) || !m_CurrentScene)
+        if(!ImGuiUtilities::BeginPanel(m_Name.c_str(), nullptr, flags) || !m_CurrentScene)
         {
             app.SetDisableMainSceneRenderer(true);
             ImGui::End();
@@ -83,11 +88,6 @@ namespace Lumos
         }
 
         ImVec2 offset = { 0.0f, 0.0f };
-
-        {
-            ToolBar();
-            offset = ImGui::GetCursorPos(); // Usually ImVec2(0.0f, 50.0f);
-        }
 
         if(!camera || !transform)
         {
@@ -115,13 +115,60 @@ namespace Lumos
 
         Resize(static_cast<uint32_t>(sceneViewSize.x), static_cast<uint32_t>(sceneViewSize.y));
 
+        const ImVec2 imageOrigin = ImGui::GetCursorScreenPos();
         ImGuiUtilities::Image(m_GameViewTexture.get(), Vec2(sceneViewSize.x, sceneViewSize.y), Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture());
+
+        m_SceneViewPos = imageOrigin;
+        ToolBar();
+
+        // ---- Camera HUD overlay (top-right of viewport) ----
+        if(m_ShowCameraHUD)
+        {
+            ImDrawList* dl = ImGui::GetWindowDrawList();
+            ImFont* smallF = (ImGui::GetIO().Fonts->Fonts.Size > 2) ? ImGui::GetIO().Fonts->Fonts[2] : ImGui::GetFont();
+            const float fs = smallF->FontSize;
+            const Vec3 pos    = transform->GetWorldPosition();
+            const Vec3 euler  = transform->GetLocalOrientation().ToEuler();
+            const bool ortho  = camera->IsOrthographic();
+            const float speed = m_Editor->GetEditorCameraController().GetSpeed();
+            char line0[64], line1[80], line2[80], line3[80];
+            snprintf(line0, sizeof(line0), "cam %s  %.0f°", ortho ? "orthographic" : "perspective", camera->GetFOV());
+            snprintf(line1, sizeof(line1), "pos x %.2f  y %.2f  z %.2f", pos.x, pos.y, pos.z);
+            snprintf(line2, sizeof(line2), "rot %.1f°  %.1f°  %.1f°", Maths::ToDegrees(euler.x), Maths::ToDegrees(euler.y), Maths::ToDegrees(euler.z));
+            snprintf(line3, sizeof(line3), "speed %.0f", speed);
+
+            const float padX = 10.0f, padY = 8.0f, lineGap = 2.0f;
+            const ImU32 dim  = IM_COL32(170, 165, 155, 255);
+            const ImU32 fg   = IM_COL32(232, 226, 216, 255);
+            const ImU32 bg   = IM_COL32(15, 14, 12, 200);
+
+            float wMax = 0;
+            for(const char* s : { line0, line1, line2, line3 })
+            {
+                ImVec2 sz = smallF->CalcTextSizeA(fs, FLT_MAX, 0, s);
+                if(sz.x > wMax) wMax = sz.x;
+            }
+            const float boxW = wMax + padX * 2;
+            const float boxH = (fs * 4) + (lineGap * 3) + padY * 2;
+            ImVec2 boxMin = { imageOrigin.x + sceneViewSize.x - boxW - 16.0f, imageOrigin.y + 16.0f };
+            ImVec2 boxMax = { boxMin.x + boxW, boxMin.y + boxH };
+            dl->AddRectFilled(boxMin, boxMax, bg, 4.0f);
+
+            ImVec2 tp = { boxMin.x + padX, boxMin.y + padY };
+            dl->AddText(smallF, fs, tp, dim, line0);
+            tp.y += fs + lineGap;
+            dl->AddText(smallF, fs, tp, fg, line1);
+            tp.y += fs + lineGap;
+            dl->AddText(smallF, fs, tp, fg, line2);
+            tp.y += fs + lineGap;
+            dl->AddText(smallF, fs, tp, fg, line3);
+        }
 
         auto windowSize = ImGui::GetWindowSize();
         ImVec2 minBound = sceneViewPosition;
 
         ImVec2 maxBound   = { minBound.x + windowSize.x, minBound.y + windowSize.y };
-        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound); // || Input::Get().GetMouseMode() == MouseMode::Captured;
+        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound) || m_bRequestCameraUpdate; // || Input::Get().GetMouseMode() == MouseMode::Captured;
 
         // app.SetSceneActive(true);// ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
 
@@ -144,7 +191,130 @@ namespace Lumos
 
         m_Editor->OnImGuizmo();
 
-        if(ImGui::IsWindowFocused() && updateCamera && !ImGuizmo::IsUsing() && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft))
+        // Terrain sculpt tool — intercepts LMB drag inside the viewport, runs the
+        // brush each frame against the picked terrain. Bypasses normal selection
+        // while active.
+        TerrainEditorPanel* terrainPanel = m_Editor ? m_Editor->GetTerrainEditorPanel() : nullptr;
+        const bool terrainToolActive = terrainPanel && terrainPanel->IsActive();
+
+        // Voxel edit mode: 'B' toggles. Left-click removes a block, Shift+Left places
+        // one against the hit face. Active only when the scene has a voxel world.
+        static bool s_VoxelEditMode = false;
+        if(ImGui::IsWindowFocused() && ImGui::IsKeyPressed(ImGuiKey_B, false) && !ImGui::GetIO().KeyCtrl && !ImGui::GetIO().KeyShift)
+            s_VoxelEditMode = !s_VoxelEditMode;
+
+        Graphics::VoxelWorld* voxelWorld = nullptr;
+        if(m_CurrentScene)
+        {
+            auto& reg = m_CurrentScene->GetRegistry();
+            auto vv   = reg.view<VoxelWorldComponent>();
+            if(vv.begin() != vv.end())
+                voxelWorld = reg.get<VoxelWorldComponent>(vv.front()).World.get();
+        }
+        const bool voxelEditActive = s_VoxelEditMode && voxelWorld;
+
+        if(voxelEditActive && ImGui::IsWindowFocused() && updateCamera && !ImGuizmo::IsUsing()
+           && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft))
+        {
+            float dpi      = Application::Get().GetWindowDPI();
+            auto clickPos  = Input::Get().GetMousePosition() - Vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
+            Maths::Ray ray = m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
+
+            if(ImGui::GetIO().KeyShift)
+                voxelWorld->PlaceBlock(ray.Origin, ray.Direction, 256.0f, Graphics::Block_Solid);
+            else
+                voxelWorld->RemoveBlock(ray.Origin, ray.Direction, 256.0f);
+        }
+
+        if(terrainToolActive && ImGui::IsWindowFocused() && updateCamera && !ImGuizmo::IsUsing())
+        {
+            LUMOS_PROFILE_SCOPE("Terrain Sculpt");
+            float dpi     = Application::Get().GetWindowDPI();
+            auto cursor   = Input::Get().GetMousePosition() - Vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
+            Maths::Ray ray = m_Editor->GetScreenRay(int(cursor.x), int(cursor.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
+
+            entt::entity hitEntity = entt::null;
+            Vec3 hitWorld;
+            bool gotHit = terrainPanel->RaycastTerrain(ray, hitEntity, hitWorld);
+
+            // Brush preview overlay (contour-following ring).
+            if(gotHit)
+            {
+                constexpr int kRing = 24;
+                Vec3 ring[kRing];
+                terrainPanel->SampleBrushRing(hitWorld, kRing, ring);
+                ImDrawList* dl = ImGui::GetWindowDrawList();
+                ImVec2 first(0, 0), prev(0, 0);
+                Mat4 viewProj = camera->GetProjectionMatrix() * transform->GetWorldMatrix().Inverse();
+                auto Project = [&](const Vec3& p) -> ImVec2
+                {
+                    Vec2 sp = Maths::WorldToScreen(p, viewProj, sceneViewSize.x, sceneViewSize.y, sceneViewPosition.x, sceneViewPosition.y);
+                    return ImVec2(sp.x, sp.y);
+                };
+                ImU32 colour = IM_COL32(60, 220, 110, 220);
+                switch(terrainPanel->CurrentTool())
+                {
+                    case TerrainTool::Lower:   colour = IM_COL32(230,  90,  60, 220); break;
+                    case TerrainTool::Smooth:  colour = IM_COL32( 90, 160, 230, 220); break;
+                    case TerrainTool::Flatten: colour = IM_COL32(230, 200,  60, 220); break;
+                    case TerrainTool::Noise:   colour = IM_COL32(200,  90, 230, 220); break;
+                    default: break;
+                }
+                for(int i = 0; i < kRing; ++i)
+                {
+                    ImVec2 sp = Project(ring[i]);
+                    if(i == 0) first = sp;
+                    else       dl->AddLine(prev, sp, colour, 1.5f);
+                    prev = sp;
+                }
+                dl->AddLine(prev, first, colour, 1.5f);
+                ImVec2 centreSp = Project(hitWorld);
+                dl->AddCircleFilled(centreSp, 3.0f, colour);
+            }
+
+            // Drag-to-paint. ButtonLeft press starts a stroke, hold continues, release ends.
+            const bool lmbPressed = Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft);
+            const bool lmbHeld    = Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonLeft);
+
+            if(lmbPressed && gotHit)
+                terrainPanel->BeginStroke();
+            if(lmbHeld && gotHit)
+                terrainPanel->ApplyBrushAt(hitWorld, hitEntity, (float)Engine::GetTimeStep().GetSeconds());
+            if(!lmbHeld)
+                terrainPanel->EndStroke();
+
+            // Keyboard hotkeys (only while viewport focused).
+            if(ImGui::IsKeyPressed(ImGuiKey_G, false))
+                terrainPanel->SetCurrentTool(ImGui::GetIO().KeyShift ? TerrainTool::Lower : TerrainTool::Raise);
+            else if(ImGui::IsKeyPressed(ImGuiKey_S, false) && !ImGui::GetIO().KeyCtrl)
+                terrainPanel->SetCurrentTool(TerrainTool::Smooth);
+            else if(ImGui::IsKeyPressed(ImGuiKey_F, false))
+                terrainPanel->SetCurrentTool(TerrainTool::Flatten);
+            else if(ImGui::IsKeyPressed(ImGuiKey_N, false) && !ImGui::GetIO().KeyCtrl)
+                terrainPanel->SetCurrentTool(TerrainTool::Noise);
+            if(ImGui::IsKeyPressed(ImGuiKey_LeftBracket, true))
+            {
+                float& v = ImGui::GetIO().KeyShift ? terrainPanel->BrushStrength() : terrainPanel->BrushRadius();
+                v = std::max(0.05f, v * 0.85f);
+            }
+            if(ImGui::IsKeyPressed(ImGuiKey_RightBracket, true))
+            {
+                float& v = ImGui::GetIO().KeyShift ? terrainPanel->BrushStrength() : terrainPanel->BrushRadius();
+                v *= 1.15f;
+            }
+            // ESC / RMB exits terrain mode.
+            if(ImGui::IsKeyPressed(ImGuiKey_Escape, false))
+                terrainPanel->SetEnabled(false);
+        }
+
+        // T toggles terrain tool mode regardless of current state — opens the panel
+        // and switches input intercept on.
+        if(ImGui::IsWindowFocused() && terrainPanel && ImGui::IsKeyPressed(ImGuiKey_T, false) && !ImGui::GetIO().KeyCtrl && !ImGui::GetIO().KeyShift)
+        {
+            terrainPanel->SetEnabled(!terrainPanel->IsActive());
+        }
+
+        if(!terrainToolActive && !voxelEditActive && ImGui::IsWindowFocused() && updateCamera && !ImGuizmo::IsUsing() && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft))
         {
             float dpi     = Application::Get().GetWindowDPI();
             auto clickPos = Input::Get().GetMousePosition() - Vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
@@ -192,7 +362,7 @@ namespace Lumos
             }
         }
 
-        if(ImGui::IsWindowFocused() && updateCamera && !ImGuizmo::IsUsing() && ImGui::IsItemHovered() && Input::Get().GetMouseMode() == MouseMode::Visible)
+        if(!terrainToolActive && !voxelEditActive && ImGui::IsWindowFocused() && updateCamera && !ImGuizmo::IsUsing() && ImGui::IsItemHovered() && Input::Get().GetMouseMode() == MouseMode::Visible)
         {
             LUMOS_PROFILE_SCOPE("Hover Object");
 
@@ -266,13 +436,17 @@ namespace Lumos
                 m_Editor->GetEditorCameraTransform(), scale, velocity, (float)Engine::Get().GetTimeStep().GetSeconds());
         }
 
-        // Handle two-finger pan gesture for rotation (less restrictive for touch)
-        if(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && Input::Get().GetGesturePanActive() && Input::Get().GetGesturePanTouchCount() == 2)
+        // Touch pan: 2-finger = rotate, 3-finger = pan focal point
+        if(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && Input::Get().GetGesturePanActive())
         {
-            Vec2 translation = Input::Get().GetGesturePanTranslation();
-            Vec2 velocity = Input::Get().GetGesturePanVelocity();
-            m_Editor->GetEditorCameraController().HandleGesturePan(
-                m_Editor->GetEditorCameraTransform(), translation, velocity);
+            uint32_t touchCount = Input::Get().GetGesturePanTouchCount();
+            if(touchCount >= 2)
+            {
+                Vec2 translation = Input::Get().GetGesturePanTranslation();
+                Vec2 velocity = Input::Get().GetGesturePanVelocity();
+                m_Editor->GetEditorCameraController().HandleGesturePan(
+                    m_Editor->GetEditorCameraTransform(), translation, velocity, touchCount);
+            }
         }
 
         // Handle long-press gesture for context menu
@@ -326,6 +500,12 @@ namespace Lumos
 
         ImGui::GetWindowDrawList()->PopClipRect();
         ImGui::End();
+
+        // One mesh + collision rebuild per affected terrain per frame.
+        if(terrainPanel)
+            terrainPanel->FlushDirty();
+
+        m_bRequestCameraUpdate = false;
     }
 
     void SceneViewPanel::DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene)
@@ -415,129 +595,107 @@ namespace Lumos
     void SceneViewPanel::ToolBar()
     {
         LUMOS_PROFILE_FUNCTION();
-        ImGui::Indent();
+
+        // Anchored, vertical, collapsable tool column at top-left of the scene viewport.
+        ImGuiWindowFlags wflags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
+                                | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking
+                                | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar
+                                | ImGuiWindowFlags_NoNavFocus;
+
+        // Target a fixed visual button size so 10+ icons fit in the viewport regardless of
+        // how large the editor font is on iOS / high-DPI desktops. The icon glyph (rendered
+        // from the text font) is shrunk to fit via SetWindowFontScale below.
+#ifdef LUMOS_PLATFORM_IOS
+        const float btnW      = 52.0f;   // touch-friendly
+        const float padX      = 10.0f;
+        const float padY      = 6.0f;
+        const float anchorOff = 10.0f;
+        const float winRound  = 10.0f;
+#else
+        const float btnW      = 36.0f;
+        const float padX      = 10.0f;
+        const float padY      = 6.0f;
+        const float anchorOff = 10.0f;
+        const float winRound  = 8.0f;
+#endif
+        const float winW = btnW + padX * 2.0f;
+
+        ImGui::SetNextWindowPos(ImVec2(m_SceneViewPos.x + anchorOff, m_SceneViewPos.y + anchorOff), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(winW, 0.0f), ImGuiCond_Always);
+        ImGui::SetNextWindowSizeConstraints(ImVec2(winW, 0.0f), ImVec2(winW, FLT_MAX));
+        ImGui::SetNextWindowBgAlpha(0.45f);
+        ImGuiUtilities::ScopedStyle minSize(ImGuiStyleVar_WindowMinSize, ImVec2(8, 8));
+        ImGuiUtilities::ScopedStyle round(ImGuiStyleVar_WindowRounding, winRound);
+        ImGuiUtilities::ScopedStyle padScope(ImGuiStyleVar_WindowPadding, ImVec2(padX, padY));
+        ImGuiUtilities::ScopedStyle itemScope(ImGuiStyleVar_ItemSpacing, ImVec2(0, 2));
+        ImGuiUtilities::ScopedStyle framePad(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        if(!ImGui::Begin("Tools##scene_tools", nullptr, wflags))
+        {
+            ImGui::End();
+            return;
+        }
+
+        // Scale the icon font so the glyph fits inside the fixed-size button regardless
+        // of how large the editor font is (iOS fonts can be 80–140 px otherwise).
+        const float kIconCellFrac = 0.62f;
+        const float curFont       = ImGui::GetFontSize();
+        if(curFont > btnW * kIconCellFrac)
+            ImGui::SetWindowFontScale(btnW * kIconCellFrac / curFont);
+
+        // Collapse toggle (full-width chevron header).
+        static bool collapsed = false;
+        {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+            if(ImGui::Button(collapsed ? ICON_MDI_CHEVRON_DOWN : ICON_MDI_CHEVRON_UP, ImVec2(btnW, btnW)))
+                collapsed = !collapsed;
+            ImGui::PopStyleColor();
+        }
+        if(collapsed)
+        {
+            ImGui::End();
+            return;
+        }
+
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-        bool selected = false;
-
+        const ImVec2 btnSize(btnW, btnW);
+        const auto IconBtn = [&](const char* icon, const char* tip, bool active, auto&& action)
         {
-            selected = m_Editor->GetImGuizmoOperation() == 4;
-            if(selected)
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-            ImGui::SameLine();
-            if(ImGui::Button(ICON_MDI_CURSOR_DEFAULT))
-                m_Editor->SetImGuizmoOperation(4);
+            if(active) ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
+            if(ImGui::Button(icon, btnSize)) action();
+            if(active) ImGui::PopStyleColor();
+            ImGuiUtilities::Tooltip(tip);
+        };
 
-            if(selected)
-                ImGui::PopStyleColor();
-            ImGuiUtilities::Tooltip("Select");
-        }
-
-        ImGui::SameLine();
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine();
-
+        IconBtn(ICON_MDI_CURSOR_DEFAULT, "Select",   m_Editor->GetImGuizmoOperation() == 4,
+                [&]{ m_Editor->SetImGuizmoOperation(4); });
+        ImGui::Separator();
+        IconBtn(ICON_MDI_ARROW_ALL,         "Translate", m_Editor->GetImGuizmoOperation() == ImGuizmo::TRANSLATE,
+                [&]{ m_Editor->SetImGuizmoOperation(ImGuizmo::TRANSLATE); });
+        IconBtn(ICON_MDI_ROTATE_ORBIT,      "Rotate",    m_Editor->GetImGuizmoOperation() == ImGuizmo::ROTATE,
+                [&]{ m_Editor->SetImGuizmoOperation(ImGuizmo::ROTATE); });
+        IconBtn(ICON_MDI_ARROW_EXPAND_ALL,  "Scale",     m_Editor->GetImGuizmoOperation() == ImGuizmo::SCALE,
+                [&]{ m_Editor->SetImGuizmoOperation(ImGuizmo::SCALE); });
+        ImGui::Separator();
+        IconBtn(ICON_MDI_CROP_ROTATE, "Universal", m_Editor->GetImGuizmoOperation() == ImGuizmo::UNIVERSAL,
+                [&]{ m_Editor->SetImGuizmoOperation(ImGuizmo::UNIVERSAL); });
+        IconBtn(ICON_MDI_BORDER_NONE, "Bounds",    m_Editor->GetImGuizmoOperation() == ImGuizmo::BOUNDS,
+                [&]{ m_Editor->SetImGuizmoOperation(ImGuizmo::BOUNDS); });
+        ImGui::Separator();
+        IconBtn(ICON_MDI_MAGNET, "Snap", m_Editor->SnapGuizmo(),
+                [&]{ m_Editor->SnapGuizmo() = !m_Editor->SnapGuizmo(); });
+        ImGui::Separator();
         {
-            selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::TRANSLATE;
-            if(selected)
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-            ImGui::SameLine();
-            if(ImGui::Button(ICON_MDI_ARROW_ALL))
-                m_Editor->SetImGuizmoOperation(ImGuizmo::TRANSLATE);
-
-            if(selected)
-                ImGui::PopStyleColor();
-            ImGuiUtilities::Tooltip("Translate");
+            TerrainEditorPanel* tep = m_Editor->GetTerrainEditorPanel();
+            const bool active = tep && tep->IsActive();
+            IconBtn(ICON_MDI_TERRAIN, "Terrain Sculpt (T)", active, [&]{
+                if(tep) tep->SetEnabled(!tep->IsActive());
+            });
         }
+        ImGui::Separator();
 
-        {
-            selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::ROTATE;
-            if(selected)
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-
-            ImGui::SameLine();
-            if(ImGui::Button(ICON_MDI_ROTATE_ORBIT))
-                m_Editor->SetImGuizmoOperation(ImGuizmo::ROTATE);
-
-            if(selected)
-                ImGui::PopStyleColor();
-            ImGuiUtilities::Tooltip("Rotate");
-        }
-
-        {
-            selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::SCALE;
-            if(selected)
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-
-            ImGui::SameLine();
-            if(ImGui::Button(ICON_MDI_ARROW_EXPAND_ALL))
-                m_Editor->SetImGuizmoOperation(ImGuizmo::SCALE);
-
-            if(selected)
-                ImGui::PopStyleColor();
-            ImGuiUtilities::Tooltip("Scale");
-        }
-
-        ImGui::SameLine();
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine();
-
-        {
-            selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::UNIVERSAL;
-            if(selected)
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-
-            ImGui::SameLine();
-            if(ImGui::Button(ICON_MDI_CROP_ROTATE))
-                m_Editor->SetImGuizmoOperation(ImGuizmo::UNIVERSAL);
-
-            if(selected)
-                ImGui::PopStyleColor();
-            ImGuiUtilities::Tooltip("Universal");
-        }
-
-        ImGui::SameLine();
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine();
-
-        {
-            selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::BOUNDS;
-            if(selected)
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-
-            ImGui::SameLine();
-            if(ImGui::Button(ICON_MDI_BORDER_NONE))
-                m_Editor->SetImGuizmoOperation(ImGuizmo::BOUNDS);
-
-            if(selected)
-                ImGui::PopStyleColor();
-            ImGuiUtilities::Tooltip("Bounds");
-        }
-
-        ImGui::SameLine();
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine();
-
-        ImGui::SameLine();
-        {
-            selected = (m_Editor->SnapGuizmo() == true);
-
-            if(selected)
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-
-            if(ImGui::Button(ICON_MDI_MAGNET))
-                m_Editor->SnapGuizmo() = !selected;
-
-            if(selected)
-                ImGui::PopStyleColor();
-            ImGuiUtilities::Tooltip("Snap");
-        }
-
-        ImGui::SameLine();
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine();
-
-        if(ImGui::Button("Gizmos " ICON_MDI_CHEVRON_DOWN))
+        if(ImGui::Button(ICON_MDI_DOTS_HORIZONTAL, btnSize))
             ImGui::OpenPopup("GizmosPopup");
+        ImGuiUtilities::Tooltip("Gizmos & Debug");
         if(ImGui::BeginPopup("GizmosPopup"))
         {
             {
@@ -731,18 +889,12 @@ namespace Lumos
             }
         }
 
-        ImGui::SameLine();
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine();
-        // Editor Camera Settings
+        ImGui::Separator();
 
+        // Camera ortho/perspective toggle.
         auto& camera = *m_Editor->GetCamera();
         bool ortho   = camera.IsOrthographic();
-
-        selected = !ortho;
-        if(selected)
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-        if(ImGui::Button(ICON_MDI_AXIS_ARROW " 3D"))
+        IconBtn(ICON_MDI_AXIS_ARROW, "3D camera (perspective)", !ortho, [&]
         {
             if(ortho)
             {
@@ -750,15 +902,8 @@ namespace Lumos
                 camera.SetNear(0.01f);
                 m_Editor->GetEditorCameraController().SetCurrentMode(EditorCameraMode::FLYCAM);
             }
-        }
-        if(selected)
-            ImGui::PopStyleColor();
-        ImGui::SameLine();
-
-        selected = ortho;
-        if(selected)
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-        if(ImGui::Button(ICON_MDI_ANGLE_RIGHT "2D"))
+        });
+        IconBtn(ICON_MDI_ANGLE_RIGHT, "2D camera (orthographic)", ortho, [&]
         {
             if(!ortho)
             {
@@ -769,57 +914,50 @@ namespace Lumos
                 m_Editor->GetEditorCameraTransform().SetLocalPosition(camPos);
                 m_Editor->GetEditorCameraTransform().SetLocalOrientation(Quat(Vec3(0.0f, 0.0f, 0.0f)));
                 m_Editor->GetEditorCameraTransform().SetLocalScale(Vec3(1.0f, 1.0f, 1.0f));
-
                 m_Editor->GetEditorCameraController().SetCurrentMode(EditorCameraMode::TWODIM);
             }
-        }
-        if(selected)
-            ImGui::PopStyleColor();
+        });
+        ImGui::Separator();
 
-        ImGui::SameLine();
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine();
-
-        // Measurement tool toggle
+        IconBtn(ICON_MDI_RULER, "Measure distance (click two points)", m_MeasurementMode, [&]
         {
-            selected = m_MeasurementMode;
-            if(selected)
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-            if(ImGui::Button(ICON_MDI_RULER))
-            {
-                m_MeasurementMode = !m_MeasurementMode;
-                if(m_MeasurementMode)
-                {
-                    m_MeasurementPointIndex = 0;  // Reset to start fresh
-                }
-            }
-            if(selected)
-                ImGui::PopStyleColor();
-            ImGuiUtilities::Tooltip("Measure Distance (click two points)");
-        }
-
-        // Show measurement status if active
-        if(m_MeasurementMode)
+            m_MeasurementMode = !m_MeasurementMode;
+            if(m_MeasurementMode) m_MeasurementPointIndex = 0;
+        });
+        ImGui::Separator();
+        IconBtn(ICON_MDI_CAMERA_OUTLINE, "Toggle camera HUD", m_ShowCameraHUD, [&]
         {
-            ImGui::SameLine();
-            if(m_MeasurementPointIndex == 0)
-                ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.3f, 1.0f), "Click first point");
-            else if(m_MeasurementPointIndex == 1)
-                ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.3f, 1.0f), "Click second point");
-            else
-            {
-                float distance = Maths::Distance(m_MeasurementPoint1, m_MeasurementPoint2);
-                ImGui::TextColored(ImVec4(0.3f, 1.0f, 0.5f, 1.0f), "Distance: %.3f units", distance);
-                ImGui::SameLine();
-                if(ImGui::SmallButton("Clear"))
-                {
-                    m_MeasurementPointIndex = 0;
-                }
-            }
-        }
+            m_ShowCameraHUD = !m_ShowCameraHUD;
+        });
 
         ImGui::PopStyleColor();
-        ImGui::Unindent();
+        ImGui::End();
+
+        // Measurement status overlay — separate floating element below the tools column.
+        if(m_MeasurementMode)
+        {
+            // Sit just to the right of the tools column, using the same font-scaled metrics.
+            const float measureX = m_SceneViewPos.x + anchorOff + winW + anchorOff;
+            const float measureY = m_SceneViewPos.y + anchorOff;
+            ImGui::SetNextWindowPos(ImVec2(measureX, measureY), ImGuiCond_Always);
+            ImGui::SetNextWindowBgAlpha(0.80f);
+            if(ImGui::Begin("Measure##scene_tools_measure", nullptr, wflags | ImGuiWindowFlags_NoTitleBar))
+            {
+                if(m_MeasurementPointIndex == 0)
+                    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.3f, 1.0f), "Click first point");
+                else if(m_MeasurementPointIndex == 1)
+                    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.3f, 1.0f), "Click second point");
+                else
+                {
+                    float distance = Maths::Distance(m_MeasurementPoint1, m_MeasurementPoint2);
+                    ImGui::TextColored(ImVec4(0.3f, 1.0f, 0.5f, 1.0f), "Distance: %.3f units", distance);
+                    ImGui::SameLine();
+                    if(ImGui::SmallButton("Clear"))
+                        m_MeasurementPointIndex = 0;
+                }
+            }
+            ImGui::End();
+        }
     }
 
     void SceneViewPanel::OnNewScene(Scene* scene)
@@ -939,6 +1077,11 @@ namespace Lumos
                 {
                     auto entity = CreateEntityAtPosition("Pyramid");
                     entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Pyramid);
+                }
+                if(ImGui::MenuItem("Voxel World"))
+                {
+                    auto entity = CreateEntityAtPosition("Voxel World");
+                    entity.AddComponent<VoxelWorldComponent>();
                 }
                 ImGui::EndMenu();
             }

@@ -18,11 +18,14 @@
 #include "LuaDebugPanel.h"
 #include "AboutSupportPanel.h"
 #include "PreviewDraw.h"
+#include "PerfGraph.h"
 #include "ImportPanel.h"
 #include "EditorPanel.h"
 #include "PhysicsDebugPanel.h"
 #include "SpriteSlicerPanel.h"
 #include "ParticleEditorPanel.h"
+#include "TerrainEditorPanel.h"
+#include "imgui.h"
 #include <Lumos/Core/Asset/AssetImporter.h>
 #include <Lumos/Core/Asset/AssetPacker.h>
 #include <Lumos/Core/Asset/AssetManager.h>
@@ -40,6 +43,7 @@
 #include <Lumos/Scene/Scene.h>
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Scene/Entity.h>
+#include <Lumos/Scene/SceneGraph.h>
 #include <Lumos/Scene/EntityManager.h>
 #include <Lumos/Events/ApplicationEvent.h>
 #include <Lumos/Events/GestureEvent.h>
@@ -48,6 +52,7 @@
 #include <Lumos/Scene/Component/SoundComponent.h>
 #include <Lumos/Scene/Component/RigidBody2DComponent.h>
 #include <Lumos/Scene/Component/RigidBody3DComponent.h>
+#include <Lumos/Scene/Component/TerrainComponent.h>
 #include <Lumos/Scripting/Lua/LuaScriptComponent.h>
 #include <Lumos/Physics/LumosPhysicsEngine/LumosPhysicsEngine.h>
 #include <Lumos/Physics/B2PhysicsEngine/B2PhysicsEngine.h>
@@ -73,7 +78,10 @@
 #include <Lumos/Platform/iOS/iOSOS.h>
 #endif
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
+#include <Lumos/ImGui/ImGuiManager.h>
+#include <Lumos/Graphics/RHI/IMGUIRenderer.h>
 #include <Lumos/Embedded/EmbedAsset.h>
+#include <Lumos/Embedded/lumosLogo.inl>
 #include <Lumos/Scene/Component/ModelComponent.h>
 #include <imgui/Plugins/imcmd_command_palette.h>
 #include <Lumos/Maths/BoundingBox.h>
@@ -93,9 +101,13 @@
 #include <imgui/imgui_internal.h>
 #include <imgui/Plugins/ImGuizmo.h>
 #include <cereal/version.hpp>
+#include <sol/sol.hpp>
+
 
 namespace Lumos
 {
+    static float s_SceneSavePopupTimer = -1.0f;
+
     Editor::Editor()
         : Application()
         , m_IniFile("")
@@ -112,6 +124,7 @@ namespace Lumos
 
     void Editor::OnQuit()
     {
+        //Delete any graphics data before Vulkan Deletion Queue is freed
         SaveEditorSettings();
 
         for(auto panel : m_Panels)
@@ -123,6 +136,7 @@ namespace Lumos
         delete m_PreviewDraw;
         delete m_ImportPanel;
         delete m_FileBrowserPanel;
+        m_LogoTexture.reset();
 
         Application::OnQuit();
     }
@@ -144,9 +158,10 @@ namespace Lumos
         {
             show_demo_window = !show_demo_window;
         };
+        ImCmd::AddCommand(toggle_demo_cmd);
 
         ImCmd::Command select_theme_cmd;
-        select_theme_cmd.Name            = "Select theme";
+        select_theme_cmd.Name            = ICON_MDI_PALETTE " Select theme";
         select_theme_cmd.InitialCallback = [&]()
         {
             ImCmd::Prompt(std::vector<std::string> {
@@ -172,33 +187,16 @@ namespace Lumos
         };
         ImCmd::AddCommand(std::move(select_theme_cmd));
 
-        ImCmd::Command example_cmd;
-        example_cmd.Name            = "Open Project";
-        example_cmd.InitialCallback = [&]()
+        ImCmd::Command open_project_cmd;
+        open_project_cmd.Name            = ICON_MDI_FOLDER_OPEN " Open Project";
+        open_project_cmd.InitialCallback = [&]()
         {
             ImGui::OpenPopup("Open Project");
         };
-
-        ImCmd::Command add_example_cmd_cmd;
-        add_example_cmd_cmd.Name            = "Add 'Example command'";
-        add_example_cmd_cmd.InitialCallback = [&]()
-        {
-            ImCmd::AddCommand(example_cmd);
-        };
-
-        ImCmd::Command remove_example_cmd_cmd;
-        remove_example_cmd_cmd.Name            = "Remove 'Example command'";
-        remove_example_cmd_cmd.InitialCallback = [&]()
-        {
-            ImCmd::RemoveCommand(example_cmd.Name.c_str());
-        },
-
-        ImCmd::AddCommand(example_cmd); // Copy intentionally
-        ImCmd::AddCommand(std::move(add_example_cmd_cmd));
-        ImCmd::AddCommand(std::move(remove_example_cmd_cmd));
+        ImCmd::AddCommand(std::move(open_project_cmd));
 
         ImCmd::Command search_assets_cmd;
-        search_assets_cmd.Name = "Search Assets";
+        search_assets_cmd.Name = ICON_MDI_MAGNIFY " Search Assets";
         search_assets_cmd.InitialCallback = [this]()
         {
             m_CachedAssetPaths.clear();
@@ -214,8 +212,378 @@ namespace Lumos
         };
         ImCmd::AddCommand(std::move(search_assets_cmd));
 
-        auto& guizmoStyle                    = ImGuizmo::GetStyle();
-        guizmoStyle.HatchedAxisLineThickness = -1.0f;
+        // ---- Scene ----
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_CONTENT_SAVE " Scene: Save";
+            c.InitialCallback = [this]()
+            {
+                if(Application::Get().GetSceneActive())
+                {
+                    Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/", false);
+                    s_SceneSavePopupTimer = 2.0f;
+                }
+            };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_RELOAD " Scene: Reload";
+            c.InitialCallback = []()
+            {
+                auto sm = Application::Get().GetSceneManager();
+                sm->SwitchScene(sm->GetCurrentSceneIndex());
+            };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_MOVIE " Scene: Switch";
+            c.InitialCallback = [this]()
+            {
+                ArenaTemp scratch = ScratchBegin(0, 0);
+                auto names        = Application::Get().GetSceneManager()->GetSceneNames(scratch.arena);
+                m_CachedSceneNames.clear();
+                for(size_t i = 0; i < names.Size(); i++)
+                    m_CachedSceneNames.push_back((const char*)names[i].str);
+                ScratchEnd(scratch);
+                if(!m_CachedSceneNames.empty())
+                    ImCmd::Prompt(m_CachedSceneNames);
+            };
+            c.SubsequentCallback = [this](int selected)
+            {
+                if(selected >= 0 && selected < (int)m_CachedSceneNames.size())
+                    Application::Get().GetSceneManager()->SwitchScene(m_CachedSceneNames[selected].c_str());
+            };
+            ImCmd::AddCommand(std::move(c));
+        }
+
+        // ---- Play control ----
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_PLAY " Play: Toggle Play/Stop";
+            c.InitialCallback = []()
+            {
+                bool isPlay = Application::Get().GetEditorState() == EditorState::Play;
+                Application::Get().SetEditorState(isPlay ? EditorState::Preview : EditorState::Play);
+            };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_PAUSE " Play: Pause/Resume";
+            c.InitialCallback = []()
+            {
+                bool isPaused = Application::Get().GetEditorState() == EditorState::Paused;
+                Application::Get().SetEditorState(isPaused ? EditorState::Play : EditorState::Paused);
+            };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_SKIP_NEXT " Play: Step Frame";
+            c.InitialCallback = []()
+            {
+                Application::Get().SetEditorState(EditorState::Next);
+            };
+            ImCmd::AddCommand(std::move(c));
+        }
+
+        // ---- View toggles ----
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_GRID " View: Toggle Grid";
+            c.InitialCallback = [this]() { m_Settings.m_ShowGrid = !m_Settings.m_ShowGrid; };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_AXIS_ARROW " View: Toggle Gizmos";
+            c.InitialCallback = [this]() { m_Settings.m_ShowGizmos = !m_Settings.m_ShowGizmos; };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_VIEW_GRID " View: Toggle Snap";
+            c.InitialCallback = [this]() { ToggleSnap(); };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_NUMERIC_2_BOX " View: Toggle 2D/3D Camera";
+            c.InitialCallback = [this]() { m_CurrentCamera->SetIsOrthographic(!m_CurrentCamera->IsOrthographic()); };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_FULLSCREEN " View: Toggle Fullscreen Scene";
+            c.InitialCallback = [this]() { m_Settings.m_FullScreenSceneView = !m_Settings.m_FullScreenSceneView; };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_MONITOR " View: Toggle Panel";
+            c.InitialCallback = [this]()
+            {
+                m_CachedPanelNames.clear();
+                for(auto& panel : m_Panels)
+                    m_CachedPanelNames.push_back(panel->GetName());
+                if(!m_CachedPanelNames.empty())
+                    ImCmd::Prompt(m_CachedPanelNames);
+            };
+            c.SubsequentCallback = [this](int selected)
+            {
+                if(selected >= 0 && selected < (int)m_Panels.size())
+                    m_Panels[selected]->SetActive(!m_Panels[selected]->Active());
+            };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = "View: Layout Preset";
+            c.InitialCallback = []()
+            {
+                ImCmd::Prompt(std::vector<std::string> { "Default", "Split 50/50", "Scene Focused", "Coding", "Touch Compact" });
+            };
+            c.SubsequentCallback = [this](int selected)
+            {
+                switch(selected)
+                {
+                case 0: ApplyLayoutPreset(LayoutPreset::Default); break;
+                case 1: ApplyLayoutPreset(LayoutPreset::Split); break;
+                case 2: ApplyLayoutPreset(LayoutPreset::SceneFocused); break;
+                case 3: ApplyLayoutPreset(LayoutPreset::Coding); break;
+                case 4: ApplyLayoutPreset(LayoutPreset::IOSCompact); break;
+                }
+            };
+            ImCmd::AddCommand(std::move(c));
+        }
+
+        // ---- Gizmo operation ----
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_ARROW_ALL " Gizmo: Translate";
+            c.InitialCallback = [this]() { SetImGuizmoOperation(ImGuizmo::OPERATION::TRANSLATE); };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_ROTATE_3D " Gizmo: Rotate";
+            c.InitialCallback = [this]() { SetImGuizmoOperation(ImGuizmo::OPERATION::ROTATE); };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_RESIZE " Gizmo: Scale";
+            c.InitialCallback = [this]() { SetImGuizmoOperation(ImGuizmo::OPERATION::SCALE); };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_CUBE_SCAN " Gizmo: Universal";
+            c.InitialCallback = [this]() { SetImGuizmoOperation(ImGuizmo::OPERATION::UNIVERSAL); };
+            ImCmd::AddCommand(std::move(c));
+        }
+
+        // ---- Edit ----
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_UNDO " Edit: Undo";
+            c.InitialCallback = []() { Lumos::Undo(); };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_REDO " Edit: Redo";
+            c.InitialCallback = []() { Lumos::Redo(); };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_CONTENT_DUPLICATE " Edit: Duplicate Selected";
+            c.InitialCallback = [this]()
+            {
+                auto scene = Application::Get().GetCurrentScene();
+                for(auto entity : m_SelectedEntities)
+                    scene->DuplicateEntity({ entity, scene });
+            };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_DELETE " Edit: Delete Selected";
+            c.InitialCallback = [this]()
+            {
+                auto scene = Application::Get().GetCurrentScene();
+                for(auto entity : m_SelectedEntities)
+                    Entity(entity, scene).Destroy();
+                m_SelectedEntities.clear();
+            };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_CROSSHAIRS_GPS " Edit: Focus Selected";
+            c.InitialCallback = [this]()
+            {
+                auto scene = Application::Get().GetCurrentScene();
+                if(scene && !m_SelectedEntities.empty())
+                {
+                    auto& registry = scene->GetRegistry();
+                    auto transform = registry.try_get<Maths::Transform>(m_SelectedEntities.front());
+                    if(transform)
+                        FocusCamera(transform->GetWorldPosition(), 10.0f, 2.0f);
+                }
+            };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_SELECT_OFF " Edit: Clear Selection";
+            c.InitialCallback = [this]() { ClearSelected(); };
+            ImCmd::AddCommand(std::move(c));
+        }
+
+        // ---- Entity ----
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_PLUS " Entity: Add";
+            c.InitialCallback = []()
+            {
+                ImCmd::Prompt(std::vector<std::string> {
+                    "Empty", "Light", "Camera", "Sprite", "Lua Script", "Rigid Body",
+                    "Cube", "Sphere", "Pyramid", "Plane", "Cylinder", "Capsule" });
+            };
+            c.SubsequentCallback = [this](int selected)
+            {
+                auto scene = Application::Get().GetCurrentScene();
+                if(!scene)
+                    return;
+
+                Entity entity;
+                switch(selected)
+                {
+                case 0: entity = scene->CreateEntity("Empty"); break;
+                case 1:
+                    entity = scene->CreateEntity("Light");
+                    entity.AddComponent<Graphics::Light>();
+                    entity.GetOrAddComponent<Maths::Transform>();
+                    break;
+                case 2:
+                    entity = scene->CreateEntity("Camera");
+                    entity.AddComponent<Camera>();
+                    entity.GetOrAddComponent<Maths::Transform>();
+                    break;
+                case 3:
+                    entity = scene->CreateEntity("Sprite");
+                    entity.AddComponent<Graphics::Sprite>();
+                    entity.GetOrAddComponent<Maths::Transform>();
+                    break;
+                case 4:
+                    entity = scene->CreateEntity("LuaScript");
+                    entity.AddComponent<LuaScriptComponent>();
+                    break;
+                case 5:
+                    entity = scene->CreateEntity("RigidBody");
+                    entity.AddComponent<RigidBody3DComponent>();
+                    entity.GetOrAddComponent<Maths::Transform>();
+                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
+                    entity.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetCollisionShape(CollisionShapeType::CollisionCuboid);
+                    break;
+                default:
+                {
+                    // Primitives
+                    static const char* names[]            = { "Cube", "Sphere", "Pyramid", "Plane", "Cylinder", "Capsule" };
+                    static Graphics::PrimitiveType types[] = { Graphics::PrimitiveType::Cube, Graphics::PrimitiveType::Sphere, Graphics::PrimitiveType::Pyramid, Graphics::PrimitiveType::Plane, Graphics::PrimitiveType::Cylinder, Graphics::PrimitiveType::Capsule };
+                    int idx                               = selected - 6;
+                    entity                                = scene->CreateEntity(names[idx]);
+                    entity.AddComponent<Graphics::ModelComponent>(types[idx]);
+                    break;
+                }
+                }
+                ClearSelected();
+                SetSelected(entity);
+            };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_PUZZLE " Entity: Add Component";
+            c.InitialCallback = [this]()
+            {
+                if(m_SelectedEntities.empty())
+                    return;
+                ImCmd::Prompt(std::vector<std::string> {
+                    "Transform", "Model (Cube)", "Light", "Camera", "Sprite",
+                    "Rigid Body 3D", "Rigid Body 2D", "Sound", "Lua Script", "Text", "Environment" });
+            };
+            c.SubsequentCallback = [this](int selected)
+            {
+                for(auto& entity : m_SelectedEntities)
+                {
+                    if(!entity.Valid())
+                        continue;
+                    switch(selected)
+                    {
+                    case 0: entity.GetOrAddComponent<Maths::Transform>(); break;
+                    case 1: if(!entity.HasComponent<Graphics::ModelComponent>()) entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube); break;
+                    case 2: entity.GetOrAddComponent<Graphics::Light>(); break;
+                    case 3: entity.GetOrAddComponent<Camera>(); break;
+                    case 4: entity.GetOrAddComponent<Graphics::Sprite>(); break;
+                    case 5: entity.GetOrAddComponent<RigidBody3DComponent>(); break;
+                    case 6: entity.GetOrAddComponent<RigidBody2DComponent>(); break;
+                    case 7: entity.GetOrAddComponent<SoundComponent>(); break;
+                    case 8: entity.GetOrAddComponent<LuaScriptComponent>(); break;
+                    case 9: entity.GetOrAddComponent<TextComponent>(); break;
+                    case 10: entity.GetOrAddComponent<Graphics::Environment>(); break;
+                    }
+                }
+            };
+            ImCmd::AddCommand(std::move(c));
+        }
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_CURSOR_DEFAULT " Entity: Select";
+            c.InitialCallback = [this]()
+            {
+                auto scene = Application::Get().GetCurrentScene();
+                if(!scene)
+                    return;
+                auto& registry = scene->GetRegistry();
+                m_CachedEntityNames.clear();
+                m_CachedSelectableEntities.clear();
+                auto view = registry.view<IDComponent>();
+                for(auto e : view)
+                {
+                    auto name = registry.try_get<NameComponent>(e);
+                    m_CachedEntityNames.push_back(name ? name->name : std::string("Entity"));
+                    m_CachedSelectableEntities.push_back(e);
+                }
+                if(!m_CachedEntityNames.empty())
+                    ImCmd::Prompt(m_CachedEntityNames);
+            };
+            c.SubsequentCallback = [this](int selected)
+            {
+                if(selected < 0 || selected >= (int)m_CachedSelectableEntities.size())
+                    return;
+                auto scene = Application::Get().GetCurrentScene();
+                if(!scene)
+                    return;
+                Entity entity(m_CachedSelectableEntities[selected], scene);
+                ClearSelected();
+                SetSelected(entity);
+                FocusCamera(entity.HasComponent<Maths::Transform>() ? entity.GetComponent<Maths::Transform>().GetWorldPosition() : Vec3(0.0f), 10.0f, 2.0f);
+            };
+            ImCmd::AddCommand(std::move(c));
+        }
+
+        // ---- Graphics ----
+        {
+            ImCmd::Command c;
+            c.Name            = ICON_MDI_REFRESH " Graphics: Recompile Shaders";
+            c.InitialCallback = [this]() { RecompileShaders(); };
+            ImCmd::AddCommand(std::move(c));
+        }
 
 #ifdef LUMOS_PLATFORM_LINUX
         m_TempSceneSaveFilePath = std::filesystem::current_path().string();
@@ -304,7 +672,7 @@ namespace Lumos
             m_IniFile = IniFile(filePath);
             AddDefaultEditorSettings();
         }
-        
+
 #ifdef LUMOS_PLATFORM_IOS
         std::string bundlePath  = OS::Get().GetAssetPath() + "ExampleProject";
         std::string docsDir     = OS::Get().GetCurrentWorkingDirectory() + "/LumosEditor/ExampleProject";
@@ -367,6 +735,7 @@ namespace Lumos
         m_ComponentIconMap[typeid(Graphics::Environment).hash_code()]    = ICON_MDI_EARTH;
         m_ComponentIconMap[typeid(Editor).hash_code()]                   = ICON_MDI_SQUARE;
         m_ComponentIconMap[typeid(TextComponent).hash_code()]            = ICON_MDI_TEXT;
+        m_ComponentIconMap[typeid(TerrainComponent).hash_code()]         = ICON_MDI_TERRAIN;
 
         m_Panels.emplace_back(CreateSharedPtr<ConsolePanel>());
         m_Panels.emplace_back(CreateSharedPtr<GameViewPanel>());
@@ -400,6 +769,8 @@ namespace Lumos
         m_Panels.back()->SetActive(false);
         m_Panels.emplace_back(CreateSharedPtr<ParticleEditorPanel>());
         m_Panels.back()->SetActive(false);
+        m_Panels.emplace_back(CreateSharedPtr<TerrainEditorPanel>());
+        m_Panels.back()->SetActive(false);
 
         for(auto& panel : m_Panels)
             panel->SetEditor(this);
@@ -409,6 +780,17 @@ namespace Lumos
         m_PreviewDraw      = new PreviewDraw();
 
         CreateGridRenderer();
+
+        // App logo for the title bar.
+        {
+            Graphics::TextureDesc        ldesc;
+            ldesc.minFilter = Graphics::TextureFilter::LINEAR;
+            ldesc.magFilter = Graphics::TextureFilter::LINEAR;
+            ldesc.wrap      = Graphics::TextureWrap::CLAMP;
+            Graphics::TextureLoadOptions lopts;
+            lopts.flipY     = true;
+            m_LogoTexture   = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromSource(lumosLogoWidth, lumosLogoHeight, (void*)lumosLogo, ldesc, lopts));
+        }
 
         m_Settings.m_ShowImGuiDemo = false;
 
@@ -423,10 +805,23 @@ namespace Lumos
 
         ImGuiUtilities::SetTheme(m_Settings.m_Theme);
         OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+        OS::Get().SetWindowDecorations(false);
         Application::Get().GetWindow()->SetWindowTitle("Lumos Editor");
 
         ImGuizmo::SetGizmoSizeClipSpace(m_Settings.m_ImGuizmoScale);
-        // ImGuizmo::SetGizmoSizeScale(Application::Get().GetWindowDPI());
+
+        {
+            const float dpiScale                    = Maths::Max(Application::Get().GetWindowDPI(), 1.0f);
+            auto& gs                                = ImGuizmo::GetStyle();
+            gs.TranslationLineThickness             = 5.0f * dpiScale;
+            gs.TranslationLineArrowSize             = 9.0f * dpiScale;
+            gs.RotationLineThickness                = 3.0f * dpiScale;
+            gs.RotationOuterLineThickness           = 5.0f * dpiScale;
+            gs.ScaleLineThickness                   = 5.0f * dpiScale;
+            gs.ScaleLineCircleSize                  = 9.0f * dpiScale;
+            gs.CenterCircleSize                     = 9.0f * dpiScale;
+            gs.HatchedAxisLineThickness             = -1.0f;
+        }
 
         m_PreviewDraw->CreateDefaultScene();
     }
@@ -535,6 +930,57 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
+#if defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
+        // Borderless-window edge resize hit-test. macOS handles resize natively
+        // via NSWindowStyleMaskFullSizeContentView — no manual hit-test needed.
+        if(!OS::Get().IsWindowMaximised() && !OS::Get().IsWindowFullscreen())
+        {
+            static bool isResizing = false;
+            static int  startEdge  = 0;
+
+            ImGuiIO& io = ImGui::GetIO();
+            const ImGuiViewport* vp = ImGui::GetMainViewport();
+            const float edge = 6.0f;
+            int hitMask      = 0;
+            const ImVec2 mp  = io.MousePos;
+            if(mp.x >= vp->Pos.x && mp.x <= vp->Pos.x + vp->Size.x
+               && mp.y >= vp->Pos.y && mp.y <= vp->Pos.y + vp->Size.y)
+            {
+                if(mp.x <= vp->Pos.x + edge)               hitMask |= 4;
+                if(mp.x >= vp->Pos.x + vp->Size.x - edge)  hitMask |= 8;
+                if(mp.y <= vp->Pos.y + edge)               hitMask |= 1;
+                if(mp.y >= vp->Pos.y + vp->Size.y - edge)  hitMask |= 2;
+            }
+
+            const int mask = isResizing ? startEdge : hitMask;
+            if(mask)
+            {
+                ImGuiMouseCursor c = ImGuiMouseCursor_Arrow;
+                if(mask == 1 || mask == 2)              c = ImGuiMouseCursor_ResizeNS;
+                else if(mask == 4 || mask == 8)         c = ImGuiMouseCursor_ResizeEW;
+                else if(mask == (1|4) || mask == (2|8)) c = ImGuiMouseCursor_ResizeNWSE;
+                else if(mask == (1|8) || mask == (2|4)) c = ImGuiMouseCursor_ResizeNESW;
+                ImGui::SetMouseCursor(c);
+            }
+
+            if(!isResizing && hitMask && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+            {
+                isResizing = true;
+                startEdge  = hitMask;
+                OS::Get().BeginWindowResize(hitMask);
+            }
+            if(isResizing)
+            {
+                OS::Get().UpdateWindowResize();
+                if(!ImGui::IsMouseDown(ImGuiMouseButton_Left))
+                {
+                    isResizing = false;
+                    startEdge  = 0;
+                }
+            }
+        }
+#endif
+
         if(!m_ProjectLoaded)
         {
             DrawWelcomeScreen();
@@ -544,6 +990,7 @@ namespace Lumos
         }
 
         DrawMenuBar();
+        DrawStatusBar();
 
         BeginDockSpace(m_Settings.m_FullScreenOnPlay && Application::Get().GetEditorState() == EditorState::Play);
 
@@ -585,30 +1032,86 @@ namespace Lumos
         if(Application::Get().GetEditorState() == EditorState::Preview)
             Application::Get().GetSceneManager()->GetCurrentScene()->UpdateSceneGraph();
 
-        EndDockSpace();
-
-        ImGuiDockContext* dc = &ImGui::GetCurrentContext()->DockContext;
-        for(int n = 0; n < dc->Nodes.Data.Size; n++)
-            if(ImGuiDockNode* node = (ImGuiDockNode*)dc->Nodes.Data[n].val_p)
-            {
-                if(node->TabBar)
-                    for(int n = 0; n < node->TabBar->Tabs.Size; n++)
+        // Panel close context menu — must run inside the dockspace window (before EndDockSpace)
+        // so OpenPopup/BeginPopup have a valid current-window context.
+        {
+            // Docked panels: right-click on tab
+            ImGuiDockContext* dc = &ImGui::GetCurrentContext()->DockContext;
+            for(int n = 0; n < dc->Nodes.Data.Size; n++)
+                if(ImGuiDockNode* node = (ImGuiDockNode*)dc->Nodes.Data[n].val_p)
+                {
+                    if(!node->TabBar)
+                        continue;
+                    for(int ti = 0; ti < node->TabBar->Tabs.Size; ti++)
                     {
-                        const bool tab_visible     = node->TabBar->VisibleTabId == node->TabBar->Tabs[n].ID;
+                        auto& tab                  = node->TabBar->Tabs[ti];
+                        const bool tab_visible     = node->TabBar->VisibleTabId == tab.ID;
                         const bool tab_bar_focused = (node->TabBar->Flags & ImGuiTabBarFlags_IsFocused) != 0;
-                        if(tab_bar_focused || tab_visible)
+
+                        if(!tab.Window)
+                            continue;
+
+                        ImVec2 tabMin = { node->TabBar->BarRect.Min.x + tab.Offset, node->TabBar->BarRect.Min.y };
+                        ImVec2 tabMax = { tabMin.x + tab.Width, node->TabBar->BarRect.Max.y };
+
+                        if(ImGui::IsMouseHoveringRect(tabMin, tabMax, false) && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
                         {
-                            auto tab = node->TabBar->Tabs[n];
+                            m_TabRightClickedWindow = tab.Window->Name;
+                            ImGui::OpenPopup("##TabContextMenu");
+                        }
 
+                        if(tab_visible)
+                        {
+                            const ImVec2 overrideFramePadding = ImVec2(20.0f, 14.0f);
                             ImVec2 pos = tab.Window->Pos;
-                            pos.x      = pos.x + tab.Offset + ImGui::GetStyle().FramePadding.x;
-                            pos.y      = pos.y + ImGui::GetStyle().ItemSpacing.y;
+                            pos.x      = pos.x + tab.Offset + overrideFramePadding.x;
+                            pos.y      = pos.y + (ImGui::GetStyle().ItemSpacing.y * 0.5f);
                             ImRect bb(pos, { pos.x + tab.Width, pos.y });
+                            const float dpiScale = Maths::Max(Application::Get().GetWindowDPI(), 1.0f);
 
-                            tab.Window->DrawList->AddLine(bb.Min, bb.Max, (!tab_bar_focused) ? ImGui::GetColorU32(ImGuiCol_SliderGrabActive) : ImGui::GetColorU32(ImGuiCol_Text), 2.0f);
+                            ImU32 lineCol = tab_bar_focused ? ImGui::GetColorU32(ImGuiCol_SliderGrabActive)
+                                                            : ImGui::GetColorU32(ImGuiCol_TextDisabled);
+                            tab.Window->DrawList->AddLine(bb.Min, bb.Max, lineCol, 2.0f * dpiScale);
                         }
                     }
+                }
+
+            // Floating (undocked) panels: right-click on title bar
+            ImGuiContext* ctx = ImGui::GetCurrentContext();
+            for(int n = 0; n < ctx->Windows.Size; n++)
+            {
+                ImGuiWindow* win = ctx->Windows[n];
+                if(!win || win->Hidden || (win->Flags & ImGuiWindowFlags_ChildWindow))
+                    continue;
+                if(win->DockIsActive || win->DockNode)
+                    continue; // docked — handled above
+
+                ImRect titleBar = win->TitleBarRect();
+                if(ImGui::IsMouseHoveringRect(titleBar.Min, titleBar.Max, false) && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+                {
+                    m_TabRightClickedWindow = win->Name;
+                    ImGui::OpenPopup("##TabContextMenu");
+                }
             }
+
+            if(ImGui::BeginPopup("##TabContextMenu"))
+            {
+                if(ImGui::MenuItem("Close"))
+                {
+                    for(auto& panel : m_Panels)
+                    {
+                        if(panel->GetName() == m_TabRightClickedWindow)
+                        {
+                            panel->SetActive(false);
+                            break;
+                        }
+                    }
+                }
+                ImGui::EndPopup();
+            }
+        }
+
+        EndDockSpace();
 
         Application::OnImGui();
     }
@@ -659,16 +1162,128 @@ namespace Lumos
         locationPopupOpened = false;
     }
 
+#ifdef LUMOS_PLATFORM_IOS
+    // Menu bar auto-hides on iOS to reclaim screen space. Top-edge swipe-down sets the
+    // expiry timestamp; while m_Time < expiry, the bar is drawn. Touching the bar (any
+    // hover or active item) refreshes the timer.
+    static double s_MenuBarVisibleUntil = 0.0; // engine-clock seconds
+    static constexpr double kMenuBarRevealDuration = 5.0;
+#endif
+
     void Editor::DrawMenuBar()
     {
         LUMOS_PROFILE_FUNCTION();
 
+#ifdef LUMOS_PLATFORM_IOS
+        // Only auto-hide on iPhone — iPad has the screen real-estate to keep the bar pinned.
+        const bool isIPhone = ((Lumos::iOSOS*)Lumos::OS::GetPtr())->GetDeviceType() != Lumos::iOSOS::iOSDeviceType::iPad;
+        if(isIPhone)
+        {
+            const double now = Engine::Get().GetTimeStep().GetElapsedSeconds();
+            if(now > s_MenuBarVisibleUntil)
+                return;
+        }
+#endif
+
         bool openSaveScenePopup   = false;
         bool openNewScenePopup    = false;
         bool openReloadScenePopup = false;
+        
+        ImGuiUtilities::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(10.0f, 12.0f));
 
         if(ImGui::BeginMainMenuBar())
         {
+#ifdef LUMOS_PLATFORM_IOS
+            // Refresh the auto-hide timer while the bar is being interacted with.
+            if(ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByPopup) || ImGui::IsAnyItemActive())
+                s_MenuBarVisibleUntil = Engine::Get().GetTimeStep().GetElapsedSeconds() + kMenuBarRevealDuration;
+#endif
+            // ---- Left chrome: macOS traffic-light gutter, logo, breadcrumb ----
+            const float barH = ImGui::GetFrameHeight();
+#ifdef LUMOS_PLATFORM_MACOS
+            // Native traffic lights span roughly x=8..78. Reserve until ~110px.
+            // In fullscreen the lights are hidden — drop the gutter entirely.
+            if(!OS::Get().IsWindowFullscreen())
+                ImGui::SetCursorPosX(130.0f);
+#endif
+            if(m_LogoTexture)
+            {
+                ImTextureID tid = (ImTextureID)Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(m_LogoTexture.get());
+                ImGui::Image(tid, ImVec2(barH, barH));
+            }
+            else
+            {
+                ImGui::Dummy(ImVec2(barH, barH));
+            }
+            ImGui::SameLine(0.0f, 10.0f);
+            {
+                // Breadcrumb buttons render as text-links — transparent bg, subtle hover.
+                ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0, 0, 0, 0));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1, 1, 1, 0.06f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(1, 1, 1, 0.10f));
+
+                // Breadcrumb: LUMOS / <project> / <scene>
+                ImGui::TextDisabled("LUMOS");
+                ImGui::SameLine(0.0f, 6.0f);
+                ImGui::TextDisabled("/");
+                ImGui::SameLine(0.0f, 6.0f);
+                const std::string projectName = m_ProjectLoaded ? m_ProjectSettings.m_ProjectName : std::string("");
+                if(m_ProjectLoaded)
+                {
+                    if(ImGui::SmallButton(projectName.c_str()))
+                        ImGui::OpenPopup("##breadcrumb_projects");
+                    ImGuiUtilities::Tooltip("Switch project");
+                }
+                else
+                {
+                    ImGui::TextDisabled("no project");
+                }
+                ImGui::SameLine(0.0f, 6.0f);
+                ImGui::TextDisabled("/");
+                ImGui::SameLine(0.0f, 6.0f);
+                if(m_ProjectLoaded)
+                {
+                    const std::string sceneName = GetCurrentScene()->GetSceneName();
+                    if(ImGui::SmallButton(sceneName.c_str()))
+                        ImGui::OpenPopup("##breadcrumb_scenes");
+                    ImGuiUtilities::Tooltip("Switch scene");
+                }
+                else
+                {
+                    ImGui::TextDisabled("no scene");
+                }
+
+                if(ImGui::BeginPopup("##breadcrumb_projects"))
+                {
+                    for(auto& recent : m_Settings.m_RecentProjects)
+                    {
+                        if(ImGui::MenuItem(recent.c_str()))
+                        {
+                            m_ProjectLoadError.clear();
+                            Application::Get().OpenProject(recent);
+                            for(int i = 0; i < int(m_Panels.size()); i++)
+                                m_Panels[i]->OnNewProject();
+                        }
+                    }
+                    ImGui::EndPopup();
+                }
+                if(ImGui::BeginPopup("##breadcrumb_scenes"))
+                {
+                    auto sm = Application::Get().GetSceneManager();
+                    uint32_t currentIdx = sm->GetCurrentSceneIndex();
+                    TDArray<String8> sceneNames = sm->GetSceneNames(m_FrameArena);
+                    for(int i = 0; i < (int)sceneNames.Size(); ++i)
+                    {
+                        if(ImGui::MenuItem((const char*)sceneNames[i].str, nullptr, (uint32_t)i == currentIdx))
+                            sm->SwitchScene(i);
+                    }
+                    ImGui::EndPopup();
+                }
+
+                ImGui::PopStyleColor(3);
+            }
+            ImGui::SameLine(0.0f, 14.0f);
+
             // Calculate available width for menus
             // Play buttons are centered, so available space is roughly half the window minus some padding
             float windowWidth = ImGui::GetWindowWidth();
@@ -706,7 +1321,43 @@ namespace Lumos
 
             bool showProjectInfo = spaceAfterMenus >= totalProjectInfoWidth;
 
-            if(ImGui::BeginMenu("File"))
+            // Left-side drag region — empty space between breadcrumb and centered menus.
+            // Place BEFORE the menu group centering SameLine so the gap is filled.
+            {
+                const float totalMenuW = collapseMenus
+                    ? (fileMenuWidth + moreMenuWidth)
+                    : (fileMenuWidth + totalSecondaryWidth);
+                const float centerX    = (windowWidth - totalMenuW) * 0.5f;
+                const float cursorX    = ImGui::GetCursorPosX();
+                const float leftDragW  = centerX - cursorX - 4.0f;
+                if(leftDragW > 4.0f)
+                {
+                    const float h = ImGui::GetFrameHeight();
+                    ImGui::InvisibleButton("##title_drag_left", ImVec2(leftDragW, h));
+                    if(ImGui::IsItemActivated())
+                        OS::Get().BeginWindowDrag();
+                    if(ImGui::IsItemActive())
+                        OS::Get().UpdateWindowDrag();
+                    if(ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                    {
+                        if(OS::Get().IsWindowMaximised()) OS::Get().RestoreWindow();
+                        else                              OS::Get().MaximiseWindow();
+                    }
+                    ImGui::SameLine(0.0f, 0.0f);
+                }
+                if(centerX > ImGui::GetCursorPosX())
+                    ImGui::SameLine(centerX);
+            }
+
+            // Dim the menu header labels while keeping popup item text at normal brightness.
+            auto DimMenu = [](const char* label) -> bool {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+                bool open = ImGui::BeginMenu(label);
+                ImGui::PopStyleColor();
+                return open;
+            };
+
+            if(DimMenu("File"))
             {
                 if(ImGui::MenuItem("Open Project"))
                 {
@@ -818,6 +1469,12 @@ namespace Lumos
 
                 if(ImGui::BeginMenu("Style"))
                 {
+                    if(ImGui::MenuItem("Lumos", "", m_Settings.m_Theme == ImGuiUtilities::Lumos))
+                    {
+                        m_Settings.m_Theme = ImGuiUtilities::Lumos;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::Lumos);
+                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                    }
                     if(ImGui::MenuItem("Dark", "", m_Settings.m_Theme == ImGuiUtilities::Dark))
                     {
                         m_Settings.m_Theme = ImGuiUtilities::Dark;
@@ -925,7 +1582,7 @@ namespace Lumos
             // includeProjectInfo: when true, adds project/scene info to the menu (for overflow)
             auto DrawSecondaryMenus = [&](bool includeProjectInfo)
             {
-                if(ImGui::BeginMenu("Edit"))
+                if(DimMenu("Edit"))
                 {
                     if(ImGui::MenuItem("Undo", "CTRL+Z"))
                     {
@@ -967,7 +1624,7 @@ namespace Lumos
 
                     ImGui::EndMenu();
                 }
-                if(ImGui::BeginMenu("View"))
+                if(DimMenu("View"))
                 {
                     for(auto& panel : m_Panels)
                     {
@@ -985,7 +1642,7 @@ namespace Lumos
                     ImGui::EndMenu();
                 }
 
-                if(ImGui::BeginMenu("Scenes"))
+                if(DimMenu("Scenes"))
                 {
                     ArenaTemp scratch = ScratchBegin(0, 0);
                     auto scenes       = Application::Get().GetSceneManager()->GetSceneNames(scratch.arena);
@@ -1019,7 +1676,7 @@ namespace Lumos
                     ImGui::EndMenu();
                 }
 
-                if(ImGui::BeginMenu("Graphics"))
+                if(DimMenu("Graphics"))
                 {
                     if(ImGui::MenuItem("Compile Shaders"))
                     {
@@ -1083,10 +1740,15 @@ namespace Lumos
                     ImGui::EndMenu();
                 }
 
-                if(ImGui::BeginMenu("About"))
+                if(DimMenu("About"))
                 {
                     auto& version = Lumos::LumosVersion;
                     ImGui::Text("Version : %d.%d.%d", version.major, version.minor, version.patch);
+                    {
+                        const auto& s = Engine::Get().Statistics();
+                        int fps       = int(Maths::Round(1000.0 / s.FrameTime));
+                        ImGui::Text("Performance : %.2f ms (%i FPS)", s.FrameTime, fps);
+                    }
                     ImGui::Separator();
 
                     std::string githubMenuText = std::string(ICON_MDI_GITHUB_BOX) + std::string(" Github");
@@ -1166,120 +1828,8 @@ namespace Lumos
                 DrawSecondaryMenus(false);  // Never include project info when menus are expanded
             }
 
-            // Only show project/scene names in menu bar when there's enough space
-            if(m_ProjectLoaded && showProjectInfo)
-            {
-                {
-                    ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
-                    ImGuiUtilities::ScopedColour border(ImGuiCol_Border, IM_COL32(40, 40, 40, 255));
-
-                    ImGui::SameLine(ImGui::GetCursorPosX() + 40.0f);
-                    ImGui::Separator();
-                    ImGui::SameLine();
-                    ImGui::TextUnformatted(m_ProjectSettings.m_ProjectName.c_str());
-
-                    String8 projectString = PushStr8F(GetFrameArena(), "Current project ( %s.lmproj )", m_ProjectSettings.m_ProjectName.c_str());
-
-                    ImGuiUtilities::Tooltip((const char*)projectString.str);
-                    ImGuiUtilities::DrawBorder(ImGuiUtilities::RectExpanded(ImGuiUtilities::GetItemRect(), 24.0f, 68.0f), 1.0f, 3.0f, 0.0f, -60.0f);
-
-                    ImGui::SameLine();
-                    ImGui::Separator();
-                    ImGui::SameLine(ImGui::GetCursorPosX() + 32.0f);
-                    ImGui::TextUnformatted(GetCurrentScene()->GetSceneName().c_str());
-                    String8 sceneString = PushStr8F(GetFrameArena(), "Current Scene ( %s.lsn )", GetCurrentScene()->GetSceneName().c_str());
-
-                    ImGuiUtilities::Tooltip((const char*)sceneString.str);
-                    ImGuiUtilities::DrawBorder(ImGuiUtilities::RectExpanded(ImGuiUtilities::GetItemRect(), 24.0f, 68.0f), 1.0f, 3.0f, 0.0f, -60.0f);
-                }
-
-#ifdef LUMOS_DEBUG
-                {
-                    ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
-                    ImGuiUtilities::ScopedColour border(ImGuiCol_Text, IM_COL32(200, 40, 40, 255));
-                    ImGui::SameLine(ImGui::GetCursorPosX() + 40.0f);
-                    ImGui::TextUnformatted("DEBUG");
-                }
-#endif
-            }
-
-            ImGui::SameLine((ImGui::GetWindowContentRegionMax().x * 0.5f) - (1.5f * (ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x)));
-
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 0.0f));
-
             if(Application::Get().GetEditorState() == EditorState::Next)
                 Application::Get().SetEditorState(EditorState::Paused);
-
-            bool selected;
-            {
-                selected = Application::Get().GetEditorState() == EditorState::Play;
-                if(selected)
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-
-                if(ImGui::Button(ICON_MDI_PLAY))
-                {
-                    Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(selected);
-                    Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(selected);
-
-                    Application::Get().GetSystem<AudioManager>()->UpdateListener(Application::Get().GetCurrentScene());
-                    Application::Get().GetSystem<AudioManager>()->SetPaused(selected);
-                    Application::Get().SetEditorState(selected ? EditorState::Preview : EditorState::Play);
-                    ImGui::SetWindowFocus(ICON_MDI_GAMEPAD_VARIANT " Game###game");
-
-                    // m_SelectedEntities.clear();
-                    // m_SelectedEntity = entt::null;
-                    if(selected)
-                    {
-                        ImGui::SetWindowFocus("###scene");
-                        LoadCachedScene();
-                    }
-                    else
-                    {
-                        ImGui::SetWindowFocus("###game");
-                        CacheScene();
-                        Application::Get().GetCurrentScene()->OnInit();
-                    }
-                }
-                if(ImGui::IsItemHovered())
-                    ImGui::SetTooltip("Play");
-
-                if(selected)
-                    ImGui::PopStyleColor();
-            }
-
-            ImGui::SameLine();
-
-            {
-                selected = Application::Get().GetEditorState() == EditorState::Paused;
-                if(selected)
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-
-                if(ImGui::Button(ICON_MDI_PAUSE))
-                    Application::Get().SetEditorState(selected ? EditorState::Play : EditorState::Paused);
-
-                if(ImGui::IsItemHovered())
-                    ImGui::SetTooltip("Pause");
-
-                if(selected)
-                    ImGui::PopStyleColor();
-            }
-
-            ImGui::SameLine();
-
-            {
-                selected = Application::Get().GetEditorState() == EditorState::Next;
-                if(selected)
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-
-                if(ImGui::Button(ICON_MDI_STEP_FORWARD))
-                    Application::Get().SetEditorState(EditorState::Next);
-
-                if(ImGui::IsItemHovered())
-                    ImGui::SetTooltip("Next");
-
-                if(selected)
-                    ImGui::PopStyleColor();
-            }
 
             static Engine::Stats stats = {};
             static double timer        = 1.1;
@@ -1378,15 +1928,249 @@ namespace Lumos
                 m_ProjectSettings.RenderAPI = int(StringToRenderAPI(current_api));
             }
 
-            ImGui::PopStyleColor(2);
+            ImGui::PopStyleColor();
             ImGui::PopStyleVar();
 #else
-            auto size = ImGui::CalcTextSize("%.2f ms (%.i FPS)");
-            ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - size.x - ImGui::GetStyle().ItemSpacing.x * 2.0f);
+            {
+                // Capture menu bar height BEFORE pushing inner FramePadding (otherwise
+                // GetFrameHeight reflects the inner scope, not the outer bar).
+                const float menuBarH = ImGui::GetFrameHeight();
 
-            int fps = int(Maths::Round(1000.0 / stats.FrameTime));
-            ImGui::Text("%.2f ms (%.i FPS)", stats.FrameTime, fps);
-            ImGui::PopStyleColor();
+                ImGuiUtilities::ScopedStyle rounding(ImGuiStyleVar_FrameRounding, 8.0f);
+                ImGuiUtilities::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 6.0f));
+                ImGuiUtilities::ScopedStyle btnSpacing(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, ImGui::GetStyle().ItemSpacing.y));
+
+                const float btn      = ImGui::GetFrameHeight();
+                const int   count    = 5;
+                const float total    = count * btn;
+                const float rightPad = 32.0f;
+
+#if defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
+                const float winControlsW = 3.0f * btn + 8.0f;
+#else
+                const float winControlsW = 0.0f;
+#endif
+                const float blockStart = ImGui::GetWindowContentRegionMax().x - total - rightPad - winControlsW;
+
+                // Drag region — fills empty space between menus and right cluster.
+                {
+                    const float cursorX     = ImGui::GetCursorPosX();
+                    const float dragRegionW = blockStart - cursorX - 8.0f;
+                    if(dragRegionW > 4.0f)
+                    {
+                        const float h = ImGui::GetFrameHeight();
+                        ImGui::InvisibleButton("##title_drag", ImVec2(dragRegionW, h));
+                        if(ImGui::IsItemActivated())
+                            OS::Get().BeginWindowDrag();
+                        if(ImGui::IsItemActive())
+                            OS::Get().UpdateWindowDrag();
+                        if(ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                        {
+                            if(OS::Get().IsWindowMaximised())
+                                OS::Get().RestoreWindow();
+                            else
+                                OS::Get().MaximiseWindow();
+                        }
+                    }
+                }
+
+                ImGui::SameLine(blockStart);
+
+                // Vertically centre the play-button cluster inside the taller menu bar.
+                // Each Button() within a menu bar resets cursor Y between items, so the
+                // offset must be re-applied before *every* button in the cluster.
+                const float groupYOffset = Maths::Max((menuBarH - btn) * 0.5f, 0.0f);
+                const float baseY        = ImGui::GetCursorPosY();
+                auto OffsetY = [&]() { ImGui::SetCursorPosY(baseY + groupYOffset); };
+
+                const Vec4 sel       = ImGuiUtilities::GetSelectedColour();
+                const ImVec4 accent  = ImVec4(sel.x, sel.y, sel.z, sel.w);
+                const ImVec4 amber   = ImVec4(0.95f, 0.65f, 0.20f, 1.0f);
+
+                auto pushActive = [](const ImVec4& c)
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Button, c);
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(c.x + 0.08f, c.y + 0.08f, c.z + 0.08f, c.w));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(c.x + 0.12f, c.y + 0.12f, c.z + 0.12f, c.w));
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
+                };
+
+                bool isEdit   = Application::Get().GetEditorState() == EditorState::Preview;
+                bool isPlay   = Application::Get().GetEditorState() == EditorState::Play;
+                bool isPaused = Application::Get().GetEditorState() == EditorState::Paused;
+                bool isNext   = Application::Get().GetEditorState() == EditorState::Next;
+
+                ImGuiUtilities::ScopedStyle btnRounding(ImGuiStyleVar_FrameRounding, 0.0f);
+
+                OffsetY();
+                const ImVec2 groupStartScreen = ImGui::GetCursorScreenPos();
+                if(isEdit) pushActive(accent);
+                if(ImGui::Button(ICON_MDI_BRUSH, ImVec2(btn, btn)))
+                {
+                    Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(!isEdit);
+                    Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(!isEdit);
+                    Application::Get().GetSystem<AudioManager>()->UpdateListener(Application::Get().GetCurrentScene());
+                    Application::Get().GetSystem<AudioManager>()->SetPaused(!isEdit);
+                    Application::Get().SetEditorState(!isEdit ? EditorState::Preview : EditorState::Play);
+
+                    if(isEdit)
+                    {
+                        ImGui::SetWindowFocus("Game###game");
+                        CacheScene();
+                        Application::Get().GetCurrentScene()->OnInit();
+                    }
+                    else
+                    {
+                        ImGui::SetWindowFocus("###scene");
+                        m_SceneViewActive = true;
+                        LoadCachedScene();
+                    }
+                }
+                if(ImGui::IsItemHovered()) ImGui::SetTooltip("Edit");
+                if(isEdit) ImGui::PopStyleColor(4);
+
+                OffsetY();
+                if(isPlay) pushActive(accent);
+                if(ImGui::Button(ICON_MDI_PLAY, ImVec2(btn, btn)))
+                {
+                    Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(isPlay);
+                    Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(isPlay);
+                    Application::Get().GetSystem<AudioManager>()->UpdateListener(Application::Get().GetCurrentScene());
+                    Application::Get().GetSystem<AudioManager>()->SetPaused(isPlay);
+                    Application::Get().SetEditorState(isPlay ? EditorState::Preview : EditorState::Play);
+                    ImGui::SetWindowFocus("Game###game");
+                    if(isPlay)
+                    {
+                        ImGui::SetWindowFocus("###scene");
+                        m_SceneViewActive = true;
+                        LoadCachedScene();
+                    }
+                    else
+                    {
+                        ImGui::SetWindowFocus("###game");
+                        CacheScene();
+                        Application::Get().GetCurrentScene()->OnInit();
+                    }
+                }
+                if(ImGui::IsItemHovered()) ImGui::SetTooltip("Play");
+                if(isPlay) ImGui::PopStyleColor(4);
+
+                ImGui::SameLine();
+                OffsetY();
+                if(isPaused) pushActive(amber);
+                if(ImGui::Button(ICON_MDI_PAUSE, ImVec2(btn, btn)))
+                    Application::Get().SetEditorState(isPaused ? EditorState::Play : EditorState::Paused);
+                if(ImGui::IsItemHovered()) ImGui::SetTooltip("Pause");
+                if(isPaused) ImGui::PopStyleColor(4);
+
+                ImGui::SameLine();
+                OffsetY();
+                if(isNext) pushActive(accent);
+                if(ImGui::Button(ICON_MDI_STEP_FORWARD, ImVec2(btn, btn)))
+                    Application::Get().SetEditorState(EditorState::Next);
+                if(ImGui::IsItemHovered()) ImGui::SetTooltip("Next");
+                if(isNext) ImGui::PopStyleColor(4);
+
+                ImGui::SameLine();
+                OffsetY();
+                if(ImGui::Button(ICON_MDI_SETTINGS, ImVec2(btn, btn)))
+                    ImGui::OpenPopup("SettingsMenu");
+                if(ImGui::IsItemHovered()) ImGui::SetTooltip("Settings");
+
+                // Outline around the full 5-button cluster — orange-tinted accent.
+                {
+                    const ImVec2 groupEndScreen = ImGui::GetItemRectMax();
+                    const ImU32 outline = IM_COL32(
+                        (int)(sel.x * 255), (int)(sel.y * 255), (int)(sel.z * 255), 140);
+                    ImGui::GetWindowDrawList()->AddRect(
+                        ImVec2(groupStartScreen.x - 2.0f, groupStartScreen.y - 2.0f),
+                        ImVec2(groupEndScreen.x   + 2.0f, groupEndScreen.y   + 2.0f),
+                        outline, 6.0f, 0, 1.5f);
+                }
+
+                if(ImGui::BeginPopup("SettingsMenu"))
+                {
+                    if(ImGui::MenuItem(ICON_MDI_PENCIL " Editor Settings"))
+                    {
+                        for(auto& panel : m_Panels)
+                        {
+                            if(panel->GetSimpleName() == "Editor Settings")
+                                panel->SetActive(true);
+                        }
+                    }
+                    if(ImGui::MenuItem(ICON_MDI_FOLDER " Project Settings"))
+                    {
+                        for(auto& panel : m_Panels)
+                        {
+                            if(panel->GetSimpleName() == "Project Settings")
+                                panel->SetActive(true);
+                        }
+                    }
+                    if(ImGui::MenuItem(ICON_MDI_PALETTE " Scene Settings"))
+                    {
+                        for(auto& panel : m_Panels)
+                        {
+                            if(panel->GetSimpleName() == "Scene Settings")
+                                panel->SetActive(true);
+                        }
+                    }
+                    if(ImGui::MenuItem(ICON_MDI_INFORMATION " Application Settings"))
+                    {
+                        for(auto& panel : m_Panels)
+                        {
+                            if(panel->GetSimpleName() == "Application Info")
+                                panel->SetActive(true);
+                        }
+                    }
+                    ImGui::Separator();
+                    if(ImGui::BeginMenu(ICON_MDI_VIEW_DASHBOARD " Layout"))
+                    {
+                        if(ImGui::MenuItem("Default"))         ApplyLayoutPreset(LayoutPreset::Default);
+                        if(ImGui::MenuItem("Split 50/50"))     ApplyLayoutPreset(LayoutPreset::Split);
+                        if(ImGui::MenuItem("Scene Focused"))   ApplyLayoutPreset(LayoutPreset::SceneFocused);
+                        if(ImGui::MenuItem("Coding"))          ApplyLayoutPreset(LayoutPreset::Coding);
+#ifdef LUMOS_PLATFORM_IOS
+                        if(ImGui::MenuItem("Touch Compact"))   ApplyLayoutPreset(LayoutPreset::IOSCompact);
+#endif
+                        ImGui::EndMenu();
+                    }
+                    ImGui::EndPopup();
+                }
+            }
+#endif
+
+#if defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
+            // Custom window controls (rightmost): minimise · max/restore · close.
+            {
+                const float btn = ImGui::GetFrameHeight();
+                ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 3.0f * btn);
+                ImGuiUtilities::ScopedStyle btnSpacing(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, ImGui::GetStyle().ItemSpacing.y));
+                ImGuiUtilities::ScopedStyle btnRounding(ImGuiStyleVar_FrameRounding, 0.0f);
+
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+                if(ImGui::Button(ICON_MDI_MINUS, ImVec2(btn, btn)))
+                    OS::Get().IconifyWindow();
+                ImGuiUtilities::Tooltip("Minimise");
+
+                ImGui::SameLine();
+                const bool isMax = OS::Get().IsWindowMaximised();
+                if(ImGui::Button(isMax ? ICON_MDI_WINDOW_RESTORE : ICON_MDI_WINDOW_MAXIMIZE, ImVec2(btn, btn)))
+                {
+                    if(isMax) OS::Get().RestoreWindow();
+                    else      OS::Get().MaximiseWindow();
+                }
+                ImGuiUtilities::Tooltip(isMax ? "Restore" : "Maximise");
+
+                ImGui::SameLine();
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.78f, 0.20f, 0.18f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.62f, 0.16f, 0.14f, 1.0f));
+                if(ImGui::Button(ICON_MDI_CLOSE, ImVec2(btn, btn)))
+                    Application::Get().SetAppState(AppState::Closing);
+                ImGui::PopStyleColor(2);
+                ImGuiUtilities::Tooltip("Close");
+
+                ImGui::PopStyleColor(); // Button
+            }
 #endif
 
             ImGui::EndMainMenuBar();
@@ -1560,6 +2344,102 @@ namespace Lumos
                 m_AssetPackResult = false;
             }
         }
+    }
+
+    void Editor::DrawStatusBar()
+    {
+        LUMOS_PROFILE_FUNCTION();
+
+        PerfGraph::Record(); // status bar runs every frame, keep history filled here
+
+        const float height = ImGui::GetFrameHeight();
+
+        ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
+        if(ImGui::BeginViewportSideBar("##statusbar", ImGui::GetMainViewport(), ImGuiDir_Down, height, flags))
+        {
+            if(ImGui::BeginMenuBar())
+            {
+                ImGuiUtilities::ScopedFont smallFont(ImGui::GetIO().Fonts->Fonts[2]);
+                const ImVec4 dim(0.55f, 0.55f, 0.55f, 1.0f);
+                const ImVec4 sep(0.30f, 0.30f, 0.30f, 1.0f);
+                auto Sep = [&]() { ImGui::SameLine(0, 10); ImGui::TextColored(sep, "."); ImGui::SameLine(0, 10); };
+
+                const Engine::Stats& s = Engine::Get().Statistics();
+
+                bool isPlay = Application::Get().GetEditorState() == EditorState::Play;
+                ImGui::TextColored(isPlay ? ImVec4(0.3f, 0.85f, 0.4f, 1.0f) : ImVec4(0.55f, 0.85f, 0.45f, 1.0f), isPlay ? "PLAYING" : "READY");
+
+                Sep();
+                ImGui::TextColored(dim, "frame"); ImGui::SameLine(0, 4);
+                ImGui::Text("%u fps", s.FramesPerSecond);
+                PerfGraph::FramerateTooltip();
+
+                Sep();
+                ImGui::TextColored(dim, "cpu"); ImGui::SameLine(0, 4);
+                ImGui::Text("%.1f ms", s.FrameTime);
+                PerfGraph::FrametimeTooltip();
+
+                Sep();
+                ImGui::TextColored(dim, "draws"); ImGui::SameLine(0, 4);
+                ImGui::Text("%u", s.NumDrawCalls);
+
+                Sep();
+                ImGui::TextColored(dim, "tris"); ImGui::SameLine(0, 4);
+                if(s.TriangleCount >= 1000)
+                    ImGui::Text("%.0f k", s.TriangleCount / 1000.0);
+                else
+                    ImGui::Text("%u", s.TriangleCount);
+
+                if(s.TotalGPUMemory > 0.0f)
+                {
+                    Sep();
+                    ImGui::TextColored(dim, "vram"); ImGui::SameLine(0, 4);
+                    ImGui::Text("%.0f / %.0f MB", s.UsedGPUMemory / (1024.0f * 1024.0f), s.TotalGPUMemory / (1024.0f * 1024.0f));
+                }
+
+                Sep();
+                ImGui::TextColored(dim, "ent"); ImGui::SameLine(0, 4);
+                size_t entCount = 0;
+                if(auto scene = Application::Get().GetCurrentScene())
+                    entCount = scene->GetEntityManager()->GetRegistry().storage<entt::entity>().in_use();
+                ImGui::Text("%zu", entCount);
+
+                // Right cluster — scene path · version · build type
+                {
+                    char scenePath[128] = "";
+                    if(m_ProjectLoaded)
+                        snprintf(scenePath, sizeof(scenePath), "scene/%s.lsn", GetCurrentScene()->GetSceneName().c_str());
+                    char versionBuf[32];
+                    snprintf(versionBuf, sizeof(versionBuf), "%d.%d.%d", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
+
+#ifdef NDEBUG
+                    const char* buildType = "Release";
+#else
+                    const char* buildType = "Debug";
+#endif
+
+                    const float scenePathW = ImGui::CalcTextSize(scenePath).x;
+                    const float versionW   = ImGui::CalcTextSize(versionBuf).x;
+                    const float buildTypeW = ImGui::CalcTextSize(buildType).x;
+                    const float dotW       = ImGui::CalcTextSize(".").x;
+                    const float totalW     = (scenePath[0] ? scenePathW + 20 + dotW + 20 : 0) + versionW + 20 + buildTypeW + 12.0f;
+                    const float right      = ImGui::GetWindowContentRegionMax().x - totalW;
+                    if(right > ImGui::GetCursorPosX() + 10)
+                        ImGui::SameLine(right);
+                    if(scenePath[0])
+                    {
+                        ImGui::TextColored(dim, "%s", scenePath);
+                        ImGui::SameLine(0, 10); ImGui::TextColored(sep, "."); ImGui::SameLine(0, 10);
+                    }
+                    ImGui::TextColored(dim, "%s", versionBuf);
+                    ImGui::SameLine(0, 10); ImGui::TextColored(sep, "."); ImGui::SameLine(0, 10);
+                    ImGui::TextColored(dim, "%s", buildType);
+                }
+
+                ImGui::EndMenuBar();
+            }
+        }
+        ImGui::End();
     }
 
     void Editor::DrawWelcomeScreen()
@@ -2115,102 +2995,142 @@ namespace Lumos
 
         if(!ImGui::DockBuilderGetNode(DockspaceID))
         {
-            ImGui::DockBuilderRemoveNode(DockspaceID); // Clear out existing layout
-            ImGui::DockBuilderAddNode(DockspaceID);    // Add empty node
-            ImGui::DockBuilderSetNodeSize(DockspaceID, ImGui::GetIO().DisplaySize * ImGui::GetIO().DisplayFramebufferScale);
-
-            static bool newLayout = true;
-
-            if(newLayout)
-            {
-                ImGuiID dock_main_id = DockspaceID;
-                ImGuiID DockLeft     = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.75f, nullptr, &dock_main_id);
-                ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.25f, nullptr, &dock_main_id);
-                ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.3f, nullptr, &DockLeft);
-
-                ImGuiID DockLeftSplitLeft  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Left, 0.5f, nullptr, &DockLeft);
-                ImGuiID DockLeftSplitRight = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Right, 0.5f, nullptr, &DockLeft);
-
-                /*ImGuiID DockRightSplitLeft  = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Left, 0.5f, nullptr, &DockRight);
-                ImGuiID DockRightSplitRight = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Right, 0.5f, nullptr, &DockRight);
-*/
-
-                ImGuiID DockBottomChild         = ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Down, 0.2f, nullptr, &DockBottom);
-                ImGuiID DockingBottomLeftChild  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.4f, nullptr, &DockLeft);
-                ImGuiID DockingBottomRightChild = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.4f, nullptr, &DockRight);
-
-                ImGuiID DockMiddle       = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
-                ImGuiID DockBottomMiddle = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Down, 0.3f, nullptr, &DockMiddle);
-                ImGuiID DockMiddleLeft   = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Left, 0.5f, nullptr, &DockMiddle);
-                ImGuiID DockMiddleRight  = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Right, 0.5f, nullptr, &DockMiddle);
-
-                ImGuiID DockingBottomRight           = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.5f, nullptr, &DockRight);
-                ImGuiID DockingBottomRightSplitLeft  = ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Left, 0.5f, nullptr, &DockingBottomRight);
-                ImGuiID DockingBottomRightSplitRight = ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Right, 0.5f, nullptr, &DockingBottomRight);
-
-                ImGui::DockBuilderDockWindow("###game", DockLeft);
-                ImGui::DockBuilderDockWindow("###scene", DockLeft);
-                ImGui::DockBuilderDockWindow("###inspector", DockRight);
-                ImGui::DockBuilderDockWindow("###console", DockBottom);
-
-                ImGui::DockBuilderDockWindow("###profiler", DockingBottomRight);
-                ImGui::DockBuilderDockWindow("###resources", DockBottom);
-                ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockRight);
-                ImGui::DockBuilderDockWindow("###GraphicsInfo", DockingBottomRight);
-                ImGui::DockBuilderDockWindow("###appinfo", DockingBottomRight);
-                ImGui::DockBuilderDockWindow("###AssetManagerPanel", DockRight);
-                ImGui::DockBuilderDockWindow("###hierarchy", DockingBottomRight);
-                ImGui::DockBuilderDockWindow("###textEdit", DockLeft);
-                ImGui::DockBuilderDockWindow("###scenesettings", DockingBottomRight);
-                ImGui::DockBuilderDockWindow("###editorsettings", DockingBottomRight);
-                ImGui::DockBuilderDockWindow("###projectsettings", DockingBottomRight);
-            }
-            else
-            {
-                ImGuiID dock_main_id = DockspaceID;
-                ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.3f, nullptr, &dock_main_id);
-                ImGuiID DockLeft     = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
-                ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.20f, nullptr, &dock_main_id);
-
-                ImGuiID DockLeftChild         = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.875f, nullptr, &DockLeft);
-                ImGuiID DockRightChild        = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.875f, nullptr, &DockRight);
-                ImGuiID DockingLeftDownChild  = ImGui::DockBuilderSplitNode(DockLeftChild, ImGuiDir_Down, 0.06f, nullptr, &DockLeftChild);
-                ImGuiID DockingRightDownChild = ImGui::DockBuilderSplitNode(DockRightChild, ImGuiDir_Down, 0.06f, nullptr, &DockRightChild);
-
-                ImGuiID DockBottomChild         = ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Down, 0.2f, nullptr, &DockBottom);
-                ImGuiID DockingBottomLeftChild  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.4f, nullptr, &DockLeft);
-                ImGuiID DockingBottomRightChild = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.4f, nullptr, &DockRight);
-
-                ImGuiID DockMiddle       = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
-                ImGuiID DockBottomMiddle = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Down, 0.3f, nullptr, &DockMiddle);
-                ImGuiID DockMiddleLeft   = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Left, 0.5f, nullptr, &DockMiddle);
-                ImGuiID DockMiddleRight  = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Right, 0.5f, nullptr, &DockMiddle);
-
-                ImGui::DockBuilderDockWindow("###game", DockMiddleRight);
-                ImGui::DockBuilderDockWindow("###scene", DockMiddleLeft);
-                ImGui::DockBuilderDockWindow("###inspector", DockRight);
-                ImGui::DockBuilderDockWindow("###console", DockBottomMiddle);
-                ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
-                ImGui::DockBuilderDockWindow("###resources", DockingBottomLeftChild);
-                ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockLeft);
-                ImGui::DockBuilderDockWindow("###GraphicsInfo", DockLeft);
-                ImGui::DockBuilderDockWindow("###appinfo", DockLeft);
-                ImGui::DockBuilderDockWindow("###AssetManagerPanel", DockLeft);
-                ImGui::DockBuilderDockWindow("###hierarchy", DockLeft);
-                ImGui::DockBuilderDockWindow("###textEdit", DockMiddleLeft);
-                ImGui::DockBuilderDockWindow("###scenesettings", DockLeft);
-                ImGui::DockBuilderDockWindow("###editorsettings", DockLeft);
-                ImGui::DockBuilderDockWindow("###projectsettings", DockLeft);
-            }
-            ImGui::DockBuilderFinish(DockspaceID);
+#ifdef LUMOS_PLATFORM_IOS
+            ApplyLayoutPreset(LayoutPreset::IOSCompact);
+#else
+            ApplyLayoutPreset(LayoutPreset::Default);
+#endif
         }
 
-        // Dockspace
+        // Dockspace — FramePadding.y here controls the docked tab bar height.
         ImGuiIO& io = ImGui::GetIO();
         if(io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(20.0f, 14.0f));
             ImGui::DockSpace(DockspaceID, ImVec2(0.0f, 0.0f), opt_flags);
+            ImGui::PopStyleVar();
         }
+    }
+
+    void Editor::ApplyLayoutPreset(LayoutPreset preset)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        ImGuiID DockspaceID = ImGui::GetID("MyDockspace");
+
+        ImGui::DockBuilderRemoveNode(DockspaceID);
+        ImGui::DockBuilderAddNode(DockspaceID);
+        // Size the dock tree to the viewport's WORK area so safe-area insets (iOS notch,
+        // home indicator, menu/status bars) aren't overwritten when rebuilding the layout.
+        ImGui::DockBuilderSetNodeSize(DockspaceID, ImGui::GetMainViewport()->WorkSize);
+
+        // Helper: pile every "secondary" panel (anything that isn't scene/game/textEdit)
+        // into a single node so it tabs cleanly when a preset only needs one drop target.
+        auto DockAllSecondary = [](ImGuiID target) {
+            ImGui::DockBuilderDockWindow("###hierarchy",         target);
+            ImGui::DockBuilderDockWindow("###inspector",         target);
+            ImGui::DockBuilderDockWindow("###console",           target);
+            ImGui::DockBuilderDockWindow("###resources",         target);
+            ImGui::DockBuilderDockWindow("###profiler",          target);
+            ImGui::DockBuilderDockWindow("###AssetManagerPanel", target);
+            ImGui::DockBuilderDockWindow("###scenesettings",     target);
+            ImGui::DockBuilderDockWindow("###editorsettings",    target);
+            ImGui::DockBuilderDockWindow("###projectsettings",   target);
+            ImGui::DockBuilderDockWindow("###appinfo",           target);
+            ImGui::DockBuilderDockWindow("###GraphicsInfo",      target);
+            ImGui::DockBuilderDockWindow("Dear ImGui Demo",      target);
+        };
+
+        switch(preset)
+        {
+        case LayoutPreset::Split:
+        {
+            // Hard 50/50: scene + game tabbed on the LEFT, every other panel tabbed on the RIGHT.
+            // Only one secondary panel visible at a time → much less to parse on screen.
+            ImGuiID dock_main_id = DockspaceID;
+            ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.50f, nullptr, &dock_main_id);
+
+            ImGui::DockBuilderDockWindow("###scene",    dock_main_id);
+            ImGui::DockBuilderDockWindow("###game",     dock_main_id);
+            ImGui::DockBuilderDockWindow("###textEdit", dock_main_id);
+            DockAllSecondary(DockRight);
+            break;
+        }
+        case LayoutPreset::IOSCompact:
+        {
+            // Touch-friendly Split variant: 60/40 in favour of the scene so the viewport
+            // stays the dominant surface. Secondary panels stack in one tab group.
+            ImGuiID dock_main_id = DockspaceID;
+            ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.40f, nullptr, &dock_main_id);
+
+            ImGui::DockBuilderDockWindow("###scene",    dock_main_id);
+            ImGui::DockBuilderDockWindow("###game",     dock_main_id);
+            ImGui::DockBuilderDockWindow("###textEdit", dock_main_id);
+            DockAllSecondary(DockRight);
+            break;
+        }
+        case LayoutPreset::SceneFocused:
+        {
+            // Scene almost full-screen with a slim right rail (~20%) for everything else.
+            ImGuiID dock_main_id = DockspaceID;
+            ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.20f, nullptr, &dock_main_id);
+
+            ImGui::DockBuilderDockWindow("###scene",    dock_main_id);
+            ImGui::DockBuilderDockWindow("###game",     dock_main_id);
+            ImGui::DockBuilderDockWindow("###textEdit", dock_main_id);
+            DockAllSecondary(DockRight);
+            break;
+        }
+        case LayoutPreset::Coding:
+        {
+            // Mirror of Split: text editor takes the LEFT half, everything else tabbed right.
+            ImGuiID dock_main_id = DockspaceID;
+            ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.50f, nullptr, &dock_main_id);
+
+            ImGui::DockBuilderDockWindow("###textEdit", dock_main_id);
+            ImGui::DockBuilderDockWindow("###scene",    DockRight);
+            ImGui::DockBuilderDockWindow("###game",     DockRight);
+            DockAllSecondary(DockRight);
+            break;
+        }
+        case LayoutPreset::Default:
+        default:
+        {
+            ImGuiID dock_main_id = DockspaceID;
+            ImGuiID DockLeft     = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.75f, nullptr, &dock_main_id);
+            ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.25f, nullptr, &dock_main_id);
+            ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.3f, nullptr, &DockLeft);
+
+            ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Left,  0.5f, nullptr, &DockLeft);
+            ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Right, 0.5f, nullptr, &DockLeft);
+
+            ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Down, 0.2f, nullptr, &DockBottom);
+            ImGui::DockBuilderSplitNode(DockLeft,   ImGuiDir_Down, 0.4f, nullptr, &DockLeft);
+            ImGui::DockBuilderSplitNode(DockRight,  ImGuiDir_Down, 0.4f, nullptr, &DockRight);
+
+            ImGuiID DockingBottomRight = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.5f, nullptr, &DockRight);
+            ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Left,  0.5f, nullptr, &DockingBottomRight);
+            ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Right, 0.5f, nullptr, &DockingBottomRight);
+
+            ImGui::DockBuilderDockWindow("###game",              DockLeft);
+            ImGui::DockBuilderDockWindow("###scene",             DockLeft);
+            ImGui::DockBuilderDockWindow("###inspector",         DockRight);
+            ImGui::DockBuilderDockWindow("###console",           DockBottom);
+            ImGui::DockBuilderDockWindow("###profiler",          DockingBottomRight);
+            ImGui::DockBuilderDockWindow("###resources",         DockBottom);
+            ImGui::DockBuilderDockWindow("Dear ImGui Demo",      DockRight);
+            ImGui::DockBuilderDockWindow("###GraphicsInfo",      DockingBottomRight);
+            ImGui::DockBuilderDockWindow("###appinfo",           DockingBottomRight);
+            ImGui::DockBuilderDockWindow("###AssetManagerPanel", DockRight);
+            ImGui::DockBuilderDockWindow("###hierarchy",         DockingBottomRight);
+            ImGui::DockBuilderDockWindow("###textEdit",          DockLeft);
+            ImGui::DockBuilderDockWindow("###scenesettings",     DockingBottomRight);
+            ImGui::DockBuilderDockWindow("###editorsettings",    DockingBottomRight);
+            ImGui::DockBuilderDockWindow("###projectsettings",   DockingBottomRight);
+            break;
+        }
+        }
+
+        ImGui::DockBuilderFinish(DockspaceID);
     }
 
     void Editor::EndDockSpace()
@@ -2353,7 +3273,8 @@ namespace Lumos
         // std::stringstream Title;
         // Title << Platform << dash << RenderAPI << dash << Configuration << dash << scene->GetSceneName() << dash << Application::Get().GetWindow()->GetTitle();
         String8 title = PushStr8F(m_Arena, "%s - %s - %s - %s - %s", Platform.c_str(), RenderAPI.c_str(), Configuration.c_str(), scene->GetSceneName().c_str(), Application::Get().GetWindow()->GetTitle().c_str());
-        Application::Get().GetWindow()->SetWindowTitle((const char*)(title.str));
+        if(title.str && title.size > 0)
+            Application::Get().GetWindow()->SetWindowTitle((const char*)(title.str));
     }
 
     void Editor::Draw3DGrid()
@@ -2449,23 +3370,28 @@ namespace Lumos
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowFileEvent>(BIND_EVENT_FN(Editor::OnFileDrop));
 
-        // Handle three-finger swipe for undo/redo
+        // Handle three-finger swipe for undo/redo, and 1-finger top-edge swipe for menu reveal.
         dispatcher.Dispatch<GestureSwipeEvent>([this](GestureSwipeEvent& event) {
             if(event.GetNumTouches() == 3)
             {
                 if(event.GetDirection() == SwipeDirection::Left)
                 {
                     Lumos::Undo();
-                    LINFO("Undo triggered by gesture");
                     return true;
                 }
                 else if(event.GetDirection() == SwipeDirection::Right)
                 {
                     Lumos::Redo();
-                    LINFO("Redo triggered by gesture");
                     return true;
                 }
             }
+#ifdef LUMOS_PLATFORM_IOS
+            if(event.GetNumTouches() == 1 && event.GetDirection() == SwipeDirection::Down)
+            {
+                s_MenuBarVisibleUntil = Engine::Get().GetTimeStep().GetElapsedSeconds() + kMenuBarRevealDuration;
+                return true;
+            }
+#endif
             return false;
         });
 
@@ -2490,6 +3416,14 @@ namespace Lumos
             flipY = true;
 #endif
         return camera->GetScreenRay(screenX, screenY, m_EditorCameraTransform.GetWorldMatrix().Inverse(), flipY);
+    }
+
+    TerrainEditorPanel* Editor::GetTerrainEditorPanel()
+    {
+        for(auto& panel : m_Panels)
+            if(auto* p = dynamic_cast<TerrainEditorPanel*>(panel.get()))
+                return p;
+        return nullptr;
     }
 
     void Editor::OnUpdate(const TimeStep& ts)
@@ -2528,6 +3462,7 @@ namespace Lumos
 
             m_SelectedEntities.clear();
             ImGui::SetWindowFocus("###scene");
+            m_SceneViewActive = true;
             LoadCachedScene();
             SetEditorState(EditorState::Preview);
             m_QueuedScenePreviewEnd = false;
@@ -2674,10 +3609,9 @@ namespace Lumos
                 }
             }
 
-            static float m_SceneSavePopupTimer = -1.0f;
             static bool popupopen              = false;
 
-            if(m_SceneSavePopupTimer > 0.0f)
+            if(s_SceneSavePopupTimer > 0.0f)
             {
                 {
                     ImGui::OpenPopup("Scene Save");
@@ -2706,7 +3640,7 @@ namespace Lumos
                 // Display the centered text
                 ImGui::TextUnformatted((const char*)savedText.str);
 
-                if(m_SceneSavePopupTimer < 0.0f)
+                if(s_SceneSavePopupTimer < 0.0f)
                 {
                     popupopen = false;
                     ImGui::CloseCurrentPopup();
@@ -2716,15 +3650,15 @@ namespace Lumos
                 ImGui::EndPopup();
             }
 
-            if(m_SceneSavePopupTimer > 0.0f)
-                m_SceneSavePopupTimer -= (float)Engine::GetTimeStep().GetSeconds();
+            if(s_SceneSavePopupTimer > 0.0f)
+                s_SceneSavePopupTimer -= (float)Engine::GetTimeStep().GetSeconds();
 
             if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || (Input::Get().GetKeyHeld(InputCode::Key::LeftControl))))
             {
                 if(Input::Get().GetKeyPressed(InputCode::Key::S) && Application::Get().GetSceneActive())
                 {
                     Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/scenes/", false);
-                    m_SceneSavePopupTimer = 2.0f;
+                    s_SceneSavePopupTimer = 2.0f;
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::O))

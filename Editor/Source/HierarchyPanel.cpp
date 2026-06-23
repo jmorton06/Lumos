@@ -40,7 +40,7 @@ namespace Lumos
 
     HierarchyPanel::HierarchyPanel()
     {
-        m_Name        = ICON_MDI_FILE_TREE " Hierarchy###hierarchy";
+        m_Name        = "Hierarchy###hierarchy";
         m_SimpleName  = "Hierarchy";
         m_StringArena = ArenaAlloc(Kilobytes(256));
 
@@ -170,6 +170,18 @@ namespace Lumos
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetIconColour());
 
             bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)node.GetID(), nodeFlags, "%s", (const char*)icon.str);
+
+            // Accent line down the far left of selected rows (matches the active tab line colour).
+            if(m_Editor->IsSelected(node))
+            {
+                ImDrawList* dl       = ImGui::GetWindowDrawList();
+                const float x        = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMin().x;
+                const float dpiScale = Maths::Max(Application::Get().GetWindowDPI(), 1.0f);
+                const float w        = 2.0f * dpiScale;
+                dl->PushClipRectFullScreen();
+                dl->AddRectFilled(ImVec2(x, ImGui::GetItemRectMin().y), ImVec2(x + w, ImGui::GetItemRectMax().y), ImGui::GetColorU32(ImGuiCol_SliderGrabActive));
+                dl->PopClipRect();
+            }
             {
                 if(ImGui::BeginDragDropSource())
                 {
@@ -226,6 +238,10 @@ namespace Lumos
 
             bool hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_None);
 
+            // Bind the context menu to the tree-node row (the last item here), not the
+            // name label drawn later. Stable id — the surrounding PushID() makes it per-node.
+            ImGui::OpenPopupOnItemClick("EntityContextMenu", ImGuiPopupFlags_MouseButtonRight);
+
             ImGui::PopStyleColor();
             ImGui::SameLine();
             if(!doubleClicked)
@@ -276,7 +292,7 @@ namespace Lumos
 
             bool deleteEntity = false;
 
-            if(ImGui::BeginPopupContextItem((const char*)name.str))
+            if(ImGui::BeginPopup("EntityContextMenu"))
             {
                 if(ImGui::Selectable("Copy"))
                 {
@@ -573,14 +589,22 @@ namespace Lumos
 
         ArenaClear(m_StringArena);
 
-        if(ImGui::Begin(m_Name.c_str(), &m_Active, flags))
+        if(ImGuiUtilities::BeginPanel(m_Name.c_str(), nullptr, flags))
         {
+#ifdef LUMOS_PLATFORM_IOS
+            // Taller, touch-friendly rows on iOS.
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 12.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 6.0f));
+#endif
             ImRect windowRect = { ImGui::GetWindowContentRegionMin(), ImGui::GetWindowContentRegionMax() };
 
             auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
 
             if(!scene)
             {
+#ifdef LUMOS_PLATFORM_IOS
+                ImGui::PopStyleVar(2);
+#endif
                 ImGui::End();
                 return;
             }
@@ -869,6 +893,9 @@ ImGui::GetStyle().ChildBorderSize = backup_border_size;
                 for(auto entity : m_Editor->GetSelected())
                     scene->DestroyEntity(Entity(entity, scene));
             }
+#ifdef LUMOS_PLATFORM_IOS
+            ImGui::PopStyleVar(2);
+#endif
         }
         ImGui::End();
     }

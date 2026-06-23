@@ -73,9 +73,20 @@ namespace Lumos
         void ExitApp() override;
 
         void DrawMenuBar();
+        void DrawStatusBar();
         void DrawWelcomeScreen();
         void BeginDockSpace(bool gameFullScreen);
         void EndDockSpace();
+
+        enum class LayoutPreset
+        {
+            Default,
+            IOSCompact,
+            SceneFocused,
+            Coding,
+            Split,
+        };
+        void ApplyLayoutPreset(LayoutPreset preset);
 
         bool IsTextFile(const std::string& filePath);
         bool IsAudioFile(const std::string& filePath);
@@ -212,6 +223,8 @@ namespace Lumos
 
         Maths::Ray GetScreenRay(int x, int y, Camera* camera, int width, int height);
 
+        class TerrainEditorPanel* GetTerrainEditorPanel();
+
         void FileOpenCallback(const std::string& filepath);
         void ProjectOpenCallback(const std::string& filepath);
         void NewProjectOpenCallback(const std::string& filepath);
@@ -272,7 +285,7 @@ namespace Lumos
             float m_ImGuizmoScale   = 0.25f;
 
             bool m_FullScreenSceneView    = false;
-            ImGuiUtilities::Theme m_Theme = ImGuiUtilities::Theme::Black;
+            ImGuiUtilities::Theme m_Theme = ImGuiUtilities::Theme::Lumos;
             bool m_FreeAspect             = true;
             float m_FixedAspect           = 1.0f;
             float m_AspectRatio           = 1.0f;
@@ -329,6 +342,10 @@ namespace Lumos
         ResourcePanel* m_ResourcePanel = nullptr;
         ImportPanel* m_ImportPanel     = nullptr;
         std::vector<std::string> m_CachedAssetPaths;
+        std::vector<std::string> m_CachedSceneNames;
+        std::vector<std::string> m_CachedPanelNames;
+        std::vector<std::string> m_CachedEntityNames;
+        std::vector<entt::entity> m_CachedSelectableEntities;
         PreviewDraw* m_PreviewDraw;
 
         Camera* m_CurrentCamera = nullptr;
@@ -338,6 +355,7 @@ namespace Lumos
         SharedPtr<Camera> m_EditorCamera = nullptr;
 
         SharedPtr<Graphics::GridRenderer> m_GridRenderer;
+        SharedPtr<Graphics::Texture2D>    m_LogoTexture;
 
         std::string m_LastSceneName;
         std::string m_TempSceneSaveFilePath;
@@ -354,5 +372,6 @@ namespace Lumos
 
         bool m_PreviewScreenshot = false;
         bool m_QueuedScenePreviewEnd = false;
+        std::string m_TabRightClickedWindow;
     };
 }

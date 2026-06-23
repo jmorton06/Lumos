@@ -3,6 +3,7 @@
 #include <Lumos/Graphics/RHI/Renderer.h>
 
 #include <imgui/imgui.h>
+#include <Lumos/ImGui/ImGuiUtilities.h>
 
 namespace Lumos
 {
@@ -15,7 +16,7 @@ namespace Lumos
     void GraphicsInfoPanel::OnImGui()
     {
         auto flags = ImGuiWindowFlags_NoCollapse;
-        ImGui::Begin("GraphicsInfo", &m_Active, flags);
+        ImGuiUtilities::BeginPanel(m_Name.c_str(), &m_Active, flags);
         {
             Graphics::Renderer::GetGraphicsContext()->OnImGui();
         }

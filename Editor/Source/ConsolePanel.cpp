@@ -79,7 +79,7 @@ namespace Lumos
     ConsolePanel::ConsolePanel()
     {
         LUMOS_PROFILE_FUNCTION();
-        m_Name                      = ICON_MDI_VIEW_LIST " Console###console";
+        m_Name                      = "Console###console";
         m_SimpleName                = "Console";
         s_MessageBufferRenderFilter = (int16_t)ConsoleLogLevel::Trace | (int16_t)ConsoleLogLevel::Info | (int16_t)ConsoleLogLevel::Debug | (int16_t)ConsoleLogLevel::Warn | (int16_t)ConsoleLogLevel::Error | (int16_t)ConsoleLogLevel::Fatal;
         m_MessageBuffer.Reserve(2000);
@@ -130,11 +130,21 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         auto flags = ImGuiWindowFlags_NoCollapse;
         ImGui::SetNextWindowSize(ImVec2(640, 480), ImGuiCond_FirstUseEver);
-        ImGui::Begin(m_Name.c_str(), &m_Active, flags);
+        ImGuiUtilities::BeginPanel(m_Name.c_str(), nullptr, flags);
         {
+#ifdef LUMOS_PLATFORM_IOS
+            // Pin filter/action row to the bottom so it stays in thumb reach.
+            const float filterRowH = ImGui::GetFrameHeightWithSpacing() + ImGui::GetStyle().ItemSpacing.y * 2.0f;
+            ImGui::BeginChild("##ConsoleMessages", ImVec2(0.0f, -filterRowH), false);
+            ImGuiRenderMessages();
+            ImGui::EndChild();
+            ImGui::Separator();
+            ImGuiRenderHeader();
+#else
             ImGuiRenderHeader();
             ImGui::Separator();
             ImGuiRenderMessages();
+#endif
         }
         ImGui::End();
     }
@@ -156,6 +166,19 @@ namespace Lumos
             if(ImGui::IsItemHovered())
                 ImGui::SetTooltip("Clear console");
         }
+
+        // Auto-scroll lock toggle (one-tap) — only on touch platforms.
+#ifdef LUMOS_PLATFORM_IOS
+        ImGui::SameLine();
+        {
+            ImGuiUtilities::ScopedColour buttonColour(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+            const char* lockIcon = s_AllowScrollingToBottom ? ICON_MDI_ARROW_DOWN : ICON_MDI_PAUSE;
+            if(ImGui::Button(lockIcon))
+                s_AllowScrollingToBottom = !s_AllowScrollingToBottom;
+            if(ImGui::IsItemHovered())
+                ImGui::SetTooltip(s_AllowScrollingToBottom ? "Pause auto-scroll" : "Resume auto-scroll");
+        }
+#endif
 
         // Settings button
         ImGui::SameLine();
@@ -180,44 +203,8 @@ namespace Lumos
 
         float spacing                   = ImGui::GetStyle().ItemSpacing.x;
         ImGui::GetStyle().ItemSpacing.x = 2;
-        float levelButtonWidth          = (ImGui::CalcTextSize(GetLevelIcon(ConsoleLogLevel(1))) + ImGui::GetStyle().FramePadding * 2.0f).x;
-        float levelButtonWidths         = (levelButtonWidth + ImGui::GetStyle().ItemSpacing.x) * 6;
 
-        // Store cursor position for placeholder text
-        ImVec2 filterPos = ImGui::GetCursorScreenPos();
-        float filterWidth = ImGui::GetContentRegionAvail().x - (levelButtonWidths);
-
-        {
-            ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
-            ImGuiUtilities::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
-            ImGuiUtilities::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
-            Filter.Draw("###ConsoleFilter", filterWidth);
-            ImGuiUtilities::DrawItemActivityOutline(2.0f, false);
-        }
-
-        // Draw placeholder when filter is empty
-        if(!Filter.IsActive())
-        {
-            ImDrawList* drawList = ImGui::GetWindowDrawList();
-            float yOffset = (ImGui::GetFrameHeight() - ImGui::GetFontSize()) * 0.5f;
-
-            // Draw magnify icon
-            ImVec2 iconPos = ImVec2(filterPos.x + ImGui::GetStyle().FramePadding.x,
-                                   filterPos.y + yOffset);
-            drawList->AddText(iconPos, ImGui::GetColorU32(ImGuiCol_TextDisabled), ICON_MDI_MAGNIFY);
-
-            // Draw "Search..." text with proper offset
-            float iconWidth = ImGui::CalcTextSize(ICON_MDI_MAGNIFY).x;
-            ImVec2 textPos = ImVec2(filterPos.x + ImGui::GetStyle().FramePadding.x + iconWidth + ImGui::GetStyle().ItemInnerSpacing.x,
-                                   filterPos.y + yOffset);
-
-            ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
-            drawList->AddText(textPos, ImGui::GetColorU32(ImGuiCol_TextDisabled), "Search...");
-        }
-
-        ImGui::SameLine(); // ImGui::GetWindowWidth() - levelButtonWidths);
-
-        // Count messages by level
+        // Count messages first so button widths can account for the count labels
         int counts[6] = {0, 0, 0, 0, 0, 0};
         for(uint32_t i = 0; i < m_MessageBuffer.Size(); i++)
         {
@@ -236,6 +223,49 @@ namespace Lumos
             counts[levelIndex] += msg.m_Count;
         }
 
+        // Build labels and measure total button width before drawing the filter
+        char buttonLabels[6][32];
+        float levelButtonWidths = 0.0f;
+        for(int i = 0; i < 6; i++)
+        {
+            auto level = ConsoleLogLevel(Maths::Pow(2, i));
+            if(counts[i] > 0)
+                snprintf(buttonLabels[i], sizeof(buttonLabels[i]), "%s %d", GetLevelIcon(level), counts[i]);
+            else
+                snprintf(buttonLabels[i], sizeof(buttonLabels[i]), "%s", GetLevelIcon(level));
+            float w = (ImGui::CalcTextSize(buttonLabels[i]) + ImGui::GetStyle().FramePadding * 2.0f).x;
+            levelButtonWidths += w + ImGui::GetStyle().ItemSpacing.x;
+        }
+
+        // Store cursor position for placeholder text
+        ImVec2 filterPos  = ImGui::GetCursorScreenPos();
+        float filterWidth = ImGui::GetContentRegionAvail().x - levelButtonWidths;
+        if(filterWidth < 40.0f) filterWidth = 40.0f;
+
+        {
+            ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
+            ImGuiUtilities::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
+            ImGuiUtilities::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
+            Filter.Draw("###ConsoleFilter", filterWidth);
+            ImGuiUtilities::DrawItemActivityOutline(2.0f, false);
+        }
+
+        // Draw placeholder when filter is empty
+        if(!Filter.IsActive())
+        {
+            ImDrawList* drawList = ImGui::GetWindowDrawList();
+            float yOffset = (ImGui::GetFrameHeight() - ImGui::GetFontSize()) * 0.5f;
+
+            ImVec2 iconPos = ImVec2(filterPos.x + ImGui::GetStyle().FramePadding.x, filterPos.y + yOffset);
+            drawList->AddText(iconPos, ImGui::GetColorU32(ImGuiCol_TextDisabled), ICON_MDI_MAGNIFY);
+
+            float iconWidth = ImGui::CalcTextSize(ICON_MDI_MAGNIFY).x;
+            ImVec2 textPos  = ImVec2(filterPos.x + ImGui::GetStyle().FramePadding.x + iconWidth + ImGui::GetStyle().ItemInnerSpacing.x, filterPos.y + yOffset);
+
+            ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
+            drawList->AddText(textPos, ImGui::GetColorU32(ImGuiCol_TextDisabled), "Search...");
+        }
+
         ImGui::AlignTextToFramePadding();
 
         for(int i = 0; i < 6; i++)
@@ -248,24 +278,14 @@ namespace Lumos
             if(levelEnabled)
                 ImGui::PushStyleColor(ImGuiCol_Text, GetRenderColour(level));
             else
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5, 0.5f, 0.5f));
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 0.5f));
 
-            // Show icon with count badge
-            char buttonLabel[64];
-            if(counts[i] > 0)
-                snprintf(buttonLabel, sizeof(buttonLabel), "%s %d", GetLevelIcon(level), counts[i]);
-            else
-                snprintf(buttonLabel, sizeof(buttonLabel), "%s", GetLevelIcon(level));
-
-            if(ImGui::Button(buttonLabel))
-            {
+            if(ImGui::Button(buttonLabels[i]))
                 s_MessageBufferRenderFilter ^= (int16_t)level;
-            }
 
             if(ImGui::IsItemHovered())
-            {
                 ImGui::SetTooltip("%s", GetLevelName(level));
-            }
+
             ImGui::PopStyleColor();
         }
 

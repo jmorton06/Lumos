@@ -234,7 +234,7 @@ UIEndPanel())"
     {
         ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
 
-        if(ImGui::Begin(m_Name.c_str(), &m_Active, ImGuiWindowFlags_MenuBar))
+        if(ImGuiUtilities::BeginPanel(m_Name.c_str(), nullptr, ImGuiWindowFlags_MenuBar))
         {
             if(ImGui::BeginMenuBar())
             {

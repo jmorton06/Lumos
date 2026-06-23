@@ -3,6 +3,7 @@
 #include <Lumos/Core/OS/OS.h>
 #include <Lumos/Utilities/StringUtilities.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
+#include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Core/Thread.h>
 
 #include <imgui/imgui.h>
@@ -19,7 +20,7 @@ namespace Lumos
 
     void AboutSupportPanel::OnImGui()
     {
-        ImGui::Begin(m_Name.c_str(), &m_Active, ImGuiWindowFlags_NoCollapse);
+        ImGuiUtilities::BeginPanel(m_Name.c_str(), nullptr, ImGuiWindowFlags_NoCollapse);
 
         auto& version = LumosVersion;
 

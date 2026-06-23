@@ -95,6 +95,10 @@ namespace Lumos
         Vec3 m_MeasurementPoint1     = Vec3(0.0f);
         Vec3 m_MeasurementPoint2     = Vec3(0.0f);
 
+        ImVec2 m_SceneViewPos         = ImVec2(0.0f, 0.0f);
+        bool   m_ShowCameraHUD        = false;
+        bool   m_bRequestCameraUpdate = true;
+
         void DrawContextMenu(Scene* scene);
         void DrawMeasurementTool(float width, float height, float xpos, float ypos, Scene* scene);
     };
