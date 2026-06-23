@@ -281,19 +281,8 @@ namespace Lumos
                 {
                     LINFO("Acquire Image result : %s", result == VK_ERROR_OUT_OF_DATE_KHR ? "Out of Date" : "SubOptimal");
 
-                    if(result == VK_ERROR_OUT_OF_DATE_KHR)
-                    {
-                        OnResize(m_Width, m_Height, true);
-#ifdef LUMOS_PLATFORM_LINUX
-                        return false;
-#endif
-                    }
-                    else
-                    {
-                        m_NeedRecreate = true;
-                    }
-
-                    return true;
+                    OnResize(m_Width, m_Height, true);
+                    return false;
                 }
 
                 if(result == VK_NOT_READY)
@@ -365,7 +354,6 @@ namespace Lumos
             }
 
             commandBuffer->Reset();
-            VKRenderer::GetDeletionQueue(m_CurrentBuffer).Flush();
 
             if(!AcquireNextImage())
             {
@@ -417,7 +405,8 @@ namespace Lumos
             {
                 vkDeviceWaitIdle(VKDevice::Get().GetDevice());
                 OnResize(m_Width, m_Height, true);
-                m_NeedRecreate = false;
+                m_NeedRecreate  = false;
+                m_WasRecreated  = true;
             }
         }
 
@@ -454,23 +443,37 @@ namespace Lumos
         }
         else
         {
-            // iterate over the list of available surface format and
-            // check for the presence of VK_FORMAT_B8G8R8A8_UNORM
-            bool found_B8G8R8A8_UNORM = false;
+            // Prefer R8G8B8A8 — the bundled MoltenVK presents B8G8R8A8 swapchains
+            // with red/blue swapped on macOS (whole frame renders R<->B flipped).
+            // Fall back to B8G8R8A8 then first available.
+            bool found = false;
             for(auto&& surfaceFormat : surfaceFormats)
             {
-                if(surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM)
+                if(surfaceFormat.format == VK_FORMAT_R8G8B8A8_UNORM)
                 {
-                    m_ColourFormat       = surfaceFormat.format;
-                    m_ColourSpace        = surfaceFormat.colorSpace;
-                    found_B8G8R8A8_UNORM = true;
+                    m_ColourFormat = surfaceFormat.format;
+                    m_ColourSpace  = surfaceFormat.colorSpace;
+                    found          = true;
                     break;
                 }
             }
 
-            // in case VK_FORMAT_B8G8R8A8_UNORM is not available
-            // select the first available colour format
-            if(!found_B8G8R8A8_UNORM)
+            if(!found)
+            {
+                for(auto&& surfaceFormat : surfaceFormats)
+                {
+                    if(surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM)
+                    {
+                        m_ColourFormat = surfaceFormat.format;
+                        m_ColourSpace  = surfaceFormat.colorSpace;
+                        found          = true;
+                        break;
+                    }
+                }
+            }
+
+            // in case neither is available select the first colour format
+            if(!found)
             {
                 m_ColourFormat = surfaceFormats[0].format;
                 m_ColourSpace  = surfaceFormats[0].colorSpace;

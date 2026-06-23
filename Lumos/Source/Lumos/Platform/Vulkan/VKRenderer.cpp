@@ -102,6 +102,79 @@ namespace Lumos
             }
         }
 
+        void VKRenderer::DepthArrayBarrier(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer)
+        {
+            if(!texture || texture->GetType() != TextureType::DEPTHARRAY)
+                return;
+
+            VKTextureDepthArray* depthArray = (VKTextureDepthArray*)texture;
+
+            VkImageSubresourceRange range = {};
+            range.aspectMask              = Texture::IsDepthFormat(depthArray->GetFormat()) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+            if(Texture::IsStencilFormat(depthArray->GetFormat()))
+                range.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+            range.baseMipLevel   = 0;
+            range.levelCount     = 1;
+            range.baseArrayLayer = 0;
+            range.layerCount     = depthArray->GetCount();
+
+            // Cover both prior clear (TRANSFER_WRITE) and prior cascade renderpass (DEPTH_STENCIL_WRITE).
+            // Force the next renderpass's EARLY_FRAGMENT_TESTS to wait. Workaround for Intel macOS MoltenVK.
+            VKUtilities::InsertImageMemoryBarrier(
+                ((VKCommandBuffer*)commandBuffer)->GetHandle(),
+                depthArray->GetImage(),
+                VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
+                VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT,
+                depthArray->GetImageLayout(),
+                depthArray->GetImageLayout(),
+                VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+                VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+                range);
+        }
+
+        void VKRenderer::CopyDepthToArraySlice(Graphics::Texture* srcDepth, Graphics::Texture* dstDepthArray, uint32_t sliceIndex, Graphics::CommandBuffer* commandBuffer)
+        {
+            if(!srcDepth || !dstDepthArray
+               || srcDepth->GetType() != TextureType::DEPTH
+               || dstDepthArray->GetType() != TextureType::DEPTHARRAY)
+                return;
+
+            VKTextureDepth* src      = (VKTextureDepth*)srcDepth;
+            VKTextureDepthArray* dst = (VKTextureDepthArray*)dstDepthArray;
+            VKCommandBuffer* cmd     = (VKCommandBuffer*)commandBuffer;
+
+            VkImageLayout srcOriginalLayout = src->GetImageLayout();
+            VkImageLayout dstOriginalLayout = dst->GetImageLayout();
+
+            src->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, cmd);
+            dst->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, cmd);
+
+            VkImageAspectFlags aspect = Texture::IsDepthFormat(src->GetFormat()) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+            if(Texture::IsStencilFormat(src->GetFormat()))
+                aspect |= VK_IMAGE_ASPECT_STENCIL_BIT;
+
+            VkImageCopy region {};
+            region.srcSubresource.aspectMask     = aspect;
+            region.srcSubresource.baseArrayLayer = 0;
+            region.srcSubresource.layerCount     = 1;
+            region.srcSubresource.mipLevel       = 0;
+            region.dstSubresource.aspectMask     = aspect;
+            region.dstSubresource.baseArrayLayer = sliceIndex;
+            region.dstSubresource.layerCount     = 1;
+            region.dstSubresource.mipLevel       = 0;
+            region.extent.width                  = src->GetWidth(0);
+            region.extent.height                 = src->GetHeight(0);
+            region.extent.depth                  = 1;
+
+            vkCmdCopyImage(cmd->GetHandle(),
+                           src->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                           dst->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                           1, &region);
+
+            src->TransitionImage(srcOriginalLayout, cmd);
+            dst->TransitionImage(dstOriginalLayout, cmd);
+        }
+
         void VKRenderer::ClearSwapChainImage() const
         {
             LUMOS_PROFILE_FUNCTION_LOW();
@@ -163,6 +236,10 @@ namespace Lumos
             swapChain->QueueSubmit();
             VkSemaphore semaphore = frameData.MainCommandBuffer->GetSemaphore();
             swapChain->Present(semaphore);
+
+            // Swapchain was silently recreated
+            if(swapChain->ConsumeWasRecreated())
+                Application::Get().OnSceneViewSizeUpdated(swapChain->GetWidth(), swapChain->GetHeight());
         }
 
         const char* VKRenderer::GetTitleInternal() const

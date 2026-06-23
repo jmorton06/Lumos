@@ -108,7 +108,10 @@ namespace Lumos
             auto commandBuffer = cmdBuffer ? cmdBuffer : Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
             if(texture->GetType() == TextureType::COLOUR)
             {
-                if(((VKTexture2D*)texture)->GetImageLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+                VkImageLayout curLayout = ((VKTexture2D*)texture)->GetImageLayout();
+                // GENERAL is valid for sampling — skip transition to avoid an expensive
+                // GENERAL→SHADER_READ_ONLY_OPTIMAL round-trip that stalls the GPU next frame.
+                if(curLayout != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && curLayout != VK_IMAGE_LAYOUT_GENERAL)
                 {
                     ((VKTexture2D*)texture)->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, (VKCommandBuffer*)commandBuffer);
                 }

@@ -292,7 +292,7 @@ namespace Lumos
                 }
                 else if(m_Description.depthArrayTarget || m_Description.cubeMapTarget)
                 {
-                    framebuffer = m_Framebuffers[layer];
+                    framebuffer = (m_Description.viewMask != 0) ? m_Framebuffers[0] : m_Framebuffers[layer];
                 }
                 else
                 {
@@ -381,6 +381,7 @@ namespace Lumos
             if(m_Description.DebugName != NULL)
                 renderPassDesc.DebugName = m_Description.DebugName;
             renderPassDesc.samples = m_Description.samples;
+            renderPassDesc.viewMask = m_Description.viewMask;
 
             m_RenderPass = Graphics::RenderPass::Get(renderPassDesc);
 
@@ -405,14 +406,27 @@ namespace Lumos
             }
             else if(m_Description.depthArrayTarget)
             {
-                for(uint32_t i = 0; i < ((VKTextureDepthArray*)m_Description.depthArrayTarget)->GetCount(); ++i)
+                if(m_Description.viewMask != 0)
                 {
-                    attachments[0]              = m_Description.depthArrayTarget;
-                    frameBufferDesc.layer       = i;
-                    frameBufferDesc.screenFBO   = false;
-                    frameBufferDesc.attachments = attachments.Data();
-
+                    // Multiview path: single framebuffer attaches a multi-layer view of the array,
+                    // VK_KHR_multiview broadcasts each draw to all layers selected by viewMask.
+                    attachments[0]                  = m_Description.depthArrayTarget;
+                    frameBufferDesc.layer           = UINT32_MAX;
+                    frameBufferDesc.screenFBO       = false;
+                    frameBufferDesc.attachments     = attachments.Data();
                     m_Framebuffers.EmplaceBack(Framebuffer::Get(frameBufferDesc));
+                }
+                else
+                {
+                    for(uint32_t i = 0; i < ((VKTextureDepthArray*)m_Description.depthArrayTarget)->GetCount(); ++i)
+                    {
+                        attachments[0]              = m_Description.depthArrayTarget;
+                        frameBufferDesc.layer       = i;
+                        frameBufferDesc.screenFBO   = false;
+                        frameBufferDesc.attachments = attachments.Data();
+
+                        m_Framebuffers.EmplaceBack(Framebuffer::Get(frameBufferDesc));
+                    }
                 }
             }
             else if(m_Description.cubeMapTarget)

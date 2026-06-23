@@ -369,6 +369,7 @@ namespace Lumos
             int cubeMapIndex     = -1;
             int mipIndex         = 0;
             int samples          = 1;
+            uint32_t viewMask    = 0;
             std::string DebugName;
             Texture* resolveTexture = nullptr;
         };

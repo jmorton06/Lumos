@@ -48,6 +48,8 @@ namespace Lumos
             void PresentInternal(CommandBuffer* commandBuffer) override;
 
             void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Vec4 clearColour) override;
+            void DepthArrayBarrier(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer) override;
+            void CopyDepthToArraySlice(Graphics::Texture* srcDepth, Graphics::Texture* dstDepthArray, uint32_t sliceIndex, Graphics::CommandBuffer* commandBuffer) override;
             void ClearSwapChainImage() const;
 
             void SaveScreenshot(const std::string& path, Graphics::Texture* texture = nullptr, bool Blur = false, float BlurRadius = 2.0f) override;

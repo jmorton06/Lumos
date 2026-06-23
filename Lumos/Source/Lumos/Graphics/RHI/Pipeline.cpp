@@ -83,6 +83,7 @@ namespace Lumos
 
             HashCombine(hash, pipelineDesc.mipIndex);
             HashCombine(hash, pipelineDesc.samples);
+            HashCombine(hash, pipelineDesc.viewMask);
 
             if(pipelineDesc.swapchainTarget)
             {

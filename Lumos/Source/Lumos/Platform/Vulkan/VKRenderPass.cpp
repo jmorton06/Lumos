@@ -268,6 +268,22 @@ namespace Lumos
             renderPassCreateInfo.dependencyCount        = static_cast<uint32_t>(dependencies.Size());
             renderPassCreateInfo.pDependencies          = dependencies.Data();
 
+            // VK_KHR_multiview: gl_ViewIndex broadcast to all bits in viewMask. Used for
+            // single-pass cascaded shadow rendering on platforms where per-slice depth-array
+            // attachments are unreliable (Intel macOS Metal).
+            VkRenderPassMultiviewCreateInfo multiviewCreateInfo = {};
+            uint32_t viewMask                                   = renderPassDesc.viewMask;
+            uint32_t correlationMask                            = renderPassDesc.viewMask;
+            if(renderPassDesc.viewMask != 0)
+            {
+                multiviewCreateInfo.sType                = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO;
+                multiviewCreateInfo.subpassCount         = 1;
+                multiviewCreateInfo.pViewMasks           = &viewMask;
+                multiviewCreateInfo.correlationMaskCount = 1;
+                multiviewCreateInfo.pCorrelationMasks    = &correlationMask;
+                renderPassCreateInfo.pNext               = &multiviewCreateInfo;
+            }
+
             VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Get().GetDevice(), &renderPassCreateInfo, VK_NULL_HANDLE, &m_RenderPass));
 
             if(!renderPassDesc.DebugName.empty())
