@@ -1,0 +1,268 @@
+{
+    "value0": {
+        "Version": 31,
+        "Scene Name": "MinecraftClone",
+        "PhysicsEnabled2D": true,
+        "PhysicsEnabled3D": true,
+        "AudioEnabled": true,
+        "Renderer2DEnabled": true,
+        "Renderer3DEnabled": true,
+        "DebugRenderEnabled": true,
+        "SkyboxRenderEnabled": true,
+        "ShadowsEnabled": true,
+        "Exposure": 1.0,
+        "ToneMap": 6,
+        "BloomIntensity": 1.0,
+        "BloomKnee": 0.10000000149011612,
+        "BloomThreshold": 1.0,
+        "BloomUpsampleScale": 1.0,
+        "FXAAEnabled": true,
+        "DebandingEnabled": true,
+        "ChromaticAberationEnabled": false,
+        "EyeAdaptation": false,
+        "SSAOEnabled": false,
+        "BloomEnabled": true,
+        "FilmicGrainEnabled": false,
+        "DepthOfFieldEnabled": false,
+        "MotionBlurEnabled": false,
+        "DepthOFFieldEnabled": false,
+        "DepthOfFieldStrength": 1.0,
+        "DepthOfFieldDistance": 100.0,
+        "value0": 0.0,
+        "value1": 1.0,
+        "value2": 1.0,
+        "value3": false
+    },
+    "value1": 5,
+    "value2": 5,
+    "value3": 0,
+    "value4": 1,
+    "value5": 2,
+    "value6": 3,
+    "value7": 4,
+    "value8": 3,
+    "value9": 3,
+    "value10": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": -0.3424869179725647,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9395226240158081
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value11": 1,
+    "value12": {
+        "Position": {
+            "value0": -25.74224853515625,
+            "value1": 9.697275161743164,
+            "value2": 42.79648208618164
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value13": 2,
+    "value14": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value15": 4,
+    "value16": 0,
+    "value17": {
+        "Name": "LuaScript"
+    },
+    "value18": 1,
+    "value19": {
+        "Name": "Voxel World"
+    },
+    "value20": 2,
+    "value21": {
+        "Name": "Camera"
+    },
+    "value22": 3,
+    "value23": {
+        "Name": "Light"
+    },
+    "value24": 0,
+    "value25": 0,
+    "value26": 1,
+    "value27": 2,
+    "value28": {
+        "Scale": 1.0,
+        "Aspect": 1.700118064880371,
+        "FOV": 60.0,
+        "Near": 0.10000000149011612,
+        "Far": 100.0,
+        "Aperture": 55.0,
+        "ShutterSpeed": 0.01666666753590107,
+        "Sensitivity": 250.0
+    },
+    "value29": 1,
+    "value30": 0,
+    "value31": {
+        "FilePath": "//Assets/Scripts/VoxelGame.lua"
+    },
+    "value32": 0,
+    "value33": 1,
+    "value34": 3,
+    "value35": {
+        "value0": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "value1": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "value2": 0.0,
+        "value3": 0.0,
+        "value4": {
+            "value0": 0.0,
+            "value1": 0.6435484290122986,
+            "value2": 0.7654054164886475,
+            "value3": 1.0
+        },
+        "value5": 120000.0,
+        "value6": 1.0
+    },
+    "value36": 0,
+    "value37": 1,
+    "value38": 4,
+    "value39": {
+        "value0": "",
+        "value1": 0,
+        "value2": 0,
+        "value3": 0,
+        "value4": "",
+        "value5": 0.03125,
+        "value6": 1,
+        "value7": {
+            "value0": 2.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "value8": {
+            "value0": 0.04585614427924156,
+            "value1": 0.24815970659255982,
+            "value2": 0.6606683731079102,
+            "value3": 1.0
+        },
+        "value9": {
+            "value0": 0.0,
+            "value1": 0.28226238489151,
+            "value2": 0.9408740401268005,
+            "value3": 1.0
+        },
+        "value10": {
+            "value0": 0.0,
+            "value1": 0.6000000238418579,
+            "value2": 0.800000011920929,
+            "value3": 0.6800000071525574
+        },
+        "value11": {
+            "value0": 0.7799999713897705,
+            "value1": 0.8399999737739563,
+            "value2": 0.9200000166893005,
+            "value3": 0.0
+        },
+        "value12": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.0
+        },
+        "value13": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 0.44999998807907107
+        },
+        "value14": {
+            "value0": 0.5,
+            "value1": 0.699999988079071,
+            "value2": 0.019999999552965165,
+            "value3": 0.0
+        },
+        "value15": {
+            "value0": 1.0,
+            "value1": 0.0,
+            "value2": 0.20000000298023225,
+            "value3": 0.5
+        }
+    },
+    "value40": 0,
+    "value41": 0,
+    "value42": 0,
+    "value43": 0,
+    "value44": 0,
+    "value45": 0,
+    "value46": 5,
+    "value47": 0,
+    "value48": {
+        "value0": 3793059309020057293
+    },
+    "value49": 1,
+    "value50": {
+        "value0": 7234029475899941473
+    },
+    "value51": 2,
+    "value52": {
+        "value0": 699123756859124642
+    },
+    "value53": 3,
+    "value54": {
+        "value0": 6911033639420997472
+    },
+    "value55": 4,
+    "value56": {
+        "value0": 1812229438397480818
+    },
+    "value57": 0,
+    "value58": 0,
+    "value59": 0,
+    "value60": 0,
+    "value61": 0,
+    "value62": 0,
+    "value63": 1,
+    "value64": 1,
+    "value65": {
+        "ViewRadius": 6
+    }
+}
