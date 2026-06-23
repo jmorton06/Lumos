@@ -53,12 +53,12 @@ float Fd_Burley(float roughness, float NoV, float NoL, float LoH)
 }
 
 
-float V_SmithGGXCorrelated(float NoV, float NoL, float a) 
+float V_SmithGGXCorrelated(float NoV, float NoL, float a)
 {
     float a2 = a * a;
     float GGXL = NoV * sqrt((-NoL * a2 + NoL) * NoL + a2);
     float GGXV = NoL * sqrt((-NoV * a2 + NoV) * NoV + a2);
-    return 0.5 / (GGXV + GGXL);
+    return saturateMediump(0.5 / (GGXV + GGXL + 1e-5));
 }
 
 float Fd_Lambert()
@@ -93,14 +93,11 @@ vec3 ComputeF0(const vec4 baseColour, float metallic, float reflectance)
     return baseColour.rgb * metallic + (reflectance * (1.0 - metallic));
 }
 
-#if QUALITY_LOW
-    // min roughness such that (MIN_PERCEPTUAL_ROUGHNESS^4) > 0 in fp16 (i.e. 2^(-14/4), rounded up)
-    #define MIN_PERCEPTUAL_ROUGHNESS 0.089
-    #define MIN_ROUGHNESS            0.007921
-#else
-    #define MIN_PERCEPTUAL_ROUGHNESS 0.045
-    #define MIN_ROUGHNESS            0.002025
-#endif
+// Use 0.089 floor for both quality paths — lower values produce sub-pixel
+// specular peaks that flicker when the camera moves. Filament uses 0.045
+// but pairs it with TAA, which we don't have.
+#define MIN_PERCEPTUAL_ROUGHNESS 0.089
+#define MIN_ROUGHNESS            0.007921
 
 #define MIN_N_DOT_V 0.1 // 1e-4
 

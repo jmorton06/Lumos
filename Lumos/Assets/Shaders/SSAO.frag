@@ -1,5 +1,6 @@
 #version 450
 #include "Common.glslh"
+#include "Octahedral.glslh"
 
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
@@ -34,8 +35,9 @@ float LinearizeDepth(float depth)
 vec3 reconstructVSPosFromDepth(vec2 uv)
 {
     float depth = texture(in_Depth, uv).r;
-    float z = depth * 2.0 - 1.0;
-    vec4 clipPos = vec4(uv * 2.0 - 1.0, z, 1.0);
+    // Vulkan clip space uses a [0, 1] depth range, so the depth buffer value
+    // is the NDC z directly - it must NOT be remapped to [-1, 1].
+    vec4 clipPos = vec4(uv * 2.0 - 1.0, depth, 1.0);
     vec4 viewPos = ubo.invProj * clipPos;
     return viewPos.xyz / viewPos.w;
 }
@@ -48,7 +50,10 @@ const vec2 HALF_2 = vec2(0.5);
 
 vec3 GetNormal(vec2 uv)
 {
-    return normalize(texture(in_Normal, uv).xyz * 2.0f - 1.0f);
+    // in_Normal is the packed G-buffer: octahedral world normal in .rg. SSAO
+    // works in view space (posVS, kernel and projection all view space).
+    vec3 worldNormal = OctDecodeNormal(texture(in_Normal, uv).rg);
+    return normalize(mat3(ubo.view) * worldNormal);
 }
 
 void main()

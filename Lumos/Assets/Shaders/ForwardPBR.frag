@@ -122,6 +122,11 @@ float GetShadowBias(vec3 lightDirection, vec3 normal, int shadowIndex)
 {
 	float minBias = u_SceneData.InitialBias;
 	float bias = max(minBias * (1.0 - dot(normal, lightDirection)), minBias);
+	// Further cascades cover much more world space per shadow-map texel, so the
+	// depth quantisation error - and the bias needed to hide it - grows with them.
+	// Without this every cascade used the same tiny bias, and the far cascades
+	// self-shadowed into a uniform grey haze ("a light shadow over everything").
+	bias *= float(shadowIndex + 1);
 	return bias;
 }
 
@@ -156,7 +161,11 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 		}
 
 		vec2 sampleUV = clamp(shadowCoords.xy + offset, vec2(0.001), vec2(0.999));
-		float z = texture(shadowMap, vec3(sampleUV, cascadeIndex)).r - bias;
+		// Bias must RELAX the depth test (a lit fragment is allowed to be
+		// slightly behind the stored occluder). It was being subtracted, which
+		// tightened the test instead - so more bias meant more self-shadowing,
+		// and PCF averaged that acne into a grey haze over the far cascades.
+		float z = texture(shadowMap, vec3(sampleUV, cascadeIndex)).r + bias;
 		sum += step(shadowCoords.z, z);
 	}
 
@@ -211,9 +220,13 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 
 	if (u_SceneData.FilterShadows  == 1)
 	{
-		float NEAR = 0.01;
-		uvRadius =  u_SceneData.LightSize * NEAR / shadowCoord.z;
-		uvRadius = min(uvRadius, 0.005);
+		// Penumbra width expressed in shadow-map texels, scaled by light size.
+		// The old "LightSize * NEAR / shadowCoord.z" heuristic always saturated
+		// its min() clamp, giving a fixed ~20 texel kernel in every cascade -
+		// that is what made the shadows extremely soft.
+		float texelSize = 1.0 / float(textureSize(uShadowMap, 0).x);
+		uvRadius = u_SceneData.LightSize * texelSize * 2.0;
+		uvRadius = clamp(uvRadius, texelSize, texelSize * 8.0);
 
 		shadowAmount = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeIndex);
 	}
@@ -356,9 +369,11 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
     	float LoH = saturate(dot(Li, h));
 
     	vec3 Fd = DiffuseLobe(material, NoV, NoL, LoH);
-		vec3 Fr = SpecularLobe(material, light, h, NoV, NoL, NoH, LoH);;
+		vec3 Fr = SpecularLobe(material, light, h, NoV, NoL, NoH, LoH);
+		// Clamp spec contribution to prevent fireflies from point-light sub-pixel alignment
+		Fr = min(Fr, vec3(20.0));
 
-		vec3 colour = Fd + Fr;// * material.EnergyCompensation;
+		vec3 colour = Fd + Fr;
 
 		result += (colour * Lradiance.rgb) * (value * NoL * ComputeMicroShadowing(NoL, material.AO));
 	}
@@ -373,12 +388,14 @@ vec3 IBL(vec3 F0, vec3 Lr, Material material)
 	vec3 kd = (1.0 - E) * (1.0 - material.Metallic.x);
 	vec3 diffuseIBL = material.Albedo.xyz * irradiance;
 
-	int u_EnvRadianceTexLevels = u_SceneData.EnvMipCount;
-	vec3 specularIrradiance = textureLod(uEnvMap, Lr, material.PerceptualRoughness * u_EnvRadianceTexLevels).rgb;
+	float maxMipLevel = max(float(u_SceneData.EnvMipCount) - 1.0, 1.0);
+	vec3 specularIrradiance = textureLod(uEnvMap, Lr, material.PerceptualRoughness * maxMipLevel).rgb;
+	// Cap extreme HDR pixels (sun) to prevent fireflies on near-mirror surfaces
+	specularIrradiance = min(specularIrradiance, vec3(50.0));
 
 	vec3 specularIBL = specularIrradiance * E;
 
-	return kd * diffuseIBL + specularIBL;
+	return (kd * diffuseIBL + specularIBL) * material.AO;
 }
 
 void main()
@@ -403,10 +420,16 @@ void main()
 	}
 	else if( u_MaterialData.workflow == PBR_WORKFLOW_SPECULAR_GLOSINESS)
 	{
-		//TODO
-		vec3 tex  = texture(u_MetallicMap, VertexOutput.TexCoord).rgb;
-		metallic  = (1.0 - u_MaterialData.MetallicMapFactor) * u_MaterialData.Metallic + u_MaterialData.MetallicMapFactor * tex.b;
-		roughness = (1.0 - u_MaterialData.MetallicMapFactor) * u_MaterialData.Roughness + u_MaterialData.MetallicMapFactor * tex.g;
+		// u_MetallicMap: RGB = specular colour, A = glossiness
+		// u_MaterialData.Metallic  = constant specular intensity (scalar)
+		// u_MaterialData.Roughness = constant glossiness
+		vec4 tex        = texture(u_MetallicMap, VertexOutput.TexCoord);
+		vec3 specular   = (1.0 - u_MaterialData.MetallicMapFactor) * vec3(u_MaterialData.Metallic)
+		                + u_MaterialData.MetallicMapFactor * tex.rgb;
+		float glossiness = (1.0 - u_MaterialData.MetallicMapFactor) * u_MaterialData.Roughness
+		                 + u_MaterialData.MetallicMapFactor * tex.a;
+		metallic  = computeMetallicFromSpecularColour(specular);
+		roughness = 1.0 - glossiness;
 	}
 
 	Material material;
@@ -436,7 +459,7 @@ void main()
 #if !QUALITY_LOW
 	{
 		const float strength = 1.0;
-		const float maxRoughnessGain = 0.02;
+		const float maxRoughnessGain = 0.18;
 
 		vec3 dndu = dFdx(material.Normal);
 		vec3 dndv = dFdy(material.Normal);
@@ -447,10 +470,10 @@ void main()
 		float filteredRoughness2 = roughness2 + kernelRoughness2;
 		filteredRoughness2 = clamp(filteredRoughness2, MIN_ROUGHNESS, 1.0);
 
-		material.Roughness = sqrt(filteredRoughness2);
+		material.Roughness = filteredRoughness2;
 	}
 #else
-	material.Roughness = sqrt(roughness2);
+	material.Roughness = roughness2;
 #endif
 
 	InvSqrtPCFSamples = 1.0 / sqrt(float(u_SceneData.PCFSamples));
@@ -465,13 +488,49 @@ void main()
 	material.F0 = F0;
     material.EnergyCompensation = 1.0 + material.F0 * (1.0 / max(0.1, material.dfg.y) - 1.0);
 	material.Albedo.xyz = computeDiffuseColour(material.Albedo, material.Metallic.x);
-	material.Albedo *= ssao;
 
 	vec3 Lr = 2.0 * material.NDotV * material.Normal - material.View;
 	vec3 lightContribution = Lighting(material.F0, wsPos, material);
-	vec3 iblContribution   = IBL(material.F0, Lr, material);
+	vec3 iblContribution   = IBL(material.F0, Lr, material) * ssao;
 
 	vec3 finalColour = lightContribution + iblContribution + material.Emissive;
+
+	// Scene fog. Combines exponential height-attenuated density with optional
+	// linear distance band. Skipped entirely when strength == 0.
+	if(u_SceneData.FogColour.a > 0.001)
+	{
+		vec3 camPos = u_SceneData.cameraPosition.xyz;
+		float dist = length(wsPos - camPos);
+
+		// Exponential, height-attenuated fog (Wronski-style).
+		float density = u_SceneData.FogParams.x;
+		float heightFall = u_SceneData.FogParams.y;
+		float fogExp = 0.0;
+		if(density > 0.0)
+		{
+			float yCam = camPos.y;
+			float yPos = wsPos.y;
+			float dy = yPos - yCam;
+			// Avoid div-by-zero when looking horizontally.
+			float falloffSafe = (heightFall > 0.0001) ? heightFall : 0.0001;
+			float verticalAtt = (heightFall > 0.0001)
+				? (1.0 - exp(-dy * falloffSafe)) / (dy * falloffSafe + 1e-5)
+				: 1.0;
+			fogExp = 1.0 - exp(-density * dist * verticalAtt);
+			fogExp = clamp(fogExp, 0.0, 1.0);
+		}
+
+		// Linear distance band — useful for distant haze without crushing nearby props.
+		float startD = u_SceneData.FogParams.z;
+		float endD   = u_SceneData.FogParams.w;
+		float fogLin = 0.0;
+		if(endD > startD + 0.001)
+			fogLin = clamp((dist - startD) / (endD - startD), 0.0, 1.0);
+
+		float fog = max(fogExp, fogLin) * u_SceneData.FogColour.a;
+		finalColour = mix(finalColour, u_SceneData.FogColour.rgb, fog);
+	}
+
 	outColour = vec4(finalColour, 1.0);
 
 	if(u_SceneData.Mode > 0)

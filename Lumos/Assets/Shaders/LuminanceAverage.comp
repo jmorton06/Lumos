@@ -1,0 +1,75 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
+
+// Reduces the 256-bin log-luminance histogram to a single smoothed
+// average luminance, written into the persistent SSBO that ToneMapping
+// reads each frame. Resets the histogram in-place for next frame.
+
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(std430, set = 0, binding = 0) buffer HistogramBuffer
+{
+    uint Histogram[256];
+} u_Hist;
+
+layout(std430, set = 0, binding = 1) buffer AverageBuffer
+{
+    float AverageLuminance;
+} u_Avg;
+
+layout(push_constant) uniform Uniforms
+{
+    float MinLogLum;
+    float LogLumRange;        // MaxLogLum - MinLogLum
+    float DeltaTime;          // seconds since last frame, clamped
+    float SpeedUp;             // adapt rate when scene gets brighter
+    float SpeedDown;           // adapt rate when scene gets darker
+    uint  NumPixels;          // total pixels in the source texture
+} u_Params;
+
+shared uint s_HistogramShared[256];
+
+void main()
+{
+    uint binIndex = gl_LocalInvocationIndex;
+    uint binCount = u_Hist.Histogram[binIndex];
+
+    // Weight each bin by its index; bin 0 (~black) naturally contributes 0
+    // to the weighted sum and is excluded from the divisor below.
+    s_HistogramShared[binIndex] = binCount * binIndex;
+
+    barrier();
+
+    // Reset for next frame now that we've snapshotted everything we need.
+    u_Hist.Histogram[binIndex] = 0;
+
+    // Parallel reduction across 256 bins → s_HistogramShared[0] = sum of i*count_i.
+    for(uint cutoff = (256 >> 1); cutoff > 0; cutoff >>= 1)
+    {
+        if(binIndex < cutoff)
+            s_HistogramShared[binIndex] += s_HistogramShared[binIndex + cutoff];
+        barrier();
+    }
+
+    if(binIndex == 0)
+    {
+        uint weightedSum   = s_HistogramShared[0];
+        // We snapshot bin 0's count BEFORE the clear (it's the local copy this
+        // thread captured at the top), so the divisor stays correct.
+        uint blackPixels   = binCount;
+        uint nonBlackCount = (u_Params.NumPixels > blackPixels) ? (u_Params.NumPixels - blackPixels) : 1u;
+
+        // Weighted log-bin average in [0,254], offset back to log2 luminance.
+        float weightedLogAvg = (float(weightedSum) / float(nonBlackCount)) - 1.0;
+        float weightedAvgLum = exp2((weightedLogAvg / 254.0) * u_Params.LogLumRange + u_Params.MinLogLum);
+
+        float prev     = u_Avg.AverageLuminance;
+        // Brighter scene → smaller target average → adapt with SpeedUp
+        // (eye opens up). Darker scene → larger target average → SpeedDown.
+        float rate     = (weightedAvgLum < prev) ? u_Params.SpeedUp : u_Params.SpeedDown;
+        float t        = 1.0 - exp(-u_Params.DeltaTime * rate);
+        float smoothed = prev + (weightedAvgLum - prev) * t;
+        u_Avg.AverageLuminance = smoothed;
+    }
+}

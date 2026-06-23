@@ -79,7 +79,12 @@ layout(std140, set = 2, binding = 5) uniform UniformSceneData
 	int FilterShadows;
 	int TileCountX;
 	int TileSize;
-
+	// Scene fog. FogColour.rgb = tint, .a = global strength (0 disables).
+	// FogParams.x = exponential density (per world unit), .y = height falloff
+	// (smaller = thicker low). .z = linear start dist, .w = linear end dist
+	// (end <= start disables the linear term).
+	vec4 FogColour;
+	vec4 FogParams;
 } u_SceneData;
 
 #ifdef FORWARD_PLUS
