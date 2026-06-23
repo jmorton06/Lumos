@@ -72,9 +72,6 @@ project "freetype"
     filter "system:windows"
         systemversion "latest"
 
-	filter "system:ios"
-		defines { "TARGET_OS_IPHONE" }
-
     filter "configurations:Debug"
         runtime "Debug"
         symbols "on"
