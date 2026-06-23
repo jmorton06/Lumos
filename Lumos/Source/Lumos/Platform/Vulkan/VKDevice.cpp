@@ -404,7 +404,7 @@ namespace Lumos
 #ifdef LUMOS_DEBUG
             for(int i = 0; i < 3; i++)
             {
-                auto queue = VKRenderer::GetDeletionQueue(i);
+                auto& queue = VKRenderer::GetDeletionQueue(i);
                 ASSERT((int)queue.Deletors.Size() == 0);
             }
 #endif
@@ -485,6 +485,21 @@ namespace Lumos
             indexingFeatures.sType                                         = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
             indexingFeatures.runtimeDescriptorArray                        = VK_TRUE;
             indexingFeatures.descriptorBindingPartiallyBound               = VK_TRUE;
+
+            // VK_KHR_multiview — required for single-pass cascaded shadow rendering.
+            VkPhysicalDeviceMultiviewFeaturesKHR multiviewFeatures = {};
+            multiviewFeatures.sType                                = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR;
+            multiviewFeatures.multiview                            = VK_TRUE;
+            indexingFeatures.pNext                                 = &multiviewFeatures;
+
+            if(m_PhysicalDevice->IsExtensionSupported(Str8Lit(VK_KHR_MULTIVIEW_EXTENSION_NAME)))
+            {
+                deviceExtensions.PushBack(VK_KHR_MULTIVIEW_EXTENSION_NAME);
+            }
+            else
+            {
+                LWARN("%s unsupported - cascaded shadow multiview disabled", VK_KHR_MULTIVIEW_EXTENSION_NAME);
+            }
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
             // https://vulkan.lunarg.com/doc/view/1.2.162.0/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451

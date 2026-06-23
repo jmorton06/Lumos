@@ -52,6 +52,11 @@ namespace Lumos
             CommandBuffer* GetCurrentCommandBuffer() override;
             void SetVSync(bool vsync) override { m_VSyncEnabled = vsync; }
 
+            uint32_t GetWidth() const { return m_Width; }
+            uint32_t GetHeight() const { return m_Height; }
+            // Returns true (once) if the swapchain was silently recreated this frame (suboptimal path).
+            bool ConsumeWasRecreated() { bool r = m_WasRecreated; m_WasRecreated = false; return r; }
+
             FrameData& GetCurrentFrameData();
             VkFormat GetScreenFormat() const { return m_ColourFormat; }
 
@@ -72,8 +77,9 @@ namespace Lumos
             uint32_t m_Height;
             uint32_t m_QueueNodeIndex = UINT32_MAX;
             uint32_t m_SwapChainBufferCount;
-            bool m_VSyncEnabled = false;
-            bool m_NeedRecreate = false;
+            bool m_VSyncEnabled  = false;
+            bool m_NeedRecreate  = false;
+            bool m_WasRecreated  = false;
 
             VkSwapchainKHR m_SwapChain;
             VkSwapchainKHR m_OldSwapChain;

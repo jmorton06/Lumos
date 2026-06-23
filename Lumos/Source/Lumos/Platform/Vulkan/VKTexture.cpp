@@ -1375,7 +1375,10 @@ namespace Lumos
 
             for(uint32_t i = 0; i < m_Count; i++)
             {
-                VkImageView imageView = CreateImageView(m_TextureImage, m_VKFormat, 1, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_DEPTH_BIT, 1, i, 0);
+                // Use VK_IMAGE_VIEW_TYPE_2D_ARRAY (layerCount=1) instead of VK_IMAGE_VIEW_TYPE_2D for per-slice
+                // framebuffer attachments. MoltenVK on Intel macOS mishandles 2D-typed views of array depth
+                // textures; the array-typed slice view selects the correct Metal texture slice reliably.
+                VkImageView imageView = CreateImageView(m_TextureImage, m_VKFormat, 1, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_ASPECT_DEPTH_BIT, 1, i, 0);
                 m_IndividualImageViews.PushBack(imageView);
             }
 

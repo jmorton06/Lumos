@@ -33,7 +33,13 @@ namespace Lumos
 		WidgetFlags_CentreY           = (1 << 10),
         WidgetFlags_DragParent        = (1 << 11),
         WidgetFlags_AnimateScale      = (1 << 12), // Scale down slightly when pressed
-        WidgetFlags_IsToggle          = (1 << 13)  // For animated toggle switches
+        WidgetFlags_IsToggle          = (1 << 13), // For animated toggle switches
+        // Parent-side hints: when set on a parent, every non-floating child
+        // gets centred on that axis as if it carried WidgetFlags_CentreX/Y.
+        // Avoids having to poke each child's flag from script.
+        WidgetFlags_CentreChildrenX   = (1 << 14),
+        WidgetFlags_CentreChildrenY   = (1 << 15),
+        WidgetFlags_AnimateAppear     = (1 << 16), // Pop-in scale/fade when widget first appears
     };
 
     enum UITextAlignment : u32
@@ -49,7 +55,23 @@ namespace Lumos
         SizeKind_TextContent,
         SizeKind_PercentOfParent,
         SizeKind_ChildSum,
-        SizeKind_MaxChild
+        SizeKind_MaxChild,
+        SizeKind_PercentOfViewport,  // value = fraction of root (framebuffer minus safe area), 0..1
+    };
+
+    // Panel anchor positions. Used by UIWindowAnchor. None = use natural layout.
+    enum UIAnchor : u8
+    {
+        UIAnchor_None = 0,
+        UIAnchor_TopLeft,
+        UIAnchor_TopCenter,
+        UIAnchor_TopRight,
+        UIAnchor_MiddleLeft,
+        UIAnchor_MiddleCenter,
+        UIAnchor_MiddleRight,
+        UIAnchor_BottomLeft,
+        UIAnchor_BottomCenter,
+        UIAnchor_BottomRight,
     };
 
     enum UIAxis
@@ -84,6 +106,7 @@ namespace Lumos
         StyleVar_ShadowOffset,
         StyleVar_ShadowBlur,
         StyleVar_ItemSpacing,   // .x = horizontal gap, .y = vertical gap between stacked children
+        StyleVar_Alpha,         // .x = opacity multiplier applied to border/background/text/shadow
         StyleVar_Count
     };
 
@@ -127,8 +150,29 @@ namespace Lumos
         f32 ActiveTransition;
         f32 ToggleTransition; // 0 = off, 1 = on (for animated toggles)
         f32 ScaleAnimation;   // For press scale effect
+        f32 AppearTransition; // 0 → 1 after creation; drives AnimateAppear pop-in
 
         u64 LastFrameIndexActive;
+
+        // Optional viewport-anchored positioning. When Anchor != None the
+        // post-layout pass overrides relative_position with the chosen
+        // anchor offset (rootSize - widgetSize) + AnchorMargin. Set via
+        // UIWindowAnchor(). Only honored on direct children of root_parent.
+        UIAnchor Anchor;
+        Vec2 AnchorMargin;
+
+        // Optional render rotation in radians (around widget centre). Applied
+        // to the background quad only. Used by widgets that need a directional
+        // visual (compass needle, wind arrow, dial). Layout uses the
+        // axis-aligned bounding size — rotation is a render-only effect.
+        f32 Rotation;
+
+        // Optional rendered rect size, decoupled from layout size. Default
+        // (0,0) means render at widget.size. Non-zero lets a rotated widget
+        // reserve a square bounding box for layout (so siblings don't shift
+        // as it spins) while drawing a (length × thickness) rect centred in
+        // that box. Honored only when Rotation != 0.
+        Vec2 RenderSize;
     };
 
     struct UI_Interaction
@@ -238,6 +282,19 @@ namespace Lumos
         bool ContextMenuOpen    = false;
         Vec2 ContextMenuPos     = {};
         u64 ContextMenuTrigger  = 0; // Widget that triggered the menu
+        // Frame index on which a close was requested (left-click outside).
+        // Close is deferred one frame so the items still build and can
+        // dispatch the click that originated the close. Zero = no request.
+        u64 ContextMenuCloseRequestFrame = 0;
+
+        // Per-frame monotonic id source for anonymous widgets (separator, row,
+        // column, spacer, tooltip, etc). Reset at the top of UIBeginFrame so
+        // the Nth call of a given helper this frame produces the same hash as
+        // the Nth call last frame — keeps pool slots stable across frames.
+        u64 WidgetIdCounter = 0;
+
+        // One-shot flags OR'd into the next widget created (see UISetNextFlags).
+        u32 NextWidgetFlags = 0;
     };
 
     UI_State* GetUIState();
@@ -257,12 +314,33 @@ namespace Lumos
 
     void UIEndPanel();
 
+    // Headerless panel — same window widget as UIBeginPanel but with no title
+    // header bar. Intended for in-game HUD overlays where a draggable title
+    // would look out of place. Pair with UIEndPanel().
+    UI_Interaction UIBeginOverlay(const char* str, SizeKind sizeKindX = SizeKind_MaxChild, float xValue = 1.0f, SizeKind sizeKindY = SizeKind_ChildSum, float yValue = 1.0f, u32 extraFlags = WidgetFlags_StackVertically);
+
+    // Rotated coloured rect. Pixel-sized (length × thickness). Rotation is
+    // CCW radians applied around the rect centre at render time; layout
+    // reserves the axis-aligned bounding box big enough to contain the
+    // rotated quad so it doesn't clip siblings. Intended for compass needles
+    // / wind arrows where text or unicode glyphs won't do.
+    UI_Interaction UIArrow(const char* str, float angleRad, float length, float thickness, const Vec4& color);
+
     // Window dock/positioning helpers (call between UIBeginPanel and first child)
     enum UIDockPosition { Dock_Left, Dock_Right, Dock_Top, Dock_Bottom, Dock_Fill };
     void UIWindowDock(UIDockPosition pos, float sizePercent = 0.5f);
     void UIWindowCenter();
     void UIWindowFillScreen();
     void UIWindowSetSize(float wPercent, float hPercent);
+    // Anchor the current panel to a viewport corner / edge / center with the
+    // given pixel margin. Position is applied after layout so the panel can
+    // still auto-size from its children (ChildSum) or use PercentOfViewport.
+    void UIWindowAnchor(UIAnchor anchor, float marginX = 0.0f, float marginY = 0.0f);
+
+    // OR extra flags into the next widget created (one-shot). Lets callers add
+    // AnimateAppear / AnimateScale etc. to widgets whose helper doesn't expose
+    // a flags parameter (UILabel, UIButton, ...).
+    void UISetNextFlags(u32 flags);
 
     void UIPushStyle(StyleVar style_variable, float value);
     void UIPushStyle(StyleVar style_variable, const Vec2& value);
@@ -394,4 +472,7 @@ namespace Lumos
     void UIApplyGreenTheme();
     void UIApplyPurpleTheme();
     void UIApplyHighContrastTheme();
+
+    inline float EaseOutCubic(float t) { return 1.0f - (1.0f - t) * (1.0f - t) * (1.0f - t); }
+    inline float EaseInOutCubic(float t) { return t < 0.5f ? 4.0f * t * t * t : 1.0f - (-2.0f * t + 2.0f) * (-2.0f * t + 2.0f) * (-2.0f * t + 2.0f) / 2.0f; }
 }

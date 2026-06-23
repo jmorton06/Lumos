@@ -85,6 +85,9 @@ namespace Lumos
 
             void EnableDebugRenderer(bool enable);
 
+            void SetClearColour(const Vec4& colour) { m_ClearColour = colour; }
+            const Vec4& GetClearColour() const { return m_ClearColour; }
+
             void OnResize(uint32_t width, uint32_t height);
             void BeginScene(Scene* scene);
             void OnNewScene(Scene* scene);
@@ -139,6 +142,9 @@ namespace Lumos
             void OutlinePass();
             void DepthOfFieldPass();
             void SharpenPass();
+            void VignettePass();
+            void MotionBlurPass();
+            void SSRPass();
 
             void UIPass();
 
@@ -188,6 +194,10 @@ namespace Lumos
                 CommandQueue m_CascadeCommandQueue[SHADOWMAP_MAX];
 
                 TextureDepthArray* m_ShadowTex;
+                // Intel macOS MoltenVK cannot render to per-slice attachments of a depth array reliably.
+                // Workaround: render each cascade to its own standalone depth texture, then copy each
+                // into the array texture above which ForwardPBR still samples as sampler2DArray.
+                TextureDepth* m_CascadeTextures[SHADOWMAP_MAX] = { nullptr };
                 uint32_t m_ShadowMapNum;
                 uint32_t m_ShadowMapSize;
                 bool m_ShadowMapsInvalidated;
@@ -414,6 +424,9 @@ namespace Lumos
 
             Texture2D* m_NoiseTexture  = nullptr;
             Texture2D* m_NormalTexture = nullptr;
+            // Single-sample resolve of the packed normal/depth/roughness G-buffer,
+            // used by SSR when MSAA is on (the MSAA target can't be sampled).
+            Texture2D* m_NormalResolveTexture = nullptr;
 
             SharedPtr<Graphics::Shader> m_SSAOShader;
             SharedPtr<Graphics::DescriptorSet> m_SSAOPassDescriptorSet;
@@ -424,6 +437,36 @@ namespace Lumos
 
             SharedPtr<Graphics::Shader> m_ToneMappingPassShader;
             SharedPtr<Graphics::DescriptorSet> m_ToneMappingPassDescriptorSet;
+
+            // Adaptive exposure (eye adaptation). Two compute passes: a
+            // 256-bin log-luminance histogram over the HDR scene, then a
+            // single-workgroup reduction that smooths AverageLuminance into
+            // the persistent UBO. Gated on m_SupportCompute + scene's
+            // RenderSettings.AdaptiveExposure flag.
+            bool m_AdaptiveExposureReady = false;
+            SharedPtr<Graphics::Shader> m_LuminanceHistogramShader;
+            SharedPtr<Graphics::Shader> m_LuminanceAverageShader;
+            SharedPtr<Graphics::DescriptorSet> m_LuminanceHistogramDescriptorSet;
+            SharedPtr<Graphics::DescriptorSet> m_LuminanceAverageDescriptorSet;
+            Graphics::StorageBuffer* m_LuminanceHistogramSSBO = nullptr;
+            Graphics::StorageBuffer* m_AverageLuminanceSSBO   = nullptr;
+
+            SharedPtr<Graphics::Shader> m_VignetteShader;
+            SharedPtr<Graphics::DescriptorSet> m_VignettePassDescriptorSet;
+
+            SharedPtr<Graphics::Shader> m_MotionBlurShader;
+            SharedPtr<Graphics::DescriptorSet> m_MotionBlurPassDescriptorSet;
+            // Previous-frame view-projection for camera reprojection. Set
+            // to identity on first frame so the first MB sample produces
+            // zero velocity rather than a screen-wide smear.
+            Mat4 m_PrevViewProj;
+            bool m_HasPrevViewProj = false;
+
+            // Screen-space reflections. Ray-marches the depth buffer in view
+            // space from each pixel along its reflected view vector, samples the
+            // lit colour at the hit, fades by roughness/edge/fresnel. Optional.
+            SharedPtr<Graphics::Shader> m_SSRShader;
+            SharedPtr<Graphics::DescriptorSet> m_SSRPassDescriptorSet;
 
             SharedPtr<Graphics::DescriptorSet> m_FilmicGrainPassDescriptorSet;
             SharedPtr<Graphics::Shader> m_FilmicGrainShader;

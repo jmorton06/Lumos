@@ -1,5 +1,6 @@
 #pragma once
 #include "Graphics/Model.h"
+#include "Graphics/Material.h"
 #include <unordered_map>
 
 namespace Lumos::Graphics
@@ -39,6 +40,7 @@ namespace Lumos::Graphics
 
         SharedPtr<Model> ModelRef;
         std::unordered_map<u32, std::string> MaterialOverrides;
+        std::unordered_map<u32, SharedPtr<Material>> InstanceMaterials;
         std::string AnimationOverride;
     };
 }

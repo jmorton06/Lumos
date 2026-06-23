@@ -53,7 +53,7 @@ namespace Lumos
             style_variable_list->first = style_variable_list->last = styleVariable;
         }
 
-        style_variable_lists[StyleVar_Padding].first->value               = { 6.0f, 3.0f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_Padding].first->value               = { 32.0f, 32.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_Border].first->value                = { 1.0f, 1.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_BorderColor].first->value           = { 0.7f, 0.7f, 0.7f, 1.0f };
         style_variable_lists[StyleVar_BackgroundColor].first->value       = { 0.95f, 0.95f, 0.95f, 1.0f };
@@ -70,6 +70,7 @@ namespace Lumos
         style_variable_lists[StyleVar_ShadowOffset].first->value          = { 0.0f, 1.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_ShadowBlur].first->value            = { 4.0f, 0.0f, 0.0f, 0.0f };
         style_variable_lists[StyleVar_ItemSpacing].first->value          = { 2.0f, 2.0f, 0.0f, 0.0f };
+        style_variable_lists[StyleVar_Alpha].first->value                 = { 1.0f, 0.0f, 0.0f, 0.0f };
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
         style_variable_lists[StyleVar_FontSize].first->value = { 22.0f, 0.0f, 0.0f, 1.0f };
@@ -85,6 +86,11 @@ namespace Lumos
             HashMapDeinit(&s_UIState->widgets);
             ArenaRelease(s_UIState->UIFrameArena);
         }
+    }
+
+    void UISetNextFlags(u32 flags)
+    {
+        s_UIState->NextWidgetFlags |= flags;
     }
 
     void UIPushStyle(StyleVar style_variable, float value)
@@ -192,16 +198,25 @@ namespace Lumos
             widget->ActiveTransition = 0.0f;
             widget->ToggleTransition = 0.0f;
             widget->ScaleAnimation   = 1.0f;
+            widget->AppearTransition = 0.0f;
             HashMapInsert(&s_UIState->widgets, hash, widget);
         }
 
         widget->parent               = parent;
-        widget->flags                = flags;
+        widget->flags                = flags | s_UIState->NextWidgetFlags;
+        s_UIState->NextWidgetFlags   = 0;
         widget->text                 = text;
         widget->hash                 = hash;
         widget->texture              = nullptr;
         widget->LastFrameIndexActive = s_UIState->FrameIndex;
         widget->ActiveTransition     = 0.0f;
+        // Anchor is opt-in per frame via UIWindowAnchor() — reset here so a
+        // cached widget that anchored last frame doesn't keep anchoring if
+        // the caller stops requesting it.
+        widget->Anchor               = UIAnchor_None;
+        widget->AnchorMargin         = Vec2(0.0f, 0.0f);
+        widget->Rotation             = 0.0f;
+        widget->RenderSize           = Vec2(0.0f, 0.0f);
 
         widget->first = NULL;
         widget->last  = NULL;
@@ -211,23 +226,25 @@ namespace Lumos
         widget->semantic_size[UIAxis_X] = semantic_size_x;
         widget->semantic_size[UIAxis_Y] = semantic_size_y;
 
-        if(!parent->first)
+        // Guard against duplicate push / accidental re-parenting in the same
+        // frame: if the cached widget is already this parent's sole child
+        // (or already tail), linking it as "prev = parent->last" below would
+        // produce widget->prev == widget and widget->next == widget — a
+        // self-cycle that hangs UILayoutSolveDownwardsSizes(MaxChild) forever
+        // when it walks Child->next. Same problem if a hash is reused across
+        // two panels in one frame — the second push silently corrupts the
+        // first panel's child list. Detect those cases and bail to first-
+        // child treatment so the new parent gets a clean single-element list.
+        if(!parent->first || parent->last == widget || parent->first == widget)
         {
             parent->first = widget;
             parent->last  = widget;
         }
         else
         {
-            if(!widget->parent->last)
-                widget->prev = parent->first;
-            else
-                widget->prev = widget->parent->last;
-
-            if(widget->prev)
-            {
-                widget->prev->next = widget;
-            }
-            parent->last = widget;
+            widget->prev      = parent->last;
+            widget->prev->next = widget;
+            parent->last      = widget;
         }
 
         SetWidgetStyleVars(widget);
@@ -288,6 +305,7 @@ namespace Lumos
         s_UIState->AnimationRateDT = s_UIState->AnimationRate * dt;
         s_UIState->TreeIndentLevel = 0;
         s_UIState->FocusableWidgets.Clear();
+        s_UIState->WidgetIdCounter = 0;
 
         // Handle dragging BEFORE building widgets so position updates are immediate
         if(s_UIState->active_widget && s_UIState->active_widget_state)
@@ -326,10 +344,33 @@ namespace Lumos
         }
 
         SafeAreaInsets sa = OS::Get().GetSafeAreaInsets();
+        // Editor always honours safe area on iOS regardless of the loaded project's setting,
+        // so notch/home-indicator never occlude editor chrome.
+        const bool isEditor = Application::Get().GetAppType() == AppType::Editor;
+        if(!isEditor && !Application::Get().GetProjectSettings().UseSafeArea)
+            sa = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+        // Viewport-aware font auto-scale. Themes set FontSize to a desktop
+        // baseline (20-22 * DPI); on a 6.7" iPhone with 3x DPI that becomes
+        // 60+ which is unusable. Scale the bottom-of-stack font default each
+        // frame from the smaller axis of the safe-area viewport. Clamped to
+        // keep desktop ergonomics intact. Coefficient picked so a 9pt iPad in
+        // portrait lands around 22-24px (readable, not chunky).
+        {
+            const float viewportMin = Maths::Min(
+                frame_buffer_size.x - sa.left - sa.right,
+                frame_buffer_size.y - sa.top - sa.bottom);
+            const float baseFont = Maths::Clamp(viewportMin * 0.034f, 16.0f, 44.0f);
+            auto* fontList = &s_UIState->style_variable_lists[StyleVar_FontSize];
+            if(fontList->first)
+                fontList->first->value.x = baseFont;
+        }
 
         UI_Widget* root_parent                    = &s_UIState->root_parent;
-        root_parent->semantic_size[UIAxis_X]      = { SizeKind_Pixels, frame_buffer_size.x - sa.left - sa.right };
-        root_parent->semantic_size[UIAxis_Y]      = { SizeKind_Pixels, frame_buffer_size.y - sa.top - sa.bottom };
+        const Vec2 insetSize                      = Vec2(frame_buffer_size.x - sa.left - sa.right,
+                                                         frame_buffer_size.y - sa.top - sa.bottom);
+        root_parent->semantic_size[UIAxis_X]      = { SizeKind_Pixels, insetSize.x };
+        root_parent->semantic_size[UIAxis_Y]      = { SizeKind_Pixels, insetSize.y };
         root_parent->hash                         = HashUIStr8Name(Str8Lit("root"));
         root_parent->flags                        = WidgetFlags_StackVertically;
         root_parent->text                         = Str8Lit("root");
@@ -337,7 +378,11 @@ namespace Lumos
         root_parent->style_vars[StyleVar_Border]  = { 0.0f, 0.0f, 0.0f, 0.0f };
         root_parent->cursor                       = { 0.0f, 0.0f };
         root_parent->position                     = { sa.left, sa.top };
-        root_parent->size                         = frame_buffer_size;
+        // Size matches what layout will compute (= inset). Build-phase code
+        // reads root.size to place modals/overlays, so it must reflect the
+        // usable region — using the full framebuffer here caused overlays
+        // to drift past the safe-area inset on devices with notches.
+        root_parent->size                         = insetSize;
         root_parent->first                        = NULL;
         root_parent->last                         = NULL;
         root_parent->next                         = NULL;
@@ -366,10 +411,17 @@ namespace Lumos
             return;
         }
 
-        // Reset right_clicked for all widgets at start of frame processing
+        // Reset per-frame interaction flags for all cached widgets BEFORE
+        // input dispatch — clicks consumed during the just-finished build
+        // phase don't carry over. Without this, widgets re-emerging from the
+        // pool inherit stale clicked/double_clicked flags from the slot's
+        // previous occupant.
         ForHashMapEach(u64, UI_Widget*, &s_UIState->widgets, it)
         {
-            (*it.value)->right_clicked = false;
+            UI_Widget* w        = *it.value;
+            w->right_clicked    = false;
+            w->clicked          = false;
+            w->double_clicked   = false;
         }
 
         // Handle mouse release (drag position updates moved to UIBeginFrame for responsiveness)
@@ -422,8 +474,12 @@ namespace Lumos
                         s_UIState->LastClickedWidget = s_UIState->active_widget;
                     }
 
-                    // Close context menu and dropdown on left click elsewhere
-                    s_UIState->ContextMenuOpen = false;
+                    // Defer context-menu close by one frame so the next
+                    // build phase still emits the menu items and the click
+                    // that originated this close gets dispatched (a click on
+                    // a menu item closes via UIContextMenuItem instead).
+                    if(s_UIState->ContextMenuOpen && s_UIState->ContextMenuCloseRequestFrame == 0)
+                        s_UIState->ContextMenuCloseRequestFrame = s_UIState->FrameIndex;
                     if(s_UIState->OpenDropdown && !s_UIState->OverlayBlocksInput)
                         s_UIState->OpenDropdown = 0;
                 }
@@ -438,6 +494,12 @@ namespace Lumos
                         hotWidget->right_clicked = true;
                         s_UIState->ContextMenuPos = Input::Get().GetMousePosition() * s_UIState->DPIScale - s_UIState->InputOffset;
                         s_UIState->ContextMenuTrigger = s_UIState->hot_widget;
+                        // Open the menu so UIBeginContextMenu() succeeds next
+                        // frame; the left-click branch above closes it again.
+                        s_UIState->ContextMenuOpen = true;
+                        // Cancel any pending deferred close so a fresh menu
+                        // isn't dismissed on the very next frame.
+                        s_UIState->ContextMenuCloseRequestFrame = 0;
                     }
                 }
             }
@@ -473,6 +535,10 @@ namespace Lumos
                 value->ScaleAnimation = Maths::Clamp(value->ScaleAnimation, 0.9f, 1.0f);
             }
 
+            // Appear pop-in ticks once after creation; renderer eases it.
+            if(value->AppearTransition < 1.0f)
+                value->AppearTransition = Maths::Clamp(value->AppearTransition + s_UIState->AnimationRateDT * 1.5f, 0.0f, 1.0f);
+
             if(value->LastFrameIndexActive < s_UIState->FrameIndex)
             {
                 lWidgetsToDelete.PushBack(value);
@@ -481,6 +547,16 @@ namespace Lumos
 
         for(auto widget : lWidgetsToDelete)
         {
+            // Clear active/hot pointers before freeing — a caller that stops
+            // emitting a widget mid-drag would otherwise leave
+            // active_widget_state pointing into freed pool memory.
+            if(s_UIState->active_widget_state == widget)
+            {
+                s_UIState->active_widget       = 0;
+                s_UIState->active_widget_state = nullptr;
+            }
+            if(s_UIState->hot_widget == widget->hash)
+                s_UIState->hot_widget = 0;
             HashMapRemove(&s_UIState->widgets, widget->hash);
             s_UIState->WidgetAllocator->Deallocate(widget);
         }
@@ -488,6 +564,16 @@ namespace Lumos
         // Reset tab navigation state at end of frame
         s_UIState->TabPressed = false;
         s_UIState->ShiftTabPressed = false;
+
+        // Service the deferred context-menu close: if the close was requested
+        // on a previous frame, the menu items have already had a build pass to
+        // dispatch any click that originated the close. Safe to close now.
+        if(s_UIState->ContextMenuCloseRequestFrame > 0 &&
+           s_UIState->FrameIndex > s_UIState->ContextMenuCloseRequestFrame)
+        {
+            s_UIState->ContextMenuOpen              = false;
+            s_UIState->ContextMenuCloseRequestFrame = 0;
+        }
     }
 
     String8 HandleUIString(const char* str, u64* out_hash)
@@ -528,7 +614,7 @@ namespace Lumos
                                          hashWindow,
                                          { sizeKindX, xValue },
                                          { sizeKindY, yValue });
-        
+
         // Enhanced panel appearance - theme aware, DPI scaled
         float dpi = s_UIState->DPIScale;
         window->style_vars[StyleVar_CornerRadius] = Vec4(6.0f * dpi, 0.0f, 0.0f, 0.0f);
@@ -536,7 +622,7 @@ namespace Lumos
         window->style_vars[StyleVar_ShadowColor]  = Vec4(0.0f, 0.0f, 0.0f, 0.3f);
         window->style_vars[StyleVar_ShadowOffset] = Vec4(2.0f * dpi, 2.0f * dpi, 0.0f, 0.0f);
         window->style_vars[StyleVar_ShadowBlur]   = Vec4(5.0f * dpi, 0.0f, 0.0f, 0.0f);
-        
+
         if(s_UIState->CurrentTheme == UITheme_Dark)
         {
             window->style_vars[StyleVar_BackgroundColor] = Vec4(0.15f, 0.15f, 0.15f, 0.98f);
@@ -547,7 +633,7 @@ namespace Lumos
             window->style_vars[StyleVar_BackgroundColor] = Vec4(0.95f, 0.95f, 0.95f, 0.98f);
             window->style_vars[StyleVar_BorderColor]     = Vec4(0.7f, 0.7f, 0.7f, 1.0f);
         }
-        
+
         PushParent(window);
 
         String8 HeaderText = PushStr8F(s_UIState->UIFrameArena, "Header###header%s", (char*)text.str);
@@ -560,7 +646,7 @@ namespace Lumos
                                        { SizeKind_PercentOfParent, 1.0f },
                                        { SizeKind_ChildSum, 1.0f });
         UIPopStyle(StyleVar_Padding);
-        
+
         // Enhanced header appearance - theme aware
         if(s_UIState->CurrentTheme == UITheme_Dark)
         {
@@ -572,7 +658,7 @@ namespace Lumos
             header->style_vars[StyleVar_BackgroundColor]    = Vec4(0.82f, 0.82f, 0.82f, 1.0f);
             header->style_vars[StyleVar_HotBackgroundColor] = Vec4(0.78f, 0.78f, 0.78f, 1.0f);
         }
-        
+
         PushParent(header);
 
         UI_Widget* title = PushWidget(WidgetFlags_DrawText,
@@ -594,20 +680,93 @@ namespace Lumos
         PopParent(GetCurrentParent());
     }
 
+    UI_Interaction UIArrow(const char* str, float angleRad, float length, float thickness, const Vec4& color)
+    {
+        u64 hash;
+        String8 text = HandleUIString(str, &hash);
+        // Layout reserves a length×length square so siblings don't shift as
+        // the rotation changes; the rect actually drawn is (length × thickness)
+        // centred in that box at the requested angle.
+        UI_Widget* widget = PushWidget(WidgetFlags_DrawBackground,
+                                       text,
+                                       hash,
+                                       { SizeKind_Pixels, length },
+                                       { SizeKind_Pixels, length });
+        widget->style_vars[StyleVar_BackgroundColor] = color;
+        widget->style_vars[StyleVar_Border]          = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        widget->style_vars[StyleVar_CornerRadius]    = Vec4(thickness * 0.5f, 0.0f, 0.0f, 0.0f);
+        widget->Rotation                             = angleRad;
+        widget->RenderSize                           = Vec2(length, thickness);
+        return HandleWidgetInteraction(widget);
+    }
+
+    UI_Interaction UIBeginOverlay(const char* str, SizeKind sizeKindX, float xValue, SizeKind sizeKindY, float yValue, u32 extraFlags)
+    {
+        u64 hash;
+        String8 text = HandleUIString(str, &hash);
+
+        String8 windowText = PushStr8F(s_UIState->UIFrameArena, "Overlay###overlay%s", (char*)text.str);
+        u64 hashWindow;
+        String8 windowText2 = HandleUIString((char*)windowText.str, &hashWindow);
+        UI_Widget* window   = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | extraFlags,
+                                         windowText2,
+                                         hashWindow,
+                                         { sizeKindX, xValue },
+                                         { sizeKindY, yValue });
+
+        // Subtle, theme-aware skin tuned for translucent HUD chrome rather
+        // than the editor's panels: rounder corners, no border, soft shadow.
+        // Background alpha is low so terrain reads through — the HUD reads
+        // as overlay, not a separate "window".
+        //
+        // Only applied where the caller hasn't pushed an override — a pushed
+        // style (count > 0) survives so games can skin overlays per-panel.
+        const float dpi = s_UIState->DPIScale;
+        auto setIfDefault = [&](StyleVar v, const Vec4& val) {
+            if(s_UIState->style_variable_lists[v].count == 0)
+                window->style_vars[v] = val;
+        };
+        setIfDefault(StyleVar_CornerRadius, Vec4(18.0f * dpi, 0.0f, 0.0f, 0.0f));
+        setIfDefault(StyleVar_Border,       Vec4(0.0f, 0.0f, 0.0f, 0.0f));
+        setIfDefault(StyleVar_ShadowColor,  Vec4(0.0f, 0.0f, 0.0f, 0.35f));
+        setIfDefault(StyleVar_ShadowOffset, Vec4(0.0f, 2.0f * dpi, 0.0f, 0.0f));
+        setIfDefault(StyleVar_ShadowBlur,   Vec4(14.0f * dpi, 0.0f, 0.0f, 0.0f));
+        setIfDefault(StyleVar_Padding,      Vec4(24.0f * dpi, 18.0f * dpi, 0.0f, 0.0f));
+        setIfDefault(StyleVar_ItemSpacing,  Vec4(0.0f, 6.0f * dpi, 0.0f, 0.0f));
+
+        if(s_UIState->CurrentTheme == UITheme_Dark)
+        {
+            setIfDefault(StyleVar_BackgroundColor, Vec4(0.04f, 0.05f, 0.08f, 0.55f));
+            setIfDefault(StyleVar_BorderColor,     Vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            setIfDefault(StyleVar_TextColor,       Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+        }
+        else
+        {
+            setIfDefault(StyleVar_BackgroundColor, Vec4(1.0f, 1.0f, 1.0f, 0.62f));
+            setIfDefault(StyleVar_BorderColor,     Vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            setIfDefault(StyleVar_TextColor,       Vec4(0.08f, 0.08f, 0.10f, 1.0f));
+        }
+
+        PushParent(window);
+        return HandleWidgetInteraction(window);
+    }
+
     // Helper: get root (framebuffer) size
     static Vec2 UIGetFrameBufferSize()
     {
         return s_UIState->root_parent.size;
     }
 
-    // Helper: get current window widget (grandparent — panel's window widget)
+    // Helper: get current window widget. UIBeginPanel/UIBeginOverlay both push
+    // their window onto parents and then (panel only) push+pop the header
+    // before returning, so parents.Back() == the window when these helpers
+    // are called between UIBegin* and the first child widget. Guard against
+    // being called before any panel begins (stack contains only root).
     static UI_Widget* UIGetCurrentWindow()
     {
-        // parents stack: ... window > header > (current children)
-        // We want the window, which is 2 levels up from current
         auto& parents = s_UIState->parents;
-        if(parents.Size() >= 2)
-            return parents[parents.Size() - 2];
+        if(parents.Size() < 2)
+            return nullptr;
         return parents.Back();
     }
 
@@ -669,6 +828,17 @@ namespace Lumos
         Vec2 fb = UIGetFrameBufferSize();
         window->semantic_size[UIAxis_X] = { SizeKind_Pixels, fb.x * wPercent };
         window->semantic_size[UIAxis_Y] = { SizeKind_Pixels, fb.y * hPercent };
+    }
+
+    void UIWindowAnchor(UIAnchor anchor, float marginX, float marginY)
+    {
+        UI_Widget* window = UIGetCurrentWindow();
+        if(!window) return;
+        window->Anchor       = anchor;
+        window->AnchorMargin = Vec2(marginX, marginY);
+        // Floating flags so FinalisePositions leaves our relative_position
+        // alone; the anchor pass writes the final value once sizes are known.
+        window->flags |= WidgetFlags_Floating_X | WidgetFlags_Floating_Y;
     }
 
     UI_Interaction UILabelCStr(const char* str, const char* text)
@@ -759,11 +929,11 @@ namespace Lumos
         height *= s_UIState->DPIScale;
         u64 hash;
         String8 text = HandleUIString(str, &hash);
- 
+
         String8 spacerText = PushStr8F(s_UIState->UIFrameArena, "spacer###spacer%s", (char*)text.str);
         u64 hashSpacer;
         String8 SpacerText2 = HandleUIString((char*)spacerText.str, &hashSpacer);
- 
+
         UI_Widget* spacer = PushWidget(WidgetFlags_StackHorizontally,
                                        SpacerText2,
                                        hashSpacer,
@@ -784,11 +954,11 @@ namespace Lumos
                                              HashUIStr8Name(parentText),
                                              { SizeKind_Pixels, lSliderWidth },
                                              { SizeKind_Pixels, lSliderHeight });
-            
+
             // Enhanced slider track appearance - theme aware
             float dpi = s_UIState->DPIScale;
             parent->style_vars[StyleVar_CornerRadius] = Vec4(4.0f * dpi, 0.0f, 0.0f, 0.0f);
-            
+
             if(s_UIState->CurrentTheme == UITheme_Dark)
             {
                 parent->style_vars[StyleVar_BackgroundColor] = Vec4(0.25f, 0.25f, 0.25f, 1.0f);
@@ -799,21 +969,21 @@ namespace Lumos
                 parent->style_vars[StyleVar_BackgroundColor] = Vec4(0.7f, 0.7f, 0.7f, 1.0f);
                 parent->style_vars[StyleVar_BorderColor]     = Vec4(0.5f, 0.5f, 0.5f, 1.0f);
             }
- 
+
             UI_Interaction parent_interaction = HandleWidgetInteraction(parent);
             PushParent(parent);
- 
+
             UI_Widget* slider                    = PushWidget(WidgetFlags_Clickable | WidgetFlags_DrawBorder | WidgetFlags_DrawBackground | WidgetFlags_Floating_X | WidgetFlags_Draggable | WidgetFlags_AnimateScale,
                                                               text,
                                                               hash,
                                                               { SizeKind_PercentOfParent, handleSizeFraction },
                                                               { SizeKind_PercentOfParent, 1.0f });
-            
+
             // Enhanced slider handle appearance - theme aware
             slider->style_vars[StyleVar_Border]       = Vec4(1.0f * dpi, 1.0f * dpi, 0.0f, 0.0f);
             slider->style_vars[StyleVar_Padding]      = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
             slider->style_vars[StyleVar_CornerRadius] = Vec4(5.0f * dpi, 0.0f, 0.0f, 0.0f);
-            
+
             if(s_UIState->CurrentTheme == UITheme_Dark)
             {
                 slider->style_vars[StyleVar_BorderColor]           = Vec4(0.5f, 0.5f, 0.5f, 1.0f);
@@ -833,14 +1003,14 @@ namespace Lumos
                 slider->style_vars[StyleVar_ActiveBackgroundColor] = Vec4(0.95f, 0.95f, 0.95f, 1.0f);
             }
             slider_interaction                             = HandleWidgetInteraction(slider);
- 
+
             PopParent(parent);
- 
+
             slider->drag_constraint_y = true;
- 
+
             // Clamp input value first
             *value = Maths::Clamp(*value, min_value, max_value);
- 
+
             // Use parent size and fraction to compute slider width
             f32 parent_x      = parent->position.x;
             f32 parent_size_x = parent->size.x;
@@ -939,10 +1109,8 @@ namespace Lumos
             else if(toggle_track->ToggleTransition > target)
                 toggle_track->ToggleTransition = Maths::Max(toggle_track->ToggleTransition - speed, target);
 
-            float t = toggle_track->ToggleTransition;
-
-            // Smooth cubic easing for color
-            float easedT = t * t * (3.0f - 2.0f * t);
+            float t      = toggle_track->ToggleTransition;
+            float easedT = EaseInOutCubic(t);
 
             // Interpolate track colors based on animation
             Vec4 offColor, onColor;
@@ -1100,15 +1268,19 @@ namespace Lumos
         row->style_vars[StyleVar_ItemSpacing] = Vec4(0.0f);
         PushParent(row);
 
-        // Label
-        String8 labelText = PushStr8F(s_UIState->UIFrameArena, "label###label%s", (char*)text.str);
-        u64 hashLabel;
-        HandleUIString((char*)labelText.str, &hashLabel);
-        UI_Widget* label = PushWidget(WidgetFlags_DrawText | WidgetFlags_CentreY,
-                                      text,
-                                      hashLabel,
-                                      { SizeKind_TextContent, 1.0f },
-                                      { SizeKind_TextContent, 1.0f });
+        // Label — skipped when the display text is empty (use a "#name" id so
+        // HandleUIString strips everything). Bare bar, no floating word.
+        if(text.size > 0)
+        {
+            String8 labelText = PushStr8F(s_UIState->UIFrameArena, "label###label%s", (char*)text.str);
+            u64 hashLabel;
+            HandleUIString((char*)labelText.str, &hashLabel);
+            PushWidget(WidgetFlags_DrawText | WidgetFlags_CentreY,
+                       text,
+                       hashLabel,
+                       { SizeKind_TextContent, 1.0f },
+                       { SizeKind_TextContent, 1.0f });
+        }
 
         // Bar container
         String8 containerText = PushStr8F(s_UIState->UIFrameArena, "container###container%s", (char*)text.str);
@@ -1150,7 +1322,14 @@ namespace Lumos
         fill->style_vars[StyleVar_CornerRadius]    = Vec4(3.0f * s_UIState->DPIScale, 0.0f, 0.0f, 0.0f);
         fill->style_vars[StyleVar_Padding]         = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
         fill->style_vars[StyleVar_Border]          = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
-        fill->style_vars[StyleVar_BackgroundColor] = Vec4(0.3f, 0.6f, 0.95f, 1.0f);
+        // Fill colour comes from the style stack so callers can tint the bar
+        // (push ActiveBackgroundColor before calling). Falls back to the old
+        // blue when nothing is pushed beyond the theme default.
+        {
+            Vec4 fillCol = fill->style_vars[StyleVar_ActiveBackgroundColor];
+            bool isThemeDefault = s_UIState->style_variable_lists[StyleVar_ActiveBackgroundColor].count == 0;
+            fill->style_vars[StyleVar_BackgroundColor] = isThemeDefault ? Vec4(0.3f, 0.6f, 0.95f, 1.0f) : fillCol;
+        }
 
         PopParent(container);
         PopParent(row);
@@ -1292,8 +1471,7 @@ namespace Lumos
 
     void UISeparator(float width)
     {
-        static u64 separatorCounter = 0;
-        String8 sepText = PushStr8F(s_UIState->UIFrameArena, "separator###sep%llu", separatorCounter++);
+        String8 sepText = PushStr8F(s_UIState->UIFrameArena, "separator###sep%llu", s_UIState->WidgetIdCounter++);
         u64 hash;
         String8 text = HandleUIString((char*)sepText.str, &hash);
 
@@ -1321,8 +1499,7 @@ namespace Lumos
     void UISpacer(float size)
     {
         size *= s_UIState->DPIScale;
-        static u64 spacerCounter = 0;
-        String8 spacerText = PushStr8F(s_UIState->UIFrameArena, "spacer###spacer%llu", spacerCounter++);
+        String8 spacerText = PushStr8F(s_UIState->UIFrameArena, "spacer###spacer%llu", s_UIState->WidgetIdCounter++);
         u64 hash;
         String8 text = HandleUIString((char*)spacerText.str, &hash);
 
@@ -1346,8 +1523,7 @@ namespace Lumos
 
     void UIBeginRow()
     {
-        static u64 rowCounter = 0;
-        String8 rowText = PushStr8F(s_UIState->UIFrameArena, "row###row%llu", rowCounter++);
+        String8 rowText = PushStr8F(s_UIState->UIFrameArena, "row###row%llu", s_UIState->WidgetIdCounter++);
         u64 hash;
         String8 text = HandleUIString((char*)rowText.str, &hash);
 
@@ -1369,8 +1545,7 @@ namespace Lumos
 
     void UIBeginColumn()
     {
-        static u64 colCounter = 0;
-        String8 colText = PushStr8F(s_UIState->UIFrameArena, "col###col%llu", colCounter++);
+        String8 colText = PushStr8F(s_UIState->UIFrameArena, "col###col%llu", s_UIState->WidgetIdCounter++);
         u64 hash;
         String8 text = HandleUIString((char*)colText.str, &hash);
 
@@ -1561,8 +1736,8 @@ namespace Lumos
             float thumbOffset = scrollRatio * (trackHeight - thumbHeight);
 
             // Scrollbar track
-            static u64 trackCounter = 0;
-            String8 trackId = PushStr8F(s_UIState->UIFrameArena, "scrolltrack###st%llu", trackCounter++);
+            u64 scrollId = s_UIState->WidgetIdCounter++;
+            String8 trackId = PushStr8F(s_UIState->UIFrameArena, "scrolltrack###st%llu", scrollId);
             u64 trackHash;
             HandleUIString((char*)trackId.str, &trackHash);
 
@@ -1581,8 +1756,9 @@ namespace Lumos
 
             track->style_vars[StyleVar_CornerRadius] = Vec4(4.0f * s_UIState->DPIScale, 0.0f, 0.0f, 0.0f);
 
-            // Scrollbar thumb
-            String8 thumbId = PushStr8F(s_UIState->UIFrameArena, "scrollthumb###sth%llu", trackCounter);
+            // Scrollbar thumb — paired with the track via the same id so the
+            // two stay associated across frames.
+            String8 thumbId = PushStr8F(s_UIState->UIFrameArena, "scrollthumb###sth%llu", scrollId);
             u64 thumbHash;
             HandleUIString((char*)thumbId.str, &thumbHash);
 
@@ -2023,7 +2199,7 @@ namespace Lumos
                 s_UIState->OpenDropdown = 0;
             else
                 s_UIState->OpenDropdown = hash;
-            
+
             interaction.clicked = false;
         }
 
@@ -2044,9 +2220,13 @@ namespace Lumos
                                          { SizeKind_MaxChild, 1.0f },
                                          { SizeKind_ChildSum, 1.0f });
 
-            // Position below the button using previous-frame position
-            list->relative_position.x = button->position.x;
-            list->relative_position.y = button->position.y + button->size.y;
+            // Position below the button. relative_position is added to the
+            // parent's absolute position by FinalisePositions, so subtract
+            // the root inset to land at button->position exactly (otherwise
+            // safe-area offsets get applied twice).
+            const Vec2& rootPos = s_UIState->root_parent.position;
+            list->relative_position.x = button->position.x - rootPos.x;
+            list->relative_position.y = button->position.y + button->size.y - rootPos.y;
 
             {float dp = s_UIState->DPIScale;
             list->style_vars[StyleVar_CornerRadius] = Vec4(3.0f * dp, 0.0f, 0.0f, 0.0f);
@@ -2175,7 +2355,11 @@ namespace Lumos
                                      { SizeKind_MaxChild, 1.0f },
                                      { SizeKind_ChildSum, 1.0f });
 
-        menu->relative_position = s_UIState->ContextMenuPos;
+        // ContextMenuPos is in screen-space. FinalisePositions adds the
+        // parent's absolute position to relative_position, so subtract here
+        // to keep the menu anchored at the cursor regardless of which panel
+        // the menu was opened within.
+        menu->relative_position = s_UIState->ContextMenuPos - (menu->parent ? menu->parent->position : Vec2(0.0f, 0.0f));
         {float dp = s_UIState->DPIScale;
         menu->style_vars[StyleVar_Padding] = Vec4(2.0f * dp, 2.0f * dp, 0.0f, 0.0f);
         menu->style_vars[StyleVar_CornerRadius] = Vec4(3.0f * dp, 0.0f, 0.0f, 0.0f);}
@@ -2380,16 +2564,14 @@ namespace Lumos
             return false;
         }
 
-        // Modal dialog box
+        // Modal dialog box. CentreX/CentreY in FinalisePositions overwrite
+        // relative_position with (parent.size - child.size) * 0.5, so an
+        // explicit center assignment here is dead code — omitted.
         s_ModalWidget = PushWidget(WidgetFlags_StackVertically | WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | WidgetFlags_Floating_X | WidgetFlags_Floating_Y | WidgetFlags_CentreX | WidgetFlags_CentreY,
                                    text,
                                    hash,
                                    { SizeKind_ChildSum, 1.0f },
                                    { SizeKind_ChildSum, 1.0f });
-
-        // Center the modal
-        Vec2 screenCenter = s_UIState->root_parent.size * 0.5f;
-        s_ModalWidget->relative_position = screenCenter;
 
         {float dp = s_UIState->DPIScale;
         s_ModalWidget->style_vars[StyleVar_Padding] = Vec4(14.0f * dp, 14.0f * dp, 0.0f, 0.0f);
@@ -2583,8 +2765,9 @@ namespace Lumos
         String8 text = HandleUIString(str, &hash);
 
         bool changed = false;
+        float dp     = s_UIState->DPIScale;
 
-        // Row container
+        // Header row: label + color preview
         String8 rowId = PushStr8F(s_UIState->UIFrameArena, "colorow###cr%llu", hash);
         u64 rowHash;
         HandleUIString((char*)rowId.str, &rowHash);
@@ -2594,58 +2777,52 @@ namespace Lumos
                                     rowHash,
                                     { SizeKind_PercentOfParent, 1.0f },
                                     { SizeKind_ChildSum, 1.0f });
-
-        row->style_vars[StyleVar_Padding] = Vec4(0.0f, 3.0f, 0.0f, 0.0f);
-        row->style_vars[StyleVar_ItemSpacing] = Vec4(0.0f);
+        row->style_vars[StyleVar_Padding]      = Vec4(0.0f, 3.0f, 0.0f, 0.0f);
+        row->style_vars[StyleVar_ItemSpacing]  = Vec4(0.0f);
         PushParent(row);
 
-        // Label
         UI_Widget* label = PushWidget(WidgetFlags_DrawText | WidgetFlags_CentreY,
-                                      text,
-                                      hash,
+                                      text, hash,
                                       { SizeKind_TextContent, 1.0f },
                                       { SizeKind_TextContent, 1.0f });
+        label->style_vars[StyleVar_Padding]   = Vec4(4.0f * dp, 2.0f * dp, 0.0f, 0.0f);
+        label->style_vars[StyleVar_TextColor] = (s_UIState->CurrentTheme == UITheme_Dark)
+                                                    ? Vec4(0.9f, 0.9f, 0.9f, 1.0f)
+                                                    : Vec4(0.1f, 0.1f, 0.1f, 1.0f);
 
-        {float dp = s_UIState->DPIScale;
-        label->style_vars[StyleVar_Padding] = Vec4(4.0f * dp, 2.0f * dp, 0.0f, 0.0f);}
-        if(s_UIState->CurrentTheme == UITheme_Dark)
-            label->style_vars[StyleVar_TextColor] = Vec4(0.9f, 0.9f, 0.9f, 1.0f);
-        else
-            label->style_vars[StyleVar_TextColor] = Vec4(0.1f, 0.1f, 0.1f, 1.0f);
-
-        // Color preview box
         String8 previewId = PushStr8F(s_UIState->UIFrameArena, "colorpreview###cp%llu", hash);
         u64 previewHash;
         HandleUIString((char*)previewId.str, &previewHash);
 
         UI_Widget* preview = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | WidgetFlags_CentreY,
-                                        Str8Lit(""),
-                                        previewHash,
-                                        { SizeKind_Pixels, 30.0f * s_UIState->DPIScale },
-                                        { SizeKind_Pixels, 20.0f * s_UIState->DPIScale });
-
+                                        Str8Lit(""), previewHash,
+                                        { SizeKind_Pixels, 30.0f * dp },
+                                        { SizeKind_Pixels, 20.0f * dp });
         preview->style_vars[StyleVar_BackgroundColor] = Vec4(rgb[0], rgb[1], rgb[2], 1.0f);
-        preview->style_vars[StyleVar_BorderColor] = Vec4(0.5f, 0.5f, 0.5f, 1.0f);
-        preview->style_vars[StyleVar_CornerRadius] = Vec4(3.0f * s_UIState->DPIScale, 0.0f, 0.0f, 0.0f);
+        preview->style_vars[StyleVar_BorderColor]     = Vec4(0.5f, 0.5f, 0.5f, 1.0f);
+        preview->style_vars[StyleVar_CornerRadius]    = Vec4(3.0f * dp, 0.0f, 0.0f, 0.0f);
 
-        // R slider
-        float rVal = rgb[0];
-        String8 rId = PushStr8F(s_UIState->UIFrameArena, "R###r%llu", hash);
         PopParent(row);
 
-        // Use individual sliders for R, G, B
-        UISlider((char*)rId.str, &rgb[0], 0.0f, 1.0f, 80.0f, 16.0f, 0.05f);
-        if(rgb[0] != rVal) changed = true;
+        // Convert RGB -> HSV for editing
+        float h, s, v;
+        RGBtoHSV(rgb[0], rgb[1], rgb[2], h, s, v);
 
-        String8 gId = PushStr8F(s_UIState->UIFrameArena, "G###g%llu", hash);
-        float gVal = rgb[1];
-        UISlider((char*)gId.str, &rgb[1], 0.0f, 1.0f, 80.0f, 16.0f, 0.05f);
-        if(rgb[1] != gVal) changed = true;
+        float hPrev = h, sPrev = s, vPrev = v;
 
-        String8 bId = PushStr8F(s_UIState->UIFrameArena, "B###b%llu", hash);
-        float bVal = rgb[2];
-        UISlider((char*)bId.str, &rgb[2], 0.0f, 1.0f, 80.0f, 16.0f, 0.05f);
-        if(rgb[2] != bVal) changed = true;
+        String8 hId = PushStr8F(s_UIState->UIFrameArena, "H###h%llu", hash);
+        String8 sId = PushStr8F(s_UIState->UIFrameArena, "S###s%llu", hash);
+        String8 vId = PushStr8F(s_UIState->UIFrameArena, "V###v%llu", hash);
+
+        UISlider((char*)hId.str, &h, 0.0f, 360.0f, 80.0f, 16.0f, 0.05f);
+        UISlider((char*)sId.str, &s, 0.0f,   1.0f, 80.0f, 16.0f, 0.05f);
+        UISlider((char*)vId.str, &v, 0.0f,   1.0f, 80.0f, 16.0f, 0.05f);
+
+        if(h != hPrev || s != sPrev || v != vPrev)
+        {
+            HSVtoRGB(h, s, v, rgb[0], rgb[1], rgb[2]);
+            changed = true;
+        }
 
         return changed;
     }
@@ -2677,17 +2854,6 @@ namespace Lumos
     void UISetFocusPrev()
     {
         s_UIState->ShiftTabPressed = true;
-    }
-
-    // Easing functions for smooth animations
-    static float EaseOutCubic(float t)
-    {
-        return 1.0f - powf(1.0f - t, 3.0f);
-    }
-
-    static float EaseInOutCubic(float t)
-    {
-        return t < 0.5f ? 4.0f * t * t * t : 1.0f - powf(-2.0f * t + 2.0f, 3.0f) / 2.0f;
     }
 
     Vec2 GetStringSize(String8 text, float size)
@@ -2744,6 +2910,7 @@ namespace Lumos
 
     void UILayoutSolveStandaloneSizes(UI_Widget* Root, UIAxis Axis)
     {
+        const f32 viewportSize = s_UIState->root_parent.size[Axis];
         for(UI_Widget* Widget = Root; Widget; Widget = UIWidgetRecurseDepthFirstPreOrder(Widget))
         {
             UI_Size* Size  = &Widget->semantic_size[Axis];
@@ -2763,6 +2930,15 @@ namespace Lumos
                 f32 value = Widget->semantic_size[Axis].value;
                 // Add padding for both sides (left+right or top+bottom)
                 Widget->size[Axis] = (text_size[Axis] + padding[Axis] * 2.0f) * value;
+            }
+            break;
+
+            case SizeKind_PercentOfViewport:
+            {
+                // value = fraction of root size for this axis. Resolved here so
+                // children can ChildSum off these widgets without needing a
+                // second pass.
+                Widget->size[Axis] = viewportSize * Size->value;
             }
             break;
             }
@@ -2866,15 +3042,20 @@ namespace Lumos
         {
             f32 LayoutPosition = 0;
             Vec2 itemSpacing = Parent->style_vars[StyleVar_ItemSpacing].ToVector2();
+            const bool centreChildrenX = (Parent->flags & WidgetFlags_CentreChildrenX) != 0;
+            const bool centreChildrenY = (Parent->flags & WidgetFlags_CentreChildrenY) != 0;
             for(UI_Widget* Child = Parent->first; Child != 0; Child = Child->next)
             {
+                const bool wantCentreX = (Child->flags & WidgetFlags_CentreX) || centreChildrenX;
+                const bool wantCentreY = (Child->flags & WidgetFlags_CentreY) || centreChildrenY;
+
                 if(Axis == UIAxis_X)
                 {
                     bool floating = Child->flags & WidgetFlags_Floating_X;
                     if(!floating)
                     {
                         float xOffset = 0;
-                        if(Child->flags & WidgetFlags_CentreX)
+                        if(wantCentreX)
                             xOffset = Parent->size[Axis] * 0.5f - Child->size[Axis] * 0.5f;
 
                         Child->relative_position[Axis] = LayoutPosition + xOffset;
@@ -2884,7 +3065,7 @@ namespace Lumos
                             if(Child->next) LayoutPosition += itemSpacing.x;
                         }
                     }
-                    else if(Child->flags & WidgetFlags_CentreX)
+                    else if(wantCentreX)
                     {
                         Child->relative_position[Axis] = Parent->size[Axis] * 0.5f - Child->size[Axis] * 0.5f;
                     }
@@ -2895,7 +3076,7 @@ namespace Lumos
                     if(!floating)
                     {
                         float yOffset = 0;
-                        if(Child->flags & WidgetFlags_CentreY)
+                        if(wantCentreY)
                             yOffset = Parent->size[Axis] * 0.5f - Child->size[Axis] * 0.5f;
 
                         Child->relative_position[Axis] = LayoutPosition + yOffset;
@@ -2905,7 +3086,7 @@ namespace Lumos
                             if(Child->next) LayoutPosition += itemSpacing.y;
                         }
                     }
-                    else if(Child->flags & WidgetFlags_CentreY)
+                    else if(wantCentreY)
                     {
                         Child->relative_position[Axis] = Parent->size[Axis] * 0.5f - Child->size[Axis] * 0.5f;
                     }
@@ -2915,12 +3096,12 @@ namespace Lumos
 
                 if(Axis == UIAxis_X)
                 {
-                    f32 padX = (Child->flags & WidgetFlags_CentreX) ? 0.0f : padding.x;
+                    f32 padX = wantCentreX ? 0.0f : padding.x;
                     Child->position.x = Parent->position.x + Child->relative_position[Axis] + padX;
                 }
                 else if(Axis == UIAxis_Y)
                 {
-                    f32 padY = (Child->flags & WidgetFlags_CentreY) ? 0.0f : padding.y;
+                    f32 padY = wantCentreY ? 0.0f : padding.y;
                     Child->position.y = Parent->position.y + Child->relative_position[Axis] + padY;
                 }
             }
@@ -2944,8 +3125,7 @@ namespace Lumos
             // Push directly to root
             s_UIState->parents.PushBack(&s_UIState->root_parent);
 
-            static u64 tooltipCounter = 0;
-            String8 tipId             = PushStr8F(s_UIState->UIFrameArena, "tooltip###tip%llu", tooltipCounter++);
+            String8 tipId             = PushStr8F(s_UIState->UIFrameArena, "tooltip###tip%llu", s_UIState->WidgetIdCounter++);
             u64 hash;
             HandleUIString((char*)tipId.str, &hash);
 
@@ -2977,6 +3157,59 @@ namespace Lumos
         }
     }
 
+    // Recursively shift a widget and all its descendants' absolute positions
+    // by `delta`. Used by the anchor pass after we move a top-level window —
+    // FinalisePositions has already computed absolute positions for everything
+    // in this subtree, so a single additive delta keeps them in sync.
+    static void UIShiftSubtreePosition(UI_Widget* Widget, Vec2 delta)
+    {
+        if(!Widget) return;
+        Widget->position = Widget->position + delta;
+        for(UI_Widget* Child = Widget->first; Child; Child = Child->next)
+            UIShiftSubtreePosition(Child, delta);
+    }
+
+    // Apply UIWindowAnchor positioning after layout sizes/positions are solved.
+    // Only walks direct children of root_parent — anchors are a panel-level
+    // concept; nested widgets follow normal flow.
+    static void UIApplyAnchors(UI_Widget* Root)
+    {
+        const Vec2 rootSize = Root->size;
+        for(UI_Widget* Window = Root->first; Window; Window = Window->next)
+        {
+            if(Window->Anchor == UIAnchor_None) continue;
+
+            const Vec2 sz     = Window->size;
+            const Vec2 margin = Window->AnchorMargin;
+
+            float relX = 0.0f, relY = 0.0f;
+            switch(Window->Anchor)
+            {
+            case UIAnchor_TopLeft:      relX = margin.x;                          relY = margin.y; break;
+            case UIAnchor_TopCenter:    relX = (rootSize.x - sz.x) * 0.5f;        relY = margin.y; break;
+            case UIAnchor_TopRight:     relX = rootSize.x - sz.x - margin.x;      relY = margin.y; break;
+            // Middle anchors treat margin as a signed offset from centre so
+            // callers can nudge panels (or animate them — score popups rise by
+            // sweeping margin.y).
+            case UIAnchor_MiddleLeft:   relX = margin.x;                          relY = (rootSize.y - sz.y) * 0.5f + margin.y; break;
+            case UIAnchor_MiddleCenter: relX = (rootSize.x - sz.x) * 0.5f + margin.x; relY = (rootSize.y - sz.y) * 0.5f + margin.y; break;
+            case UIAnchor_MiddleRight:  relX = rootSize.x - sz.x - margin.x;      relY = (rootSize.y - sz.y) * 0.5f + margin.y; break;
+            case UIAnchor_BottomLeft:   relX = margin.x;                          relY = rootSize.y - sz.y - margin.y; break;
+            case UIAnchor_BottomCenter: relX = (rootSize.x - sz.x) * 0.5f;        relY = rootSize.y - sz.y - margin.y; break;
+            case UIAnchor_BottomRight:  relX = rootSize.x - sz.x - margin.x;      relY = rootSize.y - sz.y - margin.y; break;
+            default: continue;
+            }
+
+            // Work in absolute coordinates: FinalisePositions adds root padding
+            // to children, so deriving the shift from relative_position alone
+            // pushed right/bottom-anchored panels off-screen by the padding.
+            const Vec2 desiredAbs = Root->position + Vec2(relX, relY);
+            const Vec2 delta      = desiredAbs - Window->position;
+            Window->relative_position = Window->relative_position + delta;
+            UIShiftSubtreePosition(Window, delta);
+        }
+    }
+
     void UILayoutRoot(UI_Widget* Root)
     {
         for(UIAxis Axis = (UIAxis)0; Axis < UIAxis_Count; Axis = (UIAxis)(Axis + 1))
@@ -2990,6 +3223,8 @@ namespace Lumos
         {
             UILayoutFinalisePositions(Root, Axis);
         }
+
+        UIApplyAnchors(Root);
     }
 
     void UILayout()
