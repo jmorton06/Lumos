@@ -1,8 +1,8 @@
 {
     "value0": {
-        "Project Version": 12,
+        "Project Version": 14,
         "RenderAPI": 1,
-        "Fullscreen": true,
+        "Fullscreen": false,
         "VSync": true,
         "ShowConsole": false,
         "Title": "Example",
@@ -18,14 +18,17 @@
             "//Assets/Scenes/Platformer",
             "//Assets/Scenes/CapsuleTest",
             "//Assets/Scenes/MeshCollisionTest",
-            "//Assets/Scenes/CollisionPyramidTest"
+            "//Assets/Scenes/CollisionPyramidTest",
+            "//Assets/Scenes/Archery",
+            "//Assets/Scenes/Minecraft",
+            "//Assets/Scenes/MinecraftClone"
         ],
-        "SceneIndex": 1,
+        "SceneIndex": 0,
         "Borderless": false,
         "EngineAssetPath": "",
         "GPUIndex": -1,
-        "Width": 1200,
-        "Height": 800,
+        "Width": 540,
+        "Height": 1100,
         "AppScript": "",
         "BundleIdentifier": "",
         "Version": "1.0.0",
@@ -36,7 +39,17 @@
         "SplashBGG": 0.1640625,
         "SplashBGB": 0.2109375,
         "SplashBGA": 1.0,
-        "StartScene": "2D",
-        "AutoImportMeshes": true
+        "StartScene": "Physics",
+        "AutoImportMeshes": true,
+        "Orientation": 1,
+        "DeviceFamily": 3,
+        "MinIOSVersion": "16.0",
+        "StatusBarHidden": true,
+        "UsesNonExemptEncryption": false,
+        "CameraUsage": "",
+        "MicrophoneUsage": "",
+        "PhotoLibraryUsage": "",
+        "LocationUsage": "",
+        "UseSafeArea": true
     }
 }
