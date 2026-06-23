@@ -196,6 +196,25 @@ namespace Lumos
             float SplashBGColour[4] = { 40.0f / 256.0f, 42.0f / 256.0f, 54.0f / 256.0f, 1.0f };
             std::string StartScene; // Scene name to load on startup (v11+, replaces SceneIndex)
             bool AutoImportMeshes  = true; // Auto-convert source models to .lmesh on load
+
+            // Version 13 — mobile/distribution
+            // Orientation: 0 = auto (all), 1 = portrait only, 2 = landscape only
+            int Orientation        = 0;
+            // TARGETED_DEVICE_FAMILY: 1 = iPhone, 2 = iPad, 3 = both
+            int DeviceFamily       = 3;
+            std::string MinIOSVersion = "16.0";
+            bool StatusBarHidden   = true;
+            bool UsesNonExemptEncryption = false; // ITSAppUsesNonExemptEncryption
+            // Privacy usage descriptions — empty string omits the key
+            std::string CameraUsage;
+            std::string MicrophoneUsage;
+            std::string PhotoLibraryUsage;
+            std::string LocationUsage;
+
+            // Version 14 — render layout
+            // true:  UI/HUD respects safe area insets (notch, home indicator)
+            // false: edge-to-edge fullscreen, content can render under system UI
+            bool UseSafeArea = true;
         };
 
         ProjectSettings& GetProjectSettings() { return m_ProjectSettings; }
@@ -262,6 +281,7 @@ namespace Lumos
         bool m_TakeScreenshotOnInit = false;
         bool m_ScreenshotTaken      = false;
         int m_ScreenshotFrameDelay  = 0;
+        int m_ScreenshotFrameTarget = 5;
 
         // Command line option flags
         bool m_CloseAfterScreenshot   = true;  // Default: close after screenshot

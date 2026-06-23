@@ -2,6 +2,7 @@
 #pragma once
 
 #include "IconsMaterialDesignIcons.h"
+#include "ImGui/ImGuiUtilities.h"
 #include <set>
 #include <map>
 
@@ -37,6 +38,7 @@ namespace MM
             using Callback = std::function<void(Registry&, EntityType)>;
             std::string name;
             Callback widget, create, destroy;
+            const char* icon = ICON_MDI_PUZZLE;
         };
 
     private:
@@ -105,39 +107,21 @@ namespace MM
                         ImGui::PushID(component_type_id);
 
                         const std::string& label = ci.name;
-
-                        bool open = ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_DefaultOpen);
-
-                        bool removed = false;
-
-                        ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::GetFontSize() - ImGui::GetStyle().ItemSpacing.x);
-
-                        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
-
-                        static std::string removeName = "Remove Component";
-                        if(ImGui::Button(ICON_MDI_TUNE "##RemoveButton"))
-                            ImGui::OpenPopup(removeName.c_str());
-                        ImGui::PopStyleColor();
-
-                        if(ImGui::BeginPopup(removeName.c_str(), 3))
-                        {
-                            if(ImGui::Selectable("Remove"))
-                            {
-                                ci.destroy(registry, e);
-                                removed = true;
-                            }
-                            ImGui::EndPopup();
-                            if(removed)
-                            {
-                                ImGui::PopID();
-                                continue;
-                            }
-                        }
+                        bool removed             = false;
+                        bool open                = Lumos::ImGuiUtilities::BeginComponentCard(label.c_str(), ci.icon, &removed, true);
                         if(open)
                         {
                             ImGui::PushID("Widget");
                             ci.widget(registry, e);
                             ImGui::PopID();
+                        }
+                        Lumos::ImGuiUtilities::EndComponentCard(open);
+
+                        if(removed)
+                        {
+                            ci.destroy(registry, e);
+                            ImGui::PopID();
+                            continue;
                         }
                         ImGui::PopID();
                     }
@@ -150,10 +134,25 @@ namespace MM
 
                 // if(!has_not.empty())
                 {
-                    if(ImGui::Button(ICON_MDI_PLUS_BOX_OUTLINE " Add Component", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+                    // Prominent accent-coloured "ADD COMPONENT" button at bottom.
+                    const Lumos::Vec4 sel = Lumos::ImGuiUtilities::GetSelectedColour();
+                    const ImVec4 accent      = ImVec4(sel.x, sel.y, sel.z, 1.0f);
+                    const ImVec4 accentHover = ImVec4(sel.x + 0.06f, sel.y + 0.06f, sel.z + 0.06f, 1.0f);
+                    const ImVec4 accentActive= ImVec4(sel.x * 0.88f, sel.y * 0.88f, sel.z * 0.88f, 1.0f);
+
+                    ImGui::PushStyleColor(ImGuiCol_Button,        accent);
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, accentHover);
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  accentActive);
+                    ImGui::PushStyleColor(ImGuiCol_Text,          ImVec4(0.08f, 0.07f, 0.06f, 1.0f));
+                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 8.0f));
+                    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
                     {
-                        ImGui::OpenPopup("addComponent");
+                        Lumos::ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
+                        if(ImGui::Button(ICON_MDI_PLUS "  ADD COMPONENT", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+                            ImGui::OpenPopup("addComponent");
                     }
+                    ImGui::PopStyleVar(2);
+                    ImGui::PopStyleColor(4);
 
                     if(ImGui::BeginPopup("addComponent"))
                     {

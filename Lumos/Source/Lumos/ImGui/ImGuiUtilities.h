@@ -47,7 +47,8 @@ namespace Lumos
             Cosy,
             AppleLight,
             GraphiteDark,
-            Pastel
+            Pastel,
+            Lumos
         };
 
         bool Property(const char* name, std::string& value, PropertyFlag flags = PropertyFlag::ReadOnly);
@@ -78,8 +79,8 @@ namespace Lumos
 
         void Tooltip(const char* text);
 
-        void Tooltip(Graphics::Texture2D* texture, const Vec2& size);
-        void Tooltip(Graphics::Texture2D* texture, const Vec2& size, const char* text);
+        void Tooltip(Graphics::Texture2D* texture, const Vec2& size, bool flip = false);
+        void Tooltip(Graphics::Texture2D* texture, const Vec2& size, const char* text, bool flip = false);
         void Tooltip(Graphics::TextureDepthArray* texture, uint32_t index, const Vec2& size);
 
         void Image(Graphics::Texture2D* texture, const Vec2& size, bool flip = false);
@@ -130,6 +131,17 @@ namespace Lumos
         void PopID();
 
         bool ToggleButton(const char* label, bool state, ImVec2 size, float alpha, float pressedAlpha, ImGuiButtonFlags buttonFlags);
+
+        bool BeginComponentCard(const char* label, const char* icon, bool* removeRequested, bool defaultOpen = true);
+        void EndComponentCard(bool wasOpen);
+
+        inline bool BeginPanel(const char* name, bool* p_open = nullptr, ImGuiWindowFlags flags = 0)
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(20.0f, 14.0f));
+            bool open = ImGui::Begin(name, p_open, flags);
+            ImGui::PopStyleVar();
+            return open;
+        }
 
         class ScopedStyle
         {
@@ -285,13 +297,3 @@ static inline ImVec4& operator/=(ImVec4& lhs, const float rhs)
     lhs.y /= rhs;
     return lhs;
 }
-// static inline std::ostream& operator<<(std::ostream& ostream, const ImVec2 a)
-//{
-//     ostream << "{ " << a.x << ", " << a.y << " }";
-//     return ostream;
-// }
-// static inline std::ostream& operator<<(std::ostream& ostream, const ImVec4 a)
-//{
-//     ostream << "{ " << a.x << ", " << a.y << ", " << a.z << ", " << a.w << " }";
-//     return ostream;
-// }

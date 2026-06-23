@@ -68,6 +68,48 @@ namespace Lumos
             window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameVibrantLight];
     }
 
+    void MacOSOS::SetWindowDecorations(bool decorated)
+    {
+        // macOS: keep native traffic-lights but extend content under the title bar
+        // so the editor can draw its own bar. Reserve gutter for them on the left.
+        auto& app = Lumos::Application::Get();
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+
+        if(!decorated)
+        {
+            window.styleMask |= NSWindowStyleMaskFullSizeContentView;
+            window.titlebarAppearsTransparent = YES;
+            window.titleVisibility = NSWindowTitleHidden;
+
+            // Grow native title-bar height so AppKit re-centres the traffic lights
+            // in our taller ImGui menu bar. Uses private _setTitlebarHeight:.
+            SEL sel = NSSelectorFromString(@"_setTitlebarHeight:");
+            if([window respondsToSelector:sel])
+            {
+                NSMethodSignature* sig = [NSWindow instanceMethodSignatureForSelector:sel];
+                if(sig)
+                {
+                    NSInvocation* inv = [NSInvocation invocationWithMethodSignature:sig];
+                    [inv setTarget:window];
+                    [inv setSelector:sel];
+                    CGFloat barH = 42.0;
+                    [inv setArgument:&barH atIndex:2];
+                    [inv invoke];
+                }
+            }
+        }
+        else
+        {
+            window.styleMask &= ~NSWindowStyleMaskFullSizeContentView;
+            window.titlebarAppearsTransparent = NO;
+            window.titleVisibility = NSWindowTitleVisible;
+        }
+
+        // The content area just changed size; GLFW won't fire a callback automatically
+        // since we bypassed its styling API — notify the engine of the new size.
+        app.GetWindow()->RefreshSize();
+    }
+
     std::string MacOSOS::GetExecutablePath()
     {
         uint32_t size = 0;
@@ -102,6 +144,92 @@ namespace Lumos
         auto window = Application::Get().GetWindow();
         NSWindow* nativeWindow = glfwGetCocoaWindow((GLFWwindow*)window->GetHandle());
 
-        [nativeWindow toggleFullScreen:nil];
+        [nativeWindow zoom:nil];
+    }
+
+    // Latched drag state — captured at BeginWindowDrag.
+    static NSPoint s_DragStartMouseScreen = { 0, 0 };
+    static NSPoint s_DragStartWindowOrigin = { 0, 0 };
+
+    void MacOSOS::BeginWindowDrag()
+    {
+        auto& app = Lumos::Application::Get();
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+        s_DragStartMouseScreen   = [NSEvent mouseLocation];
+        s_DragStartWindowOrigin  = window.frame.origin;
+    }
+
+    void MacOSOS::UpdateWindowDrag()
+    {
+        auto& app = Lumos::Application::Get();
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+        NSPoint nowScreen = [NSEvent mouseLocation];
+        NSPoint target;
+        target.x = s_DragStartWindowOrigin.x + (nowScreen.x - s_DragStartMouseScreen.x);
+        target.y = s_DragStartWindowOrigin.y + (nowScreen.y - s_DragStartMouseScreen.y);
+        [window setFrameOrigin:target];
+    }
+
+    bool MacOSOS::IsWindowMaximised() const
+    {
+        auto& app = Lumos::Application::Get();
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+        return [window isZoomed];
+    }
+
+    bool MacOSOS::IsWindowFullscreen() const
+    {
+        auto& app = Lumos::Application::Get();
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+        return ([window styleMask] & NSWindowStyleMaskFullScreen) != 0;
+    }
+
+    static bool s_DidEnterFullscreen = false;
+
+    void MacOSOS::SetWindowFullscreen(bool fullscreen)
+    {
+        auto& app = Lumos::Application::Get();
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+
+        window.collectionBehavior |= NSWindowCollectionBehaviorFullScreenPrimary;
+        window.styleMask |= NSWindowStyleMaskResizable;
+
+        // DidEnterFullScreen is the only reliable "the toggle actually took" signal — the
+        // style flag is set at transition start, so it can't tell a no-op from a slow enter.
+        static bool observerRegistered = false;
+        if(!observerRegistered)
+        {
+            observerRegistered = true;
+            [[NSNotificationCenter defaultCenter] addObserverForName:NSWindowDidEnterFullScreenNotification
+                                                              object:nil
+                                                               queue:[NSOperationQueue mainQueue]
+                                                          usingBlock:^(NSNotification*) { s_DidEnterFullscreen = true; }];
+        }
+
+        bool isFullscreen = ([window styleMask] & NSWindowStyleMaskFullScreen) != 0;
+        if(isFullscreen != fullscreen)
+        {
+            // toggleFullScreen: silently no-ops if the app isn't active or the window isn't
+            // key/front — make both true first.
+            if(fullscreen)
+            {
+                [NSApp activateIgnoringOtherApps:YES];
+                [window makeKeyAndOrderFront:nil];
+            }
+            [window toggleFullScreen:nil];
+        }
+    }
+
+    bool MacOSOS::DidEnterFullscreen() const
+    {
+        return s_DidEnterFullscreen;
+    }
+
+    void MacOSOS::RestoreWindow()
+    {
+        auto& app = Lumos::Application::Get();
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+        if([window isZoomed])
+            [window zoom:nil];
     }
 }

@@ -119,6 +119,12 @@ namespace Lumos
             bool DebandingEnabled          = true;
             bool ChromaticAberationEnabled = false;
             bool EyeAdaptation             = false;
+            bool AdaptiveExposure          = false;
+            float AdaptiveTargetLuminance  = 0.18f;
+            float AdaptiveMinLogLum        = -10.0f;
+            float AdaptiveMaxLogLum        = 4.0f;
+            float AdaptiveSpeedUp          = 1.1f;
+            float AdaptiveSpeedDown        = 3.0f;
             bool SSAOEnabled               = false;
             bool BloomEnabled              = true;
             bool FilmicGrainEnabled        = false;
@@ -128,6 +134,30 @@ namespace Lumos
             bool DepthPrePass              = true;
             float DepthOfFieldStrength     = 1.0f;
             float DepthOfFieldDistance     = 100.0f;
+
+            // Vignette. Single-pass post-tonemap radial darkening.
+            bool VignetteEnabled    = false;
+            float VignetteIntensity = 0.5f;
+            float VignetteSmoothness = 0.5f;
+            float VignetteRoundness = 1.0f;
+            Vec3 VignetteColour     = Vec3(0.0f, 0.0f, 0.0f);
+
+            // Screen-space reflections (optional, off by default — needs the
+            // depth pre-pass for normals). Ray-marches the depth buffer.
+            bool SSREnabled       = false;
+            float SSRMaxDistance  = 25.0f;  // view-space ray length
+            int SSRMaxSteps       = 32;     // march steps
+            int SSRBinarySteps    = 5;      // refinement after a hit
+            float SSRThickness    = 0.5f;   // depth-compare tolerance
+            float SSRStrength     = 1.0f;   // reflection blend amount
+            float SSRMaxRoughness = 0.6f;   // skip/fade reflections past this
+            float SSREnvIntensity = 1.0f;   // env-map fallback for missed rays; 0 = off
+
+            // Camera-velocity motion blur. Reprojects through previous
+            // frame's view-proj to sample along the screen-space motion
+            // vector. No per-object velocity buffer.
+            float MotionBlurStrength = 0.5f;
+            int MotionBlurSamples    = 8;
 
             // Shadow Settings
             float m_CascadeSplitLambda = 0.92f;

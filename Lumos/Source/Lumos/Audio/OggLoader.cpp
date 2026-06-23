@@ -32,7 +32,7 @@ namespace Lumos
 
         if(!m_StreamHandle)
         {
-            LFATAL("Failed to load OGG file '%s'! , Error %s", (const char*)physicalPath.str, error);
+            LFATAL("Failed to load OGG file '%s'! , Error %i", (const char*)physicalPath.str, error);
             return data;
         }
 

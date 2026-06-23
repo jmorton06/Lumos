@@ -136,7 +136,7 @@ namespace Lumos
                 }
                 --depthLimit;
 
-                Iterator mid   = first + (last - first) / 2;
+                Iterator mid   = first + static_cast<int>((last - first) / 2);
                 Iterator pivot = Detail::MedianOfThree(first, mid, last + (-1), compare);
                 Swap(*pivot, *(last + (-1)));
 

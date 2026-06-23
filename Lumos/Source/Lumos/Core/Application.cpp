@@ -64,6 +64,10 @@ namespace Lumos
         , m_Updates(0)
         , m_SceneViewWidth(800)
         , m_SceneViewHeight(600)
+        , m_FrameArena(nullptr)
+        , m_Arena(nullptr)
+        , m_UIArena(nullptr)
+        , m_StringPool(nullptr)
     {
     }
 
@@ -136,6 +140,15 @@ namespace Lumos
             m_CloseAfterScreenshot = false;
         }
 
+        // Frames to wait before capturing — lets screenshots catch mid-game states
+        String8 screenshotDelayOpt = cmdline->OptionString(Str8Lit("screenshot-delay"));
+        if(screenshotDelayOpt.size > 0)
+        {
+            int frames = (int)atoi((const char*)screenshotDelayOpt.str);
+            if(frames > 0)
+                m_ScreenshotFrameTarget = frames;
+        }
+
         // Embedded shaders
         if(cmdline->OptionBool(Str8Lit("force-embedded-shaders")))
         {
@@ -180,6 +193,20 @@ namespace Lumos
 
         Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(m_ProjectSettings.RenderAPI));
 
+        // Window size overrides — handy for previewing portrait/mobile layouts on desktop
+        {
+            String8 widthOpt  = cmdline->OptionString(Str8Lit("width"));
+            String8 heightOpt = cmdline->OptionString(Str8Lit("height"));
+            int w = widthOpt.size > 0 ? (int)atoi((const char*)widthOpt.str) : 0;
+            int h = heightOpt.size > 0 ? (int)atoi((const char*)heightOpt.str) : 0;
+            if(w > 0)
+                m_ProjectSettings.Width = (u32)w;
+            if(h > 0)
+                m_ProjectSettings.Height = (u32)h;
+            if(w > 0 || h > 0)
+                m_ProjectSettings.Fullscreen = false;
+        }
+
         WindowDesc windowDesc;
         windowDesc.Width       = m_ProjectSettings.Width;
         windowDesc.Height      = m_ProjectSettings.Height;
@@ -189,6 +216,11 @@ namespace Lumos
         windowDesc.ShowConsole = m_ProjectSettings.ShowConsole;
         windowDesc.Title       = Str8StdS(m_ProjectSettings.Title);
         windowDesc.VSync       = m_ProjectSettings.VSync;
+        
+        if(GetAppType() == AppType::Editor)
+        {
+            windowDesc.Fullscreen = true;
+        }
 
         if(m_ProjectSettings.DefaultIcon)
         {
@@ -255,7 +287,11 @@ namespace Lumos
         }
 
         if(m_ProjectSettings.Fullscreen)
+        {
+#ifndef LUMOS_PLATFORM_MACOS
             m_Window->Maximise();
+#endif
+        }
 
         // Draw Splash Screen
         if(!bDisableSplashScreen)
@@ -382,6 +418,9 @@ namespace Lumos
 #else
         m_QualitySettings.SetGeneralLevel(2);
 #endif
+
+        if(m_Window)
+            m_Window->Show();
     }
 
     void Application::OnQuit()
@@ -440,9 +479,6 @@ namespace Lumos
         m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
 
         CreateAssetFolders();
-
-        //Graphics::Renderer::GetGraphicsContext()->WaitIdle();
-        //m_SceneManager = CreateUniquePtr<SceneManager>(); //Called in Deserialise
 
         Deserialise();
 
@@ -563,6 +599,47 @@ namespace Lumos
 
         ArenaClear(m_FrameArena);
 
+#ifdef LUMOS_PLATFORM_MACOS
+        const bool wantFullscreen = m_ProjectSettings.Fullscreen || GetAppType() == AppType::Editor;
+        // 0 = toggle pending, 1 = confirming it entered, 2 = done.
+        static int s_FullscreenStage    = 0;
+        static int s_FullscreenFrame    = 0;
+        static int s_FullscreenAttempts = 0;
+        if(wantFullscreen && s_FullscreenStage < 2 && m_Window)
+        {
+            s_FullscreenFrame++;
+            if(s_FullscreenStage == 0 && s_FullscreenFrame >= 2)
+            {
+                // Done a few frames in, not during init — toggling while the scene/renderer
+                // are still spinning up churns the swapchain and is crash-prone.
+                OS::Get().SetWindowFullscreen(true);
+                s_FullscreenStage    = 1;
+                s_FullscreenFrame    = 0;
+                s_FullscreenAttempts = 1;
+            }
+            else if(s_FullscreenStage == 1)
+            {
+                if(OS::Get().DidEnterFullscreen())
+                {
+                    s_FullscreenStage = 2;
+                }
+                else if(s_FullscreenFrame >= 150)
+                {
+                    if(s_FullscreenAttempts < 8)
+                    {
+                        OS::Get().SetWindowFullscreen(true);
+                        s_FullscreenAttempts++;
+                        s_FullscreenFrame = 0;
+                    }
+                    else
+                    {
+                        s_FullscreenStage = 2; // give up rather than loop forever
+                    }
+                }
+            }
+        }
+#endif
+
         if(m_SceneManager->GetSwitchingScene())
         {
             LUMOS_PROFILE_SCOPE("Application::SceneSwitch");
@@ -630,6 +707,42 @@ namespace Lumos
         }
         m_ImGuiManager->OnNewFrame();
 
+#ifdef LUMOS_PLATFORM_IOS
+        {
+            SafeAreaInsets sa = OS::Get().GetSafeAreaInsets();
+            const bool isEditor = GetAppType() == AppType::Editor;
+            if(!isEditor && !m_ProjectSettings.UseSafeArea)
+                sa = { 0.0f, 0.0f, 0.0f, 0.0f };
+            ImGuiViewportP* vp = (ImGuiViewportP*)ImGui::GetMainViewport();
+
+            const ImVec2 vpPos  = vp->Pos;
+            const ImVec2 vpSize = vp->Size;
+
+            if(sa.left > 0.0f || sa.right > 0.0f || sa.top > 0.0f || sa.bottom > 0.0f)
+            {
+                const ImU32 bg = ImGui::GetColorU32(ImGuiCol_DockingEmptyBg);
+                ImDrawList* dl = ImGui::GetBackgroundDrawList(vp);
+                if(sa.top > 0.0f)    dl->AddRectFilled(vpPos, ImVec2(vpPos.x + vpSize.x, vpPos.y + sa.top), bg);
+                if(sa.bottom > 0.0f) dl->AddRectFilled(ImVec2(vpPos.x, vpPos.y + vpSize.y - sa.bottom), ImVec2(vpPos.x + vpSize.x, vpPos.y + vpSize.y), bg);
+                if(sa.left > 0.0f)   dl->AddRectFilled(ImVec2(vpPos.x, vpPos.y + sa.top), ImVec2(vpPos.x + sa.left, vpPos.y + vpSize.y - sa.bottom), bg);
+                if(sa.right > 0.0f)  dl->AddRectFilled(ImVec2(vpPos.x + vpSize.x - sa.right, vpPos.y + sa.top), ImVec2(vpPos.x + vpSize.x, vpPos.y + vpSize.y - sa.bottom), bg);
+            }
+            
+            vp->BuildWorkOffsetMin = ImVec2(sa.left, sa.top);
+            vp->BuildWorkOffsetMax = ImVec2(-sa.right, -sa.bottom);
+
+            ImVec2 workMinSeed = vp->WorkOffsetMin;
+            ImVec2 workMaxSeed = vp->WorkOffsetMax;
+            if(workMinSeed.x < sa.left)  workMinSeed.x = sa.left;
+            if(workMinSeed.y < sa.top)   workMinSeed.y = sa.top;
+            if(workMaxSeed.x > -sa.right)  workMaxSeed.x = -sa.right;
+            if(workMaxSeed.y > -sa.bottom) workMaxSeed.y = -sa.bottom;
+            vp->WorkOffsetMin = workMinSeed;
+            vp->WorkOffsetMax = workMaxSeed;
+            vp->UpdateWorkRect();
+        }
+#endif
+
         {
             LUMOS_PROFILE_SCOPE("Application::Update");
             OnUpdate(ts);
@@ -652,10 +765,6 @@ namespace Lumos
         UIAnimate();
 
         UIEndFrame(Graphics::Font::GetDefaultFont());
-        // if (Platform->WindowIsActive)
-        {
-            // UIProcessInteractions();
-        }
 
         if(!m_Minimized)
         {
@@ -725,7 +834,7 @@ namespace Lumos
         if(m_TakeScreenshotOnInit && !m_ScreenshotTaken && m_CurrentState == AppState::Running)
         {
             m_ScreenshotFrameDelay++;
-            if(m_ScreenshotFrameDelay >= 5)
+            if(m_ScreenshotFrameDelay >= m_ScreenshotFrameTarget)
             {
                 m_ScreenshotTaken = true;
                 if(!m_ScreenshotPath.empty() && m_SceneRenderer && m_Window)

@@ -40,6 +40,18 @@ namespace Lumos
         virtual std::string GetAssetPath();
         virtual void Vibrate() const { };
         virtual void SetTitleBarColour(const Vec4& colour, bool dark = true) { };
+        virtual void SetWindowDecorations(bool decorated) { };
+        virtual void BeginWindowDrag() { };
+        virtual void UpdateWindowDrag() { };
+        // Resize edge bitmask: Top=1 Bottom=2 Left=4 Right=8 (corners = OR of two).
+        virtual void BeginWindowResize(int edgeMask) { };
+        virtual void UpdateWindowResize() { };
+        virtual bool IsWindowMaximised() const { return false; }
+        virtual bool IsWindowFullscreen() const { return false; }
+        virtual void SetWindowFullscreen(bool fullscreen) { };
+        virtual bool DidEnterFullscreen() const { return false; }
+        virtual void RestoreWindow() { };
+        virtual void IconifyWindow() { };
 
         // Mobile only
         virtual void ShowKeyboard(bool bShow) { };

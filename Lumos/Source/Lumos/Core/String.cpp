@@ -580,8 +580,9 @@ namespace Lumos
     String8 HexStringFromU64(Arena* arena, uint64_t x, bool caps)
     {
         char int_value_to_char[] = "0123456789abcdef";
-        uint8_t buffer[10];
-        uint8_t* opl = buffer + 10;
+        // uint64 max needs 16 hex digits plus "0x" prefix = 18 bytes.
+        uint8_t buffer[18];
+        uint8_t* opl = buffer + sizeof(buffer);
         uint8_t* ptr = opl;
         if(x == 0)
         {
@@ -613,9 +614,9 @@ namespace Lumos
         *ptr = '0';
 
         String8 result = { 0 };
-        result.size    = (uint64_t)(ptr - buffer);
+        result.size    = (uint64_t)(opl - ptr);
         result.str     = PushArrayNoZero(arena, uint8_t, result.size);
-        MemoryCopy(result.str, buffer, result.size);
+        MemoryCopy(result.str, ptr, result.size);
 
         return result;
     }

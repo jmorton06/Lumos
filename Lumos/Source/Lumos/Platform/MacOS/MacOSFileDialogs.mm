@@ -5,32 +5,55 @@
 #include <string>
 #include <sstream>
 
+#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 110000
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+#endif
+
 namespace Lumos
 {
-    static NSArray<UTType*>* ParseFilterToUTTypes(const std::string& filter)
+    static NSArray<NSString*>* ParseFilterToExtensions(const std::string& filter)
     {
         if(filter.empty())
             return nil;
 
-        NSMutableArray<UTType*>* types = [NSMutableArray array];
+        NSMutableArray<NSString*>* exts = [NSMutableArray array];
         std::istringstream stream(filter);
         std::string ext;
         while(std::getline(stream, ext, ','))
         {
-            // Trim
             while(!ext.empty() && ext[0] == ' ') ext.erase(0, 1);
             while(!ext.empty() && ext.back() == ' ') ext.pop_back();
-
             if(!ext.empty())
+                [exts addObject:[NSString stringWithUTF8String:ext.c_str()]];
+        }
+        return exts.count > 0 ? exts : nil;
+    }
+
+    static void ApplyFilter(NSSavePanel* panel, const std::string& filter)
+    {
+        NSArray<NSString*>* exts = ParseFilterToExtensions(filter);
+        if(!exts)
+            return;
+
+        if(@available(macOS 11.0, *))
+        {
+            NSMutableArray<UTType*>* types = [NSMutableArray array];
+            for(NSString* ext in exts)
             {
-                NSString* nsExt = [NSString stringWithUTF8String:ext.c_str()];
-                UTType* type = [UTType typeWithFilenameExtension:nsExt];
+                UTType* type = [UTType typeWithFilenameExtension:ext];
                 if(type)
                     [types addObject:type];
             }
+            if(types.count > 0)
+                [panel setAllowedContentTypes:types];
         }
-
-        return types.count > 0 ? types : nil;
+        else
+        {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+            [panel setAllowedFileTypes:exts];
+#pragma clang diagnostic pop
+        }
     }
 
     std::string FileDialogs::OpenFile(const std::string& filter, const std::string& defaultPath)
@@ -42,9 +65,7 @@ namespace Lumos
             [panel setCanChooseDirectories:NO];
             [panel setAllowsMultipleSelection:NO];
 
-            NSArray<UTType*>* types = ParseFilterToUTTypes(filter);
-            if(types)
-                [panel setAllowedContentTypes:types];
+            ApplyFilter(panel, filter);
 
             if(!defaultPath.empty())
             {
@@ -67,10 +88,7 @@ namespace Lumos
         @autoreleasepool
         {
             NSSavePanel* panel = [NSSavePanel savePanel];
-
-            NSArray<UTType*>* types = ParseFilterToUTTypes(filter);
-            if(types)
-                [panel setAllowedContentTypes:types];
+            ApplyFilter(panel, filter);
 
             if(!defaultPath.empty())
             {

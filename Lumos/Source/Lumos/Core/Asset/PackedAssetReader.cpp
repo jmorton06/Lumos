@@ -78,6 +78,9 @@ namespace Lumos
             entry.Path             = pathBuf;
 
             HashMapInsert(&m_Entries, tocEntry.PathHash, entry);
+
+            if(i < 8 || entry.Path.find("Scenes/") != std::string::npos || entry.Path.find("Scripts/") != std::string::npos)
+                LINFO("[Pack] entry[%u] '%s' size=%llu", i, entry.Path.c_str(), (unsigned long long)entry.DataSize);
         }
 
         fclose(file);

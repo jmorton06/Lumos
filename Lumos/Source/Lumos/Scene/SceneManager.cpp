@@ -118,12 +118,17 @@ namespace Lumos
 
         {
             LUMOS_PROFILE_SCOPE("SceneSwitch::Deserialise");
-            String8 physicalPath;
-            std::string path = "//Assets/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn";
-            if(Lumos::FileSystem::Get().ResolvePhysicalPath(Application::Get().GetFrameArena(), Str8StdS(path), &physicalPath))
+            std::string vfsPath = "//Assets/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn";
+            bool exists = Lumos::FileSystem::Get().FileExistsVFS(Str8StdS(vfsPath));
+            LINFO("[SceneManager] Scene lookup '%s' existsVFS=%d packMounted=%d", vfsPath.c_str(), exists ? 1 : 0, Lumos::FileSystem::Get().HasMountedPack() ? 1 : 0);
+            if(exists)
             {
-                auto newPath = StringUtilities::RemoveName(ToStdString(physicalPath));
-                m_CurrentScene->Deserialise(newPath, false);
+                // Scene::Deserialise expects a directory; reconstructs <dir><sceneName>.lsn.
+                m_CurrentScene->Deserialise(std::string("//Assets/Scenes/"), false);
+            }
+            else
+            {
+                LERROR("[SceneManager] Scene file missing from VFS/disk: %s", vfsPath.c_str());
             }
             TextureCache::Clear();
         }

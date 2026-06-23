@@ -5,7 +5,7 @@ namespace Lumos
     template <typename Archive>
     void save(Archive& archive, const Application& application)
     {
-        int projectVersion = 12;
+        int projectVersion = 14;
 
         archive(cereal::make_nvp("Project Version", projectVersion));
 
@@ -63,6 +63,18 @@ namespace Lumos
         archive(cereal::make_nvp("StartScene", application.m_ProjectSettings.StartScene));
         // Version 12 - auto-import meshes
         archive(cereal::make_nvp("AutoImportMeshes", application.m_ProjectSettings.AutoImportMeshes));
+        // Version 13 - mobile/distribution
+        archive(cereal::make_nvp("Orientation", application.m_ProjectSettings.Orientation),
+                cereal::make_nvp("DeviceFamily", application.m_ProjectSettings.DeviceFamily),
+                cereal::make_nvp("MinIOSVersion", application.m_ProjectSettings.MinIOSVersion),
+                cereal::make_nvp("StatusBarHidden", application.m_ProjectSettings.StatusBarHidden),
+                cereal::make_nvp("UsesNonExemptEncryption", application.m_ProjectSettings.UsesNonExemptEncryption),
+                cereal::make_nvp("CameraUsage", application.m_ProjectSettings.CameraUsage),
+                cereal::make_nvp("MicrophoneUsage", application.m_ProjectSettings.MicrophoneUsage),
+                cereal::make_nvp("PhotoLibraryUsage", application.m_ProjectSettings.PhotoLibraryUsage),
+                cereal::make_nvp("LocationUsage", application.m_ProjectSettings.LocationUsage));
+        // Version 14 - render layout
+        archive(cereal::make_nvp("UseSafeArea", application.m_ProjectSettings.UseSafeArea));
     }
 
     template <typename Archive>
@@ -175,10 +187,62 @@ namespace Lumos
             }
         }
 
-        // Switch to start scene: prefer name (v11+), fall back to index
+        // Version 13 - mobile/distribution
+        if(application.m_ProjectSettings.ProjectVersion > 12)
+        {
+            try
+            {
+                archive(cereal::make_nvp("Orientation", application.m_ProjectSettings.Orientation),
+                        cereal::make_nvp("DeviceFamily", application.m_ProjectSettings.DeviceFamily),
+                        cereal::make_nvp("MinIOSVersion", application.m_ProjectSettings.MinIOSVersion),
+                        cereal::make_nvp("StatusBarHidden", application.m_ProjectSettings.StatusBarHidden),
+                        cereal::make_nvp("UsesNonExemptEncryption", application.m_ProjectSettings.UsesNonExemptEncryption),
+                        cereal::make_nvp("CameraUsage", application.m_ProjectSettings.CameraUsage),
+                        cereal::make_nvp("MicrophoneUsage", application.m_ProjectSettings.MicrophoneUsage),
+                        cereal::make_nvp("PhotoLibraryUsage", application.m_ProjectSettings.PhotoLibraryUsage),
+                        cereal::make_nvp("LocationUsage", application.m_ProjectSettings.LocationUsage));
+            }
+            catch(...)
+            {
+            }
+        }
+
+        // Version 14 - render layout
+        if(application.m_ProjectSettings.ProjectVersion > 13)
+        {
+            try
+            {
+                archive(cereal::make_nvp("UseSafeArea", application.m_ProjectSettings.UseSafeArea));
+            }
+            catch(...)
+            {
+            }
+        }
+
+        // Scenes haven't been enqueued yet (LoadCurrentList runs after Deserialise).
+        // Materialise them now so lookups by name and bounds-checked indices both work.
+        application.m_SceneManager->LoadCurrentList();
+
+        // Switch to start scene: prefer name (v11+), fall back to index. Clamp index to valid range.
+        const auto& scenes = application.m_SceneManager->GetScenes();
+        int sceneCount = (int)scenes.Size();
+
+        int resolvedIdx = -1;
         if(!application.m_ProjectSettings.StartScene.empty())
-            application.m_SceneManager->SwitchScene(application.m_ProjectSettings.StartScene.c_str());
-        else
-            application.m_SceneManager->SwitchScene(sceneIndex);
+        {
+            for(int i = 0; i < sceneCount; ++i)
+            {
+                if(scenes[i]->GetSceneName() == application.m_ProjectSettings.StartScene)
+                {
+                    resolvedIdx = i;
+                    break;
+                }
+            }
+        }
+        if(resolvedIdx < 0)
+            resolvedIdx = (sceneIndex >= 0 && sceneIndex < sceneCount) ? sceneIndex : 0;
+
+        if(sceneCount > 0)
+            application.m_SceneManager->SwitchScene(resolvedIdx);
     }
 }

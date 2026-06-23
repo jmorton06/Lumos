@@ -80,12 +80,14 @@ namespace Lumos
         virtual void UpdateCursorImGui()                               = 0;
         virtual void SetIcon(const WindowDesc& desc)                   = 0;
         virtual void Maximise() { };
+        virtual void Show() { };
         virtual std::string GetTitle() const = 0;
         virtual uint32_t GetWidth() const    = 0;
         virtual uint32_t GetHeight() const   = 0;
         virtual float GetDPIScale() const { return 1.0f; }
         virtual bool GetVSync() const { return m_VSync; };
         virtual void UpdateControllers() { }
+        virtual void RefreshSize() { }
 
         void SetWindowFocus(bool focus) { m_WindowFocus = focus; }
         bool GetWindowFocus() const { return m_WindowFocus; }

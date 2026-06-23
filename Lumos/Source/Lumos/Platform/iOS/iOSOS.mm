@@ -630,6 +630,16 @@ CALayer* layer;
     longPress.delaysTouchesBegan = NO;
     [self.view addGestureRecognizer:longPress];
 
+    // Top-edge swipe-down to reveal hidden menu bar. Dispatched as a 1-touch Down swipe
+    // so the editor can subscribe via GestureSwipeEvent.
+    UIScreenEdgePanGestureRecognizer *topEdgePan = [[UIScreenEdgePanGestureRecognizer alloc]
+        initWithTarget:self action:@selector(handleTopEdgePan:)];
+    topEdgePan.edges = UIRectEdgeTop;
+    topEdgePan.delaysTouchesBegan = NO;
+    topEdgePan.delaysTouchesEnded = NO;
+    topEdgePan.cancelsTouchesInView = NO;
+    [self.view addGestureRecognizer:topEdgePan];
+
     // Become first responder to receive external keyboard input
     [self becomeFirstResponder];
 #endif
@@ -668,8 +678,9 @@ CALayer* layer;
     [super viewDidLayoutSubviews];
     UIEdgeInsets insets = self.view.safeAreaInsets;
     CGFloat scale = self.view.contentScaleFactor;
+    // Ignore the home-indicator inset — we render under it to reclaim screen space.
     Lumos::iOSOS::Get()->SetSafeAreaInsets(
-        insets.top * scale, insets.bottom * scale,
+        insets.top * scale, 0.0f,
         insets.left * scale, insets.right * scale);
 }
 
@@ -784,6 +795,14 @@ CALayer* layer;
         dir = Lumos::SwipeDirection::Down;
 
     Lumos::iOSOS::Get()->OnGestureSwipe(dir, (uint32_t)gesture.numberOfTouches);
+}
+
+- (void)handleTopEdgePan:(UIScreenEdgePanGestureRecognizer *)gesture {
+    // Fire once on Began — the editor toggles the menu bar visible.
+    if(gesture.state == UIGestureRecognizerStateBegan)
+    {
+        Lumos::iOSOS::Get()->OnGestureSwipe(Lumos::SwipeDirection::Down, 1);
+    }
 }
 
 - (void)handleLongPress:(UILongPressGestureRecognizer *)gesture {
