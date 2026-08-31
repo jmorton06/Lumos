@@ -35,8 +35,10 @@ namespace Lumos::Graphics
         if(m_AnimationStates.find(m_State) == m_AnimationStates.end() || currentState.Frames.empty())
             return GetDefaultUVs();
 
+        const Vec2 frameSize = (FrameSize.x > 0.0f && FrameSize.y > 0.0f) ? FrameSize : m_Scale;
+
         auto min = currentState.Frames[m_CurrentFrame];
-        auto max = currentState.Frames[m_CurrentFrame] + m_Scale;
+        auto max = currentState.Frames[m_CurrentFrame] + frameSize;
 
         min.x /= m_Texture->GetWidth();
         min.y /= m_Texture->GetHeight();
@@ -113,11 +115,29 @@ namespace Lumos::Graphics
         m_AnimationStates[stateName] = state;
     }
 
+    void AnimatedSprite::SetPlayMode(const std::string& state, PlayMode mode)
+    {
+        auto found = m_AnimationStates.find(state);
+        if(found != m_AnimationStates.end())
+            found->second.Mode = mode;
+    }
+
+    void AnimatedSprite::SetFrameDuration(const std::string& state, float duration)
+    {
+        auto found = m_AnimationStates.find(state);
+        if(found != m_AnimationStates.end())
+            found->second.FrameDuration = duration > 0.001f ? duration : 0.001f;
+    }
+
     void AnimatedSprite::SetState(const std::string& state)
     {
+        if(m_State == state) // re-setting the current state shouldn't restart it
+            return;
+
         m_State        = state;
         m_CurrentFrame = 0;
         m_FrameTimer   = 0.0f;
+        m_Forward      = true;
 
         auto found = m_AnimationStates.find(state);
 

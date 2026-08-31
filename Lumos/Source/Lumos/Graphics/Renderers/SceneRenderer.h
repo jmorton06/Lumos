@@ -38,10 +38,11 @@ namespace Lumos
         {
             Vec3 vertex;
             Vec4 colour;
+            Vec4 edge; // .x = cross-line coord (-1..1) for SDF anti-aliasing of thick lines; 0 for hairlines. Must stay 16B to match vertex-layout reflection.
 
             bool operator==(const LineVertexData& other) const
             {
-                return vertex == other.vertex && colour == other.colour;
+                return vertex == other.vertex && colour == other.colour && edge == other.edge;
             }
         };
 
@@ -115,26 +116,39 @@ namespace Lumos
             void LightCullingPass();
             void ShadowPass();
             void SkyboxPass();
+            void CosmoPass();
             void Renderer2DBeginBatch();
             void Render2DPass();
             void Render2DFlush();
+            void Init2DLitRenderData();
+            void Lit2DBeginBatch();
+            void Render2DLitPass();
+            void Lit2DFlush();
+            float SubmitLitTexture(Texture* texture);
             void ParticleBeginBatch();
             void ParticlePass();
             void ParticleFlush();
+            void PointCloudPass();
+            void LineCloudPass();
+            void PlanetPass();
             void DebugPass();
             void DebugLineFlush(Graphics::Pipeline* pipeline);
+            void DebugThickLineFlush(Graphics::Pipeline* pipeline);
             void DebugPointFlush(Graphics::Pipeline* pipeline);
             void FinalPass();
             void TextPass();
+            void WorldTextPass();
 
             void Begin2DPass();
             void BeginTextPass();
-            void draw_ui(UI_Widget* widget);
+            void draw_ui(UI_Widget* widget);        // widget + subtree (tree order = z-order)
+            void draw_ui_widget(UI_Widget* widget); // single widget, no recursion (exit-fade pass)
 
             // Post Process
             void ToneMappingPass();
             void BloomPass();
             void FXAAPass();
+            void SMAAPass();
             void DebandingPass();
             void ChromaticAberationPass();
             void EyeAdaptationPass();
@@ -194,9 +208,6 @@ namespace Lumos
                 CommandQueue m_CascadeCommandQueue[SHADOWMAP_MAX];
 
                 TextureDepthArray* m_ShadowTex;
-                // Intel macOS MoltenVK cannot render to per-slice attachments of a depth array reliably.
-                // Workaround: render each cascade to its own standalone depth texture, then copy each
-                // into the array texture above which ForwardPBR still samples as sampler2DArray.
                 TextureDepth* m_CascadeTextures[SHADOWMAP_MAX] = { nullptr };
                 uint32_t m_ShadowMapNum;
                 uint32_t m_ShadowMapSize;
@@ -213,8 +224,8 @@ namespace Lumos
                 SharedPtr<Shader> m_ShaderInstanced     = nullptr;
                 SharedPtr<Shader> m_ShaderInstancedAlpha = nullptr;
 
-                StorageBuffer* m_InstanceTransformSSBO    = nullptr;
-                SharedPtr<DescriptorSet> m_InstanceDescriptorSet;
+                TDArray<StorageBuffer*> m_InstanceTransformSSBO;
+                TDArray<SharedPtr<DescriptorSet>> m_InstanceDescriptorSet;
 
                 Maths::Frustum m_CascadeFrustums[SHADOWMAP_MAX];
             };
@@ -251,8 +262,11 @@ namespace Lumos
                 size_t m_DynamicAlignment;
                 Mat4* m_TransformData = nullptr;
 
-                StorageBuffer* m_InstanceTransformSSBO  = nullptr;
-                SharedPtr<DescriptorSet> m_InstanceDescriptorSet;
+                // Ring-buffered per frame-in-flight (see ShadowData note).
+                TDArray<StorageBuffer*> m_InstanceTransformSSBO;
+                TDArray<SharedPtr<DescriptorSet>> m_InstanceDescriptorSet;
+
+                TDArray<Mat4> m_InstancePrepassTransforms;
             };
 
             struct Renderer2DData
@@ -346,12 +360,32 @@ namespace Lumos
             DebugDrawData m_DebugDrawData;
             Renderer2DData m_DebugTextRendererData;
             Renderer2DData m_ParticleData;
+            Renderer2DData m_LitData; // forward-lit 2D sprites
 
             TextVertexData* TextVertexBufferPtr = nullptr;
+
+            // Forward 2D light data, packed for the Batch2DLit lights UBO (std140)
+            static const int MAX_2D_LIGHTS = 32;
+            struct Light2DGPU
+            {
+                Vec4 Colour;    // rgb
+                Vec4 Position;  // xy world, w radius
+                Vec4 Direction; // xy spot dir, z height, w type
+                Vec4 Params;    // x intensity, y innerAngle, z outerAngle, w falloff
+            };
+            struct Lights2DUBO
+            {
+                Light2DGPU lights[MAX_2D_LIGHTS];
+                Vec4 ambient;
+                int counts[4];
+            };
+            Lights2DUBO m_Lights2D;
+            bool m_LitDataInitialised = false;
 
             // Vertex data per frame in flight, per batch
             TDArray<TDArray<VertexData*>> m_ParticleBufferBase;
             TDArray<TDArray<VertexData*>> m_2DBufferBase;
+            TDArray<TDArray<VertexData*>> m_LitBufferBase;
             TDArray<TDArray<LineVertexData*>> m_LineBufferBase;
             TDArray<TDArray<PointVertexData*>> m_PointBufferBase;
             TDArray<TDArray<VertexData*>> m_QuadBufferBase;
@@ -390,6 +424,33 @@ namespace Lumos
             SharedPtr<Graphics::Shader> m_SkyboxShader;
             SharedPtr<Graphics::DescriptorSet> m_SkyboxDescriptorSet;
 
+            // Procedural nebula backdrop
+            SharedPtr<Graphics::Shader> m_CosmoShader;
+            SharedPtr<Graphics::DescriptorSet> m_CosmoDescriptorSet;
+
+            // PointCloud instanced-billboard pass
+            SharedPtr<Graphics::Shader> m_PointCloudShader;
+            SharedPtr<Graphics::DescriptorSet> m_PointCloudCameraDescriptor; // set 0 (UBO)
+            SharedPtr<Graphics::DescriptorSet> m_PointCloudPointDescriptor;  // set 1 (SSBO)
+            Graphics::VertexBuffer* m_PointCloudQuadVB = nullptr;
+            Graphics::IndexBuffer* m_PointCloudQuadIB  = nullptr;
+            bool m_PointCloudInitialised               = false;
+
+            SharedPtr<Graphics::Shader> m_LineCloudShader;
+            TDArray<SharedPtr<Graphics::DescriptorSet>> m_LineCloudCameraDescriptors; // set 0 (UBO)
+            TDArray<SharedPtr<Graphics::DescriptorSet>> m_LineCloudLineDescriptors;   // set 1 (SSBO)
+            Graphics::VertexBuffer* m_LineCloudQuadVB = nullptr;
+            Graphics::IndexBuffer* m_LineCloudQuadIB  = nullptr;
+            bool m_LineCloudInitialised               = false;
+
+            // Planet impostor pass
+            SharedPtr<Graphics::Shader> m_PlanetShader;
+            SharedPtr<Graphics::DescriptorSet> m_PlanetCameraDescriptor;   // set 0 (UBO)
+            SharedPtr<Graphics::DescriptorSet> m_PlanetInstanceDescriptor; // set 1 (SSBO)
+            Graphics::VertexBuffer* m_PlanetQuadVB = nullptr;
+            Graphics::IndexBuffer* m_PlanetQuadIB  = nullptr;
+            bool m_PlanetInitialised               = false;
+
             SharedPtr<Graphics::Shader> m_FinalPassShader;
             SharedPtr<Graphics::DescriptorSet> m_FinalPassDescriptorSet;
 
@@ -404,6 +465,16 @@ namespace Lumos
 
             SharedPtr<Graphics::DescriptorSet> m_FXAAPassDescriptorSet;
             SharedPtr<Graphics::Shader> m_FXAAShader;
+
+            // SMAA 1x (3 passes: edge detect -> blend weights -> neighbourhood blend)
+            SharedPtr<Graphics::Shader> m_SMAAEdgesShader;
+            SharedPtr<Graphics::Shader> m_SMAAWeightsShader;
+            SharedPtr<Graphics::Shader> m_SMAABlendShader;
+            SharedPtr<Graphics::DescriptorSet> m_SMAAEdgesDescriptorSet;
+            SharedPtr<Graphics::DescriptorSet> m_SMAAWeightsDescriptorSet;
+            SharedPtr<Graphics::DescriptorSet> m_SMAABlendDescriptorSet;
+            Texture2D* m_SMAAEdgesTexture   = nullptr;
+            Texture2D* m_SMAAWeightsTexture = nullptr;
 
             SharedPtr<Graphics::DescriptorSet> m_DebandingPassDescriptorSet;
             SharedPtr<Graphics::Shader> m_DebandingShader;
@@ -424,8 +495,6 @@ namespace Lumos
 
             Texture2D* m_NoiseTexture  = nullptr;
             Texture2D* m_NormalTexture = nullptr;
-            // Single-sample resolve of the packed normal/depth/roughness G-buffer,
-            // used by SSR when MSAA is on (the MSAA target can't be sampled).
             Texture2D* m_NormalResolveTexture = nullptr;
 
             SharedPtr<Graphics::Shader> m_SSAOShader;
@@ -438,11 +507,6 @@ namespace Lumos
             SharedPtr<Graphics::Shader> m_ToneMappingPassShader;
             SharedPtr<Graphics::DescriptorSet> m_ToneMappingPassDescriptorSet;
 
-            // Adaptive exposure (eye adaptation). Two compute passes: a
-            // 256-bin log-luminance histogram over the HDR scene, then a
-            // single-workgroup reduction that smooths AverageLuminance into
-            // the persistent UBO. Gated on m_SupportCompute + scene's
-            // RenderSettings.AdaptiveExposure flag.
             bool m_AdaptiveExposureReady = false;
             SharedPtr<Graphics::Shader> m_LuminanceHistogramShader;
             SharedPtr<Graphics::Shader> m_LuminanceAverageShader;
@@ -456,15 +520,9 @@ namespace Lumos
 
             SharedPtr<Graphics::Shader> m_MotionBlurShader;
             SharedPtr<Graphics::DescriptorSet> m_MotionBlurPassDescriptorSet;
-            // Previous-frame view-projection for camera reprojection. Set
-            // to identity on first frame so the first MB sample produces
-            // zero velocity rather than a screen-wide smear.
             Mat4 m_PrevViewProj;
             bool m_HasPrevViewProj = false;
 
-            // Screen-space reflections. Ray-marches the depth buffer in view
-            // space from each pixel along its reflected view vector, samples the
-            // lit colour at the hit, fades by roughness/edge/fresnel. Optional.
             SharedPtr<Graphics::Shader> m_SSRShader;
             SharedPtr<Graphics::DescriptorSet> m_SSRPassDescriptorSet;
 
@@ -497,6 +555,7 @@ namespace Lumos
             void TextFlush(Renderer2DData& textRenderData, TDArray<TextVertexData*>& textVertexBufferBase, TextVertexData*& textVertexBufferPtr);
 
             bool m_CurrentUIText = false;
+            Vec2 m_UIProjectionSize = Vec2(0.0f, 0.0f);
         };
     }
 }

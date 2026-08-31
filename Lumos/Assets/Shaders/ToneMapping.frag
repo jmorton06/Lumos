@@ -178,8 +178,6 @@ float hash12(vec2 p)
     return fract((p3.x + p3.y) * p3.z);
 }
 
-// Triangular PDF noise in [-1,1]. Two uniform samples summed.
-// Better than uniform dither: hides quantization without raising noise floor as much.
 vec3 screenSpaceDither(vec2 fragCoord)
 {
     float n0 = hash12(fragCoord);
@@ -196,11 +194,6 @@ void main()
 
 	colour += bloom;
 
-	// Exposure scale: adaptive path uses target/avg ratio (clamped to keep
-	// pathological dark frames from blowing up). When adaptive is off we
-	// leave the scene radiance untouched — the engine already bakes its
-	// physical-camera exposure into forward lighting; the tonemap stage
-	// shouldn't apply it a second time.
 	if(ubo.UseAdaptive > 0.5)
 	{
 		float avgLum       = max(adapt.AverageLuminance, 1e-4);

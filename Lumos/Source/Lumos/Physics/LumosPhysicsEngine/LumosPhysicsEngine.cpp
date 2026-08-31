@@ -57,6 +57,10 @@ namespace Lumos
 
         m_ManifoldLock = PushArray(m_Arena, Mutex, 1);
         MutexInit(m_ManifoldLock);
+        MutexSetName(m_ManifoldLock, "Physics Manifolds");
+
+        m_BroadphaseType      = BroadphaseType::OCTREE;
+        m_BroadphaseDetection = CreateSharedPtr<OctreeBroadphase>(5, 8);
     }
 
     void LumosPhysicsEngine::SetDefaults()
@@ -103,8 +107,6 @@ namespace Lumos
 
                 m_ConstraintCount = (uint32_t)viewSpring.size() + (uint32_t)viewAxis.size() + (uint32_t)viewDis.size() + (uint32_t)viewWeld.size();
 
-                // Early-out if no dynamic awake bodies and no constraints.
-                // Vehicles must keep stepping so input can wake/drive the chassis.
                 if(m_ConstraintCount == 0 && m_Vehicles.Empty())
                 {
                     bool hasActiveBodies = false;
@@ -172,8 +174,6 @@ namespace Lumos
                 // Dispatch Lua collision callbacks after physics
                 DispatchCollisionCallbacks(scene);
 
-                // Track collision end: pairs in prev but not in curr
-                // Swap prev/curr for next frame
                 Swap(m_PrevCollisionPairs, m_CurrCollisionPairs);
 
                 float overrun = 0.0f;
@@ -201,10 +201,6 @@ namespace Lumos
         m_MaxManifolds  = 1000;
         m_Manifolds     = PushArrayNoZero(m_FrameArena, Manifold, m_MaxManifolds);
 
-        // Snapshot the pre-integration pose so SyncTransforms can lerp from
-        // (prev, curr) using the leftover accumulator each render frame.
-        // Done for every valid body; resting/static bodies will have prev ==
-        // curr after the step (lerp is a no-op for them).
         for(u32 i = 0; i < m_RigidBodyCount; i++)
         {
             RigidBody3D& body = m_RigidBodies[i];
@@ -220,9 +216,6 @@ namespace Lumos
         else
             NarrowPhaseCollisions();
 
-        // Apply gravity BEFORE the solver so it sees the gravity-induced
-        // normal velocity and can compute a proper normal impulse (which
-        // in turn gives the friction cone enough room to actually stop tangential motion).
         for(u32 i = 0; i < m_RigidBodyCount; i++)
         {
             RigidBody3D& body = m_RigidBodies[i];
@@ -232,8 +225,6 @@ namespace Lumos
                 body.m_LinearVelocity += m_Gravity * s_UpdateTimestep;
         }
 
-        // Step raycast vehicles: suspension + tyre impulses, after gravity so
-        // the springs react to the gravity-induced velocity, before the solver.
         for(u32 i = 0; i < m_Vehicles.Size(); i++)
             m_Vehicles[i]->Update(this, s_UpdateTimestep);
 
@@ -344,11 +335,6 @@ namespace Lumos
         if(!scene)
             return;
 
-        // Render-time alpha: how far we are into the next pending fixed
-        // step. With this, the entity transform tracks the render clock
-        // instead of snapping at fixed-step boundaries, which removes the
-        // 1/2-step beat-pattern stutter when render rate doesn't divide
-        // cleanly into the physics rate.
         const float alpha = (s_UpdateTimestep > 0.0f)
             ? Maths::Clamp(m_UpdateAccum / s_UpdateTimestep, 0.0f, 1.0f)
             : 0.0f;
@@ -639,7 +625,7 @@ namespace Lumos
                 if(m_DebugDrawFlags & PhysicsDebugFlags::BROADPHASE_PAIRS)
                 {
                     Vec4 colour = Colour::RandomColour();
-                    DebugRenderer::DrawThickLine(cp.pObjectA->GetPosition(), cp.pObjectB->GetPosition(), 0.02f, false, colour);
+                    DebugRenderer::DrawThickLine(cp.pObjectA->GetPosition(), cp.pObjectB->GetPosition(), DEBUG_LINE_WIDTH, false, colour);
                     DebugRenderer::DrawPoint(cp.pObjectA->GetPosition(), 0.05f, false, colour);
                     DebugRenderer::DrawPoint(cp.pObjectB->GetPosition(), 0.05f, false, colour);
                 }
@@ -687,7 +673,7 @@ namespace Lumos
                             if(m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONNORMALS)
                             {
                                 DebugRenderer::DrawPoint(colData.pointOnPlane, 0.1f, false, Vec4(0.5f, 0.5f, 1.0f, 1.0f), 3.0f);
-                                DebugRenderer::DrawThickLine(colData.pointOnPlane, colData.pointOnPlane - colData.normal * colData.penetration, 0.05f, false, Vec4(0.0f, 0.0f, 1.0f, 1.0f), 3.0f);
+                                DebugRenderer::DrawThickLine(colData.pointOnPlane, colData.pointOnPlane - colData.normal * colData.penetration, DEBUG_LINE_WIDTH * 1.25f, false, Vec4(0.0f, 0.0f, 1.0f, 1.0f), 3.0f);
                             }
 
                             // Fire callback
@@ -711,11 +697,17 @@ namespace Lumos
         if(m_BroadphaseCollisionPairs.Empty())
             return;
 
-        m_Stats.NarrowPhaseCount = (uint32_t)m_BroadphaseCollisionPairs.Size();
-        std::atomic<uint32_t> collisionCount { 0 };
-
         const uint32_t pairCount = (uint32_t)m_BroadphaseCollisionPairs.Size();
         const uint32_t groupSize = 16; // Process 16 pairs per job
+
+        m_Stats.NarrowPhaseCount = pairCount;
+        std::atomic<uint32_t> collisionCount { 0 };
+
+        const uint32_t eventBase = (uint32_t)m_CollisionEvents.Size();
+        m_CollisionEvents.Resize(eventBase + pairCount);
+        m_CurrCollisionPairs.Resize(eventBase + pairCount);
+        std::atomic<uint32_t> eventIdx { eventBase };
+        std::atomic<uint32_t> manifoldIdx { m_ManifoldCount };
 
         System::JobSystem::Context ctx;
         System::JobSystem::Dispatch(ctx, pairCount, groupSize, [&](JobDispatchArgs args) {
@@ -734,17 +726,15 @@ namespace Lumos
             if(!CollisionDetection::Get().CheckCollision(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), &colData))
                 return;
 
-            // Queue collision event for Lua dispatch (mutex-protected)
-            {
-                ScopedMutex lock(m_ManifoldLock);
-                CollisionEvent3D evt;
-                evt.BodyA = cp.pObjectA;
-                evt.BodyB = cp.pObjectB;
-                evt.InfoA = { cp.pObjectB, colData.normal, colData.pointOnPlane, colData.penetration, cp.pObjectB->GetIsTrigger() };
-                evt.InfoB = { cp.pObjectA, -colData.normal, colData.pointOnPlane, colData.penetration, cp.pObjectA->GetIsTrigger() };
-                m_CollisionEvents.PushBack(evt);
-                m_CurrCollisionPairs.PushBack({ cp.pObjectA, cp.pObjectB });
-            }
+            // Queue collision event into our own preallocated slot (lock-free).
+            CollisionEvent3D evt;
+            evt.BodyA = cp.pObjectA;
+            evt.BodyB = cp.pObjectB;
+            evt.InfoA = { cp.pObjectB, colData.normal, colData.pointOnPlane, colData.penetration, cp.pObjectB->GetIsTrigger() };
+            evt.InfoB = { cp.pObjectA, -colData.normal, colData.pointOnPlane, colData.penetration, cp.pObjectA->GetIsTrigger() };
+            const uint32_t ei      = eventIdx.fetch_add(1, std::memory_order_relaxed);
+            m_CollisionEvents[ei]  = evt;
+            m_CurrCollisionPairs[ei] = { cp.pObjectA, cp.pObjectB };
 
             // Collision callbacks (may not be thread-safe, but user's responsibility)
             const bool okA = cp.pObjectA->FireOnCollisionEvent(cp.pObjectA, cp.pObjectB);
@@ -753,34 +743,30 @@ namespace Lumos
             if(!okA || !okB)
                 return;
 
-            // Skip triggers
             if(cp.pObjectA->GetIsTrigger() || cp.pObjectB->GetIsTrigger())
                 return;
 
-            // Thread-safe manifold creation
+            Manifold local;
+            local.Initiate(cp.pObjectA, cp.pObjectB, m_BaumgarteScalar, m_BaumgarteSlop);
+            if(CollisionDetection::Get().BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, &local))
             {
-                ScopedMutex lock(m_ManifoldLock);
-
-                if(m_ManifoldCount >= m_MaxManifolds)
-                    return;
-
-                Manifold& manifold = m_Manifolds[m_ManifoldCount++];
-                manifold.Initiate(cp.pObjectA, cp.pObjectB, m_BaumgarteScalar, m_BaumgarteSlop);
-
-                if(CollisionDetection::Get().BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, &manifold))
+                const uint32_t mi = manifoldIdx.fetch_add(1, std::memory_order_relaxed);
+                if(mi < m_MaxManifolds)
                 {
-                    cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, &manifold);
-                    cp.pObjectB->FireOnCollisionManifoldCallback(cp.pObjectB, cp.pObjectA, &manifold);
-                    collisionCount.fetch_add(1);
-                }
-                else
-                {
-                    m_ManifoldCount--;
+                    m_Manifolds[mi] = local;
+                    cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, &m_Manifolds[mi]);
+                    cp.pObjectB->FireOnCollisionManifoldCallback(cp.pObjectB, cp.pObjectA, &m_Manifolds[mi]);
+                    collisionCount.fetch_add(1, std::memory_order_relaxed);
                 }
             }
         });
 
         System::JobSystem::Wait(ctx);
+
+        // Trim to what was actually written.
+        m_CollisionEvents.Resize(eventIdx.load());
+        m_CurrCollisionPairs.Resize(eventIdx.load());
+        m_ManifoldCount        = Maths::Min(manifoldIdx.load(), m_MaxManifolds);
         m_Stats.CollisionCount = collisionCount.load();
     }
 
@@ -805,26 +791,161 @@ namespace Lumos
 
         {
             LUMOS_PROFILE_SCOPE("Apply Impulses");
-
-            for(uint32_t i = 0; i < m_VelocityIterations; i++)
-            {
-                for(uint32_t index = 0; index < m_ManifoldCount; index++)
-                    m_Manifolds[index].ApplyImpulse();
-
-                for(uint32_t index = 0; index < m_ConstraintCount; index++)
-                    m_Constraints[index]->ApplyImpulse();
-            }
+            ApplyImpulses();
         }
 
         if(m_WarmStartingEnabled)
             SavePersistentImpulses();
     }
 
+    void LumosPhysicsEngine::ApplyImpulses()
+    {
+        const u32 manifoldCount   = m_ManifoldCount;
+        const u32 constraintCount = m_ConstraintCount;
+        const u32 velIters        = m_VelocityIterations;
+        const u32 bodyCount       = m_RigidBodyCount;
+
+        const bool useParallel = m_ParallelSolver
+            && System::JobSystem::GetThreadCount() > 1
+            && bodyCount > 0
+            && (manifoldCount + constraintCount) >= 64;
+
+        if(!useParallel)
+        {
+            for(u32 i = 0; i < velIters; i++)
+            {
+                for(u32 index = 0; index < manifoldCount; index++)
+                    m_Manifolds[index].ApplyImpulse();
+                for(u32 index = 0; index < constraintCount; index++)
+                    m_Constraints[index]->ApplyImpulse();
+            }
+            return;
+        }
+
+        RigidBody3D* pool = m_RigidBodies;
+
+        u32* parent = PushArrayNoZero(m_FrameArena, u32, bodyCount);
+        for(u32 i = 0; i < bodyCount; i++)
+            parent[i] = i;
+
+        auto dynIndex = [pool, bodyCount](RigidBody3D* b) -> u32
+        {
+            if(!b || b->GetInverseMass() <= 0.0f || b < pool || b >= pool + bodyCount)
+                return UINT32_MAX;
+            return (u32)(b - pool);
+        };
+        auto findRoot = [&](u32 x) -> u32
+        {
+            while(parent[x] != x)
+            {
+                parent[x] = parent[parent[x]];
+                x         = parent[x];
+            }
+            return x;
+        };
+        auto unite = [&](u32 a, u32 b)
+        {
+            u32 ra = findRoot(a), rb = findRoot(b);
+            if(ra != rb)
+                parent[ra] = rb;
+        };
+
+        for(u32 i = 0; i < manifoldCount; i++)
+        {
+            u32 ia = dynIndex(m_Manifolds[i].NodeA());
+            u32 ib = dynIndex(m_Manifolds[i].NodeB());
+            if(ia != UINT32_MAX && ib != UINT32_MAX)
+                unite(ia, ib);
+        }
+        for(u32 i = 0; i < constraintCount; i++)
+        {
+            RigidBody3D* a = nullptr;
+            RigidBody3D* b = nullptr;
+            m_Constraints[i]->GetBodies(a, b);
+            u32 ia = dynIndex(a);
+            u32 ib = dynIndex(b);
+            if(ia != UINT32_MAX && ib != UINT32_MAX)
+                unite(ia, ib);
+        }
+
+        u32* headM = PushArrayNoZero(m_FrameArena, u32, bodyCount);
+        u32* headC = PushArrayNoZero(m_FrameArena, u32, bodyCount);
+        for(u32 i = 0; i < bodyCount; i++)
+        {
+            headM[i] = UINT32_MAX;
+            headC[i] = UINT32_MAX;
+        }
+        u32* nextM = manifoldCount ? PushArrayNoZero(m_FrameArena, u32, manifoldCount) : nullptr;
+        u32* nextC = constraintCount ? PushArrayNoZero(m_FrameArena, u32, constraintCount) : nullptr;
+        u8* seen   = PushArray(m_FrameArena, u8, bodyCount); // zeroed
+
+        auto islandOf = [&](RigidBody3D* a, RigidBody3D* b) -> u32
+        {
+            u32 ia = dynIndex(a);
+            if(ia != UINT32_MAX)
+                return findRoot(ia);
+            u32 ib = dynIndex(b);
+            if(ib != UINT32_MAX)
+                return findRoot(ib);
+            return UINT32_MAX; // both static — broadphase shouldn't produce these
+        };
+
+        TDArray<u32> islands(m_FrameArena);
+        islands.Reserve(64);
+
+        for(u32 i = 0; i < manifoldCount; i++)
+        {
+            u32 r = islandOf(m_Manifolds[i].NodeA(), m_Manifolds[i].NodeB());
+            if(r == UINT32_MAX)
+                continue;
+            nextM[i] = headM[r];
+            headM[r] = i;
+            if(!seen[r])
+            {
+                seen[r] = 1;
+                islands.PushBack(r);
+            }
+        }
+        for(u32 i = 0; i < constraintCount; i++)
+        {
+            RigidBody3D* a = nullptr;
+            RigidBody3D* b = nullptr;
+            m_Constraints[i]->GetBodies(a, b);
+            u32 r = islandOf(a, b);
+            if(r == UINT32_MAX)
+                continue;
+            nextC[i] = headC[r];
+            headC[r] = i;
+            if(!seen[r])
+            {
+                seen[r] = 1;
+                islands.PushBack(r);
+            }
+        }
+
+        const u32 islandCount              = (u32)islands.Size();
+        const u32* islandRoots             = islands.Data();
+        Manifold* manifolds                = m_Manifolds;
+        SharedPtr<Constraint>* constraints = m_Constraints;
+
+        System::JobSystem::Context ctx;
+        System::JobSystem::Dispatch(ctx, islandCount, 1,
+                                    [islandRoots, headM, headC, nextM, nextC, manifolds, constraints, velIters](JobDispatchArgs args)
+                                    {
+                                        const u32 r = islandRoots[args.jobIndex];
+                                        for(u32 it = 0; it < velIters; it++)
+                                        {
+                                            for(u32 mi = headM[r]; mi != UINT32_MAX; mi = nextM[mi])
+                                                manifolds[mi].ApplyImpulse();
+                                            for(u32 ci = headC[r]; ci != UINT32_MAX; ci = nextC[ci])
+                                                constraints[ci]->ApplyImpulse();
+                                        }
+                                    });
+        System::JobSystem::Wait(ctx);
+    }
+
     namespace
     {
-        // Build a canonical, well-mixed hash key for an ordered body pair.
-        // Pointers from a pool allocator cluster together so naive identity-hashing
-        // by unordered_map would bucket-collide heavily.
         static uint64_t MakeBodyPairKey(const RigidBody3D* a, const RigidBody3D* b)
         {
             uintptr_t pa = reinterpret_cast<uintptr_t>(a);
@@ -848,9 +969,6 @@ namespace Lumos
         for(auto& entry : m_PersistentManifolds)
             entry.second.usedThisFrame = false;
 
-        // Body-local-space tolerance for matching new contacts to last frame's contacts.
-        // Tight enough to avoid wrong matches between distinct contacts on the same pair,
-        // loose enough to tolerate small motion and solver-driven position correction.
         const float kMatchToleranceSq = 0.02f * 0.02f;
 
         for(uint32_t i = 0; i < m_ManifoldCount; i++)
@@ -869,8 +987,6 @@ namespace Lumos
             PersistentManifoldCache& cache = it->second;
             cache.usedThisFrame            = true;
 
-            // If the manifold's node order flipped since last frame, the cached
-            // localPosA/localPosB are relative to swapped bodies — bail.
             if(cache.savedNodeA != a)
                 continue;
 
@@ -906,8 +1022,6 @@ namespace Lumos
 
                 const PersistentContactPoint& pc = cache.contacts[bestIdx];
 
-                // Decompose stored world-space impulses onto this frame's contact basis.
-                // sumImpulseContact is non-positive in this engine's convention (push-apart).
                 float jnScalar = Maths::Min(Maths::Dot(pc.normalImpulse, c.collisionNormal), 0.0f);
                 float jt1      = Maths::Dot(pc.frictionImpulse, c.frictionTangent1);
                 float jt2      = Maths::Dot(pc.frictionImpulse, c.frictionTangent2);
@@ -920,8 +1034,6 @@ namespace Lumos
                 c.sumImpulseRolling1  = jr1;
                 c.sumImpulseRolling2  = jr2;
 
-                // Apply the recovered linear+friction impulse to body velocities so the
-                // iteration loop starts from last frame's solved state, not from zero.
                 Vec3 worldImpulse = c.collisionNormal * jnScalar
                     + c.frictionTangent1 * jt1
                     + c.frictionTangent2 * jt2;
@@ -935,9 +1047,6 @@ namespace Lumos
                 b->SetAngularVelocity(b->GetAngularVelocity()
                                       - b->GetInverseInertia() * Maths::Cross(c.relPosB, worldImpulse) * b->GetAngularFactor());
 
-                // Rolling friction is a pure angular impulse — applied directly, no
-                // cross product with relPos (it's a torque about the contact, not
-                // produced by a point-force lever arm).
                 Vec3 worldRolling = c.frictionTangent1 * jr1 + c.frictionTangent2 * jr2;
                 a->SetAngularVelocity(a->GetAngularVelocity()
                                       + a->GetInverseInertia() * worldRolling * a->GetAngularFactor());
@@ -1178,10 +1287,6 @@ namespace Lumos
         }
     }
 
-    // Ray-AABB intersection test (slab method). NOTE: must be component-wise —
-    // Maths::Min/Max are scalar templates (lhs<rhs?lhs:rhs), so calling them on
-    // Vec3 returns a whole vector via Vec3::operator< and breaks the test. Do
-    // each axis with floats.
     static bool RayIntersectsAABB(const Vec3& origin, const Vec3& invDir, const Maths::BoundingBox& aabb, float& tMin, float& tMax)
     {
         const Vec3 lo = aabb.Min();
@@ -1394,12 +1499,6 @@ namespace Lumos
             }
             case CollisionShapeType::CollisionTerrain:
             {
-                // March along the ray inside the heightfield AABB, sampling the
-                // heightmap and detecting the sign change between ray.y and
-                // surface.y. Step size = half a cell so we don't tunnel through
-                // sharp ridges. Without this case, the default branch returned
-                // the AABB top — placing anything "on the ground" via raycast
-                // ended up on the global terrain peak instead.
                 auto* terrain = static_cast<TerrainCollisionShape*>(shape.get());
                 if(!terrain->HasHeightData())
                     break;

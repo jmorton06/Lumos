@@ -1,3 +1,4 @@
+#ifdef LUMOS_PLATFORM_IOS
 #include "Precompiled.h"
 #include "Core/OS/FileSystem.h"
 #include "Utilities/StringUtilities.h"
@@ -254,3 +255,4 @@ namespace Lumos
 		return Path;
     }
 }
+#endif // LUMOS_PLATFORM_IOS

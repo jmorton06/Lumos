@@ -33,10 +33,38 @@ namespace Lumos
 
         Transform::~Transform() = default;
 
+        // Builds T * R * S directly instead of multiplying three matrices - this runs for
+        // every transform in the scene, every frame.
+        static Mat4 ComposeTRS(const Vec3& position, const Quat& orientation, const Vec3& scale)
+        {
+            Mat4 out = orientation.ToMatrix4();
+
+            out.values[0] *= scale.x;
+            out.values[1] *= scale.x;
+            out.values[2] *= scale.x;
+            out.values[4] *= scale.y;
+            out.values[5] *= scale.y;
+            out.values[6] *= scale.y;
+            out.values[8] *= scale.z;
+            out.values[9] *= scale.z;
+            out.values[10] *= scale.z;
+
+            out.values[12] = position.x;
+            out.values[13] = position.y;
+            out.values[14] = position.z;
+            return out;
+        }
+
         void Transform::SetWorldMatrix(const Mat4& mat)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            m_WorldMatrix = mat * Mat4::Translation(m_LocalPosition) * Maths::ToMat4(m_LocalOrientation) * Mat4::Scale(m_LocalScale);
+            m_WorldMatrix = mat * ComposeTRS(m_LocalPosition, m_LocalOrientation, m_LocalScale);
+        }
+
+        void Transform::SetWorldMatrix()
+        {
+            LUMOS_PROFILE_FUNCTION_LOW();
+            m_WorldMatrix = ComposeTRS(m_LocalPosition, m_LocalOrientation, m_LocalScale);
         }
 
         void Transform::SetLocalTransform(const Mat4& localMat)
@@ -69,7 +97,7 @@ namespace Lumos
         Mat4 Transform::GetLocalMatrix()
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            return Mat4::Translation(m_LocalPosition) * Maths::ToMat4(m_LocalOrientation) * Mat4::Scale(m_LocalScale);
+            return ComposeTRS(m_LocalPosition, m_LocalOrientation, m_LocalScale);
         }
 
         const Vec3 Transform::GetWorldPosition()

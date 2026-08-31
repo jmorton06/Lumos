@@ -12,27 +12,27 @@ namespace Lumos
     {
         AudioData data = AudioData();
 
-        ArenaTemp Scratch = ScratchBegin(0, 0);
+        String8 fileStr = Str8StdS(fileName);
+        i64 fileSize    = FileSystem::Get().GetFileSizeVFS(fileStr);
 
-        String8 physicalPath;
-        if(!Lumos::FileSystem::Get().ResolvePhysicalPath(Scratch.arena, Str8StdS(fileName), &physicalPath))
+        Arena* Scratch = ArenaAlloc(fileSize + Megabytes(1));
+
+        u8* fileData    = fileSize > 0 ? FileSystem::Get().ReadFileVFS(Scratch, fileStr) : nullptr;
+
+        if(!fileData)
         {
-            LINFO("Failed to load Ogg file : File Not Found");
+            LFATAL("Failed to load OGG file '%.*s' - not found (loose or packed)", (int)fileStr.size, fileStr.str);
+            ArenaRelease(Scratch);
+            return data;
         }
 
-        // TODO: Replace with filesystem call
-        const auto m_FileHandle = fopen((const char*)physicalPath.str, "rb");
-
-        if(!m_FileHandle)
-        {
-            LFATAL("Failed to load OGG file '%s'!", (const char*)physicalPath.str);
-        }
         int error;
-        auto m_StreamHandle = stb_vorbis_open_filename((const char*)physicalPath.str, &error, nullptr);
+        auto m_StreamHandle = stb_vorbis_open_memory((const unsigned char*)fileData, (int)fileSize, &error, nullptr);
 
         if(!m_StreamHandle)
         {
-            LFATAL("Failed to load OGG file '%s'! , Error %i", (const char*)physicalPath.str, error);
+            LFATAL("Failed to load OGG file '%.*s'! , Error %i", (int)fileStr.size, fileStr.str, error);
+            ArenaRelease(Scratch);
             return data;
         }
 
@@ -52,7 +52,7 @@ namespace Lumos
 
         stb_vorbis_close(m_StreamHandle);
 
-        fclose(m_FileHandle);
+        ArenaRelease(Scratch);
 
         return data;
     }

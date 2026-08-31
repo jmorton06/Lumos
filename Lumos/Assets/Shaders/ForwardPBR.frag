@@ -44,10 +44,16 @@ struct Material
 
 vec4 GetAlbedo()
 {
-	if(u_MaterialData.AlbedoMapFactor < 0.05)
-		return  u_MaterialData.AlbedoColour;
+#ifdef INSTANCED
+	vec4 baseColour = vec4(VertexOutput.Colour, 1.0);
+#else
+	vec4 baseColour = u_MaterialData.AlbedoColour;
+#endif
 
-	return u_MaterialData.AlbedoColour * (u_MaterialData.AlbedoMapFactor * DeGamma(texture(u_AlbedoMap, VertexOutput.TexCoord)));
+	if(u_MaterialData.AlbedoMapFactor < 0.05)
+		return baseColour;
+
+	return baseColour * (u_MaterialData.AlbedoMapFactor * DeGamma(texture(u_AlbedoMap, VertexOutput.TexCoord)));
 }
 
 vec3 GetMetallic()
@@ -75,9 +81,10 @@ float GetAO()
 
 vec3 GetEmissive(vec3 albedo)
 {
-	if(u_MaterialData.EmissiveMapFactor < 0.05)
-		return (u_MaterialData.Emissive * albedo);
-	return (u_MaterialData.Emissive * albedo) + u_MaterialData.EmissiveMapFactor * DeGamma(texture(u_EmissiveMap, VertexOutput.TexCoord).rgb);
+	vec3 emissive = u_MaterialData.EmissiveColour.rgb * u_MaterialData.EmissiveColour.w;
+	if(u_MaterialData.EmissiveMapFactor >= 0.05)
+		emissive *= DeGamma(texture(u_EmissiveMap, VertexOutput.TexCoord).rgb);
+	return emissive * albedo;
 }
 
 const vec2 PoissonDistribution16[16] = vec2[](
@@ -122,10 +129,6 @@ float GetShadowBias(vec3 lightDirection, vec3 normal, int shadowIndex)
 {
 	float minBias = u_SceneData.InitialBias;
 	float bias = max(minBias * (1.0 - dot(normal, lightDirection)), minBias);
-	// Further cascades cover much more world space per shadow-map texel, so the
-	// depth quantisation error - and the bias needed to hide it - grows with them.
-	// Without this every cascade used the same tiny bias, and the far cascades
-	// self-shadowed into a uniform grey haze ("a light shadow over everything").
 	bias *= float(shadowIndex + 1);
 	return bias;
 }
@@ -161,10 +164,6 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 		}
 
 		vec2 sampleUV = clamp(shadowCoords.xy + offset, vec2(0.001), vec2(0.999));
-		// Bias must RELAX the depth test (a lit fragment is allowed to be
-		// slightly behind the stored occluder). It was being subtracted, which
-		// tightened the test instead - so more bias meant more self-shadowing,
-		// and PCF averaged that acne into a grey haze over the far cascades.
 		float z = texture(shadowMap, vec3(sampleUV, cascadeIndex)).r + bias;
 		sum += step(shadowCoords.z, z);
 	}
@@ -220,10 +219,6 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 
 	if (u_SceneData.FilterShadows  == 1)
 	{
-		// Penumbra width expressed in shadow-map texels, scaled by light size.
-		// The old "LightSize * NEAR / shadowCoord.z" heuristic always saturated
-		// its min() clamp, giving a fixed ~20 texel kernel in every cascade -
-		// that is what made the shadows extremely soft.
 		float texelSize = 1.0 / float(textureSize(uShadowMap, 0).x);
 		uvRadius = u_SceneData.LightSize * texelSize * 2.0;
 		uvRadius = clamp(uvRadius, texelSize, texelSize * 8.0);
@@ -420,9 +415,6 @@ void main()
 	}
 	else if( u_MaterialData.workflow == PBR_WORKFLOW_SPECULAR_GLOSINESS)
 	{
-		// u_MetallicMap: RGB = specular colour, A = glossiness
-		// u_MaterialData.Metallic  = constant specular intensity (scalar)
-		// u_MaterialData.Roughness = constant glossiness
 		vec4 tex        = texture(u_MetallicMap, VertexOutput.TexCoord);
 		vec3 specular   = (1.0 - u_MaterialData.MetallicMapFactor) * vec3(u_MaterialData.Metallic)
 		                + u_MaterialData.MetallicMapFactor * tex.rgb;
@@ -495,8 +487,6 @@ void main()
 
 	vec3 finalColour = lightContribution + iblContribution + material.Emissive;
 
-	// Scene fog. Combines exponential height-attenuated density with optional
-	// linear distance band. Skipped entirely when strength == 0.
 	if(u_SceneData.FogColour.a > 0.001)
 	{
 		vec3 camPos = u_SceneData.cameraPosition.xyz;

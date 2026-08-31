@@ -12,6 +12,7 @@ namespace Lumos
 
         virtual void ApplyImpulse() override;
         virtual void DebugDraw() const override;
+        void GetBodies(RigidBody3D*& a, RigidBody3D*& b) const override { a = m_pObj1; b = m_pObj2; }
 
     protected:
         RigidBody3D* m_pObj1;

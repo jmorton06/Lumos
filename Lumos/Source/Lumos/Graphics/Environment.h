@@ -96,8 +96,6 @@ namespace Lumos
             const Vec4& GetParameters() const { return m_Parameters; }
             void SetParameters(const Vec4& param) { m_Parameters = param; }
 
-            // Per-scene procedural-sky tint. xyz = colour, w currently unused.
-            // Mixed in Skybox.frag when the Environment mode == 1 (procedural).
             const Vec4& GetHorizonColour() const { return m_HorizonColour; }
             const Vec4& GetZenithColour() const  { return m_ZenithColour; }
             const Vec4& GetSunDirection() const  { return m_SunDirection; }
@@ -105,20 +103,11 @@ namespace Lumos
             void SetZenithColour(const Vec4& c)  { m_ZenithColour  = c; }
             void SetSunDirection(const Vec4& d)  { m_SunDirection  = d; }
 
-            // FogParams.x = exponential density (per world unit), .y = height falloff
-            // (smaller = thicker low, 0 disables vertical attenuation), .z = linear
-            // fog start distance, .w = linear fog end distance (<= start disables linear).
-            // FogColour.a is global strength multiplier (0 = off, 1 = full).
             const Vec4& GetFogColour() const { return m_FogColour; }
             const Vec4& GetFogParams() const { return m_FogParams; }
             void SetFogColour(const Vec4& c) { m_FogColour = c; }
             void SetFogParams(const Vec4& p) { m_FogParams = p; }
 
-            // CloudParams.x = coverage (0 disables clouds), .y = density, .z = base
-            // scroll speed, .w = style mode (0 stylised cartoon, 1 realistic FBM,
-            // negative disables). CloudColour.rgb tint, .a shadow strength.
-            // CloudWindDir.xz = horizontal scroll direction, .y altitude band 0..1,
-            // .w cumulus thickness boost.
             const Vec4& GetCloudColour()  const { return m_CloudColour; }
             const Vec4& GetCloudParams()  const { return m_CloudParams; }
             const Vec4& GetCloudWindDir() const { return m_CloudWindDir; }
@@ -126,19 +115,11 @@ namespace Lumos
             void SetCloudParams(const Vec4& p)  { m_CloudParams  = p; }
             void SetCloudWindDir(const Vec4& d) { m_CloudWindDir = d; }
 
-            // StarParams.x = density 0..1 (0 disables stars), .y = brightness,
-            // .z = twinkle speed (0 = static), .w = sky-luminance threshold
-            // below which stars are visible (1 = always show, 0 = never).
-            // StarColour.rgb = tint, .a unused.
             const Vec4& GetStarParams() const { return m_StarParams; }
             const Vec4& GetStarColour() const { return m_StarColour; }
             void SetStarParams(const Vec4& p) { m_StarParams = p; }
             void SetStarColour(const Vec4& c) { m_StarColour = c; }
 
-            // AuroraParams.x = intensity (0 disables), .y = vertical centre of the
-            // curtains (0..1), .z = flow/animation speed, .w = band width.
-            // AuroraColour.rgb = base tint (green), .a = blend toward a magenta tip
-            // up high (0 = single colour, 1 = full green->magenta gradient).
             const Vec4& GetAuroraColour() const { return m_AuroraColour; }
             const Vec4& GetAuroraParams() const { return m_AuroraParams; }
             void SetAuroraColour(const Vec4& c) { m_AuroraColour = c; }
@@ -157,8 +138,6 @@ namespace Lumos
             std::string m_FileType;
             uint8_t m_Mode = 0;
             Vec4 m_Parameters;
-            // Procedural-sky tinting (mode 1). Defaults give a rich clear-day sky
-            // (deeper zenith blue, less pale horizon — avoids a washed-out look).
             Vec4 m_HorizonColour = Vec4(0.66f, 0.78f, 0.92f, 1.0f);
             Vec4 m_ZenithColour  = Vec4(0.13f, 0.34f, 0.78f, 1.0f);
             Vec4 m_SunDirection  = Vec4(0.0f, 0.6f, 0.8f, 1.0f); // xyz = dir, w = intensity

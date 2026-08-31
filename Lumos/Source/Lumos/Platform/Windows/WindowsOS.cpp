@@ -137,7 +137,7 @@ namespace Lumos
     static int s_DragStartWindowY = 0;
 #endif
 
-    void WindowsOS::BeginWindowDrag()
+    bool WindowsOS::BeginWindowDrag()
     {
 #ifdef LUMOS_USE_GLFW_WINDOWS
         auto& app          = Lumos::Application::Get();
@@ -148,6 +148,7 @@ namespace Lumos
         s_DragStartCursorX = s_DragStartWindowX + (int)cx;
         s_DragStartCursorY = s_DragStartWindowY + (int)cy;
 #endif
+        return false;
     }
 
     void WindowsOS::UpdateWindowDrag()
@@ -175,6 +176,15 @@ namespace Lumos
         return glfwGetWindowAttrib(window, GLFW_MAXIMIZED) == GLFW_TRUE;
 #else
         return false;
+#endif
+    }
+
+    void WindowsOS::MaximiseWindow()
+    {
+#ifdef LUMOS_USE_GLFW_WINDOWS
+        auto& app          = Lumos::Application::Get();
+        GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow()->GetHandle());
+        glfwMaximizeWindow(window);
 #endif
     }
 
@@ -208,7 +218,7 @@ namespace Lumos
     static const int kMinH         = 240;
 #endif
 
-    void WindowsOS::BeginWindowResize(int edgeMask)
+    bool WindowsOS::BeginWindowResize(int edgeMask)
     {
 #ifdef LUMOS_USE_GLFW_WINDOWS
         auto& app          = Lumos::Application::Get();
@@ -221,6 +231,7 @@ namespace Lumos
         s_ResizeStartMouseX = s_ResizeStartWinX + (int)cx;
         s_ResizeStartMouseY = s_ResizeStartWinY + (int)cy;
 #endif
+        return false;
     }
 
     void WindowsOS::UpdateWindowResize()

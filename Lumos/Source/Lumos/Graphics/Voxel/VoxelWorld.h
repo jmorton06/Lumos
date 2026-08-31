@@ -9,16 +9,12 @@ namespace Lumos
     {
         class Material;
 
-        // Infinite (X/Z) voxel world: a sparse map of column chunks streamed in a
-        // radius around a focus point. Y is fixed at one chunk (CHUNK_H).
         class LUMOS_EXPORT VoxelWorld
         {
         public:
             VoxelWorld();
             ~VoxelWorld();
 
-            // Stream chunks around a world-space focus (camera). Loads/evicts and
-            // re-meshes dirty chunks within a per-frame budget.
             void Update(const Vec3& focusWorldPos);
 
             BlockID GetBlock(int gx, int gy, int gz) const;
@@ -34,12 +30,8 @@ namespace Lumos
             // Voxel DDA traversal (Amanatides & Woo). origin/dir in world space.
             bool Raycast(const Vec3& origin, const Vec3& dir, float maxDist, RayHit& out) const;
 
-            // True if any solid block overlaps the world-space AABB. Cheap broad
-            // query for gameplay collision/grounding (full rigidbody integration TBD).
             bool OverlapAABB(const Vec3& min, const Vec3& max) const;
 
-            // Edit helpers built on Raycast: place sets the empty cell adjacent to
-            // the hit face; remove clears the hit block. Return true if they acted.
             bool PlaceBlock(const Vec3& origin, const Vec3& dir, float maxDist, BlockID id);
             bool RemoveBlock(const Vec3& origin, const Vec3& dir, float maxDist);
 

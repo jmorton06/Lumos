@@ -100,6 +100,22 @@ namespace Lumos
             swapChainExtent.width  = static_cast<uint32_t>(m_Width);
             swapChainExtent.height = static_cast<uint32_t>(m_Height);
 
+            if(surfaceCapabilities.currentExtent.width != 0xFFFFFFFF
+               && surfaceCapabilities.currentExtent.height != 0xFFFFFFFF
+               && surfaceCapabilities.currentExtent.width != 0
+               && surfaceCapabilities.currentExtent.height != 0)
+            {
+                swapChainExtent = surfaceCapabilities.currentExtent;
+            }
+            else
+            {
+                swapChainExtent.width  = Maths::Max(surfaceCapabilities.minImageExtent.width, Maths::Min(surfaceCapabilities.maxImageExtent.width, swapChainExtent.width));
+                swapChainExtent.height = Maths::Max(surfaceCapabilities.minImageExtent.height, Maths::Min(surfaceCapabilities.maxImageExtent.height, swapChainExtent.height));
+            }
+
+            m_Width  = swapChainExtent.width;
+            m_Height = swapChainExtent.height;
+
             VkPresentModeKHR swapChainPresentMode = VKUtilities::ChoosePresentMode(pPresentModes, vsync);
 
             // Use triple-buffering
@@ -391,10 +407,12 @@ namespace Lumos
             if(error == VK_ERROR_OUT_OF_DATE_KHR)
             {
                 LWARN("[Vulkan] SwapChain out of date");
+                m_NeedRecreate = true;
             }
             else if(error == VK_SUBOPTIMAL_KHR)
             {
                 LWARN("[Vulkan] SwapChain suboptimal");
+                m_NeedRecreate = true;
             }
             else
             {

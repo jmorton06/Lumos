@@ -8,6 +8,8 @@ namespace Lumos
     {
         Vec4 RandomColour();
 
+        Vec4 BlackbodyColour(float kelvin);
+
         // List of common colors
         static Vec4 Red     = Vec4(1.0f, 0.0f, 0.0f, 1.0f);
         static Vec4 Green   = Vec4(0.0f, 1.0f, 0.0f, 1.0f);

@@ -144,4 +144,41 @@ namespace Lumos::InputCode
         ButtonRight  = 2,
         NoCursor     = 3,
     };
+
+    // Standardised gamepad layout (matches GLFW's mapped gamepad state, which
+    // is what makes a DualSense and a Steam Deck report the same indices).
+    // Face buttons are named by POSITION, not by the glyph printed on them:
+    // South is Cross on PlayStation and A on Xbox.
+    enum GamepadButton
+    {
+        GamepadSouth       = 0,
+        GamepadEast        = 1,
+        GamepadWest        = 2,
+        GamepadNorth       = 3,
+        GamepadLeftBumper  = 4,
+        GamepadRightBumper = 5,
+        GamepadBack        = 6,
+        GamepadStart       = 7,
+        GamepadGuide       = 8,
+        GamepadLeftThumb   = 9,
+        GamepadRightThumb  = 10,
+        GamepadDPadUp      = 11,
+        GamepadDPadRight   = 12,
+        GamepadDPadDown    = 13,
+        GamepadDPadLeft    = 14,
+        GamepadButtonCount = 15,
+    };
+
+    // Sticks are -1..1. Triggers are normalised to 0..1 here (GLFW reports
+    // them -1..1 with -1 = released, which is a trap for every caller).
+    enum GamepadAxis
+    {
+        GamepadAxisLeftX     = 0,
+        GamepadAxisLeftY     = 1,
+        GamepadAxisRightX    = 2,
+        GamepadAxisRightY    = 3,
+        GamepadAxisLeftTrigger  = 4,
+        GamepadAxisRightTrigger = 5,
+        GamepadAxisCount     = 6,
+    };
 }

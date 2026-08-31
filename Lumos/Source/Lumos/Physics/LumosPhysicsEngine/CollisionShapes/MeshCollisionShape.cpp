@@ -119,9 +119,10 @@ namespace Lumos
             Vec3 v1 = Vec3(transform * Vec4(tri.v1, 1.0f));
             Vec3 v2 = Vec3(transform * Vec4(tri.v2, 1.0f));
 
-            DebugRenderer::DrawThickLine(v0, v1, 0.005f, false, Vec4(0.8f, 0.4f, 0.4f, 1.0f));
-            DebugRenderer::DrawThickLine(v1, v2, 0.005f, false, Vec4(0.8f, 0.4f, 0.4f, 1.0f));
-            DebugRenderer::DrawThickLine(v2, v0, 0.005f, false, Vec4(0.8f, 0.4f, 0.4f, 1.0f));
+            // Mesh wireframe is dense — keep it lighter than the standard width.
+            DebugRenderer::DrawThickLine(v0, v1, DEBUG_LINE_WIDTH * 0.4f, false, Vec4(0.8f, 0.4f, 0.4f, 1.0f));
+            DebugRenderer::DrawThickLine(v1, v2, DEBUG_LINE_WIDTH * 0.4f, false, Vec4(0.8f, 0.4f, 0.4f, 1.0f));
+            DebugRenderer::DrawThickLine(v2, v0, DEBUG_LINE_WIDTH * 0.4f, false, Vec4(0.8f, 0.4f, 0.4f, 1.0f));
         }
     }
 

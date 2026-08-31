@@ -70,8 +70,6 @@ namespace Lumos
 
     void MacOSOS::SetWindowDecorations(bool decorated)
     {
-        // macOS: keep native traffic-lights but extend content under the title bar
-        // so the editor can draw its own bar. Reserve gutter for them on the left.
         auto& app = Lumos::Application::Get();
         NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
 
@@ -81,8 +79,6 @@ namespace Lumos
             window.titlebarAppearsTransparent = YES;
             window.titleVisibility = NSWindowTitleHidden;
 
-            // Grow native title-bar height so AppKit re-centres the traffic lights
-            // in our taller ImGui menu bar. Uses private _setTitlebarHeight:.
             SEL sel = NSSelectorFromString(@"_setTitlebarHeight:");
             if([window respondsToSelector:sel])
             {
@@ -105,8 +101,6 @@ namespace Lumos
             window.titleVisibility = NSWindowTitleVisible;
         }
 
-        // The content area just changed size; GLFW won't fire a callback automatically
-        // since we bypassed its styling API — notify the engine of the new size.
         app.GetWindow()->RefreshSize();
     }
 
@@ -151,12 +145,13 @@ namespace Lumos
     static NSPoint s_DragStartMouseScreen = { 0, 0 };
     static NSPoint s_DragStartWindowOrigin = { 0, 0 };
 
-    void MacOSOS::BeginWindowDrag()
+    bool MacOSOS::BeginWindowDrag()
     {
         auto& app = Lumos::Application::Get();
         NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
         s_DragStartMouseScreen   = [NSEvent mouseLocation];
         s_DragStartWindowOrigin  = window.frame.origin;
+        return false;
     }
 
     void MacOSOS::UpdateWindowDrag()
@@ -194,8 +189,6 @@ namespace Lumos
         window.collectionBehavior |= NSWindowCollectionBehaviorFullScreenPrimary;
         window.styleMask |= NSWindowStyleMaskResizable;
 
-        // DidEnterFullScreen is the only reliable "the toggle actually took" signal — the
-        // style flag is set at transition start, so it can't tell a no-op from a slow enter.
         static bool observerRegistered = false;
         if(!observerRegistered)
         {
@@ -209,8 +202,6 @@ namespace Lumos
         bool isFullscreen = ([window styleMask] & NSWindowStyleMaskFullScreen) != 0;
         if(isFullscreen != fullscreen)
         {
-            // toggleFullScreen: silently no-ops if the app isn't active or the window isn't
-            // key/front — make both true first.
             if(fullscreen)
             {
                 [NSApp activateIgnoringOtherApps:YES];

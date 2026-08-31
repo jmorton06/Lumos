@@ -28,6 +28,8 @@ namespace Lumos
             ~Transform();
 
             void SetWorldMatrix(const Mat4& mat);
+            // No parent - skips the identity multiply.
+            void SetWorldMatrix();
             void SetLocalTransform(const Mat4& localMat);
 
             void SetLocalPosition(const Vec3& localPos);

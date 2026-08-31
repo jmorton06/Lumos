@@ -423,8 +423,6 @@ namespace Lumos
             return;
         }
 
-        // RMB+scroll or Cmd/Ctrl+scroll = adjust camera speed (affects fly + pan speeds).
-        // Cmd/Ctrl path is the Mac-friendly alternative since RMB-drag often takes priority for context menus.
         if((rmbHeld || ctrlHeld) && offset != 0.0f)
         {
             m_CameraSpeed += dt * offset * (m_CameraSpeed * 0.5f + 1.0f);
@@ -432,8 +430,6 @@ namespace Lumos
             return;
         }
 
-        // Orbit only on explicit Alt+scroll. Trackpad auto-detect was unreliable
-        // (false-positives from smooth-scroll mice; falsely flickering during pure-Y gestures).
         if(altHeld && (offset != 0.0f || offsetX != 0.0f))
         {
             const float yawSign = transform.GetUpDirection().y < 0.0f ? -1.0f : 1.0f;

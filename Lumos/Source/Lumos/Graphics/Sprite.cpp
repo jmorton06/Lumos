@@ -59,5 +59,14 @@ namespace Lumos
                 m_Texture = tex;
             }
         }
+
+        void Sprite::SetNormalTextureFromFile(const std::string& filePath)
+        {
+            auto tex = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(filePath, filePath));
+            if(tex)
+            {
+                m_NormalTexture = tex;
+            }
+        }
     }
 }

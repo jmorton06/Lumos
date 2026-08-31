@@ -4,6 +4,7 @@
 
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec4 colour;
+layout (location = 2) in vec4 edge;
 
 layout(set = 0,binding = 0) uniform UBO
 {
@@ -14,6 +15,7 @@ layout (location = 0) out DATA
 {
 	vec3 position;
 	vec4 colour;
+	float edge;
 } vs_out;
 
 void main()
@@ -21,4 +23,5 @@ void main()
 	gl_Position =  ubo.projView * vec4(position,1.0);
 	vs_out.position = position;
 	vs_out.colour = colour;
+	vs_out.edge = edge.x; // cross-line coord (-1..1), 0 = hairline
 }

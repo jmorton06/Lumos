@@ -21,8 +21,6 @@ namespace Lumos
 
     Mat3 CapsuleCollisionShape::BuildInverseInertia(float invMass) const
     {
-        // Proper capsule inertia: cylinder (height h, radius r) + two hemisphere caps
-        // Capsule oriented along Y-axis
         const float r  = m_Radius;
         const float h  = m_Height;
         const float r2 = r * r;
@@ -41,8 +39,6 @@ namespace Lumos
         const float Ixx_cyl = massCyl * (r2 / 4.0f + h2 / 12.0f);
         const float Iyy_cyl = massCyl * r2 / 2.0f;
 
-        // Sphere inertia + parallel axis for hemispheres offset from center
-        // Hemisphere COM is 3r/8 from flat face, so distance from capsule center = h/2 + 3r/8
         const float d = h / 2.0f + 3.0f * r / 8.0f;
         const float Ixx_sph = massSph * (2.0f * r2 / 5.0f + d * d);
         const float Iyy_sph = massSph * 2.0f * r2 / 5.0f;
@@ -132,6 +128,6 @@ namespace Lumos
         Quat rotation;
         Vec3 translation;
         transform.Decompose(translation, rotation, scale);
-        DebugRenderer::DebugDrawCapsule(translation, rotation, m_Height, m_Radius, Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        DebugRenderer::DebugDrawCapsule(translation, rotation, m_Height, m_Radius, Vec4(1.0f, 0.0f, 0.0f, 1.0f), DEBUG_LINE_WIDTH);
     }
 }

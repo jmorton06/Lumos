@@ -52,8 +52,6 @@ namespace Lumos
 
         LINFO("[Lua] LoadScript '%s'", m_FileName.c_str());
 
-        // Prefer pack-aware VFS read (handles //Assets paths and mounted .lpak),
-        // then fall back to direct file load for absolute disk paths.
         auto loadFileResult = [&]() {
             ArenaTemp scratch = ScratchBegin(0, 0);
             String8 vfsPath = Str8((u8*)m_FileName.c_str(), m_FileName.size());
@@ -239,9 +237,6 @@ namespace Lumos
             }
         }
 
-        // Drop the require() cache for user modules so dependent files pick up edits.
-        // Built-in libraries (math, string, table, ...) use simple names without '/' or '.';
-        // user modules look like "game/Camera" / "util/Math" — clear only those.
         {
             sol::table loaded = LuaManager::Get().GetState()["package"]["loaded"];
             std::vector<std::string> toRemove;

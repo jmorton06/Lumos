@@ -5,9 +5,6 @@
 
 namespace Lumos
 {
-    // Component owning a streamed voxel world. One per voxel-world entity. The
-    // chunks regenerate procedurally on load (MVP: edits not yet persisted), so
-    // serialisation only stores authoring params.
     struct VoxelWorldComponent
     {
         VoxelWorldComponent()

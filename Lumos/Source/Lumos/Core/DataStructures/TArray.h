@@ -156,9 +156,6 @@ namespace Lumos
     {
         if(this != &other)
         {
-            // If we were moved-from we have no buffer — allocate one before
-            // copying. Otherwise the existing buffer is the right size (size
-            // is fixed by the template parameter), so copy in place.
             if(!m_Data)
             {
                 m_Arena = other.m_Arena;

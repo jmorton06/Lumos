@@ -8,11 +8,18 @@
 #  ifndef NOMINMAX
 #    define NOMINMAX
 #  endif
+#  define SECURITY_WIN32
 #  include <windows.h>
 #  include <malloc.h>
-#  include "TracyUwp.hpp"
+#  include <lmcons.h>
+#  include <security.h>
+#  include "TracyWinFamily.hpp"
+#  ifdef _MSC_VER
+#    pragma comment(lib, "secur32.lib")
+#  endif
 #else
 #  include <pthread.h>
+#  include <pwd.h>
 #  include <string.h>
 #  include <unistd.h>
 #endif
@@ -26,8 +33,13 @@
 #  include <fcntl.h>
 #elif defined __FreeBSD__
 #  include <sys/thr.h>
-#elif defined __NetBSD__ || defined __DragonFly__
+#elif defined __NetBSD__
+#  include <lwp.h>
+#elif defined __DragonFly__
 #  include <sys/lwp.h>
+#elif defined __QNX__
+#  include <process.h>
+#  include <sys/neutrino.h>
 #endif
 
 #ifdef __MINGW32__
@@ -38,6 +50,10 @@
 #include <stdlib.h>
 
 #include "TracySystem.hpp"
+
+#ifdef TRACY_PLATFORM_HEADER
+#  include TRACY_PLATFORM_HEADER
+#endif
 
 #if defined _WIN32
 extern "C" typedef HRESULT (WINAPI *t_SetThreadDescription)( HANDLE, PCWSTR );
@@ -57,7 +73,9 @@ namespace detail
 
 TRACY_API uint32_t GetThreadHandleImpl()
 {
-#if defined _WIN32
+#if defined TRACY_HAS_CUSTOM_THREAD_ID
+    return PlatformGetThreadId();
+#elif defined _WIN32
     static_assert( sizeof( decltype( GetCurrentThreadId() ) ) <= sizeof( uint32_t ), "Thread handle too big to fit in protocol" );
     return uint32_t( GetCurrentThreadId() );
 #elif defined __APPLE__
@@ -78,6 +96,8 @@ TRACY_API uint32_t GetThreadHandleImpl()
     return lwp_gettid();
 #elif defined __OpenBSD__
     return getthrid();
+#elif defined __QNX__
+    return (uint32_t) gettid();
 #elif defined __EMSCRIPTEN__
     // Not supported, but let it compile.
     return 0;
@@ -96,16 +116,10 @@ TRACY_API uint32_t GetThreadHandleImpl()
 }
 
 #ifdef TRACY_ENABLE
-struct ThreadNameData
-{
-    uint32_t id;
-    const char* name;
-    ThreadNameData* next;
-};
 std::atomic<ThreadNameData*>& GetThreadNameData();
 #endif
 
-#ifdef _MSC_VER
+#if defined _MSC_VER && !defined __clang__
 #  pragma pack( push, 8 )
 struct THREADNAME_INFO
 {
@@ -130,8 +144,13 @@ void ThreadNameMsvcMagic( const THREADNAME_INFO& info )
 
 TRACY_API void SetThreadName( const char* name )
 {
+    SetThreadNameWithHint( name, 0 );
+}
+
+TRACY_API void SetThreadNameWithHint( const char* name, int32_t groupHint )
+{
 #if defined _WIN32
-#  ifdef TRACY_UWP
+#  if defined TRACY_WIN32_NO_DESKTOP
     static auto _SetThreadDescription = &::SetThreadDescription;
 #  else
     static auto _SetThreadDescription = (t_SetThreadDescription)GetProcAddress( GetModuleHandleA( "kernel32.dll" ), "SetThreadDescription" );
@@ -144,7 +163,7 @@ TRACY_API void SetThreadName( const char* name )
     }
     else
     {
-#  if defined _MSC_VER
+#  if defined _MSC_VER && !defined __clang__
         THREADNAME_INFO info;
         info.dwType = 0x1000;
         info.szName = name;
@@ -155,27 +174,38 @@ TRACY_API void SetThreadName( const char* name )
     }
 #elif defined _GNU_SOURCE && !defined __EMSCRIPTEN__
     {
+#if defined __APPLE__
+        pthread_setname_np( name );
+#else
         const auto sz = strlen( name );
         if( sz <= 15 )
         {
-#if defined __APPLE__
-            pthread_setname_np( name );
-#else
             pthread_setname_np( pthread_self(), name );
-#endif
         }
         else
         {
             char buf[16];
             memcpy( buf, name, 15 );
             buf[15] = '\0';
-#if defined __APPLE__
-            pthread_setname_np( buf );
-#else
             pthread_setname_np( pthread_self(), buf );
-#endif
         }
+#endif
     }
+#elif defined __QNX__
+    {
+        const auto sz = strlen( name );
+        if( sz <= _NTO_THREAD_NAME_MAX )
+        {
+            pthread_setname_np( pthread_self(), name );
+        }
+        else
+        {
+            char buf[_NTO_THREAD_NAME_MAX + 1];
+            memcpy( buf, name, _NTO_THREAD_NAME_MAX );
+            buf[_NTO_THREAD_NAME_MAX] = '\0';
+            pthread_setname_np( pthread_self(), buf );
+        }
+    };
 #endif
 #ifdef TRACY_ENABLE
     {
@@ -185,12 +215,29 @@ TRACY_API void SetThreadName( const char* name )
         buf[sz] = '\0';
         auto data = (ThreadNameData*)tracy_malloc_fast( sizeof( ThreadNameData ) );
         data->id = detail::GetThreadHandleImpl();
+        data->groupHint = groupHint;
         data->name = buf;
         data->next = GetThreadNameData().load( std::memory_order_relaxed );
         while( !GetThreadNameData().compare_exchange_weak( data->next, data, std::memory_order_release, std::memory_order_relaxed ) ) {}
     }
 #endif
 }
+
+#ifdef TRACY_ENABLE
+ThreadNameData* GetThreadNameData( uint32_t id )
+{
+    auto ptr = GetThreadNameData().load( std::memory_order_relaxed );
+    while( ptr )
+    {
+        if( ptr->id == id )
+        {
+            return ptr;
+        }
+        ptr = ptr->next;
+    }
+    return nullptr;
+}
+#endif
 
 TRACY_API const char* GetThreadName( uint32_t id )
 {
@@ -208,7 +255,7 @@ TRACY_API const char* GetThreadName( uint32_t id )
 #endif
 
 #if defined _WIN32
-# ifdef TRACY_UWP
+# if defined TRACY_WIN32_NO_DESKTOP
    static auto _GetThreadDescription = &::GetThreadDescription;
 # else
    static auto _GetThreadDescription = (t_GetThreadDescription)GetProcAddress( GetModuleHandleA( "kernel32.dll" ), "GetThreadDescription" );
@@ -255,6 +302,11 @@ TRACY_API const char* GetThreadName( uint32_t id )
    pthread_setcancelstate( cs, 0 );
 # endif
   return buf;
+#elif defined __QNX__
+    static char qnxNameBuf[_NTO_THREAD_NAME_MAX + 1] = {0};
+    if (pthread_getname_np(static_cast<int>(id), qnxNameBuf, _NTO_THREAD_NAME_MAX) == 0) {
+        return qnxNameBuf;
+    };
 #endif
 
   sprintf( buf, "%" PRIu32, id );
@@ -290,6 +342,57 @@ TRACY_API const char* GetEnvVar( const char* name )
     return buffer;
 #else
     return getenv(name);
+#endif
+}
+
+TRACY_API const char* GetUserLogin()
+{
+#if defined TRACY_HAS_CUSTOM_USER_INFO
+    return PlatformGetUserLogin();
+#elif defined _WIN32
+#  if defined TRACY_WIN32_NO_DESKTOP
+    return "(?)";
+#  else
+    DWORD userSz = UNLEN+1;
+    static char user[UNLEN+1];
+    GetUserNameA( user, &userSz );
+    return user;
+#  endif
+#elif defined __ANDROID__
+    const auto user = getlogin();
+    if( user ) return user;
+    return "(?)";
+#else
+    static char user[1024] = {};
+    getlogin_r( user, sizeof( user ) );
+    return user;
+#endif
+}
+
+TRACY_API const char* GetUserFullName()
+{
+#if defined TRACY_HAS_CUSTOM_USER_INFO
+    return PlatformGetUserFullName();
+#elif defined _WIN32
+#  if !defined TRACY_WIN32_NO_DESKTOP
+    static char buf[1024];
+    ULONG size = sizeof( buf );
+    if( GetUserNameExA( NameDisplay, buf, &size ) ) return buf;
+#  endif
+    return nullptr;
+#elif defined __ANDROID__
+    const auto passwd = getpwuid( getuid() );
+    if( passwd && passwd->pw_gecos && *passwd->pw_gecos ) return passwd->pw_gecos;
+    return nullptr;
+#else
+    static char buf[4*1024];
+    struct passwd pwd;
+    struct passwd* ptr;
+    if( getpwuid_r( getuid(), &pwd, buf, sizeof( buf ), &ptr ) == 0 && ptr == &pwd && *pwd.pw_gecos )
+    {
+        return pwd.pw_gecos;
+    }
+    return nullptr;
 #endif
 }
 

@@ -11,6 +11,9 @@ namespace Lumos
         return { static_cast<float>(uint8_t((c >> 16) & 0xFF)) / 255.0f, static_cast<float>(uint8_t((c >> 8) & 0xFF)) / 255.0f, static_cast<float>(uint8_t(c & 0xFF)) / 255.0f, alpha };
     }
 
+    // World-space outline thickness (MoltenVK ignores wideLines, so thick lines = quads).
+    static constexpr float k_outlineWidth = DEBUG_LINE_WIDTH;
+
     void B2DebugDraw::DrawPolygon(const b2Vec2* vertices, int vertexCount, b2HexColor hexColour, void* context)
     {
         Vec4 colour = MakeRGBA8(hexColour, 0.8f);
@@ -19,7 +22,7 @@ namespace Lumos
         for(int i = 0; i < vertexCount; ++i)
         {
             b2Vec2 p2 = vertices[i];
-            DebugRenderer::DrawHairLine({ p1.x, p1.y, 0.0f }, { p2.x, p2.y, 0.0f }, false, { colour.x, colour.y, colour.z, colour.w });
+            DebugRenderer::DrawThickLine({ p1.x, p1.y, 0.0f }, { p2.x, p2.y, 0.0f }, k_outlineWidth, false, { colour.x, colour.y, colour.z, colour.w });
             p1 = p2;
         }
     }
@@ -43,7 +46,7 @@ namespace Lumos
         for(int i = 0; i < vertexCount; ++i)
         {
             b2Vec2 p2 = b2TransformPoint(xf, vertices[i]);
-            DebugRenderer::DrawHairLine({ p1.x, p1.y, 0.0f }, { p2.x, p2.y, 0.0f }, false, { colour.x, colour.y, colour.z, colour.w });
+            DebugRenderer::DrawThickLine({ p1.x, p1.y, 0.0f }, { p2.x, p2.y, 0.0f }, k_outlineWidth, false, { colour.x, colour.y, colour.z, colour.w });
             p1 = p2;
         }
     }
@@ -65,7 +68,7 @@ namespace Lumos
             r2.x      = cosInc * r1.x - sinInc * r1.y;
             r2.y      = sinInc * r1.x + cosInc * r1.y;
             b2Vec2 v2 = center + radius * r2;
-            DebugRenderer::DrawHairLine({ v1.x, v1.y, 0.0f }, { v2.x, v2.y, 0.0f }, false, { colour.x, colour.y, colour.z, colour.w });
+            DebugRenderer::DrawThickLine({ v1.x, v1.y, 0.0f }, { v2.x, v2.y, 0.0f }, k_outlineWidth, false, { colour.x, colour.y, colour.z, colour.w });
             r1 = r2;
             v1 = v2;
         }
@@ -103,7 +106,7 @@ namespace Lumos
             r2.x      = cosInc * r1.x - sinInc * r1.y;
             r2.y      = sinInc * r1.x + cosInc * r1.y;
             b2Vec2 v2 = v0 + radius * r2;
-            DebugRenderer::DrawHairLine({ v1.x, v1.y, 0.0f }, { v2.x, v2.y, 0.0f }, false, { colour.x, colour.y, colour.z, colour.w });
+            DebugRenderer::DrawThickLine({ v1.x, v1.y, 0.0f }, { v2.x, v2.y, 0.0f }, k_outlineWidth, false, { colour.x, colour.y, colour.z, colour.w });
 
             r1 = r2;
             v1 = v2;
@@ -118,7 +121,7 @@ namespace Lumos
     void B2DebugDraw::DrawSegment(b2Vec2 p1, b2Vec2 p2, b2HexColor hexColour, void* context)
     {
         Vec4 colour = MakeRGBA8(hexColour, 0.8f);
-        DebugRenderer::DrawHairLine({ p1.x, p1.y, 0.0f }, { p2.x, p2.y, 0.0f }, false, { colour.x, colour.y, colour.z, colour.w });
+        DebugRenderer::DrawThickLine({ p1.x, p1.y, 0.0f }, { p2.x, p2.y, 0.0f }, k_outlineWidth, false, { colour.x, colour.y, colour.z, colour.w });
     }
 
     //
@@ -130,10 +133,10 @@ namespace Lumos
         b2Vec2 p1 = xf.p;
 
         b2Vec2 p2x = { p1.x + k_axisScale * xf.q.c, p1.y + k_axisScale * xf.q.s };
-        DebugRenderer::DrawHairLine({ p1.x, p1.y, 0.0f }, { p2x.x, p2x.y, 0.0f }, false, { red.x, red.y, red.z, red.w });
+        DebugRenderer::DrawThickLine({ p1.x, p1.y, 0.0f }, { p2x.x, p2x.y, 0.0f }, k_outlineWidth, false, { red.x, red.y, red.z, red.w });
 
         b2Vec2 p2y = { p1.x + k_axisScale * (-xf.q.s), p1.y + k_axisScale * xf.q.c };
-        DebugRenderer::DrawHairLine({ p1.x, p1.y, 0.0f }, { p2y.x, p2y.y, 0.0f }, false, { green.x, green.y, green.z, green.w });
+        DebugRenderer::DrawThickLine({ p1.x, p1.y, 0.0f }, { p2y.x, p2y.y, 0.0f }, k_outlineWidth, false, { green.x, green.y, green.z, green.w });
     }
 
     //

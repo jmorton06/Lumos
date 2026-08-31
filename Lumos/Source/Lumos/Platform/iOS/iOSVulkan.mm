@@ -1,3 +1,4 @@
+#ifdef LUMOS_PLATFORM_IOS
 #if defined(LUMOS_RENDER_API_VULKAN)
 
 #include "Core/Application.h"
@@ -29,16 +30,6 @@ namespace Lumos
 			NSLog(@"Failed to create Vulkan surface. VkResult: %d", result);
 		}
 
-#if 0
-        MVKConfiguration mvkConfig;
-        size_t pConfigurationSize = sizeof(MVKConfiguration);
-        vkGetMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
-        mvkConfig.debugMode = true;
-        mvkConfig.synchronousQueueSubmits = false;
-        mvkConfig.presentWithCommandBuffer = false;
-        mvkConfig.prefillMetalCommandBuffers = true;
-        vkSetMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
-#endif
 		return surface;
 	}
 
@@ -52,3 +43,4 @@ namespace Lumos
 }
 
 #endif
+#endif // LUMOS_PLATFORM_IOS

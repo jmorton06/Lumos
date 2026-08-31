@@ -15,6 +15,10 @@
 #include <linux/limits.h>
 #include <unistd.h>
 #include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_X11
+#include <GLFW/glfw3native.h>
+#include "Core/OS/KeyCodes.h"
+#include "Events/MouseEvent.h"
 #endif
 
 extern Lumos::Application* Lumos::CreateApplication();
@@ -136,8 +140,99 @@ namespace Lumos
     static int s_DragStartWindowY = 0;
 #endif
 
-    void UnixOS::BeginWindowDrag()
+#ifdef LUMOS_PLATFORM_LINUX
+    // _NET_WM_MOVERESIZE directions, in the order the EWMH spec defines them.
+    enum
     {
+        MoveResize_SizeTopLeft = 0,
+        MoveResize_SizeTop,
+        MoveResize_SizeTopRight,
+        MoveResize_SizeRight,
+        MoveResize_SizeBottomRight,
+        MoveResize_SizeBottom,
+        MoveResize_SizeBottomLeft,
+        MoveResize_SizeLeft,
+        MoveResize_Move
+    };
+    static bool BeginNativeMoveResize(int direction)
+    {
+        Display* display = glfwGetX11Display();
+        if(!display)
+            return false;
+
+        auto& app       = Lumos::Application::Get();
+        ::Window handle = glfwGetX11Window(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+        Atom moveResize = XInternAtom(display, "_NET_WM_MOVERESIZE", True);
+        if(moveResize == None)
+            return false;
+
+        ::Window root  = DefaultRootWindow(display);
+        ::Window child = None;
+        int rootX = 0, rootY = 0, winX = 0, winY = 0;
+        unsigned int buttonMask = 0;
+        if(!XQueryPointer(display, handle, &root, &child, &rootX, &rootY, &winX, &winY, &buttonMask))
+            return false;
+
+        // Release the implicit pointer grab from the button press so the WM can grab it.
+        XUngrabPointer(display, CurrentTime);
+        XFlush(display);
+
+        XEvent event               = {};
+        event.xclient.type         = ClientMessage;
+        event.xclient.window       = handle;
+        event.xclient.message_type = moveResize;
+        event.xclient.format       = 32;
+        event.xclient.data.l[0]    = rootX;
+        event.xclient.data.l[1]    = rootY;
+        event.xclient.data.l[2]    = direction;
+        event.xclient.data.l[3]    = Button1;
+        event.xclient.data.l[4]    = 1; // Source indication: normal application.
+
+        if(!XSendEvent(display, root, False, SubstructureNotifyMask | SubstructureRedirectMask, &event))
+            return false;
+        XFlush(display);
+
+        // The WM owns the pointer for the rest of the gesture, so the button
+        // release never reaches us. Synthesise it or the editor (and ImGui)
+        // would stay latched in the pressed state forever.
+        MouseButtonReleasedEvent releaseEvent(InputCode::MouseKey::ButtonLeft);
+        app.OnEvent(releaseEvent);
+
+        return true;
+    }
+
+    static int MoveResizeDirectionFromEdgeMask(int edgeMask)
+    {
+        switch(edgeMask)
+        {
+        case 1:
+            return MoveResize_SizeTop;
+        case 2:
+            return MoveResize_SizeBottom;
+        case 4:
+            return MoveResize_SizeLeft;
+        case 8:
+            return MoveResize_SizeRight;
+        case 1 | 4:
+            return MoveResize_SizeTopLeft;
+        case 1 | 8:
+            return MoveResize_SizeTopRight;
+        case 2 | 4:
+            return MoveResize_SizeBottomLeft;
+        case 2 | 8:
+            return MoveResize_SizeBottomRight;
+        default:
+            return -1;
+        }
+    }
+#endif
+
+    bool UnixOS::BeginWindowDrag()
+    {
+#ifdef LUMOS_PLATFORM_LINUX
+        if(BeginNativeMoveResize(MoveResize_Move))
+            return true;
+#endif
 #ifndef LUMOS_PLATFORM_MOBILE
         auto& app          = Lumos::Application::Get();
         GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow()->GetHandle());
@@ -147,6 +242,7 @@ namespace Lumos
         s_DragStartCursorX = s_DragStartWindowX + (int)cx;
         s_DragStartCursorY = s_DragStartWindowY + (int)cy;
 #endif
+        return false;
     }
 
     void UnixOS::UpdateWindowDrag()
@@ -174,6 +270,15 @@ namespace Lumos
         return glfwGetWindowAttrib(window, GLFW_MAXIMIZED) == GLFW_TRUE;
 #else
         return false;
+#endif
+    }
+
+    void UnixOS::MaximiseWindow()
+    {
+#ifndef LUMOS_PLATFORM_MOBILE
+        auto& app          = Lumos::Application::Get();
+        GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow()->GetHandle());
+        glfwMaximizeWindow(window);
 #endif
     }
 
@@ -207,8 +312,16 @@ namespace Lumos
     static const int kMinH         = 240;
 #endif
 
-    void UnixOS::BeginWindowResize(int edgeMask)
+    bool UnixOS::BeginWindowResize(int edgeMask)
     {
+#ifdef LUMOS_PLATFORM_LINUX
+        const int direction = MoveResizeDirectionFromEdgeMask(edgeMask);
+        if(direction >= 0 && BeginNativeMoveResize(direction))
+        {
+            s_ResizeEdgeMask = 0;
+            return true;
+        }
+#endif
 #ifndef LUMOS_PLATFORM_MOBILE
         auto& app          = Lumos::Application::Get();
         GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow()->GetHandle());
@@ -220,6 +333,7 @@ namespace Lumos
         s_ResizeStartMouseX = s_ResizeStartWinX + (int)cx;
         s_ResizeStartMouseY = s_ResizeStartWinY + (int)cy;
 #endif
+        return false;
     }
 
     void UnixOS::UpdateWindowResize()

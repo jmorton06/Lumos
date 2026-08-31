@@ -16,20 +16,27 @@
 #include "../../server/TracyFileRead.hpp"
 #include "../../server/TracyWorker.hpp"
 #include "../../getopt/getopt.h"
+#include "../../public/common/TracyVersion.hpp"
+#include "GitRef.hpp"
 
 void print_usage_exit(int e)
 {
+    fprintf(stderr, "tracy-csvexport %i.%i.%i / %s\n\n", tracy::Version::Major, tracy::Version::Minor, tracy::Version::Patch, tracy::GitRef);
     fprintf(stderr, "Extract statistics from a trace to a CSV format\n");
     fprintf(stderr, "Usage:\n");
     fprintf(stderr, "  extract [OPTION...] <trace file>\n");
     fprintf(stderr, "\n");
-    fprintf(stderr, "  -h, --help        Print usage\n");
-    fprintf(stderr, "  -f, --filter arg  Filter zone names (default: "")\n");
-    fprintf(stderr, "  -s, --sep arg     CSV separator (default: ,)\n");
-    fprintf(stderr, "  -c, --case        Case sensitive filtering\n");
-    fprintf(stderr, "  -e, --self        Get self times\n");
-    fprintf(stderr, "  -u, --unwrap      Report each zone event\n");
-    fprintf(stderr, "  -m, --messages    Report only messages\n");
+    fprintf(stderr, "  -h, --help               Print usage\n");
+    fprintf(stderr, "  -V, --version            Show version information\n");
+    fprintf(stderr, "  -f, --filter arg         Filter zone names (default: "")\n");
+    fprintf(stderr, "  -s, --sep arg            CSV separator (default: ,)\n");
+    fprintf(stderr, "  -c, --case               Case sensitive filtering\n");
+    fprintf(stderr, "  -e, --self               Get self times\n");
+    fprintf(stderr, "  -u, --unwrap             Report each cpu zone event\n");
+    fprintf(stderr, "  -g, --gpu                Report each gpu zone event\n" );
+    fprintf(stderr, "  -m, --messages           Report only messages\n");
+    fprintf(stderr, "  -p, --plot               Report plot data (only with -u)\n");
+    fprintf(stderr, "  -t, --truncated_mean arg Report truncated mean (arg is the percentile. Default is 90)\n");
 
     exit(e);
 }
@@ -41,7 +48,10 @@ struct Args {
     bool case_sensitive;
     bool self_time;
     bool unwrap;
+    bool show_gpu;
     bool unwrapMessages;
+    bool plot;
+    int truncated_mean_percentile;
 };
 
 Args parse_args(int argc, char** argv)
@@ -51,27 +61,34 @@ Args parse_args(int argc, char** argv)
         print_usage_exit(1);
     }
 
-    Args args = { "", ",", "", false, false, false, false };
+    Args args = { "", ",", "", false, false, false, false, false, false, 0};
 
     struct option long_opts[] = {
         { "help", no_argument, NULL, 'h' },
+        { "version", no_argument, NULL, 'V' },
         { "filter", optional_argument, NULL, 'f' },
         { "sep", optional_argument, NULL, 's' },
         { "case", no_argument, NULL, 'c' },
         { "self", no_argument, NULL, 'e' },
         { "unwrap", no_argument, NULL, 'u' },
+        { "gpu", no_argument, NULL, 'g' },
         { "messages", no_argument, NULL, 'm' },
+        { "plot", no_argument, NULL, 'p' },
+        { "truncated_mean", optional_argument, NULL, 't' },
         { NULL, 0, NULL, 0 }
     };
 
     int c;
-    while ((c = getopt_long(argc, argv, "hf:s:ceum", long_opts, NULL)) != -1)
+    while ((c = getopt_long(argc, argv, "hf:s:ceugmpV", long_opts, NULL)) != -1)
     {
         switch (c)
         {
         case 'h':
             print_usage_exit(0);
             break;
+        case 'V':
+            printf( "tracy-csvexport %i.%i.%i / %s\n", tracy::Version::Major, tracy::Version::Minor, tracy::Version::Patch, tracy::GitRef );
+            exit( 0 );
         case 'f':
             args.filter = optarg;
             break;
@@ -87,8 +104,17 @@ Args parse_args(int argc, char** argv)
         case 'u':
             args.unwrap = true;
             break;
+        case 'g':
+            args.show_gpu = true;
+            break;
         case 'm':
             args.unwrapMessages = true;
+            break;
+        case 'p':
+            args.plot = true;
+            break;
+        case 't':
+            args.truncated_mean_percentile = std::clamp<int>(optarg ? std::atoi(optarg) : 90, 1, 99);
             break;
         default:
             print_usage_exit(1);
@@ -150,6 +176,53 @@ std::string join(const T& v, const char* sep) {
     }
     return s.str();
 }
+
+// Returns {pN, truncated_mean}
+std::pair<int64_t, int64_t> percentile_and_truncated_mean(std::vector<int64_t>& data, const double p)
+{
+    assert(p >= 0.0 && p <= 1.0);
+
+    if (data.empty()) {
+        return {0, 0};
+    }
+
+    std::sort(data.begin(), data.end());
+
+    const std::size_t n = data.size();
+    const double idx = p * (static_cast<double>(n) - 1.0);
+    const std::size_t idxLow = static_cast<std::size_t>(std::floor(idx));
+    const std::size_t idxHigh = std::min(idxLow + 1, n - 1);
+    const double frac = idx - static_cast<double>(idxLow);
+
+    const double low = static_cast<double>(data[idxLow]);
+    const double high = static_cast<double>(data[idxHigh]);
+
+    // percentile value
+    const double pval_double = low + (high - low) * frac;
+    const int64_t pval_int = static_cast<int64_t>(std::llround(pval_double));
+
+    // Compute truncated mean: average of all values <= pval_double
+    int64_t sum = 0;
+    std::size_t count = 0;
+    for (std::size_t i = 0; i < n; ++i) {
+        if (static_cast<double>(data[i]) <= pval_double) {
+            sum += data[i];
+            ++count;
+        } else {
+            break; // sorted, so we can stop once we hit > pval_double
+        }
+    }
+
+    if (count == 0) {
+        // should not happen for p in [0,1] unless data empty, but keep defensive behaviour
+        return {pval_int, 0};
+    }
+
+    const int64_t truncated_mean = sum / count;
+
+    return {pval_int, truncated_mean};
+}
+
 
 // From TracyView.cpp
 int64_t GetZoneChildTimeFast(
@@ -241,6 +314,68 @@ int main(int argc, char** argv)
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
+    if (args.show_gpu)
+    {
+        auto& gpu_slz = worker.GetGpuSourceLocationZones();
+        tracy::Vector<decltype( gpu_slz.begin() )> gpu_slz_selected;
+        gpu_slz_selected.reserve( gpu_slz.size() );
+
+        uint32_t total_cnt = 0;
+        for (auto it = gpu_slz.begin(); it != gpu_slz.end(); ++it)
+        {
+            if (it->second.total != 0)
+            {
+                ++total_cnt;
+                if (args.filter[0] == '\0')
+                {
+                    gpu_slz_selected.push_back_no_space_check( it );
+                }
+                else
+                {
+                    auto name = get_name( it->first, worker );
+                    if (is_substring( args.filter, name, args.case_sensitive))
+                    {
+                        gpu_slz_selected.push_back_no_space_check( it );
+                    }
+                }
+            }
+        }
+
+        std::vector<const char*> columns;
+        columns = {"name", "src_file", "Time from start of program", "GPU execution time"};
+
+        std::string header = join(columns, args.separator);
+        printf("%s\n", header.data());
+
+        const auto last_time = worker.GetLastTime();
+        for (auto& it : gpu_slz_selected)
+        {
+            std::vector<std::string> values( columns.size() );
+
+            values[0] = get_name( it->first, worker );
+
+            const auto& srcloc = worker.GetSourceLocation( it->first );
+            values[1] = worker.GetString( srcloc.file );
+
+            const auto& zone_data = it->second;
+            for (const auto& zone_thread_data : zone_data.zones)
+            {
+                tracy::GpuEvent* gpu_event = zone_thread_data.Zone();
+                const auto start = gpu_event->GpuStart();
+                const auto end = gpu_event->GpuEnd();
+
+                values[2] = std::to_string( start );
+
+                auto timespan = end - start;
+                values[3] = std::to_string( timespan );
+
+                std::string row = join( values, args.separator );
+                printf( "%s\n", row.data() );
+            }
+        }
+        return 0;
+    }
+
     auto& slz = worker.GetSourceLocationZones();
     tracy::Vector<decltype(slz.begin())> slz_selected;
     slz_selected.reserve(slz.size());
@@ -270,7 +405,7 @@ int main(int argc, char** argv)
     if (args.unwrap)
     {
         columns = {
-            "name", "src_file", "src_line", "ns_since_start", "exec_time_ns", "thread"
+            "name", "src_file", "src_line", "ns_since_start", "exec_time_ns", "thread", "value"
         };
     }
     else
@@ -279,6 +414,12 @@ int main(int argc, char** argv)
             "name", "src_file", "src_line", "total_ns", "total_perc",
             "counts", "mean_ns", "min_ns", "max_ns", "std_ns"
         };
+
+        if(args.truncated_mean_percentile)
+        {
+            columns.push_back("percentile_ns");
+            columns.push_back("truncated_mean_ns");
+        }
     }
     std::string header = join(columns, args.separator);
     printf("%s\n", header.data());
@@ -313,6 +454,12 @@ int main(int argc, char** argv)
                 }
                 values[4] = std::to_string(timespan);
                 values[5] = std::to_string(tId);
+                if (worker.HasZoneExtra(*zone_event)) {
+                    const auto& text = worker.GetZoneExtra(*zone_event).text;
+                    if (text.Active()) {
+                        values[6] = worker.GetString(text);
+                    }
+                }
 
                 std::string row = join(values, args.separator);
                 printf("%s\n", row.data());
@@ -324,10 +471,11 @@ int main(int argc, char** argv)
             values[3] = std::to_string(time);
             values[4] = std::to_string(100. * time / last_time);
 
-            values[5] = std::to_string(zone_data.zones.size());
+            const auto sz = zone_data.zones.size();
+            values[5] = std::to_string(sz);
 
-            const auto avg = (args.self_time ? zone_data.selfTotal : zone_data.total)
-                / zone_data.zones.size();
+            const auto avg = time / sz;
+
             values[6] = std::to_string(avg);
 
             const auto tmin = args.self_time ? zone_data.selfMin : zone_data.min;
@@ -335,7 +483,6 @@ int main(int argc, char** argv)
             values[7] = std::to_string(tmin);
             values[8] = std::to_string(tmax);
 
-            const auto sz = zone_data.zones.size();
             const auto ss = zone_data.sumSq
                 - 2. * zone_data.total * avg
                 + avg * avg * sz;
@@ -344,8 +491,47 @@ int main(int argc, char** argv)
                 std = sqrt(ss / (sz - 1));
             values[9] = std::to_string(std);
 
+            if(args.truncated_mean_percentile)
+            {
+                std::vector<int64_t> samples;
+                samples.reserve( zone_data.zones.size() );
+                for(const auto& zone_thread_data : zone_data.zones)
+                {
+                    const auto zone_event = zone_thread_data.Zone();
+                    auto timespan = zone_event->End() - zone_event->Start();
+                    if(args.self_time)
+                        timespan -= GetZoneChildTimeFast( worker, *zone_event );
+                    samples.push_back( timespan );
+                }
+
+                std::pair<int64_t, int64_t> pN = percentile_and_truncated_mean(samples, args.truncated_mean_percentile / 100.0);
+                values[10] = std::to_string(pN.first);
+                values[11] = std::to_string(pN.second);
+            }
+
             std::string row = join(values, args.separator);
             printf("%s\n", row.data());
+        }
+    }
+
+    if(args.plot && args.unwrap)
+    {
+        auto& plots = worker.GetPlots();
+        for(const auto& plot : plots)
+        {
+            std::vector<std::string> values(columns.size());
+            values[0] = worker.GetString(plot->name);
+
+            for(const auto& val : plot->data)
+            {
+                if (args.unwrap)
+                {
+                    values[3] = std::to_string(val.time.Val());
+                    values[6] = std::to_string(val.val);
+                }
+                std::string row = join(values, args.separator);
+                printf("%s\n", row.data());
+            }
         }
     }
 

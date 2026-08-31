@@ -48,6 +48,8 @@ namespace Lumos
             if(!m_NextAvailable)
             {
                 AllocateNewPool();
+                if(!m_NextAvailable)
+                    return nullptr;
             }
 
             Node* node      = m_NextAvailable;
@@ -80,6 +82,18 @@ namespace Lumos
         void AllocateNewPool()
         {
             void* poolMemory = ArenaPush(m_Arena, m_PoolSize);
+            if(!poolMemory && m_ArenaOwned)
+            {
+                // The owned arena only ever fits one pool. Chain a fresh one
+                // rather than dereferencing the failed push.
+                m_Arena    = ArenaAlloc((uint64_t)((float)m_PoolSize * 1.1f));
+                poolMemory = ArenaPush(m_Arena, m_PoolSize);
+            }
+
+            ASSERT(poolMemory, "PoolAllocator out of memory");
+            if(!poolMemory)
+                return;
+
             Node* pool       = reinterpret_cast<Node*>(poolMemory);
             m_HeadPool       = pool;
 

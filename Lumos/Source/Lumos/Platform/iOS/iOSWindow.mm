@@ -1,3 +1,4 @@
+#ifdef LUMOS_PLATFORM_IOS
 #include "Precompiled.h"
 #include "iOSWindow.h"
 #include "iOSOS.h"
@@ -21,7 +22,12 @@ namespace Lumos
 	iOSWindow::~iOSWindow()
 	{
 	}
-    
+
+	float iOSWindow::GetDPIScale() const
+	{
+		return (float)[UIScreen mainScreen].nativeScale;
+	}
+
     
 	bool iOSWindow::Init(const WindowDesc& properties)
 	{
@@ -175,3 +181,4 @@ namespace Lumos
         m_QueuedEvents.PushBack(event);
     }
 }
+#endif // LUMOS_PLATFORM_IOS

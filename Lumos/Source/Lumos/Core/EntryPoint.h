@@ -1,6 +1,7 @@
 #if defined(LUMOS_PLATFORM_WINDOWS)
 
 #include "Core/CoreSystem.h"
+#include "Core/Application.h"
 #include "Platform/Windows/WindowsOS.h"
 
 #ifndef NOMINMAX
@@ -36,12 +37,13 @@ int main(int argc, char** argv)
     delete windowsOS;
 
     Lumos::Internal::CoreSystem::Shutdown();
-    return 0;
+    return Lumos::Application::GetExitCode();
 }
 
 #elif defined(LUMOS_PLATFORM_LINUX)
 
 #include "Core/CoreSystem.h"
+#include "Core/Application.h"
 #include "Platform/Unix/UnixOS.h"
 
 extern Lumos::Application* Lumos::CreateApplication();
@@ -61,11 +63,13 @@ int main(int argc, char** argv)
     delete unixOS;
 
     Lumos::Internal::CoreSystem::Shutdown();
+    return Lumos::Application::GetExitCode();
 }
 
 #elif defined(LUMOS_PLATFORM_MACOS)
 
 #include "Core/CoreSystem.h"
+#include "Core/Application.h"
 #include "Platform/MacOS/MacOSOS.h"
 
 int main(int argc, char** argv)
@@ -83,6 +87,7 @@ int main(int argc, char** argv)
     delete macOSOS;
 
     Lumos::Internal::CoreSystem::Shutdown();
+    return Lumos::Application::GetExitCode();
 }
 
 #elif defined(LUMOS_PLATFORM_IOS)

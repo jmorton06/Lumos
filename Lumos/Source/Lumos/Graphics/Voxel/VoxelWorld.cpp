@@ -22,8 +22,6 @@ namespace Lumos
             m_Chunks.clear();
         }
 
-        // Base albedo for a tile texel (before grain). Also doubles as the height
-        // field for the generated normal map (via luminance).
         static void AtlasAlbedo(uint8_t tile, int tx, int ty, int TS, int& r, int& g, int& b)
         {
             switch(tile)
@@ -98,10 +96,6 @@ namespace Lumos
             }
         }
 
-        // Build the four block texture atlases procedurally (no art assets required):
-        // albedo, tangent-space normal, packed metallic-roughness (glTF: G=rough,
-        // B=metal), and emissive. Same NEAREST tile grid for all four. Swap in real
-        // terrain maps later by loading them into the matching material slots.
         static void BuildBlockTextures(PBRMataterialTextures& out)
         {
             const int TS = ATLAS_TILE_PX;
@@ -147,8 +141,6 @@ namespace Lumos
                         albedo[i + 2] = clampB((float)(b + n));
                         albedo[i + 3] = 255;
 
-                        // Normal from the albedo heightfield (Sobel-ish), in tangent
-                        // space; flat relief -> (0,0,1).
                         float dx = (lum(tile, tx - 1, ty) - lum(tile, tx + 1, ty)) * relief * 2.0f;
                         float dy = (lum(tile, tx, ty - 1) - lum(tile, tx, ty + 1)) * relief * 2.0f;
                         float nz = 1.0f;
@@ -164,8 +156,6 @@ namespace Lumos
                         metalRough[i + 2] = clampB(metal * 255.0f);
                         metalRough[i + 3] = 255;
 
-                        // Emissive: black (no glowing blocks yet). Fill a tile bright
-                        // and it lights up — the slot is wired and active.
                         emissive[i + 0] = 0;
                         emissive[i + 1] = 0;
                         emissive[i + 2] = 0;
@@ -197,8 +187,6 @@ namespace Lumos
             auto shader     = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBR")).As<Graphics::Shader>();
             m_BlockMaterial = CreateSharedPtr<Material>(shader);
 
-            // Build textures first so the map factors below stay enabled (the
-            // material auto-zeroes a factor when its texture slot is null).
             PBRMataterialTextures textures;
             BuildBlockTextures(textures);
             m_BlockMaterial->SetTextures(textures);
@@ -209,6 +197,7 @@ namespace Lumos
             props.normalMapFactor    = 1.0f;
             props.metallicMapFactor  = 1.0f; // drives both metallic & roughness in this workflow
             props.emissiveMapFactor  = 1.0f;
+            props.emissiveColour     = Vec4(1.0f); // white tint so the emissive map drives emission (multiplicative)
             props.metallic           = 0.0f;
             props.roughness          = 0.95f;
             props.workflow           = PBR_WORKFLOW_METALLIC_ROUGHNESS;
@@ -408,9 +397,6 @@ namespace Lumos
                     ++it;
             }
 
-            // 4. Build dirty chunk meshes in parallel (CPU only, neighbour-aware).
-            //    The chunk map is stable here (no concurrent inserts/erases or block
-            //    writes), so worker threads can safely read neighbour blocks.
             TDArray<VoxelChunk*> toMesh;
             for(auto& [key, c] : m_Chunks)
                 if(c->IsDirty())

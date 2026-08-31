@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Project Version": 14,
+        "Project Version": 15,
         "RenderAPI": 1,
         "Fullscreen": false,
         "VSync": true,
@@ -19,11 +19,12 @@
             "//Assets/Scenes/CapsuleTest",
             "//Assets/Scenes/MeshCollisionTest",
             "//Assets/Scenes/CollisionPyramidTest",
+            "//Assets/Scenes/PhysicsStressTest",
             "//Assets/Scenes/Archery",
             "//Assets/Scenes/Minecraft",
             "//Assets/Scenes/MinecraftClone"
         ],
-        "SceneIndex": 0,
+        "SceneIndex": 1,
         "Borderless": false,
         "EngineAssetPath": "",
         "GPUIndex": -1,
@@ -39,7 +40,7 @@
         "SplashBGG": 0.1640625,
         "SplashBGB": 0.2109375,
         "SplashBGA": 1.0,
-        "StartScene": "Physics",
+        "StartScene": "Archery",
         "AutoImportMeshes": true,
         "Orientation": 1,
         "DeviceFamily": 3,
@@ -50,6 +51,6 @@
         "MicrophoneUsage": "",
         "PhotoLibraryUsage": "",
         "LocationUsage": "",
-        "UseSafeArea": true
+        "SafeAreaMode": 2
     }
 }

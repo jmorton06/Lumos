@@ -333,7 +333,7 @@ namespace Lumos
             ar(cereal::make_nvp("albedoColour", props.albedoColour),
                cereal::make_nvp("roughnessValue", props.roughness),
                cereal::make_nvp("metallicValue", props.metallic),
-               cereal::make_nvp("emissiveValue", props.emissive),
+               cereal::make_nvp("emissiveColour", props.emissiveColour),
                cereal::make_nvp("albedoMapFactor", props.albedoMapFactor),
                cereal::make_nvp("metallicMapFactor", props.metallicMapFactor),
                cereal::make_nvp("roughnessMapFactor", props.roughnessMapFactor),

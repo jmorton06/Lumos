@@ -109,8 +109,6 @@ namespace Lumos
             if(texture->GetType() == TextureType::COLOUR)
             {
                 VkImageLayout curLayout = ((VKTexture2D*)texture)->GetImageLayout();
-                // GENERAL is valid for sampling — skip transition to avoid an expensive
-                // GENERAL→SHADER_READ_ONLY_OPTIMAL round-trip that stalls the GPU next frame.
                 if(curLayout != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && curLayout != VK_IMAGE_LAYOUT_GENERAL)
                 {
                     ((VKTexture2D*)texture)->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, (VKCommandBuffer*)commandBuffer);
@@ -264,7 +262,7 @@ namespace Lumos
                         VKStorageBuffer* vkStorageBuffer = static_cast<VKStorageBuffer*>(imageInfo.Desc.storageBuffer);
                         bufferInfos[index].buffer        = *(VkBuffer*)vkStorageBuffer->GetBuffer();
                         bufferInfos[index].offset        = imageInfo.Desc.offset;
-                        bufferInfos[index].range         = imageInfo.Desc.size > 0 ? imageInfo.Desc.size : vkStorageBuffer->GetSize();
+                        bufferInfos[index].range         = VK_WHOLE_SIZE;
 
                         VkWriteDescriptorSet writeDescriptorSet = {};
                         writeDescriptorSet.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

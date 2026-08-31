@@ -52,24 +52,6 @@ namespace Lumos
         if (res != VK_SUCCESS || surface == VK_NULL_HANDLE)
         LFATAL("Failed to create Vulkan surface: %s",std::to_string(res).c_str());
 
-		MVKConfiguration mvkConfig;
-        size_t pConfigurationSize = sizeof(MVKConfiguration);
-        vkGetMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
-        
-		//mvkConfig.traceVulkanCalls = MVK_CONFIG_TRACE_VULKAN_CALLS_DURATION;
-		mvkConfig.performanceTracking = false;
-        mvkConfig.synchronousQueueSubmits = false;
-        mvkConfig.presentWithCommandBuffer = true;
-        //mvkConfig.prefillMetalCommandBuffers = true;
-		//mvkConfig.useMetalArgumentBuffers = MVKUseMetalArgumentBuffers::MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS_ALWAYS;
-        mvkConfig.resumeLostDevice = true;
-        //mvkConfig.logLevel = MVKConfigLogLevel::MVK_CONFIG_LOG_LEVEL_INFO;
-        //mvkConfig.debugMode = true;
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        vkSetMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
-#pragma clang diagnostic pop
 #ifdef MVK_VERSION_STRING
         LINFO("MVK Version %s", MVK_VERSION_STRING);
 #endif

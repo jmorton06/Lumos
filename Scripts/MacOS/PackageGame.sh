@@ -110,8 +110,17 @@ if [ -z "$RUNTIME_BIN" ] || [ ! -f "$RUNTIME_BIN" ]; then
 fi
 
 if [ -n "$RUNTIME_BIN" ] && [ -f "$RUNTIME_BIN" ]; then
+    # Bake .lmesh caches for any source model (obj/gltf/glb/fbx) before packing.
+    # AssetImporter writes to //Assets/Imported/ on first load of a given mesh -
+    # fine on desktop, but the iOS app bundle is read-only, so any mesh never
+    # seen on a writable filesystem before crashes on-device. Runs headless,
+    # no scene/window needed.
+    echo "Importing source models via $RUNTIME_BIN ..."
+    "$RUNTIME_BIN" --project="$PROJECT_DIR" --import-assets \
+        || { echo "Error: asset import failed"; exit 1; }
+
     echo "Packing assets via $RUNTIME_BIN ..."
-    "$RUNTIME_BIN" --project="$PROJECT_DIR" --pack-assets="$PACK_OUTPUT" \
+    "$RUNTIME_BIN" --project="$PROJECT_DIR" --pack-assets="$PACK_OUTPUT" --embed-engine-shaders \
         || { echo "Error: asset packing failed"; exit 1; }
 else
     echo "Error: failed to obtain a macOS Runtime binary for packing"

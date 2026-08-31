@@ -408,8 +408,6 @@ namespace Lumos
             {
                 if(m_Description.viewMask != 0)
                 {
-                    // Multiview path: single framebuffer attaches a multi-layer view of the array,
-                    // VK_KHR_multiview broadcasts each draw to all layers selected by viewMask.
                     attachments[0]                  = m_Description.depthArrayTarget;
                     frameBufferDesc.layer           = UINT32_MAX;
                     frameBufferDesc.screenFBO       = false;

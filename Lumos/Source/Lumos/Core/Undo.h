@@ -33,14 +33,9 @@ namespace Lumos
     /* Drop all snapshots — call on scene load so stale pointers don't crash swap. */
     void UndoClear();
 
-    /* Diagnostics / UI affordances. UndoStackDepth = how many committed groups
-       can be undone; RedoStackDepth = how many are queued for redo. */
     i32 UndoStackDepth();
     i32 RedoStackDepth();
 
-    /* Callback fired after Undo() / Redo() swap memory back into source regions.
-       Listeners use it to refresh GPU buffers / collision shapes that mirror
-       undone data. Single slot for now — set to nullptr to clear. */
     using UndoChangedCallback = void (*)(void* userdata);
     void SetUndoChangedCallback(UndoChangedCallback cb, void* userdata);
 }

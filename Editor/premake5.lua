@@ -222,6 +222,7 @@ project "LumosEditor"
 			"UIKit.framework",
 			"OpenAL.framework",
 			"AudioToolbox.framework",
+			"AVFoundation.framework",
 			"Foundation.framework",
 			"SystemConfiguration.framework",
 			"IOSurface.framework",

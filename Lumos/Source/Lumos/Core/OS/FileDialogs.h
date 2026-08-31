@@ -6,8 +6,6 @@ namespace Lumos
     class FileDialogs
     {
     public:
-        // Returns selected file path, or empty string if cancelled
-        // filter: e.g. "png,jpg,bmp" or "lua" or "" for all files
         static std::string OpenFile(const std::string& filter = "", const std::string& defaultPath = "");
 
         // Returns selected save path, or empty string if cancelled

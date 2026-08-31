@@ -44,8 +44,11 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION_LOW();
 
-        if(m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass() < Maths::M_EPSILON)
+        if(c.normalMass < Maths::M_EPSILON)
             return;
+
+        const bool dynA = m_pNodeA->GetInverseMass() > 0.0f;
+        const bool dynB = m_pNodeB->GetInverseMass() > 0.0f;
 
         Vec3& r1 = c.relPosA;
         Vec3& r2 = c.relPosB;
@@ -58,30 +61,27 @@ namespace Lumos
             Vec3 v1 = m_pNodeB->GetLinearVelocity() + Maths::Cross(m_pNodeB->GetAngularVelocity(), r2);
             Vec3 dv = v0 - v1;
 
-            const float constraintMass = (m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass())
-                + Maths::Dot(normal,
-                             Maths::Cross(m_pNodeA->GetInverseInertia() * Maths::Cross(r1, normal), r1)
-                                 + Maths::Cross(m_pNodeB->GetInverseInertia() * Maths::Cross(r2, normal), r2));
-
-            float penetrationSlop = Maths::Min(c.collisionPenetration + m_BaumgarteSlop, 0.0f);
-            float b               = -(m_BaumgarteScalar / LumosPhysicsEngine::GetDeltaTime()) * penetrationSlop;
-            float b_real          = Maths::Max(b, c.elatisity_term + b * 0.2f);
-            float jn              = -(Maths::Dot(dv, normal) + b_real) / constraintMass;
+            float jn = -(Maths::Dot(dv, normal) + c.normalBias) * c.normalMass;
 
             // Clamp accumulated impulse (not the per-iter delta) — allows iterations to refine
             float oldSum        = c.sumImpulseContact;
             c.sumImpulseContact = Maths::Min(oldSum + jn, 0.0f);
             jn                  = c.sumImpulseContact - oldSum;
 
-            m_pNodeA->SetLinearVelocity(m_pNodeA->GetLinearVelocity()
-                                        + normal * (jn * m_pNodeA->GetInverseMass()) * m_pNodeA->GetLinearFactor());
-            m_pNodeB->SetLinearVelocity(m_pNodeB->GetLinearVelocity()
-                                        - normal * (jn * m_pNodeB->GetInverseMass()) * m_pNodeB->GetLinearFactor());
-
-            m_pNodeA->SetAngularVelocity(m_pNodeA->GetAngularVelocity()
-                                         + m_pNodeA->GetInverseInertia() * Maths::Cross(r1, normal * jn) * m_pNodeA->GetAngularFactor());
-            m_pNodeB->SetAngularVelocity(m_pNodeB->GetAngularVelocity()
-                                         - m_pNodeB->GetInverseInertia() * Maths::Cross(r2, normal * jn) * m_pNodeB->GetAngularFactor());
+            if(dynA)
+            {
+                m_pNodeA->SetLinearVelocity(m_pNodeA->GetLinearVelocity()
+                                            + normal * (jn * m_pNodeA->GetInverseMass()) * m_pNodeA->GetLinearFactor());
+                m_pNodeA->SetAngularVelocity(m_pNodeA->GetAngularVelocity()
+                                             + m_pNodeA->GetInverseInertia() * Maths::Cross(r1, normal * jn) * m_pNodeA->GetAngularFactor());
+            }
+            if(dynB)
+            {
+                m_pNodeB->SetLinearVelocity(m_pNodeB->GetLinearVelocity()
+                                            - normal * (jn * m_pNodeB->GetInverseMass()) * m_pNodeB->GetLinearFactor());
+                m_pNodeB->SetAngularVelocity(m_pNodeB->GetAngularVelocity()
+                                             - m_pNodeB->GetInverseInertia() * Maths::Cross(r2, normal * jn) * m_pNodeB->GetAngularFactor());
+            }
         }
 
         // ---- 2D friction (Box2D-style, fixed tangent basis) ----
@@ -91,25 +91,16 @@ namespace Lumos
             Vec3 v1 = m_pNodeB->GetLinearVelocity() + Maths::Cross(m_pNodeB->GetAngularVelocity(), r2);
             Vec3 dv = v0 - v1;
 
-            const auto& matA   = m_pNodeA->GetMaterial();
-            const auto& matB   = m_pNodeB->GetMaterial();
-            float frictionCoef = PhysicsMaterial::CombineValues(matA.Friction, matB.Friction, matA.FrictionCombine);
+            const float frictionCoef = c.frictionCoef;
 
             const Vec3& t1 = c.frictionTangent1;
             const Vec3& t2 = c.frictionTangent2;
 
-            float frictionalMass1 = (m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass())
-                + Maths::Dot(t1, Maths::Cross(m_pNodeA->GetInverseInertia() * Maths::Cross(r1, t1), r1)
-                                     + Maths::Cross(m_pNodeB->GetInverseInertia() * Maths::Cross(r2, t1), r2));
-            float frictionalMass2 = (m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass())
-                + Maths::Dot(t2, Maths::Cross(m_pNodeA->GetInverseInertia() * Maths::Cross(r1, t2), r1)
-                                     + Maths::Cross(m_pNodeB->GetInverseInertia() * Maths::Cross(r2, t2), r2));
-
-            if(frictionalMass1 < Maths::M_EPSILON || frictionalMass2 < Maths::M_EPSILON)
+            if(c.tangentMass1 < Maths::M_EPSILON || c.tangentMass2 < Maths::M_EPSILON)
                 return;
 
-            float jt1 = -Maths::Dot(dv, t1) / frictionalMass1;
-            float jt2 = -Maths::Dot(dv, t2) / frictionalMass2;
+            float jt1 = -Maths::Dot(dv, t1) * c.tangentMass1;
+            float jt2 = -Maths::Dot(dv, t2) * c.tangentMass2;
 
             float oldSum1 = c.sumImpulseFriction1;
             float oldSum2 = c.sumImpulseFriction2;
@@ -117,8 +108,6 @@ namespace Lumos
             float newSum1 = oldSum1 + jt1;
             float newSum2 = oldSum2 + jt2;
 
-            // Clamp the 2D accumulated friction impulse vector to the Coulomb cone.
-            // sumImpulseContact is non-positive in this convention, so cone radius = -friction * sumImpulseContact.
             float maxFriction = -frictionCoef * c.sumImpulseContact;
             float mag2        = newSum1 * newSum1 + newSum2 * newSum2;
             if(mag2 > maxFriction * maxFriction && mag2 > Maths::M_EPSILON)
@@ -136,28 +125,24 @@ namespace Lumos
 
             Vec3 impulseA = t1 * delta1 + t2 * delta2;
 
-            m_pNodeA->SetLinearVelocity(m_pNodeA->GetLinearVelocity()
-                                        + impulseA * m_pNodeA->GetInverseMass() * m_pNodeA->GetLinearFactor());
-            m_pNodeB->SetLinearVelocity(m_pNodeB->GetLinearVelocity()
-                                        - impulseA * m_pNodeB->GetInverseMass() * m_pNodeB->GetLinearFactor());
-
-            m_pNodeA->SetAngularVelocity(m_pNodeA->GetAngularVelocity()
-                                         + m_pNodeA->GetInverseInertia() * Maths::Cross(r1, impulseA) * m_pNodeA->GetAngularFactor());
-            m_pNodeB->SetAngularVelocity(m_pNodeB->GetAngularVelocity()
-                                         - m_pNodeB->GetInverseInertia() * Maths::Cross(r2, impulseA) * m_pNodeB->GetAngularFactor());
+            if(dynA)
+            {
+                m_pNodeA->SetLinearVelocity(m_pNodeA->GetLinearVelocity()
+                                            + impulseA * m_pNodeA->GetInverseMass() * m_pNodeA->GetLinearFactor());
+                m_pNodeA->SetAngularVelocity(m_pNodeA->GetAngularVelocity()
+                                             + m_pNodeA->GetInverseInertia() * Maths::Cross(r1, impulseA) * m_pNodeA->GetAngularFactor());
+            }
+            if(dynB)
+            {
+                m_pNodeB->SetLinearVelocity(m_pNodeB->GetLinearVelocity()
+                                            - impulseA * m_pNodeB->GetInverseMass() * m_pNodeB->GetLinearFactor());
+                m_pNodeB->SetAngularVelocity(m_pNodeB->GetAngularVelocity()
+                                             - m_pNodeB->GetInverseInertia() * Maths::Cross(r2, impulseA) * m_pNodeB->GetAngularFactor());
+            }
         }
 
-        // ---- Rolling friction (Bullet-style: coefficient is a torque arm in meters) ----
-        // Opposes the component of relative angular velocity in the contact plane —
-        // the rotational analogue of sliding friction. Without this, sliding friction
-        // can leave the body in a pure-rolling state where the contact point is
-        // stationary but the body still translates. Combined with sliding friction
-        // it drives both linear and angular relative motion to zero.
         {
-            float rollCoef = PhysicsMaterial::CombineValues(
-                m_pNodeA->GetMaterial().RollingFriction,
-                m_pNodeB->GetMaterial().RollingFriction,
-                m_pNodeA->GetMaterial().RollingFrictionCombine);
+            const float rollCoef = c.rollingCoef;
 
             if(rollCoef > 0.0f)
             {
@@ -166,17 +151,11 @@ namespace Lumos
                 const Vec3& t1 = c.frictionTangent1;
                 const Vec3& t2 = c.frictionTangent2;
 
-                // Effective rotational inertia about each tangent axis.
-                float rMass1 = Maths::Dot(t1, m_pNodeA->GetInverseInertia() * t1)
-                    + Maths::Dot(t1, m_pNodeB->GetInverseInertia() * t1);
-                float rMass2 = Maths::Dot(t2, m_pNodeA->GetInverseInertia() * t2)
-                    + Maths::Dot(t2, m_pNodeB->GetInverseInertia() * t2);
-
-                if(rMass1 > Maths::M_EPSILON && rMass2 > Maths::M_EPSILON)
+                if(c.rollingMass1 > Maths::M_EPSILON && c.rollingMass2 > Maths::M_EPSILON)
                 {
                     // Unconstrained angular impulse to zero the rolling component.
-                    float jr1 = -Maths::Dot(relAng, t1) / rMass1;
-                    float jr2 = -Maths::Dot(relAng, t2) / rMass2;
+                    float jr1 = -Maths::Dot(relAng, t1) * c.rollingMass1;
+                    float jr2 = -Maths::Dot(relAng, t2) * c.rollingMass2;
 
                     float oldR1 = c.sumImpulseRolling1;
                     float oldR2 = c.sumImpulseRolling2;
@@ -201,10 +180,12 @@ namespace Lumos
 
                     Vec3 angularImpulse = t1 * dR1 + t2 * dR2;
 
-                    m_pNodeA->SetAngularVelocity(m_pNodeA->GetAngularVelocity()
-                                                 + m_pNodeA->GetInverseInertia() * angularImpulse * m_pNodeA->GetAngularFactor());
-                    m_pNodeB->SetAngularVelocity(m_pNodeB->GetAngularVelocity()
-                                                 - m_pNodeB->GetInverseInertia() * angularImpulse * m_pNodeB->GetAngularFactor());
+                    if(dynA)
+                        m_pNodeA->SetAngularVelocity(m_pNodeA->GetAngularVelocity()
+                                                     + m_pNodeA->GetInverseInertia() * angularImpulse * m_pNodeA->GetAngularFactor());
+                    if(dynB)
+                        m_pNodeB->SetAngularVelocity(m_pNodeB->GetAngularVelocity()
+                                                     - m_pNodeB->GetInverseInertia() * angularImpulse * m_pNodeB->GetAngularFactor());
                 }
             }
         }
@@ -231,8 +212,6 @@ namespace Lumos
         contact.sumImpulseRolling1  = 0.0f;
         contact.sumImpulseRolling2  = 0.0f;
 
-        // Build a stable orthonormal tangent basis from the contact normal so that
-        // friction is solved in a consistent direction across iterations.
         const Vec3& n = contact.collisionNormal;
         Vec3 ref      = (Maths::Abs(n.x) > 0.57735f) ? Vec3(0.0f, 1.0f, 0.0f) : Vec3(1.0f, 0.0f, 0.0f);
         Vec3 t1       = Maths::Cross(ref, n);
@@ -275,6 +254,47 @@ namespace Lumos
 
                 contact.elatisity_term = elatisity_term;
             }
+        }
+
+        {
+            const Vec3& r1   = contact.relPosA;
+            const Vec3& r2   = contact.relPosB;
+            const Vec3& t1   = contact.frictionTangent1;
+            const Vec3& t2   = contact.frictionTangent2;
+            const float invM = m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass();
+            const Mat3& invIA = m_pNodeA->GetInverseInertia();
+            const Mat3& invIB = m_pNodeB->GetInverseInertia();
+
+            auto effMass = [&](const Vec3& axis) -> float
+            {
+                return invM + Maths::Dot(axis,
+                                         Maths::Cross(invIA * Maths::Cross(r1, axis), r1)
+                                             + Maths::Cross(invIB * Maths::Cross(r2, axis), r2));
+            };
+
+            float kn  = effMass(n);
+            float kt1 = effMass(t1);
+            float kt2 = effMass(t2);
+            contact.normalMass   = (kn > Maths::M_EPSILON) ? 1.0f / kn : 0.0f;
+            contact.tangentMass1 = (kt1 > Maths::M_EPSILON) ? 1.0f / kt1 : 0.0f;
+            contact.tangentMass2 = (kt2 > Maths::M_EPSILON) ? 1.0f / kt2 : 0.0f;
+
+            // Rolling friction effective masses (pure rotational inertia about each tangent).
+            float kr1 = Maths::Dot(t1, invIA * t1) + Maths::Dot(t1, invIB * t1);
+            float kr2 = Maths::Dot(t2, invIA * t2) + Maths::Dot(t2, invIB * t2);
+            contact.rollingMass1 = (kr1 > Maths::M_EPSILON) ? 1.0f / kr1 : 0.0f;
+            contact.rollingMass2 = (kr2 > Maths::M_EPSILON) ? 1.0f / kr2 : 0.0f;
+
+            // Normal bias (Baumgarte + restitution) — constant per timestep.
+            float penetrationSlop = Maths::Min(contact.collisionPenetration + m_BaumgarteSlop, 0.0f);
+            float b               = -(m_BaumgarteScalar / LumosPhysicsEngine::GetDeltaTime()) * penetrationSlop;
+            contact.normalBias    = Maths::Max(b, contact.elatisity_term + b * 0.2f);
+
+            // Material combines — also constant per timestep.
+            const auto& matA      = m_pNodeA->GetMaterial();
+            const auto& matB      = m_pNodeB->GetMaterial();
+            contact.frictionCoef  = PhysicsMaterial::CombineValues(matA.Friction, matB.Friction, matA.FrictionCombine);
+            contact.rollingCoef   = PhysicsMaterial::CombineValues(matA.RollingFriction, matB.RollingFriction, matA.RollingFrictionCombine);
         }
     }
 
@@ -346,11 +366,11 @@ namespace Lumos
                 Vec3 globalOnB  = m_pNodeB->GetPosition() + contact.relPosB;
 
                 // Draw line to form area given by all contact points
-                DebugRenderer::DrawThickLine(globalOnA1, globalOnA2, 0.02f, false, Vec4(0.0f, 1.0f, 0.0f, 1.0f), 0.0f);
+                DebugRenderer::DrawThickLine(globalOnA1, globalOnA2, DEBUG_LINE_WIDTH, false, Vec4(0.0f, 1.0f, 0.0f, 1.0f), 0.0f);
 
                 // Draw descriptors for indivdual contact point
                 DebugRenderer::DrawPoint(globalOnA2, 0.05f, false, Vec4(0.0f, 0.5f, 0.0f, 1.0f), 0.0f);
-                DebugRenderer::DrawThickLine(globalOnB, globalOnA2, 0.01f, false, Vec4(1.0f, 0.0f, 1.0f, 1.0f), 0.0f);
+                DebugRenderer::DrawThickLine(globalOnB, globalOnA2, DEBUG_LINE_WIDTH * 0.75f, false, Vec4(1.0f, 0.0f, 1.0f, 1.0f), 0.0f);
 
                 globalOnA1 = globalOnA2;
             }

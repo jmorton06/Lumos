@@ -37,8 +37,6 @@ namespace Lumos
                 { 'y', Lumos::InputCode::Key::Y },
                 { 'z', Lumos::InputCode::Key::Z },
 
-                // Special keys (iOS hardware keycodes) — must come before ASCII chars
-                // to avoid collisions ('0'=0x30=Tab, '3'=0x33=Backspace, '5'=0x35=Escape, '8'=0x38=Shift)
                 { 0x24, Lumos::InputCode::Key::Enter },
                 { 0x30, Lumos::InputCode::Key::Tab },
                 { 0x33, Lumos::InputCode::Key::Backspace },
@@ -50,8 +48,6 @@ namespace Lumos
                 { 0x7D, Lumos::InputCode::Key::Down },
                 { 0x7E, Lumos::InputCode::Key::Up },
 
-                // ASCII chars (digits excluded — '0','3','5','8' collide with special keycodes above)
-                // Digit keys are handled via insertText: / OnKeyTyped instead
                 { ' ', Lumos::InputCode::Key::Space },
                 { '-', Lumos::InputCode::Key::Minus },
                 { '+', Lumos::InputCode::Key::Equal },

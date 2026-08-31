@@ -27,6 +27,7 @@
 #include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Graphics/Sprite.h>
 #include <Lumos/Graphics/AnimatedSprite.h>
+#include <Lumos/Graphics/Light2D.h>
 #include <Lumos/Graphics/Animation/Skeleton.h>
 #include <Lumos/Graphics/Animation/Animation.h>
 #include <Lumos/Graphics/Animation/AnimationController.h>
@@ -1628,6 +1629,7 @@ end
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
+        ImGuiUtilities::Property("Receives Light", sprite.ReceivesLight);
         ImGuiUtilities::Property("Using Sprite Sheet", sprite.UsingSpriteSheet);
         ImGuiUtilities::Property("Tile Size X", sprite.SpriteSheetTileSizeX);
         ImGuiUtilities::Property("Tile Size Y", sprite.SpriteSheetTileSizeY);
@@ -1723,6 +1725,61 @@ end
                 ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
             }
 
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
+
+            ImGui::Columns(1);
+            ImGui::Separator();
+            ImGui::PopStyleVar();
+            ImGui::TreePop();
+        }
+
+        if(ImGui::TreeNode("Normal Map"))
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+            ImGui::Columns(2);
+            ImGui::Separator();
+
+            bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
+
+            ImGui::AlignTextToFramePadding();
+            auto normal           = sprite.GetNormalTexture();
+            auto imageButtonSize  = ImVec2(64, 64) * Application::Get().GetWindowDPI();
+            auto normalCallback   = std::bind(&Lumos::Graphics::Sprite::SetNormalTextureFromFile, &sprite, std::placeholders::_1);
+
+            if(normal)
+            {
+                if(ImGui::ImageButton((const char*)(normal.get()), reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(normal)), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                {
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(normalCallback);
+                }
+            }
+            else
+            {
+                if(ImGui::Button("Empty", imageButtonSize))
+                {
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(normalCallback);
+                }
+            }
+
+            const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+            if(payload != NULL && payload->IsDataType("AssetFile"))
+            {
+                auto filePath = std::string(reinterpret_cast<const char*>(payload->Data));
+                if(Lumos::Editor::GetEditor()->IsTextureFile(filePath) && ImGui::BeginDragDropTarget())
+                {
+                    if(ImGui::AcceptDragDropPayload("AssetFile"))
+                        normalCallback(filePath);
+                    ImGui::EndDragDropTarget();
+                }
+            }
+
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            if(normal)
+                ImGui::Text("%u x %u", normal->GetWidth(), normal->GetHeight());
             ImGui::PopItemWidth();
             ImGui::NextColumn();
 
@@ -1926,6 +1983,7 @@ end
         uint32_t tileSizeX = sprite.SpriteSheetTileSizeX;
         uint32_t tileSizeY = sprite.SpriteSheetTileSizeY;
 
+        Lumos::ImGuiUtilities::Property("Receives Light", sprite.ReceivesLight);
         Lumos::ImGuiUtilities::Property("By Tile", byTile);
         if(Lumos::ImGuiUtilities::Property("Tile Size X", tileSizeX))
             sprite.SpriteSheetTileSizeX = tileSizeX;
@@ -2364,6 +2422,14 @@ end
         ImGui::Columns(1);
         ImGui::Separator();
         ImGui::PopStyleVar();
+    }
+
+    template <>
+    void ComponentEditorWidget<Lumos::Graphics::Light2D>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        auto& light = reg.get<Lumos::Graphics::Light2D>(e);
+        light.OnImGui();
     }
 
     Lumos::Graphics::PrimitiveType GetPrimativeName(const std::string& type)
@@ -3230,7 +3296,7 @@ end
 
                     TextureWidget("AO", material.get(), textures.ao.get(), flipImage, prop->occlusionMapFactor, normal, false, std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI(), false, "Linear");
 
-                    TextureWidget("Emissive", material.get(), textures.emissive.get(), flipImage, prop->emissiveMapFactor, prop->emissive, true, std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI(), false, "Linear");
+                    TextureWidget("Emissive", material.get(), textures.emissive.get(), flipImage, prop->emissiveMapFactor, prop->emissiveColour, std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI(), false, "Linear");
 
                     material->SetMaterialProperites(*prop);
                     ImGui::Unindent();
@@ -3889,6 +3955,7 @@ end
         PropertySet("Launch Particles", emitter.GetNumLaunchParticles, emitter.SetNumLaunchParticles);
         PropertySet("Sort Particles", emitter.GetSortParticles, emitter.SetSortParticles);
         PropertySet("Depth Write", emitter.GetDepthWrite, emitter.SetDepthWrite);
+        PropertySet("Local Space", emitter.GetLocalSpace, emitter.SetLocalSpace);
 
         Lumos::ParticleEmitter::BlendType blendtype = emitter.GetBlendType();
         static const char* possibleBlendTypes[3]    = { "Additive", "Alpha", "Off" };
@@ -4180,6 +4247,7 @@ namespace Lumos
         TRIVIAL_COMPONENT(Graphics::AnimatedSprite, "Animated Sprite");
         TRIVIAL_COMPONENT(Graphics::Sprite, "Sprite");
         TRIVIAL_COMPONENT(Graphics::Light, "Light");
+        TRIVIAL_COMPONENT(Graphics::Light2D, "Light 2D");
         TRIVIAL_COMPONENT(LuaScriptComponent, "LuaScript");
         TRIVIAL_COMPONENT(Graphics::Environment, "Environment");
         TRIVIAL_COMPONENT(TextureMatrixComponent, "Texture Matrix");

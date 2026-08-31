@@ -36,9 +36,6 @@ namespace Lumos
             int cubeMapIndex                                       = 0;
             int mipIndex                                           = 0;
             uint8_t samples                                        = 1;
-            // Non-zero enables VK_KHR_multiview. Each set bit represents a layer rendered to
-            // in a single drawcall via gl_ViewIndex. Used for cascaded shadow maps as a
-            // workaround for Intel macOS Metal driver bugs with per-slice depth array views.
             uint32_t viewMask = 0;
 
             const char* DebugName = nullptr;

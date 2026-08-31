@@ -25,8 +25,6 @@ namespace Lumos
         // Sea level (block y). Columns below it flood with water down to the floor.
         int VoxelSeaLevel();
 
-        // Surface height + biome for a global block column. Deterministic from world
-        // coords so neighbouring chunks share seam values.
         VoxelColumn VoxelSampleColumn(int globalX, int globalZ);
 
         // Back-compat: just the height.

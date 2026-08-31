@@ -40,9 +40,6 @@ namespace Lumos
         m_TileOriginZ = tileOriginZ;
         m_HeightData.Resize(numVertices);
 
-        // Vertices stay tile-local (entity transform positions the tile in world
-        // space). Noise samples global grid coords so neighbouring tiles share
-        // edge values — fixing the seam-mismatch bug.
         for(int x = 0; x < width; ++x)
         {
             for(int z = 0; z < height; ++z)
@@ -188,9 +185,6 @@ namespace Lumos
             m_BoundingBox.Merge(verts[i].Position);
         }
 
-        // Fresh buffers — older STATIC handles can't be partially updated reliably
-        // across all RHIs, so swap them out wholesale. Cheap for sculpt cadence
-        // (one rebuild per frame, not per mouse-move).
         m_VertexBuffer = SharedPtr<Graphics::VertexBuffer>(Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC));
         m_VertexBuffer->SetData(sizeof(Graphics::Vertex) * numVertices, (void*)verts);
         m_IndexBuffer = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indices, indicesCount));

@@ -174,17 +174,14 @@ namespace Lumos
         ArenaTemp Scratch = ScratchBegin(0, 0);
 
         String8 filePath = Str8C((char*)desc.filePath);
+
         String8 physicalPath;
+        const bool havePhysical = FileSystem::Get().ResolvePhysicalPath(Scratch.arena, filePath, &physicalPath)
+                                  && FileSystem::FileExists(physicalPath);
 
-        if(!FileSystem::Get().ResolvePhysicalPath(Scratch.arena, filePath, &physicalPath))
+        if(havePhysical)
         {
-            ScratchEnd(Scratch);
-            return false;
-        }
-        desc.filePath = (const char*)physicalPath.str;
-
-        // Fast path for .limg pre-decoded format
-        {
+            desc.filePath   = (const char*)physicalPath.str;
             std::string ext = StringUtilities::GetFilePathExtension(std::string(desc.filePath));
             if(ext == "limg")
             {
@@ -203,18 +200,40 @@ namespace Lumos
             }
         }
 
-        if(stbi_is_hdr(desc.filePath))
+        if(havePhysical)
         {
-            sizeOfChannel = 32;
-            pixels        = (uint8_t*)stbi_loadf(desc.filePath, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-
-            desc.isHDR = true;
+            if(stbi_is_hdr(desc.filePath))
+            {
+                sizeOfChannel = 32;
+                pixels        = (uint8_t*)stbi_loadf(desc.filePath, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+                desc.isHDR    = true;
+            }
+            else
+            {
+                pixels     = stbi_load(desc.filePath, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+                desc.isHDR = false;
+            }
         }
         else
         {
-            pixels = stbi_load(desc.filePath, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-
-            desc.isHDR = false;
+            u8* encoded       = FileSystem::Get().ReadFileVFS(Scratch.arena, filePath);
+            int64_t encodedSz = FileSystem::Get().GetFileSizeVFS(filePath);
+            if(!encoded || encodedSz <= 0)
+            {
+                ScratchEnd(Scratch);
+                return false;
+            }
+            if(stbi_is_hdr_from_memory(encoded, (int)encodedSz))
+            {
+                sizeOfChannel = 32;
+                pixels        = (uint8_t*)stbi_loadf_from_memory(encoded, (int)encodedSz, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+                desc.isHDR    = true;
+            }
+            else
+            {
+                pixels     = stbi_load_from_memory(encoded, (int)encodedSz, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+                desc.isHDR = false;
+            }
         }
 
         // Resize the image if it exceeds the maximum width or height

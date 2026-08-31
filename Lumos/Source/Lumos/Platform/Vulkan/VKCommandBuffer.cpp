@@ -331,6 +331,31 @@ namespace Lumos
             vkCmdSetScissor(m_CommandBuffer, 0, 1, &scissor);
         }
 
+        void VKCommandBuffer::SetViewportRect(int32_t x, int32_t y, uint32_t width, uint32_t height, bool flipViewport)
+        {
+            LUMOS_PROFILE_FUNCTION_LOW();
+            VkViewport viewport = {};
+            viewport.x          = (float)x;
+            viewport.y          = (float)y;
+            viewport.width      = (float)width;
+            viewport.height     = (float)height;
+            viewport.minDepth   = 0.0f;
+            viewport.maxDepth   = 1.0f;
+
+            if(flipViewport)
+            {
+                viewport.y      = (float)(y + (int32_t)height);
+                viewport.height = -(float)height;
+            }
+
+            VkRect2D scissor = {};
+            scissor.offset   = { x, y };
+            scissor.extent   = { width, height };
+
+            vkCmdSetViewport(m_CommandBuffer, 0, 1, &viewport);
+            vkCmdSetScissor(m_CommandBuffer, 0, 1, &scissor);
+        }
+
         void VKCommandBuffer::Reset()
         {
             LUMOS_PROFILE_FUNCTION_LOW();

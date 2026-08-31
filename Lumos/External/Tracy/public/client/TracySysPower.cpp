@@ -85,7 +85,7 @@ void SysPower::ScanDirectory( const char* path, int parent )
                 FILE* f = fopen( tmp, "r" );
                 if( f )
                 {
-                    fscanf( f, "%" PRIu64, &maxRange );
+                    (void)fscanf( f, "%" PRIu64, &maxRange );
                     fclose( f );
                 }
             }
@@ -138,7 +138,7 @@ void SysPower::ScanDirectory( const char* path, int parent )
         domain->overflow = maxRange;
         domain->handle = handle;
         domain->name = name;
-        TracyDebug( "Power domain id %i, %s found at %s\n", parent, name, path );
+        TracyDebug( "Power domain id %i, %s found at %s", parent, name, path );
     }
     else
     {

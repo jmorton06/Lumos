@@ -111,8 +111,6 @@ namespace Lumos
 
             m_Chassis->ApplyImpulseAtPoint(normal * (suspForce * dt), hit.Point);
 
-            // --- Tyre friction at the contact, in the ground plane ---
-            // Wheel forward, steered, projected onto the ground plane.
             Vec3 wheelFwd = (Quat::Rotation(st.SteerAngle, up) * fwd);
             wheelFwd      = wheelFwd - normal * Maths::Dot(wheelFwd, normal);
             if(Maths::Length(wheelFwd) < 1e-4f)
@@ -133,9 +131,6 @@ namespace Lumos
             const float maxLateral = lateralGrip * suspForce * dt;
             lateralImpulse         = Maths::Clamp(lateralImpulse, -maxLateral, maxLateral);
 
-            // Apply lateral grip raised toward the COM height instead of at the
-            // contact patch — applying it on the ground levers the car over its
-            // outside wheels and flips it. (0=contact, 1=COM height, no roll.)
             const float comLift  = Maths::Dot(pos - hit.Point, up) * m_AntiRollGrip;
             const Vec3 gripPoint = hit.Point + up * comLift;
             m_Chassis->ApplyImpulseAtPoint(wheelRight * lateralImpulse, gripPoint);
@@ -157,9 +152,6 @@ namespace Lumos
                 longImpulse += brakeImpulse;
             }
 
-            // Apply drive/brake at the COM-raised point too: at the contact
-            // patch the forward thrust (below the COM) pitches the front up
-            // ("wheelie" on acceleration) / dives on braking.
             m_Chassis->ApplyImpulseAtPoint(wheelFwd * longImpulse, gripPoint);
 
             // Visual wheel: spin from rolling speed, placed at the contact.

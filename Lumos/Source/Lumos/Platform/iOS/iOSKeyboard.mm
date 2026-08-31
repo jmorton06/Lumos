@@ -1,3 +1,4 @@
+#ifdef LUMOS_PLATFORM_IOS
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 #import <string>
@@ -263,3 +264,4 @@ extern "C" void OpeniOSKeyboard(std::string *cppString) {
         persistentHelper = [[ImGuiKeyboardHelper alloc] initWithCppString:cppString textChangedCallback:g_textChangedCallback];
     });
 }
+#endif // LUMOS_PLATFORM_IOS

@@ -91,6 +91,9 @@ namespace Lumos
         }
         SafeAreaInsets GetSafeAreaInsets() const override { return m_SafeAreaInsets; }
 
+        void SetSafeAreaScale(float s) { m_ContentScale = s; }
+        float GetSafeAreaScale() const override { return m_ContentScale; }
+
         static iOSOS* Get();
         static CAMetalLayer* GetStaticLayer();
 
@@ -101,5 +104,6 @@ namespace Lumos
         CAMetalLayer* m_LayerPtr;
         float m_X, m_Y;
         SafeAreaInsets m_SafeAreaInsets;
+        float m_ContentScale = 1.0f;
     };
 }

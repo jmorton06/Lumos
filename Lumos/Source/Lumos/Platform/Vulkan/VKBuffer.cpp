@@ -216,6 +216,8 @@ namespace Lumos
         void VKBuffer::SetData(uint32_t size, const void* data, bool addBarrier)
         {
             LUMOS_PROFILE_FUNCTION();
+            if(size == 0)
+                return;
             Map(size, 0);
             memcpy(m_Mapped, data, size);
             UnMap();

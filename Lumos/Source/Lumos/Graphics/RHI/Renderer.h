@@ -38,12 +38,7 @@ namespace Lumos
             virtual bool Begin()                                   = 0;
             virtual void OnResize(uint32_t width, uint32_t height) = 0;
             virtual void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Vec4 clearColour = Vec4(0.1f, 0.1f, 0.1f, 1.0f)) { }
-            // Inserts a depth-attachment write-after-write barrier covering all layers of a depth array.
-            // Workaround for MoltenVK on Intel macOS where per-slice writes via single-layer 2D views
-            // of a 2D-array depth image are not implicitly synchronised between renderpasses.
             virtual void DepthArrayBarrier(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer) { }
-            // Copies a standalone 2D depth texture into a single slice of a depth array texture.
-            // Used by the shadow path on Intel macOS where per-slice array attachments are unreliable.
             virtual void CopyDepthToArraySlice(Graphics::Texture* srcDepth, Graphics::Texture* dstDepthArray, uint32_t sliceIndex, Graphics::CommandBuffer* commandBuffer) { }
             inline static Renderer* GetRenderer()
             {

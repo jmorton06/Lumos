@@ -109,6 +109,8 @@ namespace Lumos
                     for(u32 b = 0; b < showCount; b++)
                     {
                         auto& bi = srStats.InstanceBatches[b];
+                        if(bi.instanceCount == 0)
+                            continue;
                         ImGui::Text("  %s x%u", bi.meshName ? bi.meshName : "?", bi.instanceCount);
                     }
                     if(srStats.NumInstanceBatches > Graphics::SceneRendererStats::MaxTrackedBatches)

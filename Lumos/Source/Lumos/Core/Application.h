@@ -145,6 +145,10 @@ namespace Lumos
 
         bool OnWindowResize(WindowResizeEvent& e);
 
+        // Applies the latest pending window size, if any. Called once per frame,
+        // before anything renders.
+        void ApplyPendingWindowResize();
+
         void SetSceneViewDimensions(uint32_t width, uint32_t height)
         {
             if(width != m_SceneViewWidth)
@@ -170,6 +174,28 @@ namespace Lumos
         void SetEngineAssetPath();
 
         void SetScreenshotPath(const std::string& path) { m_ScreenshotPath = path; m_TakeScreenshotOnInit = true; }
+
+        // Capture the next presented frame to `path`, without exiting after.
+        void RequestScreenshot(const std::string& path)
+        {
+            m_ScreenshotPath        = path;
+            m_TakeScreenshotOnInit  = true;
+            m_ScreenshotTaken       = false;
+            m_ScreenshotFrameDelay  = 0;
+            m_ScreenshotFrameTarget = 1;
+            m_CloseAfterScreenshot  = false;
+        }
+
+        // Static so it survives the Application being deleted before main() returns.
+        static void SetExitCode(int code) { s_ExitCode = code; }
+        static int GetExitCode() { return s_ExitCode; }
+
+        enum class SafeAreaLayout : int
+        {
+            Fullscreen       = 0, // scene + UI edge-to-edge
+            SafeArea         = 1, // scene render + UI inset (letterboxed)
+            FullscreenSafeUI = 2, // scene edge-to-edge, UI inset only
+        };
 
         struct ProjectSettings
         {
@@ -197,8 +223,6 @@ namespace Lumos
             std::string StartScene; // Scene name to load on startup (v11+, replaces SceneIndex)
             bool AutoImportMeshes  = true; // Auto-convert source models to .lmesh on load
 
-            // Version 13 — mobile/distribution
-            // Orientation: 0 = auto (all), 1 = portrait only, 2 = landscape only
             int Orientation        = 0;
             // TARGETED_DEVICE_FAMILY: 1 = iPhone, 2 = iPad, 3 = both
             int DeviceFamily       = 3;
@@ -211,10 +235,7 @@ namespace Lumos
             std::string PhotoLibraryUsage;
             std::string LocationUsage;
 
-            // Version 14 — render layout
-            // true:  UI/HUD respects safe area insets (notch, home indicator)
-            // false: edge-to-edge fullscreen, content can render under system UI
-            bool UseSafeArea = true;
+            int SafeAreaMode = (int)SafeAreaLayout::FullscreenSafeUI;
         };
 
         ProjectSettings& GetProjectSettings() { return m_ProjectSettings; }
@@ -224,6 +245,8 @@ namespace Lumos
 
         Vec2 m_SceneViewPosition; // For Editor
         const String8& GetAssetPath() const { return m_AssetPath; };
+
+        bool EmbedEngineShaders();
 
     protected:
         ProjectSettings m_ProjectSettings;
@@ -245,6 +268,14 @@ namespace Lumos
         uint32_t m_SceneViewWidth  = 0;
         uint32_t m_SceneViewHeight = 0;
 
+        // Latest size reported by the window while a resize is in flight.
+        bool m_HasPendingWindowResize    = false;
+        uint32_t m_PendingWindowWidth    = 0;
+        uint32_t m_PendingWindowHeight   = 0;
+        float m_PendingWindowDPIScale    = 1.0f;
+        uint32_t m_AppliedWindowWidth    = 0;
+        uint32_t m_AppliedWindowHeight   = 0;
+
         bool m_SceneViewSizeUpdated = false;
         bool m_RenderDocEnabled     = false;
         bool m_ImGuiClearScreen     = false;
@@ -262,7 +293,7 @@ namespace Lumos
 
         AppState m_CurrentState   = AppState::Loading;
         EditorState m_EditorState = EditorState::Preview;
-        AppType m_AppType         = AppType::Editor;
+        AppType m_AppType         = AppType::Game;
 
         TDArray<Function<void()>> m_MainThreadQueue;
         Mutex* m_MainThreadQueueMutex;
@@ -291,7 +322,15 @@ namespace Lumos
         bool m_BenchmarkMode          = false; // Default: no benchmark
         int m_BenchmarkFrameCount     = 0;
         int m_BenchmarkCurrentFrame   = 0;
+        bool m_ImportAssetsMode       = false; // --import-assets: bake .lmesh caches then quit
         std::string m_InitialSceneName;        // Scene to load on startup
+
+        // Statics only - Runtime/Editor subclass this and the generated Xcode
+        // projects don't track header deps, so growing the layout silently
+        // breaks them until those TUs are rebuilt.
+        static int s_ExitCode;
+
+        void ImportAllProjectAssets();
 
         NONCOPYABLE(Application)
     };

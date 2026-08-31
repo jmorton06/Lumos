@@ -292,18 +292,22 @@ namespace Lumos
             m_Height = height;
         }
 
+        const QualitySettings& qs = Application::Get().GetQualitySettings();
+        uint32_t renderWidth      = uint32_t(qs.RendererScale * float(m_Width - (m_Width % 2)));
+        uint32_t renderHeight     = uint32_t(qs.RendererScale * float(m_Height - (m_Height % 2)));
+
         if(!m_GameViewTexture)
         {
             Graphics::TextureDesc mainRenderTargetDesc;
             mainRenderTargetDesc.format = Graphics::RHIFormat::R8G8B8A8_Unorm;
             mainRenderTargetDesc.flags  = Graphics::TextureFlags::Texture_RenderTarget;
 
-            m_GameViewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(mainRenderTargetDesc, m_Width, m_Height));
+            m_GameViewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(mainRenderTargetDesc, renderWidth, renderHeight));
         }
 
         if(resize)
         {
-            m_GameViewTexture->Resize(m_Width, m_Height);
+            m_GameViewTexture->Resize(renderWidth, renderHeight);
             m_SceneRenderer->SetRenderTarget(m_GameViewTexture.get(), true, false);
             m_SceneRenderer->OnResize(width, height);
         }

@@ -28,8 +28,6 @@ namespace Lumos
         // Water is rendered but passable; everything else solid blocks the player.
         inline bool BlockCollides(BlockID id) { return id != Block_Air && id != Block_Water; }
 
-        // Texture atlas: a grid of square tiles sampled NEAREST. Tile ids index
-        // (col, row) as t % ATLAS_COLS, t / ATLAS_COLS.
         static constexpr int ATLAS_TILE_PX = 16;
         static constexpr int ATLAS_COLS    = 4;
         static constexpr int ATLAS_ROWS    = 4;
@@ -73,15 +71,11 @@ namespace Lumos
             }
         }
 
-        // Chunk dimensions. Full world height in one chunk (no vertical streaming),
-        // infinite on X/Z. 16*16*256 = 65536 blocks = 64KB per chunk.
         static constexpr int CHUNK_W = 16;
         static constexpr int CHUNK_H = 256;
         static constexpr int CHUNK_D = 16;
         static constexpr int CHUNK_BLOCK_COUNT = CHUNK_W * CHUNK_H * CHUNK_D;
 
-        // A column of voxels meshed as a single Graphics::Mesh. Vertices are
-        // chunk-local; the owning entity/world transform places it in the world.
         class LUMOS_EXPORT VoxelChunk : public Mesh
         {
         public:
@@ -102,20 +96,11 @@ namespace Lumos
                 m_Dirty                  = true;
             }
 
-            // Procedural fill from shared world noise. Solid up to a per-column
-            // height; air above. Keeps neighbouring chunks seam-consistent because
-            // noise is sampled in global block coords.
             void Generate();
 
-            // Build the mesh CPU-side (vertices/indices/bbox) from block data.
-            // Thread-safe: touches only this chunk + reads neighbour blocks, no GPU.
-            // Neighbour chunks (may be null) are sampled for cross-border face
-            // culling; null borders draw the edge faces. Result staged for upload.
             void BuildMeshData(const VoxelChunk* negX, const VoxelChunk* posX,
                                const VoxelChunk* negZ, const VoxelChunk* posZ);
 
-            // Push staged mesh data to GPU buffers. MAIN/RENDER THREAD ONLY.
-            // Returns true if buffers were (re)created. Clears the dirty flag.
             bool UploadMesh();
 
             bool HasPendingMesh() const { return m_HasPendingMesh; }
@@ -146,8 +131,6 @@ namespace Lumos
             int m_ChunkZ = 0;
             bool m_Dirty = true;
 
-            // Staged mesh data produced by BuildMeshData (worker), consumed by
-            // UploadMesh (main thread).
             TDArray<Vertex> m_PendingVertices;
             TDArray<uint32_t> m_PendingIndices;
             Maths::BoundingBox m_PendingBox;

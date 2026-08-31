@@ -116,6 +116,7 @@ namespace Lumos
             bool SkyboxRenderEnabled       = true;
             bool ShadowsEnabled            = true;
             bool FXAAEnabled               = true;
+            bool SMAAEnabled               = false; // higher-quality AA; takes priority over FXAA when set
             bool DebandingEnabled          = true;
             bool ChromaticAberationEnabled = false;
             bool EyeAdaptation             = false;
@@ -142,8 +143,6 @@ namespace Lumos
             float VignetteRoundness = 1.0f;
             Vec3 VignetteColour     = Vec3(0.0f, 0.0f, 0.0f);
 
-            // Screen-space reflections (optional, off by default — needs the
-            // depth pre-pass for normals). Ray-marches the depth buffer.
             bool SSREnabled       = false;
             float SSRMaxDistance  = 25.0f;  // view-space ray length
             int SSRMaxSteps       = 32;     // march steps
@@ -153,9 +152,6 @@ namespace Lumos
             float SSRMaxRoughness = 0.6f;   // skip/fade reflections past this
             float SSREnvIntensity = 1.0f;   // env-map fallback for missed rays; 0 = off
 
-            // Camera-velocity motion blur. Reprojects through previous
-            // frame's view-proj to sample along the screen-space motion
-            // vector. No per-object velocity buffer.
             float MotionBlurStrength = 0.5f;
             int MotionBlurSamples    = 8;
 

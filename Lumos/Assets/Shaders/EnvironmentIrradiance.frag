@@ -59,12 +59,6 @@ void main()
 
     uint samples = min(64 * ubo.Samples, 512u);
 
-	// Integrate from a pre-blurred mip rather than the sharp mip 0. Irradiance
-	// is an extremely low-frequency signal, so blurring the input barely
-	// changes the result - but it spreads a concentrated HDR source (the sun)
-	// out so no single Monte Carlo sample can spike. Sampling mip 0 of an HDR
-	// environment is what speckled the irradiance map, and therefore diffuse
-	// IBL. Procedural skies have no such concentrated source, so they were fine.
 	float blurMip = max(float(textureQueryLevels(u_Texture)) - 4.0, 0.0);
 
 	// Monte Carlo integration of hemispherical irradiance.

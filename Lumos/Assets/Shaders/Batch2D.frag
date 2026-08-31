@@ -89,6 +89,20 @@ void main()
 		float alpha = 1.0 - smoothstep(-1.5, 0.5, dist);
 		texColor.a *= alpha;
 	}
+	else if(fs_in.cornerRadius < 0.0 && fs_in.rectSize.x > 0.0)
+	{
+		vec2 localPos = (fs_in.uv - 0.5) * fs_in.rectSize;
+		vec2 halfSize = fs_in.rectSize * 0.5;
+
+		float radius = min(halfSize.x, halfSize.y);
+		float dist   = sdRoundedRect(localPos, halfSize, radius);
+		float stroke = max(1.0, -fs_in.cornerRadius);
+
+		// Keep only the band [-stroke, 0] inside the shape edge.
+		float alpha = (1.0 - smoothstep(-1.0, 0.5, dist))
+		            * smoothstep(-stroke - 1.0, -stroke + 0.5, dist);
+		texColor.a *= alpha;
+	}
 
 	colour = texColor;
 }

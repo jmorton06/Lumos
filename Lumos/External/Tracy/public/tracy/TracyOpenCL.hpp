@@ -76,7 +76,7 @@ namespace tracy {
     class OpenCLCtx
     {
     public:
-        enum { QueryCount = 64 * 1024 };
+        static constexpr size_t QueryCount = 64 * 1024;
 
         OpenCLCtx(cl_context context, cl_device_id device)
             : m_contextId(GetGpuCtxCounter().fetch_add(1, std::memory_order_relaxed))
@@ -113,8 +113,8 @@ namespace tracy {
             memset(&item->gpuNewContext.thread, 0, sizeof(item->gpuNewContext.thread));
             MemWrite(&item->gpuNewContext.period, 1.0f);
             MemWrite(&item->gpuNewContext.type, GpuContextType::OpenCL);
-            MemWrite(&item->gpuNewContext.context, (uint8_t) m_contextId);
-            MemWrite(&item->gpuNewContext.flags, (uint8_t)0);
+            MemWrite(&item->gpuNewContext.context, uint8_t(m_contextId));
+            MemWrite(&item->gpuNewContext.flags, GpuContextFlags(0));
 #ifdef TRACY_ON_DEMAND
             GetProfiler().DeferItem(*item);
 #endif
@@ -187,9 +187,9 @@ namespace tracy {
 
                 auto item = Profiler::QueueSerial();
                 MemWrite(&item->hdr.type, QueueType::GpuTime);
-                MemWrite(&item->gpuTime.gpuTime, (int64_t)eventTimeStamp);
-                MemWrite(&item->gpuTime.queryId, (uint16_t)m_tail);
-                MemWrite(&item->gpuTime.context, m_contextId);
+                MemWrite(&item->gpuTime.gpuTime, int64_t(eventTimeStamp));
+                MemWrite(&item->gpuTime.queryId, uint16_t(m_tail));
+                MemWrite(&item->gpuTime.context, uint8_t(m_contextId));
                 Profiler::QueueSerialFinish();
 
                 if (eventInfo.phase == EventPhase::End)
@@ -255,7 +255,7 @@ namespace tracy {
             Profiler::QueueSerialFinish();
         }
 
-        tracy_force_inline OpenCLCtxScope(OpenCLCtx* ctx, const SourceLocationData* srcLoc, int depth, bool is_active)
+        tracy_force_inline OpenCLCtxScope(OpenCLCtx* ctx, const SourceLocationData* srcLoc, int32_t depth, bool is_active)
 #ifdef TRACY_ON_DEMAND
             : m_active(is_active&& GetProfiler().IsConnected())
 #else
@@ -304,7 +304,7 @@ namespace tracy {
             Profiler::QueueSerialFinish();
         }
 
-        tracy_force_inline OpenCLCtxScope(OpenCLCtx* ctx, uint32_t line, const char* source, size_t sourceSz, const char* function, size_t functionSz, const char* name, size_t nameSz, int depth, bool is_active)
+        tracy_force_inline OpenCLCtxScope(OpenCLCtx* ctx, uint32_t line, const char* source, size_t sourceSz, const char* function, size_t functionSz, const char* name, size_t nameSz, int32_t depth, bool is_active)
 #ifdef TRACY_ON_DEMAND
             : m_active(is_active && GetProfiler().IsConnected())
 #else
@@ -373,9 +373,9 @@ namespace tracy {
 
 using TracyCLCtx = tracy::OpenCLCtx*;
 
-#define TracyCLContext(context, device) tracy::CreateCLContext(context, device);
+#define TracyCLContext(ctx, device) tracy::CreateCLContext(ctx, device);
 #define TracyCLDestroy(ctx) tracy::DestroyCLContext(ctx);
-#define TracyCLContextName(context, name, size) ctx->Name(name, size);
+#define TracyCLContextName(ctx, name, size) ctx->Name(name, size);
 #if defined TRACY_HAS_CALLSTACK && defined TRACY_CALLSTACK
 #  define TracyCLNamedZone(ctx, varname, name, active) static constexpr tracy::SourceLocationData TracyConcat(__tracy_gpu_source_location,TracyLine) { name, TracyFunction, TracyFile, (uint32_t)TracyLine, 0 }; tracy::OpenCLCtxScope varname(ctx, &TracyConcat(__tracy_gpu_source_location,TracyLine), TRACY_CALLSTACK, active );
 #  define TracyCLNamedZoneC(ctx, varname, name, color, active) static constexpr tracy::SourceLocationData TracyConcat(__tracy_gpu_source_location,TracyLine) { name, TracyFunction, TracyFile, (uint32_t)TracyLine, color }; tracy::OpenCLCtxScope varname(ctx, &TracyConcat(__tracy_gpu_source_location,TracyLine), TRACY_CALLSTACK, active );

@@ -14,11 +14,12 @@ namespace Lumos
 
         struct MaterialProperties
         {
+            // Two vec4s first so std140 alignment matches the C++ layout exactly (see UniformMaterialData in Buffers.glslh).
             Vec4 albedoColour        = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            Vec4 emissiveColour      = Vec4(0.0f, 0.0f, 0.0f, 1.0f); // rgb = emissive tint, w = intensity
             float roughness          = 0.7f;
             float metallic           = 0.7f;
             float reflectance        = 0.3f;
-            float emissive           = 0.0f;
             float albedoMapFactor    = 1.0f;
             float metallicMapFactor  = 1.0f;
             float roughnessMapFactor = 1.0f;

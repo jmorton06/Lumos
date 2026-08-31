@@ -14,13 +14,19 @@ namespace Lumos
         float sumImpulseContact    = 0.0f;
         float sumImpulseFriction1  = 0.0f;
         float sumImpulseFriction2  = 0.0f;
-        // Rolling friction angular impulses, along frictionTangent1/2.
-        // Decouples linear slip resistance (sumImpulseFriction*) from rolling
-        // resistance (sumImpulseRolling*); rolling axes are the same tangent plane.
         float sumImpulseRolling1   = 0.0f;
         float sumImpulseRolling2   = 0.0f;
         float elatisity_term       = 0.0f;
         float collisionPenetration = 0.0f;
+
+        float normalMass   = 0.0f;
+        float normalBias   = 0.0f;
+        float tangentMass1 = 0.0f;
+        float tangentMass2 = 0.0f;
+        float rollingMass1 = 0.0f;
+        float rollingMass2 = 0.0f;
+        float frictionCoef = 0.0f;
+        float rollingCoef  = 0.0f;
 
         Vec3 collisionNormal;
         Vec3 frictionTangent1;

@@ -28,6 +28,9 @@ namespace Lumos
 
         void OnNewProject(const std::string& projectPath);
 
+        // Run a Lua file in the global state (project startup scripts, tools).
+        void RunScriptFile(const std::string& vfsPath);
+
         void BindECSLua(sol::state& state);
         void BindLogLua(sol::state& state);
         void BindInputLua(sol::state& state);
@@ -35,6 +38,7 @@ namespace Lumos
         void BindAppLua(sol::state& state);
         void BindUILua(sol::state& lua);
         void BindVoxelLua(sol::state& state);
+        void BindCSVLua(sol::state& state);
 
         static TDArray<std::string>& GetIdentifiers() { return s_Identifiers; }
 

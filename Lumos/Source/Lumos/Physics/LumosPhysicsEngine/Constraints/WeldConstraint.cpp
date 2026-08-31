@@ -18,6 +18,9 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
+        if(m_pObj2->GetInverseMass() <= 0.0f)
+            return;
+
         // Position
         Vec3 pos(m_positionOffset);
         pos = m_pObj1->GetOrientation() * pos;
@@ -33,7 +36,7 @@ namespace Lumos
         Vec3 posA = m_pObj1->GetPosition();
         Vec3 posB = m_pObj2->GetPosition();
 
-        DebugRenderer::DrawThickLine(posA, posB, 0.02f, false, Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        DebugRenderer::DrawThickLine(posA, posB, DEBUG_LINE_WIDTH, false, Vec4(0.0f, 0.0f, 0.0f, 1.0f));
         DebugRenderer::DrawPoint(posA, 0.05f, false, Vec4(1.0f, 0.8f, 1.0f, 1.0f));
         DebugRenderer::DrawPoint(posB, 0.05f, false, Vec4(1.0f, 0.8f, 1.0f, 1.0f));
     }

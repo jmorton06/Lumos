@@ -97,7 +97,9 @@ namespace Lumos
 
         ImGuizmo::SetDrawlist();
         auto sceneViewSize     = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - offset * 0.5f; // - offset * 0.5f;
-        auto sceneViewPosition = ImGui::GetWindowPos() + offset;
+        auto sceneViewPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin() + offset;
+        sceneViewSize.x = Maths::Max(sceneViewSize.x, 2.0f);
+        sceneViewSize.y = Maths::Max(sceneViewSize.y, 2.0f);
 
         sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
         sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
@@ -164,10 +166,8 @@ namespace Lumos
             dl->AddText(smallF, fs, tp, fg, line3);
         }
 
-        auto windowSize = ImGui::GetWindowSize();
         ImVec2 minBound = sceneViewPosition;
-
-        ImVec2 maxBound   = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+        ImVec2 maxBound   = { minBound.x + sceneViewSize.x, minBound.y + sceneViewSize.y };
         bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound) || m_bRequestCameraUpdate; // || Input::Get().GetMouseMode() == MouseMode::Captured;
 
         // app.SetSceneActive(true);// ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
@@ -987,18 +987,22 @@ namespace Lumos
             m_Height = height;
         }
 
+        const QualitySettings& qs = Application::Get().GetQualitySettings();
+        uint32_t renderWidth      = uint32_t(qs.RendererScale * float(m_Width - (m_Width % 2)));
+        uint32_t renderHeight     = uint32_t(qs.RendererScale * float(m_Height - (m_Height % 2)));
+
         if(!m_GameViewTexture)
         {
             Graphics::TextureDesc mainRenderTargetDesc;
             mainRenderTargetDesc.format = Graphics::RHIFormat::R8G8B8A8_Unorm;
             mainRenderTargetDesc.flags  = Graphics::TextureFlags::Texture_RenderTarget;
 
-            m_GameViewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(mainRenderTargetDesc, m_Width, m_Height));
+            m_GameViewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(mainRenderTargetDesc, renderWidth, renderHeight));
         }
 
         if(resize)
         {
-            m_GameViewTexture->Resize(m_Width, m_Height);
+            m_GameViewTexture->Resize(renderWidth, renderHeight);
 
             auto SceneRenderer = Application::Get().GetSceneRenderer();
             SceneRenderer->SetRenderTarget(m_GameViewTexture.get(), true, false);

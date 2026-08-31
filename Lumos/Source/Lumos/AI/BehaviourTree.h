@@ -13,8 +13,6 @@ namespace Lumos::AI
         Failure,
     };
 
-    // Minimal behaviour-tree node. Nodes are evaluated top-down each Tick.
-    // Composite nodes own their children; leaf nodes hold function pointers.
     class LUMOS_EXPORT BTNode
     {
     public:
@@ -40,8 +38,6 @@ namespace Lumos::AI
         uint32_t m_CurrentChild = 0;
     };
 
-    // Sequence: ticks children in order, fails on first failure, succeeds when
-    // all succeed. Holds position across Tick calls while a child is Running.
     class LUMOS_EXPORT BTSequence : public BTComposite
     {
     public:
@@ -59,8 +55,6 @@ namespace Lumos::AI
         }
     };
 
-    // Selector: ticks children in order, returns on first success, fails when
-    // all children fail.
     class LUMOS_EXPORT BTSelector : public BTComposite
     {
     public:
@@ -99,8 +93,6 @@ namespace Lumos::AI
         SharedPtr<BTNode> m_Child;
     };
 
-    // Leaf: action that runs a callable returning the new status. Use for
-    // gameplay actions, condition checks, anything terminal.
     class LUMOS_EXPORT BTAction : public BTNode
     {
     public:

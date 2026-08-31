@@ -282,7 +282,8 @@ project "Lumos"
         	"IOKit.framework",
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
-			"OpenAL.framework"
+			"OpenAL.framework",
+			"AVFoundation.framework"
 		}
 
 		libdirs

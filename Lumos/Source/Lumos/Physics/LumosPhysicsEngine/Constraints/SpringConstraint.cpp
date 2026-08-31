@@ -66,11 +66,16 @@ namespace Lumos
         float jn = (-(Maths::Dot(v0 - v1, abn) + b) * m_springConstant) - (m_dampingFactor * Maths::Length((v0 - v1)));
         jn /= constraintMass;
 
-        m_pObj1->SetLinearVelocity(m_pObj1->GetLinearVelocity() + abn * (jn * m_pObj1->GetInverseMass()));
-        m_pObj2->SetLinearVelocity(m_pObj2->GetLinearVelocity() - abn * (jn * m_pObj2->GetInverseMass()));
-
-        m_pObj1->SetAngularVelocity(m_pObj1->GetAngularVelocity() + m_pObj1->GetInverseInertia() * Maths::Cross(r1, abn * jn));
-        m_pObj2->SetAngularVelocity(m_pObj2->GetAngularVelocity() - m_pObj2->GetInverseInertia() * Maths::Cross(r2, abn * jn));
+        if(m_pObj1->GetInverseMass() > 0.0f)
+        {
+            m_pObj1->SetLinearVelocity(m_pObj1->GetLinearVelocity() + abn * (jn * m_pObj1->GetInverseMass()));
+            m_pObj1->SetAngularVelocity(m_pObj1->GetAngularVelocity() + m_pObj1->GetInverseInertia() * Maths::Cross(r1, abn * jn));
+        }
+        if(m_pObj2->GetInverseMass() > 0.0f)
+        {
+            m_pObj2->SetLinearVelocity(m_pObj2->GetLinearVelocity() - abn * (jn * m_pObj2->GetInverseMass()));
+            m_pObj2->SetAngularVelocity(m_pObj2->GetAngularVelocity() - m_pObj2->GetInverseInertia() * Maths::Cross(r2, abn * jn));
+        }
     }
 
     void SpringConstraint::DebugDraw() const
@@ -78,7 +83,7 @@ namespace Lumos
         Vec3 globalOnA = m_pObj1->GetOrientation() * m_LocalOnA + m_pObj1->GetPosition();
         Vec3 globalOnB = m_pObj2->GetOrientation() * m_LocalOnB + m_pObj2->GetPosition();
 
-        DebugRenderer::DrawThickLine(globalOnA, globalOnB, 0.02f, true, Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        DebugRenderer::DrawThickLine(globalOnA, globalOnB, DEBUG_LINE_WIDTH, true, Vec4(0.0f, 0.0f, 0.0f, 1.0f));
         DebugRenderer::DrawPoint(globalOnA, 0.05f, false, Vec4(1.0f, 0.8f, 1.0f, 1.0f));
         DebugRenderer::DrawPoint(globalOnB, 0.05f, false, Vec4(1.0f, 0.8f, 1.0f, 1.0f));
     }

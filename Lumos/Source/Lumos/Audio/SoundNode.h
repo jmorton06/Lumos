@@ -32,8 +32,6 @@ namespace Lumos
         void SetVolume(float volume);
         float GetVolume() const { return m_Volume; }
 
-        // Mixing bus name. Defaults to "Master". AudioManager::GetBusVolume
-        // multiplies this into the effective OpenAL gain.
         void SetBusName(const std::string& bus) { m_BusName = bus; }
         const std::string& GetBusName() const { return m_BusName; }
 

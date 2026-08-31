@@ -3,15 +3,6 @@
 #extension GL_ARB_shading_language_420pack : enable
 #include "Octahedral.glslh"
 
-// Screen-space reflections. Reads a packed G-buffer (rg = octahedral world
-// normal, b = NDC depth, a = roughness) so it needs no separate depth/normal
-// targets and works whether or not MSAA resolved them. For each pixel:
-// reconstruct view-space position + normal, reflect the view ray, linearly
-// march the depth buffer, binary-refine the crossing, then blend in the lit
-// colour at the hit. Roughness widens the reflection (mip-style blur) and
-// fades it out; very rough pixels are skipped entirely. Where the screen ray
-// misses or runs off-frame it falls back to the prefiltered environment map
-// (the same IBL the forward pass uses), faded by hit confidence.
 
 layout(location = 0) in vec2 outTexCoord;
 
@@ -57,16 +48,11 @@ vec2 ProjectUV(vec3 vsPos)
 
 float SceneDepth(vec2 uv) { return texture(u_GBuffer, uv).b; }
 
-// On-screen reflections are kept sharp (clean mirror look). The roughness blur
-// comes from the environment-map mip in the fallback, not by smearing the
-// screen sample — smearing was what made glossy floors look dirty.
 vec3 SampleReflection(vec2 uv)
 {
     return texture(u_Colour, uv).rgb;
 }
 
-// Per-pixel dither so the coarse march bands break up into noise instead of
-// visible stair-steps.
 float Dither(vec2 p)
 {
     return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715))));
@@ -94,14 +80,9 @@ void main()
 
     bool hasEnv = ubo.EnvMipCount > 0.5;
 
-    // Screen-space march only makes sense for rays going into the scene; rays
-    // pointing back toward the camera (z > 0) have no screen data, but the
-    // environment map still covers that direction.
 
     // Small view-space bias so the ray doesn't immediately hit its own surface.
     const float kBias = 0.025;
-    // Dither the march start by up to one step so the coarse sampling banding
-    // turns into fine noise instead of visible stair-steps.
     float jitter = Dither(gl_FragCoord.xy);
 
     vec2 hitUV    = vec2(0.0);
@@ -115,8 +96,6 @@ void main()
     {
         for(int i = 1; i <= ubo.MaxSteps; ++i)
         {
-            // Quadratic spacing: fine steps near the surface (where reflected
-            // detail lives and overshoot causes gaps/jaggies), coarse far away.
             float t    = clamp((float(i) - jitter) / float(ubo.MaxSteps), 0.0, 1.0);
             float dist = t * t * ubo.MaxDistance;
             float segLen = dist - prevDist;
@@ -139,21 +118,17 @@ void main()
             vec3 sceneVS = ReconstructVS(uv, sd);
             float diff   = sceneVS.z - rayPos.z;   // >0: ray is behind the surface
 
-            // Accept a crossing as a real surface only within this depth window,
-            // tied to the local segment length so a single step's overshoot is
-            // always inside it — that's what stops gaps in thin geometry.
             float acceptThickness = max(ubo.Thickness, segLen * 2.0);
 
-            // Front -> behind transition means the ray crossed a surface between
-            // prevPos and rayPos. Refine to the crossing, then validate the gap.
             if(diff > kBias && wasFront)
             {
                 vec3 a = prevPos;
                 vec3 b = rayPos;
                 for(int j = 0; j < ubo.BinarySteps; ++j)
                 {
-                    vec3 mid = (a + b) * 0.5;
-                    vec3 mvs = ReconstructVS(ProjectUV(mid), SceneDepth(ProjectUV(mid)));
+                    vec3 mid   = (a + b) * 0.5;
+                    vec2 midUV = ProjectUV(mid);
+                    vec3 mvs   = ReconstructVS(midUV, SceneDepth(midUV));
                     if(mvs.z - mid.z > 0.0)
                         b = mid;   // still behind
                     else
@@ -184,19 +159,11 @@ void main()
     if(!hit && !hasEnv)
         return;
 
-    // Gentle grazing boost only — never crush head-on reflections (that was the
-    // "fades out too fast" bug). Head-on keeps ~0.75, grazing rises to 1.0.
     float NoV          = clamp(dot(-viewDir, normalVS), 0.0, 1.0);
     float grazingBoost = mix(0.75, 1.0, pow(1.0 - NoV, 4.0));
 
-    // Keep reflections strong across most of the roughness range, only rolling
-    // off in the last stretch before MaxRoughness. The old curve started at 0
-    // so a 0.5-roughness floor was already ~95% gone — that read as "no/dirty
-    // reflection". Now it stays near full until ~0.6*MaxRoughness.
     float roughFade = 1.0 - smoothstep(ubo.MaxRoughness * 0.6, ubo.MaxRoughness, roughness);
 
-    // Confidence in the screen-space hit: full in the centre, fading at screen
-    // edges and at the end of the march. Where it drops, we lean on the env map.
     float screenConf = 0.0;
     if(hit)
     {
@@ -213,8 +180,6 @@ void main()
     float amount;
     if(hasEnv)
     {
-        // Prefiltered environment, roughness-selected mip — matches the forward
-        // IBL lookup so the fallback is continuous with on-screen reflections.
         mat3 invViewRot = transpose(mat3(ubo.view));
         vec3 reflW      = normalize(invViewRot * reflVS);
         float maxMip    = max(ubo.EnvMipCount - 1.0, 1.0);

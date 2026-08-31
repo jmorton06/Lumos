@@ -50,6 +50,7 @@ namespace Lumos
 
         float m_FontSize;
         float m_DPIScale;
+        float m_MousePosScale = 1.0f;
 
         UniquePtr<Graphics::IMGUIRenderer> m_IMGUIRenderer;
         bool m_ClearScreen;

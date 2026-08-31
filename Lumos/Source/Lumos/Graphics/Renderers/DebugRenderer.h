@@ -12,6 +12,9 @@ namespace Lumos
 #define LOG_TEXT_SIZE 14.0f
 #define STATUS_TEXT_SIZE 16.0f
 
+    // Default world-space debug line thickness (MoltenVK has no wideLines → thick lines = camera-facing quads).
+    static constexpr float DEBUG_LINE_WIDTH = 0.04f;
+
     struct LogEntry
     {
         Vec4 colour;
@@ -44,6 +47,7 @@ namespace Lumos
         class PointRenderer;
         class Material;
         struct Light;
+        struct Light2D;
     }
 
     class SoundNode;
@@ -56,7 +60,8 @@ namespace Lumos
         Vec3 p1;
         Vec3 p2;
         Vec4 col;
-        float time = 0.0f;
+        float width = DEBUG_LINE_WIDTH; // world-space thickness (thick lines only)
+        float time  = 0.0f;
 
         LineInfo() = default;
         LineInfo(const Vec3& pos1, const Vec3& pos2, const Vec4& colour, float t = 0.0f)
@@ -65,6 +70,14 @@ namespace Lumos
             p2   = pos2;
             col  = colour;
             time = t;
+        }
+        LineInfo(const Vec3& pos1, const Vec3& pos2, const Vec4& colour, float lineWidth, float t)
+        {
+            p1    = pos1;
+            p2    = pos2;
+            col   = colour;
+            width = lineWidth;
+            time  = t;
         }
     };
 
@@ -165,16 +178,17 @@ namespace Lumos
         static void SortLists();
         static void ClearLogEntries();
 
-        static void DebugDraw(const Maths::BoundingBox& box, const Vec4& edgeColour, bool cornersOnly = false, bool depthTested = false, float width = 0.02f);
+        static void DebugDraw(const Maths::BoundingBox& box, const Vec4& edgeColour, bool cornersOnly = false, bool depthTested = false, float width = DEBUG_LINE_WIDTH);
         static void DebugDraw(const Maths::BoundingSphere& sphere, const Vec4& colour);
         static void DebugDraw(Maths::Frustum& frustum, const Vec4& colour);
         static void DebugDraw(Graphics::Light* light, const Quat& rotation, const Vec4& colour);
+        static void DebugDraw(const Graphics::Light2D& light, const Vec3& position, const Quat& rotation, const Vec4& colour);
         static void DebugDraw(const Maths::Ray& ray, const Vec4& colour = Vec4(1.0f, 1.0f, 1.0f, 1.0f), float distance = 1000.0f);
         static void DebugDraw(SoundNode* sound, const Vec4& colour);
-        static void DebugDrawSphere(float radius, const Vec3& position, const Vec4& colour);
-        static void DebugDrawCircle(int numVerts, float radius, const Vec3& position, const Quat& rotation, const Vec4& colour);
-        static void DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const Vec3& position, const Quat& rotation, const Vec4& colour);
-        static void DebugDrawCapsule(const Vec3& position, const Quat& rotation, float height, float radius, const Vec4& colour);
+        static void DebugDrawSphere(float radius, const Vec3& position, const Vec4& colour, float thickness = DEBUG_LINE_WIDTH);
+        static void DebugDrawCircle(int numVerts, float radius, const Vec3& position, const Quat& rotation, const Vec4& colour, float thickness = DEBUG_LINE_WIDTH);
+        static void DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const Vec3& position, const Quat& rotation, const Vec4& colour, float thickness = DEBUG_LINE_WIDTH);
+        static void DebugDrawCapsule(const Vec3& position, const Quat& rotation, float height, float radius, const Vec4& colour, float thickness = DEBUG_LINE_WIDTH);
         static void DebugDrawBone(const Vec3& parent, const Vec3& child, const Vec4& colour = Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
         const TDArray<TriangleInfo>& GetTriangles(bool depthTested = false) const { return (depthTested ? m_DrawList.m_DebugTriangles : m_DrawListNDT.m_DebugTriangles); }

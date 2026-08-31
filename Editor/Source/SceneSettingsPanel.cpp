@@ -119,6 +119,7 @@ namespace Lumos
 
                         ImGui::Columns(2);
                         postprocessSetting("FXAA", "##FXAA", sceneSettings.RenderSettings.FXAAEnabled, true);
+                        postprocessSetting("SMAA", "##SMAA", sceneSettings.RenderSettings.SMAAEnabled, true);
                         postprocessSetting("Debanding", "##Debanding", sceneSettings.RenderSettings.DebandingEnabled, true);
                         postprocessSetting("Chromatic Aberation", "##ChromaticAberation", sceneSettings.RenderSettings.ChromaticAberationEnabled, true);
                         postprocessSetting("Filmic Grain", "##FilmicGrain", sceneSettings.RenderSettings.FilmicGrainEnabled, true);

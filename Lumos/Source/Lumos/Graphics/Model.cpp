@@ -97,8 +97,6 @@ namespace Lumos::Graphics
             return;
         }
 
-        // Check for imported .lmesh version
-        // Convert source path to imported path: //Assets/Imported/<hash>.lmesh
         {
             std::string normalizedPath = AssetImporter::NormalizeAssetPath(path);
             u64 pathHash = MurmurHash64A(normalizedPath.c_str(), (int)normalizedPath.size(), 0);
@@ -288,11 +286,6 @@ namespace Lumos::Graphics
         m_FilePath      = path;
         m_PrimitiveType = PrimitiveType::File;
 
-        // Defer all model loading to main thread so caller doesn't block.
-        // Import() and LoadModel() both create GPU buffers, so they must run on main thread.
-        // This is still beneficial: the caller returns immediately and the model
-        // loads on the next frame's main thread dispatch, avoiding frame hitches
-        // during scene construction.
         auto* self = this;
         std::string pathCopy = path;
 

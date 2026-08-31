@@ -3,10 +3,12 @@
 #extension GL_ARB_shading_language_420pack : enable
 #include "BuffersInstanced.glslh"
 
-layout(std430, set = 3, binding = 0) readonly buffer InstanceTransforms
+layout(std430, set = 3, binding = 0) readonly buffer InstanceBuffer
 {
-	mat4 transforms[];
-} u_InstanceTransforms;
+	vec4 data[];
+} u_Instances;
+
+const int INSTANCE_VEC4S = 5;
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec4 inColor;
@@ -33,11 +35,14 @@ out gl_PerVertex
 
 void main()
 {
-	mat4 transform = u_InstanceTransforms.transforms[gl_InstanceIndex];
+	int base = gl_InstanceIndex * INSTANCE_VEC4S;
+	mat4 transform = mat4(u_Instances.data[base + 0], u_Instances.data[base + 1],
+	                      u_Instances.data[base + 2], u_Instances.data[base + 3]);
 	VertexOutput.Position = transform * vec4(inPosition, 1.0);
     gl_Position = u_CameraData.projView * VertexOutput.Position;
 
-	VertexOutput.Colour = inColor.xyz;
+	// Per-instance albedo (5th vec4).
+	VertexOutput.Colour = u_Instances.data[base + 4].xyz;
 	VertexOutput.TexCoord = inTexCoord;
 
 	mat3 transposeInv = transpose(inverse(mat3(transform)));

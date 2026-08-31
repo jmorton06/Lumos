@@ -18,10 +18,24 @@ namespace Lumos
         High   = 3
     };
 
+    enum class SSRQualitySetting
+    {
+        Low    = 1,
+        Medium = 2,
+        High   = 3
+    };
+
+    enum class SSAOQualitySetting
+    {
+        Low    = 1,
+        Medium = 2,
+        High   = 3
+    };
+
     struct QualitySettings
     {
 #ifdef LUMOS_PLATFORM_MACOS
-        float RendererScale = 1.0f;
+        float RendererScale = 0.75f;
 #else
         float RendererScale = 1.0f;
 
@@ -37,6 +51,39 @@ namespace Lumos
         bool EnableSSR   = false;
         bool EnableSSAO  = false;
         bool EnableFXAA  = true;
+
+        SSRQualitySetting SSRQuality   = SSRQualitySetting::Medium;
+        SSAOQualitySetting SSAOQuality = SSAOQualitySetting::Medium;
+
+        // SSAO kernel samples per quality (max 64 — size of the sample array).
+        int SSAOSampleCount() const
+        {
+            switch(SSAOQuality)
+            {
+            case SSAOQualitySetting::Low:  return 8;
+            case SSAOQualitySetting::High: return 32;
+            default:                       return 16;
+            }
+        }
+
+        int SSRStepCap() const
+        {
+            switch(SSRQuality)
+            {
+            case SSRQualitySetting::Low:  return 8;
+            case SSRQualitySetting::High: return 24;
+            default:                      return 16;
+            }
+        }
+        int SSRBinaryStepCap() const
+        {
+            switch(SSRQuality)
+            {
+            case SSRQualitySetting::Low:  return 3;
+            case SSRQualitySetting::High: return 5;
+            default:                      return 4;
+            }
+        }
 
         u32 IrradianceMapSize = 64;
 #ifdef LUMOS_PLATFORM_MACOS
@@ -62,6 +109,8 @@ namespace Lumos
                 EnableSSR   = false;
                 EnableSSAO  = false;
                 EnableFXAA  = false;
+                SSRQuality  = SSRQualitySetting::Low;
+                SSAOQuality = SSAOQualitySetting::Low;
                 break;
             }
             case 1:
@@ -72,9 +121,11 @@ namespace Lumos
 
                 EnableBloom = true;
                 EnableDOF   = false;
-                EnableSSR   = false;
+                EnableSSR   = true;
                 EnableSSAO  = true;
                 EnableFXAA  = true;
+                SSRQuality  = SSRQualitySetting::Medium;
+                SSAOQuality = SSAOQualitySetting::Medium;
                 break;
             }
             default:
@@ -86,9 +137,11 @@ namespace Lumos
 
                 EnableBloom = true;
                 EnableDOF   = true;
-                EnableSSR   = false;
+                EnableSSR   = true;
                 EnableSSAO  = true;
                 EnableFXAA  = true;
+                SSRQuality  = SSRQualitySetting::High;
+                SSAOQuality = SSAOQualitySetting::High;
                 break;
             }
             }

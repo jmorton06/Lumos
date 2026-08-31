@@ -1,11 +1,6 @@
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-#ifdef __EMSCRIPTEN__
-#  include <GLES2/gl2.h>
-#  include <emscripten/html5.h>
-#else
-#  include "imgui/imgui_impl_opengl3_loader.h"
-#endif
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+#include <backends/imgui_impl_opengl3_loader.h>
 
 #include <chrono>
 #include <GLFW/glfw3.h>
@@ -13,17 +8,72 @@
 #include <stdlib.h>
 #include <thread>
 
-#include "../../server/TracyImGui.hpp"
+#include "profiler/TracyConfig.hpp"
+#include "profiler/TracyImGui.hpp"
 
 #include "Backend.hpp"
 #include "RunQueue.hpp"
 
+#ifdef __APPLE__
+#include <objc/objc.h>
+#include <objc/message.h>
+#include <objc/runtime.h>
+#include "icon.hpp"
+#endif
+
 
 static GLFWwindow* s_window;
 static std::function<void()> s_redraw;
+static std::function<void(float)> s_scaleChanged;
 static RunQueue* s_mainThreadTasks;
 static WindowPosition* s_winPos;
 static bool s_iconified;
+static float s_prevScale = -1;
+
+#ifdef __APPLE__
+typedef long NSInteger;
+typedef unsigned long NSUInteger;
+
+namespace
+{
+
+static void EnsureMacAppRegistration()
+{
+    static bool initialized = false;
+    if( initialized ) return;
+    initialized = true;
+
+    id pool = ((id (*)(Class, SEL))objc_msgSend)((Class)objc_getClass("NSAutoreleasePool"), sel_getUid("alloc"));
+    pool = ((id (*)(id, SEL))objc_msgSend)(pool, sel_getUid("init"));
+
+    id app = ((id (*)(Class, SEL))objc_msgSend)((Class)objc_getClass("NSApplication"), sel_getUid("sharedApplication"));
+    ((void (*)(id, SEL, NSInteger))objc_msgSend)(app, sel_getUid("setActivationPolicy:"), (NSInteger)0);
+    ((void (*)(id, SEL, BOOL))objc_msgSend)(app, sel_getUid("activateIgnoringOtherApps:"), (BOOL)1);
+
+    ((void (*)(id, SEL))objc_msgSend)(pool, sel_getUid("release"));
+}
+
+static void SetMacAppIcon()
+{
+    id pool = ((id (*)(Class, SEL))objc_msgSend)((Class)objc_getClass("NSAutoreleasePool"), sel_getUid("alloc"));
+    pool = ((id (*)(id, SEL))objc_msgSend)(pool, sel_getUid("init"));
+
+    id data = ((id (*)(Class, SEL, const void*, NSUInteger))objc_msgSend)((Class)objc_getClass("NSData"), sel_getUid("dataWithBytes:length:"), (const void*)Icon_data, (NSUInteger)Icon_size);
+    id image = ((id (*)(Class, SEL))objc_msgSend)((Class)objc_getClass("NSImage"), sel_getUid("alloc"));
+    image = ((id (*)(id, SEL, id))objc_msgSend)(image, sel_getUid("initWithData:"), data);
+    if( image )
+    {
+        id app = ((id (*)(Class, SEL))objc_msgSend)((Class)objc_getClass("NSApplication"), sel_getUid("sharedApplication"));
+        ((void (*)(id, SEL, id))objc_msgSend)(app, sel_getUid("setApplicationIconImage:"), image);
+        ((void (*)(id, SEL))objc_msgSend)(image, sel_getUid("release"));
+    }
+
+    ((void (*)(id, SEL))objc_msgSend)(pool, sel_getUid("release"));
+}
+
+}
+#endif
+
 
 static void glfw_error_callback( int error, const char* description )
 {
@@ -60,7 +110,7 @@ static void glfw_window_iconify_callback( GLFWwindow*, int iconified )
 }
 
 
-Backend::Backend( const char* title, const std::function<void()>& redraw, RunQueue* mainThreadTasks )
+Backend::Backend( const char* title, const std::function<void()>& redraw, const std::function<void(float)>& scaleChanged, const std::function<int(void)>& isBusy, RunQueue* mainThreadTasks )
 {
     glfwSetErrorCallback( glfw_error_callback );
     if( !glfwInit() ) exit( 1 );
@@ -79,9 +129,23 @@ Backend::Backend( const char* title, const std::function<void()>& redraw, RunQue
 #  if GLFW_VERSION_MAJOR > 3 || ( GLFW_VERSION_MAJOR == 3 && GLFW_VERSION_MINOR >= 4 )
     glfwWindowHint( GLFW_WIN32_KEYBOARD_MENU, 1 );
 #  endif
+#  if GLFW_VERSION_MAJOR > 3 || ( GLFW_VERSION_MAJOR == 3 && GLFW_VERSION_MINOR >= 3 )
+    glfwWindowHint( GLFW_SCALE_TO_MONITOR, 1 );
+#  endif
 #endif
     s_window = glfwCreateWindow( m_winPos.w, m_winPos.h, title, NULL, NULL );
-    if( !s_window ) exit( 1 );
+    if( !s_window ) {
+        const char* description;
+        int code = glfwGetError( &description );
+        if( description ) {
+            fprintf( stderr, "ERROR: Tracy (GLFW): %s\n", description );
+#ifdef _WIN32
+            MessageBoxA( NULL, description, "ERROR: Tracy (GLFW)", MB_OK );
+            OutputDebugStringA( description );
+#endif
+        }
+        exit( 1 );
+    }
 
     glfwSetWindowPos( s_window, m_winPos.x, m_winPos.y );
 #if GLFW_VERSION_MAJOR > 3 || ( GLFW_VERSION_MAJOR == 3 && GLFW_VERSION_MINOR >= 2 )
@@ -93,13 +157,10 @@ Backend::Backend( const char* title, const std::function<void()>& redraw, RunQue
     glfwSetWindowRefreshCallback( s_window, []( GLFWwindow* ) { tracy::s_wasActive = true; s_redraw(); } );
 
     ImGui_ImplGlfw_InitForOpenGL( s_window, true );
-#ifdef __EMSCRIPTEN__
-    ImGui_ImplOpenGL3_Init( "#version 100" );
-#else
     ImGui_ImplOpenGL3_Init( "#version 150" );
-#endif
 
     s_redraw = redraw;
+    s_scaleChanged = scaleChanged;
     s_mainThreadTasks = mainThreadTasks;
     s_winPos = &m_winPos;
     s_iconified = false;
@@ -110,6 +171,10 @@ Backend::Backend( const char* title, const std::function<void()>& redraw, RunQue
     glfwSetWindowMaximizeCallback( s_window, glfw_window_maximize_callback );
 #endif
     glfwSetWindowIconifyCallback( s_window, glfw_window_iconify_callback );
+
+#ifdef __APPLE__
+    EnsureMacAppRegistration();
+#endif
 }
 
 Backend::~Backend()
@@ -129,13 +194,6 @@ void Backend::Show()
 
 void Backend::Run()
 {
-#ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop( []() {
-        glfwPollEvents();
-        s_redraw();
-        s_mainThreadTasks->Run();
-    }, 0, 1 );
-#else
     while( !glfwWindowShouldClose( s_window ) )
     {
         if( s_iconified )
@@ -146,14 +204,10 @@ void Backend::Run()
         {
             glfwPollEvents();
             s_redraw();
-            if( !glfwGetWindowAttrib( s_window, GLFW_FOCUSED ) )
-            {
-                std::this_thread::sleep_for( std::chrono::milliseconds( 50 ) );
-            }
+            if( tracy::s_config.focusLostLimit && !glfwGetWindowAttrib( s_window, GLFW_FOCUSED ) ) std::this_thread::sleep_for( std::chrono::milliseconds( 50 ) );
             s_mainThreadTasks->Run();
         }
     }
-#endif
 }
 
 void Backend::Attention()
@@ -168,7 +222,18 @@ void Backend::Attention()
 
 void Backend::NewFrame( int& w, int& h )
 {
+    const auto scale = GetDpiScale();
+    if( scale != s_prevScale )
+    {
+        s_prevScale = scale;
+        s_scaleChanged( scale );
+    }
+
     glfwGetFramebufferSize( s_window, &w, &h );
+#if defined( __APPLE__ )
+    w = static_cast<int>( w / scale );
+    h = static_cast<int>( h / scale );
+#endif
     m_w = w;
     m_h = h;
 
@@ -178,7 +243,7 @@ void Backend::NewFrame( int& w, int& h )
 
 void Backend::EndFrame()
 {
-    const ImVec4 clear_color = ImColor( 114, 144, 154 );
+    const ImVec4 clear_color = ImColor( 20, 20, 17 );
 
     ImGui::Render();
     glViewport( 0, 0, m_w, m_h );
@@ -191,11 +256,16 @@ void Backend::EndFrame()
 
 void Backend::SetIcon( uint8_t* data, int w, int h )
 {
+#ifdef __APPLE__
+    EnsureMacAppRegistration();
+    SetMacAppIcon();
+#else
     GLFWimage icon;
     icon.width = w;
     icon.height = h;
     icon.pixels = data;
     glfwSetWindowIcon( s_window, 1, &icon );
+#endif
 }
 
 void Backend::SetTitle( const char* title )
@@ -205,25 +275,11 @@ void Backend::SetTitle( const char* title )
 
 float Backend::GetDpiScale()
 {
-#ifdef __EMSCRIPTEN__
-    return EM_ASM_DOUBLE( { return window.devicePixelRatio; } );
-#elif GLFW_VERSION_MAJOR > 3 || ( GLFW_VERSION_MAJOR == 3 && GLFW_VERSION_MINOR >= 3 )
-    auto monitor = glfwGetWindowMonitor( s_window );
-    if( !monitor ) monitor = glfwGetPrimaryMonitor();
-    if( monitor )
-    {
-        float x, y;
-        glfwGetMonitorContentScale( monitor, &x, &y );
-        return x;
-    }
-#endif
+#if GLFW_VERSION_MAJOR > 3 || ( GLFW_VERSION_MAJOR == 3 && GLFW_VERSION_MINOR >= 3 )
+    float x, y;
+    glfwGetWindowContentScale( s_window, &x, &y );
+    return x;
+#else
     return 1;
-}
-
-#ifdef __EMSCRIPTEN__
-extern "C" int nativeResize( int width, int height )
-{
-    glfwSetWindowSize( s_window, width, height );
-    return 0;
-}
 #endif
+}

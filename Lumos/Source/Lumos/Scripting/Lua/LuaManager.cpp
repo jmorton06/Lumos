@@ -2,17 +2,21 @@
 #include "LuaManager.h"
 #include "LuaBindingRegistry.h"
 #include "Maths/Transform.h"
+#include "Maths/Ray.h"
 #include "Core/OS/Window.h"
 #include "Core/OS/FileSystem.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
 #include "Core/Engine.h"
+#include "Core/DebugMenu.h"
 #include "Core/OS/Input.h"
+#include "Core/TestRunner.h"
 #include "Scene/SceneManager.h"
 #include "LuaScriptComponent.h"
 #include "Scene/SceneGraph.h"
 #include "Graphics/Camera/ThirdPersonCamera.h"
 #include "Graphics/UI.h"
+#include "Graphics/MDIIcons.h"
 
 #include "Scene/Component/Components.h"
 #include "Graphics/Camera/Camera.h"
@@ -20,6 +24,7 @@
 
 #include "Graphics/Sprite.h"
 #include "Graphics/AnimatedSprite.h"
+#include "Graphics/Light2D.h"
 #include "Graphics/Light.h"
 #include "Graphics/RHI/Texture.h"
 #include "Graphics/RHI/CommandBuffer.h"
@@ -58,6 +63,16 @@
 #include "ImGui/ImGuiManager.h"
 #include "Utilities/LoadImage.h"
 #include "Utilities/ImageExport.h"
+#include "Utilities/CSV.h"
+#include "Utilities/Colour.h"
+#include "Graphics/PointCloud.h"
+#include "Graphics/LineCloud.h"
+#include "Graphics/WorldText.h"
+#include "Graphics/PlanetField.h"
+#include "Graphics/CosmoBackdrop.h"
+#include <cmath>
+#include <cstring>
+#include <unordered_map>
 #include "Graphics/ShaderCompiler.h"
 #include "Graphics/ShaderPreview.h"
 
@@ -183,9 +198,6 @@ namespace Lumos
 
     TDArray<std::string> LuaManager::s_Identifiers;
 
-    // Hand-typed catalogue of every binding the editor's autocomplete uses.
-    // Component Add/Get/Has/etc are wired via REGISTER_COMPONENT_WITH_ECS; this
-    // covers everything that isn't a component.
     static void PopulateRegistryBuiltins()
     {
         using namespace LuaRegistry;
@@ -243,6 +255,7 @@ namespace Lumos
         AddMethod("Transform", "GetWorldOrientation", "Quat", "() -> Quat");
         AddMethod("Transform", "GetForwardDirection", "Vec3", "() -> Vec3");
         AddMethod("Transform", "GetRightDirection",   "Vec3", "() -> Vec3");
+        AddMethod("Transform", "GetUpDirection",      "Vec3", "() -> Vec3");
 
         // Easing / animation globals.
         for(const char* n : { "SineOut","SineIn","SineInOut",
@@ -264,6 +277,22 @@ namespace Lumos
         AddMethod("Input", "GetControllerName",        "string","(id: int) -> string");
         AddMethod("Input", "GetControllerHat",         "int",   "(id: int, hat: int) -> int");
         AddMethod("Input", "IsControllerButtonPressed","bool",  "(id: int, button: int) -> bool");
+        AddMethod("Input", "SetMousePosition",         "void",  "(x: float, y: float) - drives UI hit-testing");
+        AddMethod("Input", "SetMouseClicked",          "void",  "(button: MouseButton, down: bool)");
+        AddMethod("Input", "SetMouseHeld",             "void",  "(button: MouseButton, down: bool)");
+        AddMethod("Input", "SetKeyPressed",            "void",  "(key: Key, down: bool)");
+        AddMethod("Input", "SetKeyHeld",               "void",  "(key: Key, down: bool)");
+        AddMethod("Input", "SetScrollOffset",          "void",  "(offset: float)");
+        AddMethod("Input", "SetScrollOffsetX",         "void",  "(offset: float)");
+        AddMethod("Input", "SetTouchCount",            "void",  "(count: int)");
+        AddMethod("Input", "SetMouseOnScreen",         "void",  "(onScreen: bool)");
+        AddMethod("Input", "GamepadPresent",           "bool",  "() -> bool");
+        AddMethod("Input", "GamepadName",              "string","() -> string");
+        AddMethod("Input", "GamepadAxis",              "float", "(axis: GamepadAxis) -> float (-1..1; triggers 0..1)");
+        AddMethod("Input", "GamepadHeld",              "bool",  "(button: GamepadButton) -> bool");
+        AddMethod("Input", "GamepadPressed",           "bool",  "(button: GamepadButton) -> bool (this frame only)");
+        AddMethod("Input", "SetGamepadDeadZone",       "void",  "(deadZone: float)");
+        AddMethod("Input", "AddGamepadMappings",       "bool",  "(sdlMappings: string) -> bool");
         AddMethod("Input", "GetPanActive",             "bool",  "() -> bool");
         AddMethod("Input", "GetPanTranslation",        "Vec2",  "() -> Vec2");
         AddMethod("Input", "GetPanVelocity",           "Vec2",  "() -> Vec2");
@@ -273,6 +302,7 @@ namespace Lumos
         AddMethod("Input", "GetPinchVelocity",         "float", "() -> float");
         AddMethod("Input", "GetLongPressActive",       "bool",  "() -> bool");
         AddMethod("Input", "GetLongPressPosition",     "Vec2",  "() -> Vec2");
+        AddMethod("Input", "GetTouchCount",            "int",   "() -> int");
         AddMethod("Input", "GetScreenSize",            "Vec2",  "() -> Vec2");
         AddMethod("Input", "GetDPIScale",              "float", "() -> float");
         AddConstructor("Input");
@@ -401,10 +431,15 @@ namespace Lumos
         AddGlobal("SwitchSceneByName",   "",            "(name: string) -> void");
         AddGlobal("SwitchScene",         "",            "() -> void");
         AddGlobal("ExitApp",             "",            "() -> void");
+        AddGlobal("GetPlatformName",     "string",      "() -> string  -- iOS/Android/macOS/Windows/Linux");
         AddGlobal("SetPhysicsDebugFlags","",            "(flags: int) -> void");
         AddGlobal("SetSkyColour",        "",            "(rgb: Vec3) -> void");
+        AddGlobal("Debug",               "table",       "-- in-game debug overlay: RegisterCommand/RegisterToggle/RegisterFloat/Run/Open/ShowPanel");
         AddGlobal("DebugLine",           "",            "(a: Vec3, b: Vec3, thickness: float, col: Vec4) -> void");
         AddGlobal("DebugPoint",          "",            "(p: Vec3, r: float, col: Vec4) -> void");
+        AddGlobal("DebugRect",           "",            "(min: Vec2, max: Vec2, col: Vec4, z?: float, thickness?: float) -> void");
+        AddGlobal("DebugBox",            "",            "(centre: Vec2, halfSize: Vec2, col: Vec4, z?: float, thickness?: float) -> void");
+        AddGlobal("DebugCircle",         "",            "(centre: Vec2, r: float, col: Vec4, z?: float, thickness?: float) -> void");
 
         AddGlobal("GetEntityByName",     "Entity",      "(scene: Scene, name: string) -> Entity");
         AddGlobal("GetAllEntities",      "table",       "() -> Entity[]");
@@ -423,6 +458,11 @@ namespace Lumos
         AddGlobal("AddDecorCube",        "Entity", "(scene: Scene, name?: string, pos: Vec3, scale: Vec3, colour: Vec4) -> Entity");
         AddGlobal("AddPhysicsSphere",    "Entity", "(scene: Scene, name: string, pos: Vec3, radius: float, inverseMass: float, colour: Vec4) -> Entity");
         AddGlobal("SetEntityPulse",      "",       "(e: Entity, albedo: Vec4, emissive: float) -> void");
+        AddGlobal("SetModelEmissive",    "",       "(m: Model, colour: Vec4, intensity: float) -> void");
+        AddGlobal("UISetClickOnRelease", "",       "(enable: bool) -> void  -- touch: clicks fire on release-inside w/ drag-slop cancel");
+        AddGlobal("UIBeginScrollArea", "",         "(id: string, height: float) -> void  -- scrollable clipped region; height in px (DPI-scale it yourself)");
+        AddGlobal("UIEndScrollArea", "",           "() -> void");
+        AddGlobal("UIFocusNextTextInput", "",      "() -> void  -- next text input built claims focus (opens iOS keyboard)");
 
         // Entity core methods (Has/Add/Get/etc per-component come from the macro).
         AddMethod("Entity", "Valid",       "bool",   "() -> bool");
@@ -462,6 +502,11 @@ namespace Lumos
         AddMethod("SoundNode", "Create",     "SoundNode","(s?: Sound) -> SoundNode");
         AddConstructor("SoundNode");
         AddMethod("SoundComponent", "GetSoundNode", "SoundNode", "() -> SoundNode");
+        // Global/bus volume. Applies to sounds already playing.
+        AddMethod("AudioMixer", "SetVolume",    "",      "(v: float) -> void");
+        AddMethod("AudioMixer", "GetVolume",    "float", "() -> float");
+        AddMethod("AudioMixer", "SetBusVolume", "",      "(bus: string, v: float) -> void");
+        AddMethod("AudioMixer", "GetBusVolume", "float", "(bus: string) -> float");
 
         // ---- Graphics ----
         AddConstructor("Texture2D");
@@ -536,11 +581,25 @@ namespace Lumos
         AddMethod("Sprite", "SetSpriteSheetIndex",   "", "(i: int) -> void");
         AddField("Sprite", "SpriteSheetTileSizeX", "int");
         AddField("Sprite", "SpriteSheetTileSizeY", "int");
+        AddMethod("Sprite", "SetPosition",           "", "(p: Vec2) -> void");
+        AddMethod("Sprite", "SetScale",              "", "(s: Vec2) -> void");
+        AddMethod("Sprite", "SetColour",             "", "(c: Vec4) -> void");
         AddConstructor("AnimatedSprite");
         AddMethod("AnimatedSprite", "SetTexture",          "", "(t: Texture2D) -> void");
-        AddMethod("AnimatedSprite", "SetSpriteSheet",      "", "(t: Texture2D) -> void");
-        AddMethod("AnimatedSprite", "SetSpriteSheetIndex", "", "(i: int) -> void");
-        AddMethod("AnimatedSprite", "SetState",            "", "(i: int) -> void");
+        AddMethod("AnimatedSprite", "SetTextureFromFile",  "", "(path: string) -> void");
+        AddMethod("AnimatedSprite", "SetSpriteSheet",      "", "(index: Vec2, cellSize: Vec2, spriteSize: Vec2, border?: float) -> void");
+        AddMethod("AnimatedSprite", "SetSpriteSheetIndex", "", "(x: int, y: int) -> void");
+        AddMethod("AnimatedSprite", "SetState",            "", "(name: string) -> void");
+        AddMethod("AnimatedSprite", "GetState",            "string", "() -> string");
+        AddMethod("AnimatedSprite", "SetPosition",         "", "(p: Vec2) -> void");
+        AddMethod("AnimatedSprite", "SetScale",            "", "(s: Vec2) -> void");
+        AddMethod("AnimatedSprite", "SetColour",           "", "(c: Vec4) -> void");
+        AddMethod("AnimatedSprite", "AddState",            "", "(name: string, frames: Vec2[], frameDuration: float, pingPong?: bool) -> void");
+        AddMethod("AnimatedSprite", "AddGridState",        "", "(name: string, cellSize: Vec2, row: int, firstColumn: int, frameCount: int, frameDuration: float, pingPong?: bool) -> void");
+        AddMethod("AnimatedSprite", "SetPlayMode",         "", "(name: string, mode: int) -> void  -- 0 loop, 1 ping-pong");
+        AddMethod("AnimatedSprite", "SetFrameDuration",   "", "(name: string, seconds: float) -> void");
+        AddField("AnimatedSprite", "FrameSize", "Vec2");
+        AddField("AnimatedSprite", "ReceivesLight", "bool");
 
         // Particles.
         AddConstructor("ParticleEmitter", "(count?: int) -> ParticleEmitter");
@@ -550,7 +609,7 @@ namespace Lumos
             "SetNextParticleTime","SetParticleRate","SetNumLaunchParticles","SetIsAnimated",
             "SetAnimatedTextureRows","SetSortParticles","SetBlendType","SetFadeIn",
             "SetFadeOut","SetLifeSpread","SetAlignedType","SetDepthWrite",
-            "SetTextureFromFile" })
+            "SetLocalSpace","SetSpawnOffset","SetTextureFromFile" })
             AddMethod("ParticleEmitter", setter, "", "(v) -> void");
         AddMethod("ParticleEmitter", "Update", "", "(dt: float) -> void");
 
@@ -573,6 +632,8 @@ namespace Lumos
         AddGlobal("UIWindowFillScreen","","() -> void");
         AddGlobal("UIWindowSetSize","",  "(w: float, h: float) -> void");
         AddGlobal("UILabel",        "", "(name: string, text: string) -> void");
+        AddGlobal("UILabelWrapped", "", "(name: string, text: string, maxWidth: float) -> void");
+        AddGlobal("UILabelEllipsis","", "(name: string, text: string, maxWidth: float) -> void");
         AddGlobal("UIButton",       "UI_Interaction", "(text: string) -> UI_Interaction");
         AddGlobal("UIImage",        "", "(t: Texture2D) -> void");
         AddGlobal("UISeparator",    "", "(w?: float) -> void");
@@ -581,6 +642,10 @@ namespace Lumos
         AddGlobal("UIToggle",       "bool",  "(label: string, value: bool) -> bool");
         AddGlobal("UIProgressBar",  "bool",  "(label: string, p: float, w?: float, h?: float) -> bool");
         AddGlobal("UIArrow",        "bool",  "(dir: int) -> bool");
+        AddGlobal("UIBeginRadar",   "UI_Interaction", "(id: string, diameter: float, bg: Vec4, ring: Vec4) -> UI_Interaction");
+        AddGlobal("UIRadarBlip",    "UI_Interaction", "(id: string, x: float, y: float, size: float, tint: Vec4, texture?: Texture2D) -> UI_Interaction");
+        AddGlobal("UIRadarRing",    "void", "(id: string, radius: float, colour: Vec4, thickness?: float)");
+        AddGlobal("UIEndRadar",     "", "() -> void");
         AddGlobal("UILayoutRoot",   "", "() -> void");
         AddGlobal("UIPushStyle",    "", "(v: StyleVar, val: float|Vec2|Vec3|Vec4) -> void");
         AddGlobal("UISetNextFlags", "", "(flags: WidgetFlags) -> void");
@@ -631,7 +696,7 @@ namespace Lumos
             AddEnum("UIDock", s);
         for(const char* s : { "X","Y","Count" })
             AddEnum("UIAxis", s);
-        for(const char* s : { "Pixels","TextContent","PercentOfParent","ChildSum","MaxChild","PercentOfViewport" })
+        for(const char* s : { "Pixels","TextContent","PercentOfParent","ChildSum","MaxChild","PercentOfViewport","Grow" })
             AddEnum("SizeKind", s);
         for(const char* s : { "Padding","Border","BorderColor","BackgroundColor","TextColor",
                               "HotBorderColor","HotBackgroundColor","HotTextColor",
@@ -640,7 +705,8 @@ namespace Lumos
             AddEnum("StyleVar", s);
         for(const char* s : { "Clickable","DrawText","DrawBorder","DrawBackground","Draggable",
                               "StackVertically","StackHorizontally","Floating_X","Floating_Y",
-                              "CentreX","CentreY","CentreChildrenX","CentreChildrenY","DragParent" })
+                              "CentreX","CentreY","CentreChildrenX","CentreChildrenY","DragParent",
+                              "AnimateScale","AnimateAppear","AlignRight","AnimateExit" })
             AddEnum("WidgetFlags", s);
         for(const char* s : { "None","Center_X","Center_Y" })
             AddEnum("UITextAlignment", s);
@@ -652,8 +718,6 @@ namespace Lumos
                               "AABB","LINEARVELOCITY","LINEARFORCE","BROADPHASE","BROADPHASE_PAIRS","BOUNDING_RADIUS" })
             AddEnum("PhysicsDebugFlags", s);
 
-        // ---- Lua standard library (sol::lib::base, math, string, table, os) ----
-        // math
         AddConstructor("math");
         for(const char* n : { "abs","acos","asin","atan","ceil","cos","deg","exp","floor","fmod",
                               "log","max","min","modf","pow","rad","sin","sqrt","tan","tointeger",
@@ -748,10 +812,6 @@ namespace Lumos
     {
     }
 #endif
-    // Custom Lua package searcher backed by the engine VFS. Lets require() resolve modules
-    // whether they live on the physical filesystem or inside a mounted asset pack.
-    // Search roots tried in order: "//Assets/Scripts/<name>.lua", "//Assets/Scripts/lua/<name>.lua".
-    // Submodule paths work as-is — require("game/Camera") -> "//Assets/Scripts/game/Camera.lua".
     static sol::object VFSScriptSearcher(sol::this_state ts, const std::string& moduleName)
     {
         sol::state_view state(ts);
@@ -800,10 +860,8 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
 
         m_State = new sol::state();
-        m_State->open_libraries(sol::lib::base, sol::lib::package, sol::lib::math, sol::lib::table, sol::lib::os, sol::lib::string);
+        m_State->open_libraries(sol::lib::base, sol::lib::package, sol::lib::math, sol::lib::table, sol::lib::os, sol::lib::string, sol::lib::coroutine);
 
-        // Install VFS-aware require loader (works with packed assets too).
-        // package.searchers exists from Lua 5.2; Lumos uses 5.3.
         {
             sol::table searchers = (*m_State)["package"]["searchers"];
             searchers[searchers.size() + 1] = &VFSScriptSearcher;
@@ -875,6 +933,8 @@ namespace Lumos
         BindUILua(*m_State);
         BindAppLua(*m_State);
         BindVoxelLua(*m_State);
+        BindCSVLua(*m_State);
+        TestRunner::Get().BindLua(*m_State);
 
         //GenerateLuaStubs(*m_State, "/Users/jmorton/Dev/Lumos-Dev/Lumos/Source/Lumos/Scripting/Lua/LuaStubs.lua");
 
@@ -883,6 +943,8 @@ namespace Lumos
 
     LuaManager::~LuaManager()
     {
+        // Debug commands can hold Lua callbacks - drop them before the state goes.
+        DebugMenu::Get().UnregisterScriptCommands();
         delete m_State;
     }
 
@@ -963,9 +1025,6 @@ namespace Lumos
         String8 ScriptsPath;
         FileSystem::Get().ResolvePhysicalPath(Scratch.arena, Str8Lit("//Assets/Scripts"), &ScriptsPath);
 
-        // Lua require() search paths. `?` is replaced with the dotted module name (with '.' -> '/').
-        // The leading "<Scripts>/?.lua" handles flat names like require("util/Math") -> <Scripts>/util/Math.lua.
-        // The "<Scripts>/lua/?.lua" entry keeps legacy layouts (luarocks-style) working.
         std::string scripts = std::string((const char*)ScriptsPath.str);
         std::string package_path;
         package_path += scripts + "/?.lua;";
@@ -976,8 +1035,6 @@ namespace Lumos
 
         ScratchEnd(Scratch);
 
-        // VFS searcher — handles require() from mounted .lpak (and any //Assets path).
-        // Lua passes "foo.bar" → try //Assets/Scripts/foo/bar.lua and //Assets/Scripts/foo/bar/init.lua.
         auto vfsSearcher = [](sol::this_state s, const std::string& modName) -> sol::object
         {
             sol::state_view lua(s);
@@ -1160,9 +1217,6 @@ namespace Lumos
         voxel.set_function("OverlapAABB", [getWorld](float minx, float miny, float minz, float maxx, float maxy, float maxz) -> bool
                            { auto w = getWorld(); return w ? w->OverlapAABB(Vec3(minx, miny, minz), Vec3(maxx, maxy, maxz)) : false; });
 
-        // Transform of the camera the renderer actually draws through (the first in
-        // the scene). Lets a controller script drive the real view regardless of
-        // which entity it's attached to, and avoids the "two cameras" trap.
         state.set_function("GetMainCameraTransform", []() -> Maths::Transform*
                            {
                                Scene* scene = Application::Get().GetCurrentScene();
@@ -1175,9 +1229,6 @@ namespace Lumos
                                return reg.try_get<Maths::Transform>(view.front());
                            });
 
-        // First directional light in the scene (the sun) + its transform. Colour and
-        // Intensity can be set on the Light directly, but Direction is recomputed from
-        // the entity's transform every frame, so rotate the transform to move the sun.
         auto findSun = []() -> entt::entity
         {
             Scene* scene = Application::Get().GetCurrentScene();
@@ -1240,6 +1291,265 @@ namespace Lumos
                          { LFATAL((char*)message.data()); });
     }
 
+    struct LuaCSV
+    {
+        Arena* arena = nullptr;
+        CSV csv      = {};
+        ~LuaCSV()
+        {
+            if(arena)
+                ArenaRelease(arena);
+        }
+    };
+
+    void LuaManager::RunScriptFile(const std::string& vfsPath)
+    {
+        if(vfsPath.empty())
+            return;
+
+        ArenaTemp scratch = ScratchBegin(0, 0);
+        String8 path      = PushStr8Copy(scratch.arena, vfsPath.c_str());
+        String8 code      = FileSystem::Get().ReadTextFileVFS(scratch.arena, path);
+        if(code.size == 0)
+        {
+            LWARN("[Lua] Script not found: %s", vfsPath.c_str());
+            ScratchEnd(scratch);
+            return;
+        }
+
+        auto result = m_State->safe_script(std::string_view((const char*)code.str, code.size), sol::script_pass_on_error);
+        if(!result.valid())
+        {
+            sol::error err = result;
+            LERROR("[Lua] Script error in '%s': %s", vfsPath.c_str(), err.what());
+        }
+        ScratchEnd(scratch);
+    }
+
+    void LuaManager::BindCSVLua(sol::state& state)
+    {
+        LUMOS_PROFILE_FUNCTION();
+
+        // 0-based row/column indices (matches data-processing loops).
+        state.new_usertype<LuaCSV>(
+            "CSVData",
+            "RowCount", [](LuaCSV& c)
+            { return (int)c.csv.rowCount; },
+            "ColumnCount", [](LuaCSV& c)
+            { return (int)c.csv.columnCount; },
+            "Column", [](LuaCSV& c, std::string_view name)
+            { return CSVColumn(c.csv, Str8((uint8_t*)name.data(), name.size())); },
+            "Get", [](LuaCSV& c, int row, int col)
+            { String8 f = CSVGet(c.csv, (uint32_t)row, (uint32_t)col); return std::string((const char*)f.str, f.size); },
+            "Number", [](LuaCSV& c, int row, int col)
+            { return CSVF64(c.csv, (uint32_t)row, (uint32_t)col); },
+            "Int", [](LuaCSV& c, int row, int col)
+            { return (int)CSVI64(c.csv, (uint32_t)row, (uint32_t)col); });
+
+        auto csv = state.create_table("CSV");
+        csv.set_function("Load", [](std::string_view path) -> std::shared_ptr<LuaCSV>
+                         {
+            auto wrap   = std::make_shared<LuaCSV>();
+            wrap->arena = ArenaAlloc(256 * 1024 * 1024);
+            // Cached: parses once, writes a .lcsv sidecar, later boots bulk-load it.
+            wrap->csv   = CSVParseFileCached(wrap->arena, Str8((uint8_t*)path.data(), path.size()), true);
+            return wrap; });
+
+        auto pc = state.create_table("PointCloud");
+        pc.set_function("FromCSV", [](LuaCSV& c, int xCol, int yCol, int zCol, double posScale, double baseSize, int magCol, int ciCol) -> int
+                        {
+            uint32_t rows = c.csv.rowCount;
+            if(rows == 0 || xCol < 0 || yCol < 0 || zCol < 0)
+                return 0;
+
+            // Dedicated arena - too big for scratch (rows * 32B).
+            Arena* arena = ArenaAlloc(rows * sizeof(Graphics::PointCloudVertex) + 1024);
+            Graphics::PointCloudVertex* pts = PushArrayNoZero(arena, Graphics::PointCloudVertex, rows);
+            uint32_t n = 0;
+            for(uint32_t r = 0; r < rows; r++)
+            {
+                float x = (float)(CSVF64(c.csv, r, (uint32_t)xCol) * posScale);
+                float y = (float)(CSVF64(c.csv, r, (uint32_t)yCol) * posScale);
+                float z = (float)(CSVF64(c.csv, r, (uint32_t)zCol) * posScale);
+
+                float mag = magCol >= 0 ? (float)CSVF64(c.csv, r, (uint32_t)magCol) : 4.0f;
+
+                float size = (float)baseSize;
+                if(magCol >= 0)
+                {
+                    float t = 1.0f + (2.0f - mag) * 0.20f;
+                    t       = t < 0.6f ? 0.6f : (t > 2.2f ? 2.2f : t);
+                    size    = (float)baseSize * t;
+                }
+
+                Vec4 colour(1.0f, 1.0f, 1.0f, 1.0f);
+                if(ciCol >= 0)
+                {
+                    // Colour index (B-V) -> temperature (Ballesteros) -> blackbody.
+                    float bv = (float)CSVF64(c.csv, r, (uint32_t)ciCol);
+                    bv       = bv < -0.4f ? -0.4f : (bv > 2.0f ? 2.0f : bv);
+                    float kelvin = 4600.0f * (1.0f / (0.92f * bv + 1.7f) + 1.0f / (0.92f * bv + 0.62f));
+                    colour       = Colour::BlackbodyColour(kelvin);
+                }
+
+                if(magCol >= 0)
+                {
+                    float b  = 1.85f - mag * 0.20f;
+                    colour.w = b < 0.15f ? 0.15f : (b > 2.2f ? 2.2f : b);
+                }
+
+                pts[n].PosSize = Vec4(x, y, z, size);
+                pts[n].Colour  = colour;
+                n++;
+            }
+
+            auto cloud = CreateSharedPtr<Graphics::PointCloud>();
+            cloud->SetPoints(pts, n);
+            Graphics::RegisterPointCloud(cloud);
+            ArenaRelease(arena);
+            return (int)n; });
+
+        pc.set_function("Clear", []()
+                        { Graphics::ClearPointClouds(); });
+
+        pc.set_function("SetSkyFade", [](float f)
+                        { Graphics::SetPointCloudSkyFade(f); });
+
+        pc.set_function("SetStreak", [](const Vec3& dir, float amount)
+                        { Graphics::SetPointCloudStreak(dir, amount); });
+
+        pc.set_function("PickScreen", [](float nx, float ny) -> int
+                        {
+            Scene* scene = Application::Get().GetCurrentScene();
+            if(!scene)
+                return -1;
+            auto& reg = scene->GetRegistry();
+            auto view = reg.view<Camera>();
+            if(view.begin() == view.end())
+                return -1;
+
+            entt::entity ce       = view.front();
+            Camera* cam           = &reg.get<Camera>(ce);
+            Maths::Transform* tr  = reg.try_get<Maths::Transform>(ce);
+            if(!cam || !tr)
+                return -1;
+
+            Vec3 fwd        = tr->GetForwardDirection();
+            Vec3 right      = tr->GetRightDirection();
+            Vec3 up         = tr->GetUpDirection();
+            float halfFov   = 0.5f * cam->GetFOV() * 3.14159265358979323846f / 180.0f;
+            float tanHalf   = tanf(halfFov);
+            float aspect    = cam->GetAspectRatio();
+            float ndcX      = 2.0f * nx - 1.0f;
+            float ndcY      = 1.0f - 2.0f * ny; // screen y is top-down; NDC up is +y
+            Maths::Ray ray;
+            ray.Origin      = tr->GetWorldPosition();
+            ray.Direction   = (fwd + right * (ndcX * tanHalf * aspect) + up * (ndcY * tanHalf)).Normalised();
+
+            int best     = -1;
+            float bestTan = 1e9f;
+            for(auto& cloud : Graphics::GetActivePointClouds())
+            {
+                if(!cloud)
+                    continue;
+                float tan = 0.0f;
+                // distWeight biases toward closer stars when several cluster near the ray.
+                int idx   = cloud->PickRay(ray.Origin, ray.Direction, 0.03f, &tan, 0.4f);
+                if(idx >= 0 && tan < bestTan)
+                {
+                    bestTan = tan;
+                    best    = idx;
+                }
+            }
+            return best; });
+
+        pc.set_function("NearestPoint", [](const Vec3& pos) -> int
+                        {
+            int best        = -1;
+            float bestDist  = 1e30f;
+            for(auto& cloud : Graphics::GetActivePointClouds())
+            {
+                if(!cloud)
+                    continue;
+                float dist = 0.0f;
+                int idx    = cloud->NearestPoint(pos, &dist);
+                if(idx >= 0 && dist < bestDist)
+                {
+                    bestDist = dist;
+                    best     = idx;
+                }
+            }
+            return best; });
+
+        auto lc = state.create_table("LineCloud");
+        static SharedPtr<Graphics::LineCloud> s_buildingLineCloud;
+
+        lc.set_function("Begin", []()
+                        { s_buildingLineCloud = CreateSharedPtr<Graphics::LineCloud>(); });
+
+        lc.set_function("AddLine", [](const Vec3& a, const Vec3& b, const Vec4& colour, double width,
+                                      sol::optional<double> dashPeriod, sol::optional<double> duty, sol::optional<double> arcAtA)
+                        {
+            if(s_buildingLineCloud)
+                s_buildingLineCloud->AddLine(a, b, colour, (float)width,
+                                             (float)dashPeriod.value_or(0.0),
+                                             (float)duty.value_or(0.5),
+                                             (float)arcAtA.value_or(0.0)); });
+
+        lc.set_function("End", []()
+                        {
+            if(s_buildingLineCloud)
+            {
+                s_buildingLineCloud->Finish();
+                Graphics::RegisterLineCloud(s_buildingLineCloud);
+                s_buildingLineCloud = nullptr;
+            } });
+
+        lc.set_function("Clear", []()
+                        { Graphics::ClearLineClouds(); });
+
+        lc.set_function("SetLocal", [](bool local)
+                        {
+            if(s_buildingLineCloud)
+                s_buildingLineCloud->SetLocal(local); });
+
+        lc.set_function("Draw", [](const Vec3& a, const Vec3& b, const Vec4& colour, double width,
+                                   sol::optional<bool> local, sol::optional<double> widthB,
+                                   sol::optional<double> dashPeriod, sol::optional<double> duty,
+                                   sol::optional<double> arcAtA)
+                        { Graphics::DrawImmediateLine(a, b, colour, (float)width, local.value_or(false),
+                                                      (float)dashPeriod.value_or(0.0), (float)duty.value_or(0.5),
+                                                      (float)widthB.value_or(0.0), (float)arcAtA.value_or(0.0)); });
+
+        auto wt = state.create_table("WorldText");
+        wt.set_function("Add", [](const Vec3& pos, const std::string& text, double size, const Vec4& colour, sol::optional<bool> local, sol::optional<Vec4> background)
+                        { Graphics::AddWorldLabel(pos, text.c_str(), (float)size, colour, local.value_or(false), background.value_or(Vec4(0.0f))); });
+        wt.set_function("Clear", []()
+                        { Graphics::ClearWorldLabels(); });
+
+        auto pl = state.create_table("Planet");
+        pl.set_function("Add", [](const Vec3& pos, double radius, const Vec3& starPos, int type,
+                                  const Vec4& colour, double seed, sol::optional<double> cloud, sol::optional<double> spin,
+                                  sol::optional<double> tilt, sol::optional<bool> rings)
+                        {
+            Graphics::AddPlanet(pos, (float)radius, starPos, type, colour, (float)seed,
+                                (float)cloud.value_or(0.5), (float)spin.value_or(0.1),
+                                (float)tilt.value_or(0.0), rings.value_or(false)); });
+        pl.set_function("Clear", []()
+                        { Graphics::ClearPlanets(); });
+        pl["Terrestrial"] = 0;
+        pl["Gas"]         = 1;
+        pl["Procedural"]  = 2;
+        pl["Star"]        = 3;
+        pl["Rocky"]       = 4; // airless cratered body (moons, asteroids)
+
+        auto sv = state.create_table("SystemView");
+        sv.set_function("Set", [](const Vec3& camLocal)
+                        { Graphics::SetSystemFrame(true, camLocal); });
+        sv.set_function("Clear", []()
+                        { Graphics::SetSystemFrame(false, Vec3(0.0f)); });
+    }
+
     void LuaManager::BindInputLua(sol::state& state)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -1259,21 +1569,51 @@ namespace Lumos
 
         input.set_function("GetMousePosition", []() -> Vec2
                            {
-                               // Scale to framebuffer pixels so scripts can compare
-                               // against GetScreenSize() — raw GLFW cursor coords are
-                               // logical points (half-res on retina), which broke any
-                               // touch-pad half-screen split on desktop.
                                Vec2 pos = Input::Get().GetMousePosition();
                                Window* w = Application::Get().GetWindow();
-                               return w ? pos * w->GetDPIScale() : pos;
+                               return w ? pos * w->GetMousePosScale() : pos;
                            });
 
         input.set_function("GetScrollOffset", []() -> float
                            { return Input::Get().Get().GetScrollOffset(); });
 
-        // Capture (lock + hide) the cursor for relative free-look, like the editor
-        // camera. Captured mode reports virtual deltas via GetMousePosition and the
-        // cursor can't reach the screen edge.
+        // Injected pointer state - what a gamepad's virtual cursor drives. The
+        // UI hit-tests against Input's stored position, so setting it here (and
+        // the click flags below) makes every existing panel controller-usable
+        // without a focus-navigation system. Undoes GetMousePosition's scale so
+        // the two are symmetric.
+        input.set_function("SetMousePosition", [](float x, float y)
+                           {
+                               Window* w = Application::Get().GetWindow();
+                               const float s = w ? w->GetMousePosScale() : 1.0f;
+                               const float inv = (s != 0.0f) ? 1.0f / s : 1.0f;
+                               Input::Get().StoreMousePosition(x * inv, y * inv);
+                           });
+
+        input.set_function("SetMouseClicked", [](Lumos::InputCode::MouseKey key, bool down)
+                           { Input::Get().SetMouseClicked(key, down); });
+
+        input.set_function("SetMouseHeld", [](Lumos::InputCode::MouseKey key, bool down)
+                           { Input::Get().SetMouseHeld(key, down); });
+
+        input.set_function("SetKeyPressed", [](Lumos::InputCode::Key key, bool down)
+                           { Input::Get().SetKeyPressed(key, down); });
+
+        input.set_function("SetKeyHeld", [](Lumos::InputCode::Key key, bool down)
+                           { Input::Get().SetKeyHeld(key, down); });
+
+        input.set_function("SetScrollOffset", [](float offset)
+                           { Input::Get().SetScrollOffset(offset); });
+
+        input.set_function("SetScrollOffsetX", [](float offset)
+                           { Input::Get().SetScrollOffsetX(offset); });
+
+        input.set_function("SetTouchCount", [](int count)
+                           { Input::Get().SetTouchCount(count > 0 ? (uint32_t)count : 0u); });
+
+        input.set_function("SetMouseOnScreen", [](bool onScreen)
+                           { Input::Get().SetMouseOnScreen(onScreen); });
+
         input.set_function("SetMouseCaptured", [](bool captured)
                            {
                                Window* w = Application::Get().GetWindow();
@@ -1292,6 +1632,30 @@ namespace Lumos
 
         input.set_function("IsControllerButtonPressed", [](int id, int button) -> bool
                            { return Input::Get().IsControllerButtonPressed(id, button); });
+
+        // Gamepads: standardised layout, so one set of bindings covers a
+        // DualSense, an Xbox pad and a Steam Deck. No id argument - these all
+        // read the first connected gamepad.
+        input.set_function("GamepadPresent", []() -> bool
+                           { return Input::Get().IsGamepadPresent(); });
+
+        input.set_function("GamepadName", []() -> std::string
+                           { return Input::Get().GetGamepadName(); });
+
+        input.set_function("GamepadAxis", [](Lumos::InputCode::GamepadAxis axis) -> float
+                           { return Input::Get().GetGamepadAxis(axis); });
+
+        input.set_function("GamepadHeld", [](Lumos::InputCode::GamepadButton button) -> bool
+                           { return Input::Get().GetGamepadButtonHeld(button); });
+
+        input.set_function("GamepadPressed", [](Lumos::InputCode::GamepadButton button) -> bool
+                           { return Input::Get().GetGamepadButtonPressed(button); });
+
+        input.set_function("SetGamepadDeadZone", [](float dz)
+                           { Input::Get().SetGamepadDeadZone(dz); });
+
+        input.set_function("AddGamepadMappings", [](const std::string& mappings) -> bool
+                           { return Input::Get().AddGamepadMappings(mappings.c_str()); });
 
         // Touch / gesture
         input.set_function("GetPanActive", []() -> bool
@@ -1312,13 +1676,12 @@ namespace Lumos
                            { return Input::Get().GetGestureLongPressActive(); });
         input.set_function("GetLongPressPosition", []() -> Vec2
                            { return Input::Get().GetGestureLongPressLocation(); });
+        input.set_function("GetTouchCount", []() -> uint32_t
+                           { return Input::Get().GetTouchCount(); });
 
         input.set_function("GetScreenSize", []() -> Vec2
                            { Window* w = Application::Get().GetWindow(); return w ? Vec2((float)w->GetWidth(), (float)w->GetHeight()) : Vec2(0.0f, 0.0f); });
 
-        // Framebuffer / logical-point ratio (2 on retina). Widget helpers like
-        // UIProgressBar take LOGICAL sizes and scale internally — scripts that
-        // size off GetScreenSize() (framebuffer px) must divide by this.
         input.set_function("GetDPIScale", []() -> float
                            { Window* w = Application::Get().GetWindow(); return w ? w->GetDPIScale() : 1.0f; });
 
@@ -1427,6 +1790,37 @@ namespace Lumos
             { "Middle", Lumos::InputCode::MouseKey::ButtonMiddle },
         };
         state.new_enum<Lumos::InputCode::MouseKey, false>("MouseButton", mouseItems);
+
+        // Face buttons are named by POSITION (South/East/West/North), not by
+        // the glyph on the pad - South is Cross on PlayStation, A on Xbox.
+        std::initializer_list<std::pair<sol::string_view, Lumos::InputCode::GamepadButton>> padItems = {
+            { "South", Lumos::InputCode::GamepadSouth },
+            { "East", Lumos::InputCode::GamepadEast },
+            { "West", Lumos::InputCode::GamepadWest },
+            { "North", Lumos::InputCode::GamepadNorth },
+            { "LeftBumper", Lumos::InputCode::GamepadLeftBumper },
+            { "RightBumper", Lumos::InputCode::GamepadRightBumper },
+            { "Back", Lumos::InputCode::GamepadBack },
+            { "Start", Lumos::InputCode::GamepadStart },
+            { "Guide", Lumos::InputCode::GamepadGuide },
+            { "LeftThumb", Lumos::InputCode::GamepadLeftThumb },
+            { "RightThumb", Lumos::InputCode::GamepadRightThumb },
+            { "DPadUp", Lumos::InputCode::GamepadDPadUp },
+            { "DPadRight", Lumos::InputCode::GamepadDPadRight },
+            { "DPadDown", Lumos::InputCode::GamepadDPadDown },
+            { "DPadLeft", Lumos::InputCode::GamepadDPadLeft },
+        };
+        state.new_enum<Lumos::InputCode::GamepadButton, false>("GamepadButton", padItems);
+
+        std::initializer_list<std::pair<sol::string_view, Lumos::InputCode::GamepadAxis>> padAxes = {
+            { "LeftX", Lumos::InputCode::GamepadAxisLeftX },
+            { "LeftY", Lumos::InputCode::GamepadAxisLeftY },
+            { "RightX", Lumos::InputCode::GamepadAxisRightX },
+            { "RightY", Lumos::InputCode::GamepadAxisRightY },
+            { "LeftTrigger", Lumos::InputCode::GamepadAxisLeftTrigger },
+            { "RightTrigger", Lumos::InputCode::GamepadAxisRightTrigger },
+        };
+        state.new_enum<Lumos::InputCode::GamepadAxis, false>("GamepadAxis", padAxes);
     }
 
     SharedPtr<Graphics::Texture2D> LoadTexture(const std::string& name, const std::string& path)
@@ -1449,7 +1843,11 @@ namespace Lumos
 
         sol::usertype<Entity> entityType               = state.new_usertype<Entity>("Entity", sol::constructors<sol::types<entt::entity, Scene*>>());
         sol::usertype<EntityManager> entityManagerType = state.new_usertype<EntityManager>("EntityManager");
-        entityManagerType.set_function("Create", static_cast<Entity (EntityManager::*)()>(&EntityManager::Create));
+        // Both overloads: em:Create("name") used to bind to the no-arg version and
+        // silently drop the name, leaving every scripted entity unnamed.
+        entityManagerType.set_function("Create", sol::overload(
+                                                     static_cast<Entity (EntityManager::*)()>(&EntityManager::Create),
+                                                     static_cast<Entity (EntityManager::*)(const std::string&)>(&EntityManager::Create)));
         entityManagerType.set_function("GetRegistry", &EntityManager::GetRegistry);
 
         entityType.set_function("Valid", &Entity::Valid);
@@ -1480,14 +1878,6 @@ namespace Lumos
                                    scaleXZ.value_or(1.0f),
                                    heightScale.value_or(60.0f));
                            });
-        // Terrain with a caller-supplied material table. Lua call shape:
-        //   AddTerrainEx(scene, pos, gridSize, scaleXZ, heightScale, {
-        //       albedoColour = Vec4(r, g, b, 1),
-        //       roughness = 0..1, metallic = 0..1, uvTile = float,
-        //       albedo       = "//Assets/Textures/.../albedo.png",
-        //       normal       = "//Assets/Textures/.../normal.png",
-        //       roughnessMap = "//Assets/Textures/.../roughness.png" })
-        // Any field is optional; omitted texture paths skip that texture binding.
         state.set_function("AddTerrainEx", [](Scene* scene, const Vec3& pos, int gridSize,
                                               float scaleXZ, float heightScale,
                                               sol::optional<sol::table> matTbl) -> Entity
@@ -1526,11 +1916,6 @@ namespace Lumos
                                    colour.value_or(Vec4(1.0f, 0.85f, 0.15f, 1.0f)));
                            });
 
-        // Deterministic, no-physics primitives for decor/visual stand-ins
-        // (scene props, target ring discs, cloud blobs). Caller passes exact
-        // position/scale/colour so visuals stay stable across runs. Optional
-        // name lets the hierarchy panel identify the entity (e.g.
-        // "TargetRing_3", "Rock", "Cloud") instead of a generic "Decor".
         state.set_function("AddDecorSphere", sol::overload(
             [](Scene* scene, const Vec3& pos, float radius, const Vec4& colour) -> Entity
             {
@@ -1550,9 +1935,6 @@ namespace Lumos
                 return EntityFactory::BuildCuboidObject(scene, name, pos, scale, false, 0.0f, false, colour);
             }));
 
-        // Physics-enabled sphere — collidable rigid body. inverseMass=0 makes it
-        // static. Used by pyramid stacks and any prop that needs to react to
-        // collisions / fall.
         state.set_function("AddPhysicsSphere",
             [](Scene* scene, const std::string& name, const Vec3& pos, float radius,
                float inverseMass, const Vec4& colour) -> Entity
@@ -1560,8 +1942,6 @@ namespace Lumos
                 return EntityFactory::BuildSphereObject(scene, name, pos, radius, true, inverseMass, true, colour);
             });
 
-        // Physics-enabled cuboid with a coloured material. inverseMass=0 => static
-        // (infinite mass). halfExtents are half-dimensions. Returns the entity.
         state.set_function("AddPhysicsCube",
             [](Scene* scene, const std::string& name, const Vec3& pos, const Vec3& halfExtents,
                float inverseMass, const Vec4& colour) -> Entity
@@ -1569,9 +1949,6 @@ namespace Lumos
                 return EntityFactory::BuildCuboidObject(scene, name, pos, halfExtents, true, inverseMass, true, colour);
             });
 
-        // Visual-only primitive (no physics) with a coloured per-instance material.
-        // scale is the full local scale. Use for decor of any PrimitiveType
-        // (cylinders, etc.) where AddDecorCube/Sphere don't cover the shape.
         state.set_function("AddColouredPrimitive",
             [](Scene* scene, const std::string& name, const Vec3& pos, const Vec3& scale,
                Graphics::PrimitiveType prim, const Vec4& colour) -> Entity
@@ -1585,7 +1962,7 @@ namespace Lumos
                 props.albedoColour       = colour;
                 props.roughness          = 0.7f;
                 props.metallic           = 0.0f;
-                props.emissive           = 0.0f;
+                props.emissiveMapFactor  = 0.0f;
                 props.albedoMapFactor    = 0.0f;
                 props.roughnessMapFactor = 0.0f;
                 props.normalMapFactor    = 0.0f;
@@ -1597,9 +1974,6 @@ namespace Lumos
                 return e;
             });
 
-        // Quick material-pulse helper for game scripts: rewrite albedo +
-        // emissive on the entity's first instanced material and push to GPU.
-        // Cheap enough to call every frame on a handful of bead entities.
         state.set_function("SetEntityPulse",
             [](Entity entity, const Vec4& albedo, float emissive)
             {
@@ -1613,8 +1987,23 @@ namespace Lumos
                 auto* props = mat->GetProperties();
                 if(!props) return;
                 props->albedoColour = albedo;
-                props->emissive     = emissive;
+                props->emissiveColour = Vec4(albedo.x, albedo.y, albedo.z, emissive);
                 mat->UpdateMaterialPropertiesData();
+            });
+
+        state.set_function("SetModelEmissive",
+            [](Graphics::Model* model, const Vec4& colour, float intensity)
+            {
+                if(!model) return;
+                for(auto& mesh : model->GetMeshesRef())
+                {
+                    auto& mat = mesh->GetMaterial();
+                    if(!mat) continue;
+                    auto* props = mat->GetProperties();
+                    if(!props) continue;
+                    props->emissiveColour = Vec4(colour.x, colour.y, colour.z, intensity);
+                    mat->UpdateMaterialPropertiesData();
+                }
             });
 
         sol::usertype<NameComponent> nameComponent_type = state.new_usertype<NameComponent>("NameComponent");
@@ -1641,24 +2030,81 @@ namespace Lumos
         sprite_type.set_function("SetTexture", &Sprite::SetTexture);
         sprite_type.set_function("SetSpriteSheet", &Sprite::SetSpriteSheet);
         sprite_type.set_function("SetSpriteSheetIndex", &Sprite::SetSpriteSheetIndex);
+        sprite_type.set_function("SetTextureFromFile", &Sprite::SetTextureFromFile);
+        sprite_type.set_function("SetNormalTexture", &Sprite::SetNormalTexture);
+        sprite_type.set_function("SetNormalTextureFromFile", &Sprite::SetNormalTextureFromFile);
+        sprite_type.set_function("SetPosition", &Sprite::SetPosition);
+        sprite_type.set_function("SetScale", &Sprite::SetScale);
+        sprite_type.set_function("SetColour", &Sprite::SetColour);
         sprite_type["SpriteSheetTileSizeX"] = &Sprite::SpriteSheetTileSizeX;
         sprite_type["SpriteSheetTileSizeY"] = &Sprite::SpriteSheetTileSizeY;
+        sprite_type["ReceivesLight"]        = &Sprite::ReceivesLight;
 
         REGISTER_COMPONENT_WITH_ECS(state, Sprite, static_cast<Sprite& (Entity::*)(const Vec2&, const Vec2&, const Vec4&)>(&Entity::AddComponent<Sprite, const Vec2&, const Vec2&, const Vec4&>));
 
         sol::usertype<AnimatedSprite> AnimatedSpriteType = state.new_usertype<AnimatedSprite>("AnimatedSprite");
         AnimatedSpriteType.set_function("SetTexture", &AnimatedSprite::SetTexture);
+        AnimatedSpriteType.set_function("SetTextureFromFile", &AnimatedSprite::SetTextureFromFile);
+        AnimatedSpriteType.set_function("SetNormalTexture", &AnimatedSprite::SetNormalTexture);
+        AnimatedSpriteType.set_function("SetNormalTextureFromFile", &AnimatedSprite::SetNormalTextureFromFile);
         AnimatedSpriteType.set_function("SetSpriteSheet", &AnimatedSprite::SetSpriteSheet);
         AnimatedSpriteType.set_function("SetSpriteSheetIndex", &AnimatedSprite::SetSpriteSheetIndex);
         AnimatedSpriteType.set_function("SetState", &AnimatedSprite::SetState);
+        AnimatedSpriteType.set_function("GetState", &AnimatedSprite::GetState);
+        AnimatedSpriteType.set_function("SetPosition", &AnimatedSprite::SetPosition);
+        AnimatedSpriteType.set_function("SetScale", &AnimatedSprite::SetScale);
+        AnimatedSpriteType.set_function("SetColour", &AnimatedSprite::SetColour);
         AnimatedSpriteType["SpriteSheetTileSizeX"] = &AnimatedSprite::SpriteSheetTileSizeX;
         AnimatedSpriteType["SpriteSheetTileSizeY"] = &AnimatedSprite::SpriteSheetTileSizeY;
+        AnimatedSpriteType["FrameSize"]            = &AnimatedSprite::FrameSize;
+        AnimatedSpriteType["ReceivesLight"]        = &AnimatedSprite::ReceivesLight;
+
+        // AddState(name, frames, frameDuration [, pingPong]) - frames are {Vec2(px, py), ...} texture-pixel
+        // top-left corners. Frame size comes from FrameSize (set it, or use AddGridState).
+        AnimatedSpriteType.set_function("AddState",
+            [](AnimatedSprite& sprite, const std::string& name, sol::table frames, float frameDuration, sol::optional<bool> pingPong)
+            {
+                std::vector<Vec2> parsed;
+                parsed.reserve(frames.size());
+                for(u32 i = 1; i <= (u32)frames.size(); i++)
+                {
+                    sol::optional<Vec2> f = frames[i];
+                    parsed.push_back(f.value_or(Vec2(0.0f)));
+                }
+
+                sprite.AddState(parsed, frameDuration, name);
+                if(pingPong.value_or(false))
+                    sprite.SetPlayMode(name, AnimatedSprite::PlayMode::PingPong);
+            });
+
+        // AddGridState(name, cellSize, row, firstColumn, frameCount, frameDuration [, pingPong])
+        // Convenience for uniform sprite sheets - builds the frame list from a grid row.
+        AnimatedSpriteType.set_function("AddGridState",
+            [](AnimatedSprite& sprite, const std::string& name, const Vec2& cellSize, int row, int firstColumn,
+               int frameCount, float frameDuration, sol::optional<bool> pingPong)
+            {
+                std::vector<Vec2> frames;
+                frames.reserve(frameCount > 0 ? (size_t)frameCount : 0);
+                for(int i = 0; i < frameCount; i++)
+                    frames.push_back(Vec2((firstColumn + i) * cellSize.x, row * cellSize.y));
+
+                sprite.FrameSize = cellSize;
+                sprite.AddState(frames, frameDuration, name);
+                if(pingPong.value_or(false))
+                    sprite.SetPlayMode(name, AnimatedSprite::PlayMode::PingPong);
+            });
+
+        // Retime a state at runtime - lets locomotion animation track movement
+        // speed instead of sliding.
+        AnimatedSpriteType.set_function("SetFrameDuration", &AnimatedSprite::SetFrameDuration);
+
+        AnimatedSpriteType.set_function("SetPlayMode",
+            [](AnimatedSprite& sprite, const std::string& name, int mode)
+            { sprite.SetPlayMode(name, mode == 1 ? AnimatedSprite::PlayMode::PingPong : AnimatedSprite::PlayMode::Loop); });
 
         REGISTER_COMPONENT_WITH_ECS(state, AnimatedSprite, static_cast<AnimatedSprite& (Entity::*)()>(&Entity::AddComponent<AnimatedSprite>));
 
         sol::usertype<Light> lightType = state.new_usertype<Light>("Light");
-        // Expose as properties so Lua can do `light.Intensity = v` (matches the
-        // pattern used in Script.lua and Transform field bindings).
         lightType["Intensity"] = &Light::Intensity;
         lightType["Radius"]    = &Light::Radius;
         lightType["Colour"]    = &Light::Colour;
@@ -1668,6 +2114,20 @@ namespace Lumos
         lightType["Angle"]     = &Light::Angle;
 
         REGISTER_COMPONENT_WITH_ECS(state, Light, static_cast<Light& (Entity::*)()>(&Entity::AddComponent<Light>));
+
+        sol::usertype<Light2D> light2DType = state.new_usertype<Light2D>("Light2D");
+        light2DType["Colour"]     = &Light2D::Colour;
+        light2DType["Intensity"]  = &Light2D::Intensity;
+        light2DType["Radius"]     = &Light2D::Radius;
+        light2DType["Type"]       = &Light2D::Type;
+        light2DType["Height"]     = &Light2D::Height;
+        light2DType["InnerAngle"] = &Light2D::InnerAngle;
+        light2DType["OuterAngle"] = &Light2D::OuterAngle;
+        light2DType["Falloff"]    = &Light2D::Falloff;
+        light2DType["Position"]   = &Light2D::Position;
+        light2DType["Direction"]  = &Light2D::Direction;
+
+        REGISTER_COMPONENT_WITH_ECS(state, Light2D, static_cast<Light2D& (Entity::*)()>(&Entity::AddComponent<Light2D>));
 
         {
             std::initializer_list<std::pair<sol::string_view, ParticleEmitter::BlendType>> blendItems = {
@@ -1725,6 +2185,9 @@ namespace Lumos
             particleEmitter_type.set_function("SetLifeSpread", &ParticleEmitter::SetLifeSpread);
             particleEmitter_type.set_function("SetAlignedType", &ParticleEmitter::SetAlignedType);
             particleEmitter_type.set_function("SetDepthWrite", &ParticleEmitter::SetDepthWrite);
+            particleEmitter_type.set_function("SetLocalSpace", &ParticleEmitter::SetLocalSpace);
+            particleEmitter_type.set_function("GetLocalSpace", &ParticleEmitter::GetLocalSpace);
+            particleEmitter_type.set_function("SetSpawnOffset", &ParticleEmitter::SetSpawnOffset);
         }
 
         REGISTER_COMPONENT_WITH_ECS(state, ParticleEmitter, static_cast<ParticleEmitter& (Entity::*)()>(&Entity::AddComponent<ParticleEmitter>));
@@ -1880,9 +2343,6 @@ namespace Lumos
 
         REGISTER_COMPONENT_WITH_ECS(state, SoundComponent, static_cast<SoundComponent& (Entity::*)()>(&Entity::AddComponent<SoundComponent>));
 
-        // Expose GetSoundNode so Lua can swap the per-entity sound + drive it
-        // (Play/Stop/SetVolume/Pitch) without needing a separate SoundComponent
-        // constructor binding.
         sol::usertype<SoundComponent> soundCompType = state.new_usertype<SoundComponent>("SoundComponent");
         soundCompType.set_function("GetSoundNode", &SoundComponent::GetSoundNode);
 
@@ -1904,7 +2364,7 @@ namespace Lumos
 
         // SoundNode
         sol::usertype<SoundNode> soundNode_type = state.new_usertype<SoundNode>("SoundNode");
-        soundNode_type.set_function("Play", [](SoundNode& node) { node.SetPaused(false); });
+        soundNode_type.set_function("Play", [](SoundNode& node) { node.Resume(); });
         soundNode_type.set_function("Pause", &SoundNode::Pause);
         soundNode_type.set_function("Resume", &SoundNode::Resume);
         soundNode_type.set_function("Stop", &SoundNode::Stop);
@@ -1931,6 +2391,34 @@ namespace Lumos
                 return node;
             });
 
+        // AudioMixer: bus volumes, i.e. the global volume control. Every
+        // SoundNode multiplies its own volume by its bus (default "Master")
+        // in GetEffectiveVolume, and the AL source gain is refreshed from that
+        // each update - so setting this takes effect on sounds already playing.
+        // Named AudioMixer rather than Audio so it can't collide with a game's
+        // own Lua audio module.
+        auto audioMixer            = state["AudioMixer"].get_or_create<sol::table>();
+        audioMixer["SetVolume"]    = [](float v)
+        {
+            if(auto* am = Application::Get().GetSystem<AudioManager>())
+                am->SetBusVolume("Master", v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v));
+        };
+        audioMixer["GetVolume"]    = []() -> float
+        {
+            auto* am = Application::Get().GetSystem<AudioManager>();
+            return am ? am->GetBusVolume("Master") : 1.0f;
+        };
+        audioMixer["SetBusVolume"] = [](const std::string& bus, float v)
+        {
+            if(auto* am = Application::Get().GetSystem<AudioManager>())
+                am->SetBusVolume(bus, v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v));
+        };
+        audioMixer["GetBusVolume"] = [](const std::string& bus) -> float
+        {
+            auto* am = Application::Get().GetSystem<AudioManager>();
+            return am ? am->GetBusVolume(bus) : 1.0f;
+        };
+
         sol::usertype<Environment> environment_type = state.new_usertype<Environment>("Environment");
         environment_type.set_function("GetFilePath", &Environment::GetFilePath);
         environment_type.set_function("GetFileType", &Environment::GetFileType);
@@ -1946,6 +2434,19 @@ namespace Lumos
         environment_type.set_function("SetHeight", &Environment::SetHeight);
         environment_type.set_function("SetMode", &Environment::SetMode);
         environment_type.set_function("SetParameters", &Environment::SetParameters);
+        // Build the cube maps. Scene deserialisation does this for saved
+        // environments; a script-created one has to ask for it, or there is no
+        // sky and no image-based ambient at all.
+        environment_type.set_function("Load", static_cast<void (Environment::*)()>(&Environment::Load));
+        environment_type.set_function("LoadProcedural",
+            [](Environment& env, sol::optional<Vec4> horizon, sol::optional<Vec4> zenith, sol::optional<Vec4> sunDir)
+            {
+                env.SetMode(1);
+                if(horizon) env.SetHorizonColour(horizon.value());
+                if(zenith)  env.SetZenithColour(zenith.value());
+                if(sunDir)  env.SetSunDirection(sunDir.value());
+                env.Load();
+            });
         environment_type.set_function("GetHorizonColour", &Environment::GetHorizonColour);
         environment_type.set_function("GetZenithColour",  &Environment::GetZenithColour);
         environment_type.set_function("GetSunDirection",  &Environment::GetSunDirection);
@@ -1965,15 +2466,10 @@ namespace Lumos
         environment_type.set_function("SetCloudColour",  &Environment::SetCloudColour);
         environment_type.set_function("SetCloudParams",  &Environment::SetCloudParams);
         environment_type.set_function("SetCloudWindDir", &Environment::SetCloudWindDir);
-        // Stars. StarParams: (density 0..1, brightness, twinkleSpeed, skyLumaThreshold).
-        // density==0 disables. Mostly visible above the horizon when the sky tint
-        // is darker than the threshold (so daytime skies hide them automatically).
         environment_type.set_function("GetStarParams",  &Environment::GetStarParams);
         environment_type.set_function("GetStarColour",  &Environment::GetStarColour);
         environment_type.set_function("SetStarParams",  &Environment::SetStarParams);
         environment_type.set_function("SetStarColour",  &Environment::SetStarColour);
-        // Aurora. AuroraParams: (intensity 0=off, verticalCentre, speed, width).
-        // AuroraColour: rgb base tint, a = blend toward magenta tip.
         environment_type.set_function("GetAuroraColour", &Environment::GetAuroraColour);
         environment_type.set_function("GetAuroraParams", &Environment::GetAuroraParams);
         environment_type.set_function("SetAuroraColour", &Environment::SetAuroraColour);
@@ -2043,6 +2539,8 @@ namespace Lumos
         sol::usertype<Scene> scene_type = state.new_usertype<Scene>("Scene");
         scene_type.set_function("GetRegistry", &Scene::GetRegistry);
         scene_type.set_function("GetEntityManager", &Scene::GetEntityManager);
+        scene_type.set_function("GetSceneName", [](Scene& scene) -> std::string
+                                { return scene.GetSceneName(); });
         scene_type.set_function("CreateEntity", sol::overload(
             static_cast<Entity (Scene::*)()>(&Scene::CreateEntity),
             static_cast<Entity (Scene::*)(const std::string&)>(&Scene::CreateEntity)));
@@ -2100,6 +2598,40 @@ namespace Lumos
         DebugRenderer::DrawPoint(p, radius, true, colour, 0.0f);
     }
 
+    // 2D helpers: games doing their own AABB collision have no engine bodies for
+    // the physics debug draw to show, so they draw their own boxes with these.
+    static void DebugRect(const Vec2& min, const Vec2& max, const Vec4& colour, sol::optional<float> z, sol::optional<float> thickness)
+    {
+        const float depth = z.value_or(0.0f);
+        const float t     = thickness.value_or(0.02f);
+        const Vec3 bl(min.x, min.y, depth);
+        const Vec3 br(max.x, min.y, depth);
+        const Vec3 tr(max.x, max.y, depth);
+        const Vec3 tl(min.x, max.y, depth);
+        DebugRenderer::DrawThickLine(bl, br, t, true, colour, 0.0f);
+        DebugRenderer::DrawThickLine(br, tr, t, true, colour, 0.0f);
+        DebugRenderer::DrawThickLine(tr, tl, t, true, colour, 0.0f);
+        DebugRenderer::DrawThickLine(tl, bl, t, true, colour, 0.0f);
+    }
+
+    static void DebugBox(const Vec2& centre, const Vec2& halfSize, const Vec4& colour, sol::optional<float> z, sol::optional<float> thickness)
+    {
+        DebugRect(Vec2(centre.x - halfSize.x, centre.y - halfSize.y),
+                  Vec2(centre.x + halfSize.x, centre.y + halfSize.y),
+                  colour, z, thickness);
+    }
+
+    static void DebugCircle2D(const Vec2& centre, float radius, const Vec4& colour, sol::optional<float> z, sol::optional<float> thickness)
+    {
+        DebugRenderer::DebugDrawCircle(24, radius, Vec3(centre.x, centre.y, z.value_or(0.0f)),
+                                       Quat(), colour, thickness.value_or(0.02f));
+    }
+
+    static void DebugText3D(const Vec3& pos, const std::string& text, float size, const Vec4& colour)
+    {
+        DebugRenderer::DrawTextWs(pos, size, false, colour, 0.0f, text);
+    }
+
     void LuaManager::BindAppLua(sol::state& state)
     {
         sol::usertype<Application> app_type = state.new_usertype<Application>("Application");
@@ -2109,8 +2641,268 @@ namespace Lumos
         state.set_function("SetPhysicsDebugFlags", &SetPhysicsDebugFlags);
         state.set_function("ExitApp", &ExitApp);
         state.set_function("SetSkyColour", &SetSkyColour);
+
+        // Platform query so games can pick touch vs desktop control schemes.
+        state.set_function("GetPlatformName", []() -> std::string
+                           {
+#if defined(LUMOS_PLATFORM_IOS)
+                               return "iOS";
+#elif defined(LUMOS_PLATFORM_ANDROID)
+                               return "Android";
+#elif defined(LUMOS_PLATFORM_MACOS)
+                               return "macOS";
+#elif defined(LUMOS_PLATFORM_WINDOWS)
+                               return "Windows";
+#else
+                               return "Linux";
+#endif
+                           });
+
+
+        // ---- Debug overlay / command palette ----
+        {
+            auto dt = state["Debug"].get_or_create<sol::table>();
+
+            auto panelFromName = [](const std::string& name) -> DebugPanel
+            {
+                if(name == "Stats")      return DebugPanel_Stats;
+                if(name == "FrameGraph") return DebugPanel_FrameGraph;
+                if(name == "Console")    return DebugPanel_Log;
+                if(name == "Toggles")    return DebugPanel_Toggles;
+                if(name == "Tweaks")     return DebugPanel_Tweaks;
+                if(name == "Entities")   return DebugPanel_Entities;
+                if(name == "Inspector")  return DebugPanel_Inspector;
+                return DebugPanel_Count;
+            };
+
+            dt.set_function("RegisterCommand", [](const std::string& name, const std::string& category, sol::protected_function fn)
+                            {
+                                DebugMenu& menu = DebugMenu::Get();
+                                menu.MarkNextAsScript(true);
+                                menu.RegisterAction(name.c_str(), category.c_str(), [fn]()
+                                                    {
+                                                        sol::protected_function_result r = fn();
+                                                        if(!r.valid())
+                                                        {
+                                                            sol::error err = r;
+                                                            LERROR("Debug command error: %s", err.what());
+                                                        }
+                                                    });
+                                menu.MarkNextAsScript(false);
+                            });
+
+            dt.set_function("RegisterToggle", [](const std::string& name, const std::string& category,
+                                                 sol::protected_function get, sol::protected_function set)
+                            {
+                                DebugMenu& menu = DebugMenu::Get();
+                                menu.MarkNextAsScript(true);
+                                menu.RegisterToggle(
+                                    name.c_str(), category.c_str(),
+                                    [get]() -> bool
+                                    {
+                                        sol::protected_function_result r = get();
+                                        if(!r.valid())
+                                            return false;
+                                        return r.get<bool>();
+                                    },
+                                    [set](bool v)
+                                    {
+                                        sol::protected_function_result r = set(v);
+                                        if(!r.valid())
+                                        {
+                                            sol::error err = r;
+                                            LERROR("Debug toggle error: %s", err.what());
+                                        }
+                                    });
+                                menu.MarkNextAsScript(false);
+                            });
+
+            dt.set_function("RegisterFloat", [](const std::string& name, const std::string& category,
+                                                sol::protected_function get, sol::protected_function set,
+                                                float minValue, float maxValue)
+                            {
+                                DebugMenu& menu = DebugMenu::Get();
+                                menu.MarkNextAsScript(true);
+                                menu.RegisterFloat(
+                                    name.c_str(), category.c_str(),
+                                    [get]() -> float
+                                    {
+                                        sol::protected_function_result r = get();
+                                        if(!r.valid())
+                                            return 0.0f;
+                                        return r.get<float>();
+                                    },
+                                    [set](float v)
+                                    {
+                                        sol::protected_function_result r = set(v);
+                                        if(!r.valid())
+                                        {
+                                            sol::error err = r;
+                                            LERROR("Debug float error: %s", err.what());
+                                        }
+                                    },
+                                    minValue, maxValue);
+                                menu.MarkNextAsScript(false);
+                            });
+
+            dt.set_function("Unregister", [](const std::string& name)
+                            { DebugMenu::Get().Unregister(name.c_str()); });
+
+            dt.set_function("Run", [](const std::string& name) -> bool
+                            { return DebugMenu::Get().Run(name.c_str()); });
+
+            dt.set_function("SetToggle", [](const std::string& name, bool v) -> bool
+                            { return DebugMenu::Get().SetToggle(name.c_str(), v); });
+
+            dt.set_function("Open", []() { DebugMenu::Get().OpenPalette(); });
+            dt.set_function("Close", []() { DebugMenu::Get().ClosePalette(); });
+            dt.set_function("Toggle", []() { DebugMenu::Get().TogglePalette(); });
+            dt.set_function("IsOpen", []() { return DebugMenu::Get().IsPaletteOpen(); });
+            dt.set_function("SetEnabled", [](bool v) { DebugMenu::Get().SetEnabled(v); });
+            dt.set_function("IsEnabled", []() { return DebugMenu::Get().IsEnabled(); });
+            dt.set_function("SetOpenKey", [](int key) { DebugMenu::Get().SetToggleKey(key); });
+
+            // Selection is a raw entity id, matching Entity:GetID()-free code paths:
+            // pass an Entity and we pull the handle out of it.
+            dt.set_function("Select", [](Entity entity)
+                            { DebugMenu::Get().SelectEntity((u32)entt::to_integral(entity.GetHandle())); });
+            dt.set_function("ClearSelection", []() { DebugMenu::Get().ClearSelection(); });
+            dt.set_function("GetSelected", [](sol::this_state s) -> sol::object
+                            {
+                                sol::state_view lua(s);
+                                Scene* scene = Application::Get().GetCurrentScene();
+                                const u32 id = DebugMenu::Get().GetSelectedEntity();
+                                if(!scene || id == 0xFFFFFFFFu)
+                                    return sol::lua_nil;
+                                const entt::entity e = (entt::entity)id;
+                                if(!scene->GetRegistry().valid(e))
+                                    return sol::lua_nil;
+                                return sol::make_object(lua, Entity(e, scene));
+                            });
+            dt.set_function("SetFlyCamera", [](bool v) { DebugMenu::Get().SetFlyCamera(v); });
+            dt.set_function("IsFlyCamera", []() { return DebugMenu::Get().IsFlyCamera(); });
+            dt.set_function("SetFlyMode", [](const std::string& mode)
+                            {
+                                if(mode == "2d" || mode == "2D")      DebugMenu::Get().SetFlyMode(1);
+                                else if(mode == "3d" || mode == "3D") DebugMenu::Get().SetFlyMode(2);
+                                else                                  DebugMenu::Get().SetFlyMode(0);
+                            });
+
+            dt.set_function("ShowPanel", [panelFromName](const std::string& name, bool visible)
+                            {
+                                DebugPanel p = panelFromName(name);
+                                if(p != DebugPanel_Count)
+                                    DebugMenu::Get().SetPanelVisible(p, visible);
+                            });
+
+            dt.set_function("IsPanelVisible", [panelFromName](const std::string& name) -> bool
+                            {
+                                DebugPanel p = panelFromName(name);
+                                return p != DebugPanel_Count && DebugMenu::Get().IsPanelVisible(p);
+                            });
+        }
+
+        {
+            auto rt = state["Render"].get_or_create<sol::table>();
+
+            auto getRS = []() -> Scene::SceneRenderSettings* {
+                Scene* s = Application::Get().GetCurrentScene();
+                return s ? &s->GetSettings().RenderSettings : nullptr;
+            };
+
+            rt.set_function("SetBool", [getRS](const std::string& name, bool v) {
+                auto* rs = getRS(); if(!rs) return;
+                if(name == "Shadows")            rs->ShadowsEnabled = v;
+                else if(name == "FXAA")          rs->FXAAEnabled = v;
+                else if(name == "SMAA")          rs->SMAAEnabled = v;
+                else if(name == "Bloom")         rs->BloomEnabled = v;
+                else if(name == "SSAO")          rs->SSAOEnabled = v;
+                else if(name == "SSR")           rs->SSREnabled = v;
+                else if(name == "Vignette")      rs->VignetteEnabled = v;
+                else if(name == "DepthOfField")  rs->DepthOfFieldEnabled = v;
+                else if(name == "MotionBlur")    rs->MotionBlurEnabled = v;
+                else if(name == "FilmicGrain")   rs->FilmicGrainEnabled = v;
+                else if(name == "ChromaticAberration") rs->ChromaticAberationEnabled = v;
+                else if(name == "Sharpen")       rs->SharpenEnabled = v;
+                else if(name == "Debanding")     rs->DebandingEnabled = v;
+                else if(name == "Skybox")        rs->SkyboxRenderEnabled = v;
+                else if(name == "Debug")         rs->DebugRenderEnabled = v;
+            });
+
+            rt.set_function("GetBool", [getRS](const std::string& name) -> bool {
+                auto* rs = getRS(); if(!rs) return false;
+                if(name == "Shadows")            return rs->ShadowsEnabled;
+                else if(name == "FXAA")          return rs->FXAAEnabled;
+                else if(name == "SMAA")          return rs->SMAAEnabled;
+                else if(name == "Bloom")         return rs->BloomEnabled;
+                else if(name == "SSAO")          return rs->SSAOEnabled;
+                else if(name == "SSR")           return rs->SSREnabled;
+                else if(name == "Vignette")      return rs->VignetteEnabled;
+                else if(name == "DepthOfField")  return rs->DepthOfFieldEnabled;
+                else if(name == "MotionBlur")    return rs->MotionBlurEnabled;
+                else if(name == "FilmicGrain")   return rs->FilmicGrainEnabled;
+                else if(name == "ChromaticAberration") return rs->ChromaticAberationEnabled;
+                else if(name == "Sharpen")       return rs->SharpenEnabled;
+                else if(name == "Debanding")     return rs->DebandingEnabled;
+                else if(name == "Skybox")        return rs->SkyboxRenderEnabled;
+                else if(name == "Debug")         return rs->DebugRenderEnabled;
+                return false;
+            });
+
+            rt.set_function("SetFloat", [getRS](const std::string& name, float v) {
+                auto* rs = getRS(); if(!rs) return;
+                if(name == "Exposure")           rs->m_Exposure = v;
+                else if(name == "BloomIntensity") rs->m_BloomIntensity = v;
+                else if(name == "BloomThreshold") rs->BloomThreshold = v;
+                else if(name == "Saturation")    rs->Saturation = v;
+                else if(name == "Contrast")      rs->Contrast = v;
+                else if(name == "Brightness")    rs->Brightness = v;
+                else if(name == "VignetteIntensity") rs->VignetteIntensity = v;
+                else if(name == "SSRStrength")   rs->SSRStrength = v;
+                else if(name == "DepthOfFieldDistance") rs->DepthOfFieldDistance = v;
+                else if(name == "DepthOfFieldStrength") rs->DepthOfFieldStrength = v;
+            });
+
+            rt.set_function("GetFloat", [getRS](const std::string& name) -> float {
+                auto* rs = getRS(); if(!rs) return 0.0f;
+                if(name == "Exposure")           return rs->m_Exposure;
+                else if(name == "BloomIntensity") return rs->m_BloomIntensity;
+                else if(name == "BloomThreshold") return rs->BloomThreshold;
+                else if(name == "Saturation")    return rs->Saturation;
+                else if(name == "Contrast")      return rs->Contrast;
+                else if(name == "Brightness")    return rs->Brightness;
+                else if(name == "VignetteIntensity") return rs->VignetteIntensity;
+                else if(name == "SSRStrength")   return rs->SSRStrength;
+                return 0.0f;
+            });
+        }
+
+        {
+            auto ct = state["Cosmo"].get_or_create<sol::table>();
+            ct.set_function("SetEnabled", [](bool e)
+                            { Graphics::CosmoBackdrop::Get().Enabled = e; });
+            ct.set_function("GetEnabled", []() -> bool
+                            { return Graphics::CosmoBackdrop::Get().Enabled; });
+            ct.set_function("SetIntensity", [](float nebula, float band)
+                            {
+                                auto& c = Graphics::CosmoBackdrop::Get();
+                                c.NebulaIntensity = nebula;
+                                c.BandIntensity   = band;
+                            });
+            ct.set_function("SetScale", [](float s)
+                            { Graphics::CosmoBackdrop::Get().Scale = s; });
+            ct.set_function("SetSeed", [](float s)
+                            { Graphics::CosmoBackdrop::Get().Seed = s; });
+            ct.set_function("SetCamPos", [](const Vec3& p)
+                            { Graphics::CosmoBackdrop::Get().CamPos = p; });
+        }
+
         state.set_function("DebugLine", &DebugLine);
         state.set_function("DebugPoint", &DebugPoint);
+        state.set_function("DebugRect", &DebugRect);
+        state.set_function("DebugBox", &DebugBox);
+        state.set_function("DebugCircle", &DebugCircle2D);
+        state.set_function("DebugText3D", &DebugText3D);
 
         std::initializer_list<std::pair<sol::string_view, Lumos::PhysicsDebugFlags>> physicsDebugFlags = {
             { "CONSTRAINT", Lumos::PhysicsDebugFlags::CONSTRAINT },
@@ -2191,9 +2983,19 @@ namespace Lumos
                     ImVec2(1.0f, flip ? 0.0f : 1.0f));
             }));
 
-        // Write string to file
+        // Write string to file (resolves VFS paths like //Assets/... same as ReadFile)
         state.set_function("WriteFile", [](const std::string& path, const std::string& content) -> bool {
-            FILE* f = fopen(path.c_str(), "w");
+            std::string physicalPath = path;
+            if(path.size() >= 2 && path[0] == '/' && path[1] == '/')
+            {
+                ArenaTemp scratch = ScratchBegin(0, 0);
+                String8 resolved = {};
+                FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8C((char*)path.c_str()), &resolved);
+                if(resolved.size > 0)
+                    physicalPath = std::string((const char*)resolved.str, resolved.size);
+                ScratchEnd(scratch);
+            }
+            FILE* f = fopen(physicalPath.c_str(), "w");
             if(!f) return false;
             fwrite(content.c_str(), 1, content.size(), f);
             fclose(f);
@@ -2314,6 +3116,17 @@ namespace Lumos
 
     void LuaManager::BindUILua(sol::state& lua)
     {
+        {
+            sol::table icons = lua.create_named_table("Icons");
+            for(uint32_t i = 0; i < g_MDIIconCount; i++)
+            {
+                u8 buf[8];
+                u32 n     = Utf8Encode(buf, g_MDIIcons[i].codepoint);
+                buf[n]    = 0;
+                icons[g_MDIIcons[i].name] = std::string((const char*)buf, n);
+            }
+        }
+
         // Enums
         lua.new_enum("WidgetFlags",
                      "Clickable", Lumos::WidgetFlags_Clickable,
@@ -2331,7 +3144,9 @@ namespace Lumos
                      "CentreChildrenY", Lumos::WidgetFlags_CentreChildrenY,
                      "DragParent", Lumos::WidgetFlags_DragParent,
                      "AnimateScale", Lumos::WidgetFlags_AnimateScale,
-                     "AnimateAppear", Lumos::WidgetFlags_AnimateAppear);
+                     "AnimateAppear", Lumos::WidgetFlags_AnimateAppear,
+                     "AlignRight", Lumos::WidgetFlags_AlignRight,
+                     "AnimateExit", Lumos::WidgetFlags_AnimateExit);
 
         lua.new_enum("UITextAlignment",
                      "None", Lumos::UI_Text_Alignment_None,
@@ -2344,7 +3159,8 @@ namespace Lumos
                      "PercentOfParent", Lumos::SizeKind_PercentOfParent,
                      "ChildSum", Lumos::SizeKind_ChildSum,
                      "MaxChild", Lumos::SizeKind_MaxChild,
-                     "PercentOfViewport", Lumos::SizeKind_PercentOfViewport);
+                     "PercentOfViewport", Lumos::SizeKind_PercentOfViewport,
+                     "Grow", Lumos::SizeKind_Grow);
 
         lua.new_enum("UIAnchor",
                      "None", Lumos::UIAnchor_None,
@@ -2369,6 +3185,14 @@ namespace Lumos
                      "X", Lumos::UIAxis_X,
                      "Y", Lumos::UIAxis_Y,
                      "Count", Lumos::UIAxis_Count);
+
+        lua.new_enum("UITheme",
+                     "Light", Lumos::UITheme_Light,
+                     "Dark", Lumos::UITheme_Dark,
+                     "Blue", Lumos::UITheme_Blue,
+                     "Green", Lumos::UITheme_Green,
+                     "Purple", Lumos::UITheme_Purple,
+                     "HighContrast", Lumos::UITheme_HighContrast);
 
         lua.new_enum("StyleVar",
                      "Padding", Lumos::StyleVar_Padding,
@@ -2440,7 +3264,7 @@ namespace Lumos
         lua["UIBeginFrame"]  = &Lumos::UIBeginFrame;
         lua["UIEndFrame"]    = &Lumos::UIEndFrame;
         lua["UIBeginPanel"]  = sol::overload(
-            static_cast<Lumos::UI_Interaction (*)(const char*)>(&Lumos::UIBeginPanel),
+            [](const char* str) { return Lumos::UIBeginPanel(str); },
             static_cast<Lumos::UI_Interaction (*)(const char*, u32)>(&Lumos::UIBeginPanel),
             static_cast<Lumos::UI_Interaction (*)(const char*, Lumos::SizeKind, float, Lumos::SizeKind, float, u32)>(&Lumos::UIBeginPanel));
         lua["UIEndPanel"]      = &Lumos::UIEndPanel;
@@ -2471,10 +3295,37 @@ namespace Lumos
 
         lua["UIPopStyle"] = &Lumos::UIPopStyle;
         lua["UISetNextFlags"] = &Lumos::UISetNextFlags;
+        lua["UISetNextFlags"] = &Lumos::UISetNextFlags;
         lua["UILabel"]    = &Lumos::UILabelCStr;
+        lua.set_function("UILabelWrapped", [](const char* name, const char* text, float maxWidth) {
+            return Lumos::UILabelWrapped(name, Str8C((char*)text), maxWidth);
+        });
+        lua.set_function("UILabelEllipsis", [](const char* name, const char* text, float maxWidth) {
+            return Lumos::UILabelEllipsis(name, Str8C((char*)text), maxWidth);
+        });
         lua["UIButton"]   = &Lumos::UIButton;
         lua["UIImage"]    = &Lumos::UIImage;
         lua.set_function("UISeparator", [](sol::optional<float> w) { Lumos::UISeparator(w.value_or(0.0f)); });
+        lua.set_function("UISetTheme", [](Lumos::UITheme theme) { Lumos::UISetTheme(theme); });
+        lua.set_function("UISetClickOnRelease", [](bool enable) { Lumos::UISetClickOnRelease(enable); });
+        // Scroll area (engine-held offset; wheel/thumb on desktop, finger-drag pan on touch)
+        lua.set_function("UIBeginScrollArea", [](const char* id, float height) { Lumos::UIBeginScrollAreaAuto(id, height); });
+        lua.set_function("UIEndScrollArea", []() { Lumos::UIEndScrollArea(); });
+        lua.set_function("UIFocusNextTextInput", []() { Lumos::UIFocusNextTextInput(); });
+        lua.set_function("UISetSafeAreaConfig", [](sol::optional<float> minMargin,
+                                                   sol::optional<float> scaleTop,
+                                                   sol::optional<float> scaleBottom,
+                                                   sol::optional<float> scaleLeft,
+                                                   sol::optional<float> scaleRight) {
+            Lumos::UISafeAreaConfig cfg = Lumos::UIGetSafeAreaConfig();
+            cfg.MinMargin   = minMargin.value_or(cfg.MinMargin);
+            cfg.ScaleTop    = scaleTop.value_or(cfg.ScaleTop);
+            cfg.ScaleBottom = scaleBottom.value_or(cfg.ScaleBottom);
+            cfg.ScaleLeft   = scaleLeft.value_or(cfg.ScaleLeft);
+            cfg.ScaleRight  = scaleRight.value_or(cfg.ScaleRight);
+            Lumos::UISetSafeAreaConfig(cfg);
+        });
+        lua.set_function("UIIsMouseOverUI", []() { return Lumos::UIIsMouseOverUI(); });
         lua.set_function("UISpacer",    [](sol::optional<float> h) { Lumos::UISpacer(h.value_or(10.0f)); });
         // Raw UISlider takes float*; unsafe to call from Lua directly. Use UISliderValue below.
         lua["UISliderRaw"]  = &Lumos::UISlider;
@@ -2495,6 +3346,33 @@ namespace Lumos
                              return tmp;
                          });
 
+        lua.set_function("UISliderRow", [](const char* label, float value, sol::optional<float> min,
+                                           sol::optional<float> max, sol::optional<std::string> fmt) -> float
+                         {
+                             float tmp = value;
+                             Lumos::UISliderRow(label, &tmp,
+                                                min.value_or(0.0f),
+                                                max.value_or(1.0f),
+                                                fmt ? fmt->c_str() : "%.2f");
+                             return tmp;
+                         });
+
+        lua.set_function("UIColouredBox", sol::overload(
+                             [](const char* id, float size, const Vec4& colour)
+                             { return Lumos::UIColouredBox(id, size, size, colour, size * 0.5f); },
+                             [](const char* id, float w, float h, const Vec4& colour, float radius)
+                             { return Lumos::UIColouredBox(id, w, h, colour, radius); }));
+
+        // Circular radar/minimap HUD - see Lumos::UIBeginRadar/UIRadarBlip/UIEndRadar.
+        lua["UIBeginRadar"] = &Lumos::UIBeginRadar;
+        lua["UIEndRadar"]   = &Lumos::UIEndRadar;
+        lua.set_function("UIRadarBlip", [](const char* id, float x, float y, float size,
+                                            const Vec4& tint, sol::optional<Graphics::Texture2D*> texture)
+                          { return Lumos::UIRadarBlip(id, x, y, size, tint, texture.value_or(nullptr)); });
+        lua.set_function("UIRadarRing", [](const char* id, float radius, const Vec4& colour,
+                                            sol::optional<float> thickness)
+                          { Lumos::UIRadarRing(id, radius, colour, thickness.value_or(1.0f)); });
+
         lua.set_function("UIProgressBar", [](const char* label, float progress,
                                               sol::optional<float> width, sol::optional<float> height)
                          {
@@ -2508,6 +3386,15 @@ namespace Lumos
                     bool tempValue = value;
                     Lumos::UIToggle(label, &tempValue);
                     return tempValue; });
+
+        lua.set_function("UITextInput", [](const char* id) -> std::string
+                         {
+            static std::unordered_map<std::string, std::string> s_buffers;
+            auto& buf = s_buffers[id];
+            if(buf.size() < 256)
+                buf.resize(256, '\0'); // fixed size => &buf[0] stays valid across frames
+            Lumos::UITextInput(id, &buf[0], 256);
+            return std::string(buf.c_str()); });
     }
 
 }

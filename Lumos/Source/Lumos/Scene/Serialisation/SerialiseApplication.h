@@ -5,7 +5,7 @@ namespace Lumos
     template <typename Archive>
     void save(Archive& archive, const Application& application)
     {
-        int projectVersion = 14;
+        int projectVersion = 15;
 
         archive(cereal::make_nvp("Project Version", projectVersion));
 
@@ -73,8 +73,8 @@ namespace Lumos
                 cereal::make_nvp("MicrophoneUsage", application.m_ProjectSettings.MicrophoneUsage),
                 cereal::make_nvp("PhotoLibraryUsage", application.m_ProjectSettings.PhotoLibraryUsage),
                 cereal::make_nvp("LocationUsage", application.m_ProjectSettings.LocationUsage));
-        // Version 14 - render layout
-        archive(cereal::make_nvp("UseSafeArea", application.m_ProjectSettings.UseSafeArea));
+        // Version 15 - render layout (Fullscreen / SafeArea / FullscreenSafeUI)
+        archive(cereal::make_nvp("SafeAreaMode", application.m_ProjectSettings.SafeAreaMode));
     }
 
     template <typename Archive>
@@ -207,20 +207,33 @@ namespace Lumos
             }
         }
 
-        // Version 14 - render layout
-        if(application.m_ProjectSettings.ProjectVersion > 13)
+        // Version 14 - render layout: legacy bool. true (UI inset, scene edge) -> FullscreenSafeUI, false -> Fullscreen.
+        if(application.m_ProjectSettings.ProjectVersion == 14)
         {
             try
             {
-                archive(cereal::make_nvp("UseSafeArea", application.m_ProjectSettings.UseSafeArea));
+                bool useSafeArea = true;
+                archive(cereal::make_nvp("UseSafeArea", useSafeArea));
+                application.m_ProjectSettings.SafeAreaMode = useSafeArea
+                    ? (int)Application::SafeAreaLayout::FullscreenSafeUI
+                    : (int)Application::SafeAreaLayout::Fullscreen;
+            }
+            catch(...)
+            {
+            }
+        }
+        // Version 15 - three-way safe area mode
+        else if(application.m_ProjectSettings.ProjectVersion > 14)
+        {
+            try
+            {
+                archive(cereal::make_nvp("SafeAreaMode", application.m_ProjectSettings.SafeAreaMode));
             }
             catch(...)
             {
             }
         }
 
-        // Scenes haven't been enqueued yet (LoadCurrentList runs after Deserialise).
-        // Materialise them now so lookups by name and bounds-checked indices both work.
         application.m_SceneManager->LoadCurrentList();
 
         // Switch to start scene: prefer name (v11+), fall back to index. Clamp index to valid range.

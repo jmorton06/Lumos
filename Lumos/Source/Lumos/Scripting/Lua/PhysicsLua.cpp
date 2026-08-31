@@ -173,10 +173,6 @@ namespace Lumos
         state.set_function("Raycast", [](const Vec3& origin, const Vec3& dir, float maxDist) -> RaycastHit
             { return Application::Get().GetSystem<LumosPhysicsEngine>()->Raycast(origin, dir, maxDist); });
 
-        // Direct heightmap sample (world-space x, z). Walks the rigid body
-        // list looking for the first TerrainCollisionShape, samples it. Skips
-        // the raycast path entirely so it works regardless of the raycast
-        // implementation's terrain support.
         state.set_function("TerrainHeightAt", [](float wx, float wz) -> sol::optional<float>
             {
                 auto* phys = Application::Get().GetSystem<LumosPhysicsEngine>();
@@ -299,8 +295,6 @@ namespace Lumos
         physics.set_function("DestroyVehicle", [](RaycastVehicle* v)
             { Application::Get().GetSystem<LumosPhysicsEngine>()->DestroyVehicle(v); });
 
-        // Build properties for a sized cuboid body (Lua can't set the shape on
-        // RigidBodyParameters3D directly). Pass to entity:AddRigidBody3DComponent.
         physics.set_function("BoxProperties", [](const Vec3& pos, const Vec3& halfExtents, float mass, bool isStatic) -> RigidBody3DProperties
             {
                 RigidBody3DProperties p;

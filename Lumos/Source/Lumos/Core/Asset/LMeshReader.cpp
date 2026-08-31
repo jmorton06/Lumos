@@ -18,26 +18,17 @@ namespace Lumos
     {
         ArenaTemp scratch = ScratchBegin(&arena, 1);
 
-        // Read file
-        String8 physicalPath;
-        if(!FileSystem::Get().ResolvePhysicalPath(scratch.arena, path, &physicalPath))
-        {
-            LERROR("LMeshReader: Failed to resolve path %.*s", (int)path.size, path.str);
-            ScratchEnd(scratch);
-            return false;
-        }
-
-        int64_t fileSize = FileSystem::GetFileSize(physicalPath);
+        int64_t fileSize = FileSystem::Get().GetFileSizeVFS(path);
         if(fileSize < (int64_t)sizeof(LMeshHeader))
         {
-            LERROR("LMeshReader: File too small %.*s", (int)path.size, path.str);
+            LERROR("LMeshReader: File too small or missing %.*s", (int)path.size, path.str);
             ScratchEnd(scratch);
             return false;
         }
 
         // Allocate arena large enough for the file data
         Arena* fileArena = ArenaAlloc((u64)fileSize + Kilobytes(4));
-        u8* fileData = FileSystem::ReadFile(fileArena, physicalPath);
+        u8* fileData = FileSystem::Get().ReadFileVFS(fileArena, path);
         if(!fileData)
         {
             LERROR("LMeshReader: Failed to read %.*s", (int)path.size, path.str);
@@ -81,8 +72,6 @@ namespace Lumos
         u8* matPtr = fileData + sizeof(LMeshHeader) + header->MeshCount * sizeof(LMeshDescriptor);
         u8* fileEnd = fileData + fileSize;
 
-        // Try to extract hash from lmesh filename for .lmat lookup
-        // Path pattern: //Assets/Imported/{hash}.lmesh
         std::string pathStr((const char*)path.str, path.size);
         std::string lmeshFilename = StringUtilities::GetFileName(pathStr);
         // Remove .lmesh extension

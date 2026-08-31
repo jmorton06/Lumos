@@ -47,6 +47,7 @@ namespace Lumos
             virtual ~Renderable2D();
 
             SharedPtr<Texture2D> GetTexture() { return m_Texture; }
+            SharedPtr<Texture2D> GetNormalTexture() { return m_NormalTexture; }
             Vec2 GetPosition() const { return m_Position; }
             Vec2 GetScale() const { return m_Scale; }
             const Vec4& GetColour() const { return m_Colour; }
@@ -55,8 +56,11 @@ namespace Lumos
             static const std::array<Vec2, 4>& GetDefaultUVs();
             static const std::array<Vec2, 4>& GetUVs(const Vec2& min, const Vec2& max);
 
+            bool ReceivesLight = true; // routed through the lit 2D pass when the scene has 2D lights
+
         protected:
             SharedPtr<Texture2D> m_Texture;
+            SharedPtr<Texture2D> m_NormalTexture;
             Vec2 m_Position;
             Vec2 m_Scale;
             Vec4 m_Colour;

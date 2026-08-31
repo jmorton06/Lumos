@@ -1049,6 +1049,17 @@ namespace Lumos
                     ScratchEnd(temp);
                 }
 
+                // glTF can carry lights/cameras/hierarchy — offer importing it as an entity tree.
+                {
+                    std::string assetPathStr((const char*)m_CurrentDir->Children[dirIndex]->AssetPath.str, m_CurrentDir->Children[dirIndex]->AssetPath.size);
+                    std::string ext = StringUtilities::GetFilePathExtension(assetPathStr);
+                    if(ext == "gltf" || ext == "glb")
+                    {
+                        if(ImGui::Selectable("Import as Scene"))
+                            m_Editor->ImportModelAsScene(assetPathStr);
+                    }
+                }
+
                 if(m_CurrentDir->Children[dirIndex]->IsFile && ImGui::Selectable("Open External"))
                 {
                     ArenaTemp temp   = ScratchBegin(&m_Arena, 1);

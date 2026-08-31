@@ -14,8 +14,6 @@ namespace Lumos
         bool m_Enabled = true;
     };
 
-    // Named volume bus. Unregistered names resolve to 1.0 — passing through
-    // the per-sound volume unchanged. The "Master" bus exists implicitly.
     class LUMOS_EXPORT AudioManager : public ISystem
     {
     public:
@@ -31,9 +29,6 @@ namespace Lumos
         bool GetPaused() const { return m_Paused; }
         void SetPaused(bool paused);
 
-        // Bus volumes are multipliers applied on top of each SoundNode's own
-        // volume the next time OpenAL gain is pushed. Defaults to 1.0 for
-        // unknown bus names so unmixed code keeps working unchanged.
         float GetBusVolume(const std::string& bus) const
         {
             auto it = m_BusVolumes.find(bus);

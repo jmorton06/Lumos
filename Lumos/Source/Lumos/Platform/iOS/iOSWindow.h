@@ -56,6 +56,9 @@ namespace Lumos
             return (float)m_Data.Width / (float)m_Data.Height;
         }
 
+        float GetDPIScale() const override;
+        float GetMousePosScale() const override { return 1.0f; }
+
         void SetEventCallback(const EventCallbackFn& callback) override
         {
             m_Data.EventCallback = callback;

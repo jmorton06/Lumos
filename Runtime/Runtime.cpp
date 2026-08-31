@@ -242,7 +242,6 @@ public:
                 std::string outputPath((const char*)packAssetsOpt.str, packAssetsOpt.size);
                 PackSettings settings;
                 settings.ExcludePaths.PushBack(Str8Lit("Cache/"));
-                settings.ExcludePaths.PushBack(Str8Lit("Imported/"));
                 bool ok = AssetPacker::Pack(Str8StdS(outputPath), Str8StdS(assetsDir), settings);
                 LINFO("Pack %s: %s", ok ? "succeeded" : "failed", outputPath.c_str());
                 exit(ok ? 0 : 1);

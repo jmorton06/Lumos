@@ -17,11 +17,12 @@ namespace Lumos
         void OpenFileExternal(const std::string& path) override;
         void OpenURL(const std::string& url) override;
         void SetWindowDecorations(bool decorated) override;
-        void BeginWindowDrag() override;
+        bool BeginWindowDrag() override;
         void UpdateWindowDrag() override;
-        void BeginWindowResize(int edgeMask) override;
+        bool BeginWindowResize(int edgeMask) override;
         void UpdateWindowResize() override;
         bool IsWindowMaximised() const override;
+        void MaximiseWindow() override;
         void RestoreWindow() override;
         void IconifyWindow() override;
 

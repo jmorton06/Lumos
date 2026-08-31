@@ -3,5 +3,5 @@ CompiledSPV/ForwardPBRInstanced.vert.spv
 #shader end
 
 #shader fragment
-CompiledSPV/ForwardPBR.frag.spv
+CompiledSPV/ForwardPBRInstanced.frag.spv
 #shader end
