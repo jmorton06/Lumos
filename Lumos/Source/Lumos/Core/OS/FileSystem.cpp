@@ -102,8 +102,6 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        // Loose files win over the pack so edits show up without re-packing.
-        // Shipped builds have no mounted folders, so the pack still serves there.
         String8 physicalPath;
         if(ResolvePhysicalPath(arena, path, &physicalPath) && FileSystem::FileExists(physicalPath))
             return FileSystem::ReadFile(arena, physicalPath);

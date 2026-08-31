@@ -31,10 +31,10 @@ layout(set = 1, binding = 5) uniform sampler2D u_EmissiveMap;
 layout(set = 1, binding = 6) uniform UniformMaterialData
 {
 	vec4  AlbedoColour;
+	vec4  EmissiveColour; // rgb = emissive tint, w = intensity
 	float Roughness;
 	float Metallic;
 	float Reflectance;
-	float Emissive;
 	float AlbedoMapFactor;
 	float MetallicMapFactor;
 	float RoughnessMapFactor;

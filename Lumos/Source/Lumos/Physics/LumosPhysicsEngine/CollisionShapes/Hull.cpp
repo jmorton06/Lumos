@@ -181,18 +181,18 @@ namespace Lumos
                 {
                     Vec3 polygon_next = transform * Vec4(m_Vertices[face.vert_ids[idx]].pos, 1.0f);
 
-                    DebugRenderer::DrawTriangle(polygon_start, polygon_last, polygon_next, true, Vec4(0.9f, 0.9f, 0.9f, 0.2f));
+                    DebugRenderer::DrawTriangle(polygon_start, polygon_last, polygon_next, false, Vec4(0.9f, 0.9f, 0.9f, 0.2f));
                     polygon_last = polygon_next;
                 }
             }
 
-            DebugRenderer::DrawThickLine(transform * Vec4(face.normal, 1.0f), transform * Vec4(face.normal * 2.0f, 1.0f), 0.02f, true, Vec4(0.7f, 0.2f, 0.7f, 1.0f));
+            DebugRenderer::DrawThickLine(transform * Vec4(face.normal, 1.0f), transform * Vec4(face.normal * 2.0f, 1.0f), DEBUG_LINE_WIDTH, false, Vec4(0.7f, 0.2f, 0.7f, 1.0f));
         }
 
         // Draw all Hull Edges
         for(HullEdge& edge : m_Edges)
         {
-            DebugRenderer::DrawThickLine(transform * Vec4(m_Vertices[edge.vStart].pos, 1.0f), transform * Vec4(m_Vertices[edge.vEnd].pos, 1.0f), 0.02f, true, Vec4(0.7f, 0.2f, 0.7f, 1.0f));
+            DebugRenderer::DrawThickLine(transform * Vec4(m_Vertices[edge.vStart].pos, 1.0f), transform * Vec4(m_Vertices[edge.vEnd].pos, 1.0f), DEBUG_LINE_WIDTH, false, Vec4(0.7f, 0.2f, 0.7f, 1.0f));
         }
     }
 

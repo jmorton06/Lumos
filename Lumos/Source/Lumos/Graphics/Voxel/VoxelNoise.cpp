@@ -28,8 +28,6 @@ namespace Lumos
             const float x = (float)gx;
             const float z = (float)gz;
 
-            // Broad continents decide land vs sea; fbm adds hills; ridged term lifts
-            // mountains. All sampled in global coords so chunk seams line up.
             float continent = Perlin01(x, z, 1.0f / 640.0f);          // 0..1 slow
             float hills     = Perlin01(x, z, 1.0f / 96.0f) * 0.6f
                             + Perlin01(x, z, 1.0f / 32.0f) * 0.3f
@@ -80,8 +78,6 @@ namespace Lumos
 
         bool VoxelIsCave(int gx, int gy, int gz)
         {
-            // Two 3D noise fields; a cave runs where BOTH are near zero, which
-            // traces thin worm-like tubes. Y is squashed so tunnels lie flatter.
             const float CF = 28.0f;
             float a = stb_perlin_noise3(gx / CF, gy / (CF * 0.55f), gz / CF, 0, 0, 0);
             float b = stb_perlin_noise3((gx + 311) / CF, (gy - 197) / (CF * 0.55f), (gz + 53) / CF, 0, 0, 0);

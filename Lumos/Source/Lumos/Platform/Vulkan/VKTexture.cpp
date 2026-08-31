@@ -1375,9 +1375,6 @@ namespace Lumos
 
             for(uint32_t i = 0; i < m_Count; i++)
             {
-                // Use VK_IMAGE_VIEW_TYPE_2D_ARRAY (layerCount=1) instead of VK_IMAGE_VIEW_TYPE_2D for per-slice
-                // framebuffer attachments. MoltenVK on Intel macOS mishandles 2D-typed views of array depth
-                // textures; the array-typed slice view selects the correct Metal texture slice reliably.
                 VkImageView imageView = CreateImageView(m_TextureImage, m_VKFormat, 1, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_ASPECT_DEPTH_BIT, 1, i, 0);
                 m_IndividualImageViews.PushBack(imageView);
             }
@@ -1476,7 +1473,14 @@ namespace Lumos
 
         Texture2D* VKTexture2D::CreateFromFileFuncVulkan(const std::string& name, const std::string& filename, TextureDesc parameters, TextureLoadOptions loadoptions)
         {
-            return new VKTexture2D(name, filename, parameters, loadoptions);
+            VKTexture2D* tex = new VKTexture2D(name, filename, parameters, loadoptions);
+            if(tex->GetImage() == VK_NULL_HANDLE)
+            {
+                LWARN("Texture failed to load, ignoring: %s", filename.c_str());
+                delete tex;
+                return nullptr;
+            }
+            return tex;
         }
 
         TextureCube* VKTextureCube::CreateFuncVulkan(uint32_t size, void* data, bool hdr)

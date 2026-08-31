@@ -17,6 +17,7 @@ namespace Lumos
         class Texture2D;
     }
     struct Arena;
+    struct SafeAreaInsets;
 
     enum WidgetFlags : u32
     {
@@ -34,12 +35,11 @@ namespace Lumos
         WidgetFlags_DragParent        = (1 << 11),
         WidgetFlags_AnimateScale      = (1 << 12), // Scale down slightly when pressed
         WidgetFlags_IsToggle          = (1 << 13), // For animated toggle switches
-        // Parent-side hints: when set on a parent, every non-floating child
-        // gets centred on that axis as if it carried WidgetFlags_CentreX/Y.
-        // Avoids having to poke each child's flag from script.
         WidgetFlags_CentreChildrenX   = (1 << 14),
         WidgetFlags_CentreChildrenY   = (1 << 15),
         WidgetFlags_AnimateAppear     = (1 << 16), // Pop-in scale/fade when widget first appears
+        WidgetFlags_AlignRight        = (1 << 17), // Position at the parent's right edge (X-axis, non-floating)
+        WidgetFlags_AnimateExit       = (1 << 18),
     };
 
     enum UITextAlignment : u32
@@ -57,6 +57,7 @@ namespace Lumos
         SizeKind_ChildSum,
         SizeKind_MaxChild,
         SizeKind_PercentOfViewport,  // value = fraction of root (framebuffer minus safe area), 0..1
+        SizeKind_Grow,
     };
 
     // Panel anchor positions. Used by UIWindowAnchor. None = use natural layout.
@@ -138,6 +139,7 @@ namespace Lumos
         bool clicked;
         bool right_clicked;
         bool double_clicked;
+        bool released; // mouse released over this widget while it was active (click-on-release)
 
         bool is_initial_dragging_position_set;
         bool dragging;
@@ -145,34 +147,59 @@ namespace Lumos
         bool drag_constraint_y;
         Vec2 drag_offset;
         Vec2 drag_mouse_p;
+        Vec2 press_mouse_p; // pointer pos at press - drag-slop cancel for release-mode clicks
         
         f32 HotTransition;
         f32 ActiveTransition;
         f32 ToggleTransition; // 0 = off, 1 = on (for animated toggles)
         f32 ScaleAnimation;   // For press scale effect
         f32 AppearTransition; // 0 → 1 after creation; drives AnimateAppear pop-in
+        f32 ExitTransition;   // 0 while alive; ramps 0 → 1 after the widget stops
+                              // being built (AnimateExit), rendered as a fade-out;
+                              // freed when it reaches 1
+        i32 ExitDepth;        // tree depth cached at fade start — parent pointers
+                              // can dangle mid-fade, so the render sort uses this
 
         u64 LastFrameIndexActive;
 
-        // Optional viewport-anchored positioning. When Anchor != None the
-        // post-layout pass overrides relative_position with the chosen
-        // anchor offset (rootSize - widgetSize) + AnchorMargin. Set via
-        // UIWindowAnchor(). Only honored on direct children of root_parent.
         UIAnchor Anchor;
         Vec2 AnchorMargin;
 
-        // Optional render rotation in radians (around widget centre). Applied
-        // to the background quad only. Used by widgets that need a directional
-        // visual (compass needle, wind arrow, dial). Layout uses the
-        // axis-aligned bounding size — rotation is a render-only effect.
         f32 Rotation;
 
-        // Optional rendered rect size, decoupled from layout size. Default
-        // (0,0) means render at widget.size. Non-zero lets a rotated widget
-        // reserve a square bounding box for layout (so siblings don't shift
-        // as it spins) while drawing a (length × thickness) rect centred in
-        // that box. Honored only when Rotation != 0.
         Vec2 RenderSize;
+
+        bool Clip;
+        Vec2 ChildOffset;
+        Vec4 ClipRect;
+
+        bool FirstFrame;
+
+        u32 StateValue;
+
+        // Per-byte glyph highlight - bit i tints byte i of the text with
+        // HighlightColour. Used for fuzzy-search matches. Bytes past 128 are
+        // never highlighted.
+        u64 HighlightBits[2];
+        Vec4 HighlightColour;
+
+        // Per-axis stamp for the downwards (ChildSum/MaxChild) size pass, so a
+        // subtree solved by recursion isn't solved again when the outer walk
+        // reaches it. Without it the pass is exponential in nesting depth.
+        u64 DownwardsSizePass[UIAxis_Count];
+    };
+
+    // Glyph highlight mask for UILabelHighlighted - bit i = byte i of the text.
+    struct UIHighlightMask
+    {
+        u64 bits[2] = { 0, 0 };
+
+        void Set(u32 byteIndex)
+        {
+            if(byteIndex < 128)
+                bits[byteIndex >> 6] |= (1ull << (byteIndex & 63));
+        }
+        bool Any() const { return (bits[0] | bits[1]) != 0; }
     };
 
     struct UI_Interaction
@@ -216,10 +243,22 @@ namespace Lumos
         UITheme_Count
     };
 
+    struct UISafeAreaConfig
+    {
+        f32 MinMargin   = 0.0f;
+        f32 ScaleTop    = 1.0f;
+        f32 ScaleBottom = 1.0f;
+        f32 ScaleLeft   = 1.0f;
+        f32 ScaleRight  = 1.0f;
+    };
+
+    static constexpr f32 kSafeAreaEditorMarginPt = 18.0f;
+
     struct UI_State
     {
         Arena* UIArena;
         Arena* UIFrameArena;
+        Arena* UIExitArena;
 
         PoolAllocator<UI_Widget>* WidgetAllocator;
 
@@ -235,7 +274,9 @@ namespace Lumos
         u64 active_widget;
 
         Vec2 InputOffset;
+        Vec2 FrameBufferSize; // logical viewport the UI was laid out for; UI render projection must use this, not the (render-scaled) target pixels
         f32 DPIScale = 1.0f;
+        f32 InputScale = 1.0f;
         u64 FrameIndex;
         f32 AnimationRate = 10.0f;
         f32 AnimationRateDT = 10.0f;
@@ -246,6 +287,7 @@ namespace Lumos
         f32 LastClickTime     = 0.0f;
         u64 LastClickedWidget = 0;
         f32 DoubleClickTime   = 0.3f; // seconds
+        bool ClickOnRelease = false;
         f32 CurrentTime       = 0.0f;
 
         // Text input state
@@ -262,6 +304,7 @@ namespace Lumos
         i32 FocusIndex = -1;
         bool TabPressed = false;
         bool ShiftTabPressed = false;
+        u64 PendingFocusWidget = 0;
 
         // Tree view indent level
         i32 TreeIndentLevel = 0;
@@ -282,19 +325,14 @@ namespace Lumos
         bool ContextMenuOpen    = false;
         Vec2 ContextMenuPos     = {};
         u64 ContextMenuTrigger  = 0; // Widget that triggered the menu
-        // Frame index on which a close was requested (left-click outside).
-        // Close is deferred one frame so the items still build and can
-        // dispatch the click that originated the close. Zero = no request.
         u64 ContextMenuCloseRequestFrame = 0;
 
-        // Per-frame monotonic id source for anonymous widgets (separator, row,
-        // column, spacer, tooltip, etc). Reset at the top of UIBeginFrame so
-        // the Nth call of a given helper this frame produces the same hash as
-        // the Nth call last frame — keeps pool slots stable across frames.
         u64 WidgetIdCounter = 0;
 
         // One-shot flags OR'd into the next widget created (see UISetNextFlags).
         u32 NextWidgetFlags = 0;
+
+        UISafeAreaConfig SafeArea;
     };
 
     UI_State* GetUIState();
@@ -308,22 +346,13 @@ namespace Lumos
 
     void UIEndFrame(Graphics::Font* font);
 
-    UI_Interaction UIBeginPanel(const char* str);
     UI_Interaction UIBeginPanel(const char* str, u32 extraFlags = 0);
     UI_Interaction UIBeginPanel(const char* str, SizeKind sizeKindX, float xValue, SizeKind sizeKindY, float yValue, u32 extraFlags = 0);
 
     void UIEndPanel();
 
-    // Headerless panel — same window widget as UIBeginPanel but with no title
-    // header bar. Intended for in-game HUD overlays where a draggable title
-    // would look out of place. Pair with UIEndPanel().
     UI_Interaction UIBeginOverlay(const char* str, SizeKind sizeKindX = SizeKind_MaxChild, float xValue = 1.0f, SizeKind sizeKindY = SizeKind_ChildSum, float yValue = 1.0f, u32 extraFlags = WidgetFlags_StackVertically);
 
-    // Rotated coloured rect. Pixel-sized (length × thickness). Rotation is
-    // CCW radians applied around the rect centre at render time; layout
-    // reserves the axis-aligned bounding box big enough to contain the
-    // rotated quad so it doesn't clip siblings. Intended for compass needles
-    // / wind arrows where text or unicode glyphs won't do.
     UI_Interaction UIArrow(const char* str, float angleRad, float length, float thickness, const Vec4& color);
 
     // Window dock/positioning helpers (call between UIBeginPanel and first child)
@@ -332,14 +361,8 @@ namespace Lumos
     void UIWindowCenter();
     void UIWindowFillScreen();
     void UIWindowSetSize(float wPercent, float hPercent);
-    // Anchor the current panel to a viewport corner / edge / center with the
-    // given pixel margin. Position is applied after layout so the panel can
-    // still auto-size from its children (ChildSum) or use PercentOfViewport.
     void UIWindowAnchor(UIAnchor anchor, float marginX = 0.0f, float marginY = 0.0f);
 
-    // OR extra flags into the next widget created (one-shot). Lets callers add
-    // AnimateAppear / AnimateScale etc. to widgets whose helper doesn't expose
-    // a flags parameter (UILabel, UIButton, ...).
     void UISetNextFlags(u32 flags);
 
     void UIPushStyle(StyleVar style_variable, float value);
@@ -350,6 +373,10 @@ namespace Lumos
 
     UI_Interaction UILabelCStr(const char* str, const char* text);
     UI_Interaction UILabel(const char* str, const String8& text);
+
+    UI_Interaction UILabelWrapped(const char* str, const String8& text, float maxWidth);
+
+    UI_Interaction UILabelEllipsis(const char* str, const String8& text, float maxWidth);
     UI_Interaction UIButton(const char* str);
     UI_Interaction UIImage(const char* str,
                             Graphics::Texture2D* texture,
@@ -365,6 +392,25 @@ namespace Lumos
 
     UI_Interaction UIToggle(const char* str,
                              bool* value);
+
+    // Filled rounded box (a circle when cornerRadius >= size*0.5). Generic dot/swatch.
+    UI_Interaction UIColouredBox(const char* str, float width, float height,
+                                 const Vec4& colour, float cornerRadius = 0.0f);
+
+    UI_Interaction UIBeginRadar(const char* str, float diameter,
+                                const Vec4& bgColour, const Vec4& ringColour);
+    void UIEndRadar();
+
+    // texture == nullptr draws a plain coloured dot (radius = size*0.5) instead.
+    UI_Interaction UIRadarBlip(const char* str, float x, float y, float size,
+                               const Vec4& tint, Graphics::Texture2D* texture = nullptr);
+
+    void UIRadarRing(const char* str, float radius, const Vec4& colour,
+                     float thickness = 1.0f);
+
+    UI_Interaction UISliderRow(const char* str, float* value,
+                               float min_value = 0.0f, float max_value = 1.0f,
+                               const char* valueFmt = "%.2f");
 
     UI_Interaction UICheckbox(const char* str, bool* value);
 
@@ -390,6 +436,9 @@ namespace Lumos
 
     // Horizontal layout container
     void UIBeginRow();
+    // Row that spans the parent's content width - needed when a child uses
+    // UIFlexSpacer or a Grow size, which have no leftover space in a ChildSum row.
+    void UIBeginRowFullWidth();
     void UIEndRow();
 
     // Vertical layout container
@@ -401,8 +450,49 @@ namespace Lumos
     void UIBeginExpanderContent(const char* str);
     void UIEndExpanderContent();
 
-    // Scroll area
+    // ---- Overlay/palette building blocks ----
+    // Label whose masked bytes are drawn in highlightColour (fuzzy-match hits).
+    UI_Interaction UILabelHighlighted(const char* str, const String8& text,
+                                      const UIHighlightMask& mask, const Vec4& highlightColour);
+
+    // Full-width clickable list row with hover + selected fills. Children are
+    // stacked horizontally and vertically centred.
+    UI_Interaction UIBeginSelectableRow(const char* str, bool selected, float height = 0.0f);
+    void UIEndSelectableRow();
+
+    // Small rounded pill of text - categories, ON/OFF state, key hints.
+    UI_Interaction UIBadge(const char* str, const String8& text, const Vec4& bg, const Vec4& fg);
+
+    // Grow spacer: eats the leftover space, pushing what follows to the far edge.
+    void UIFlexSpacer(float weight = 1.0f);
+
+    // Borderless search box with placeholder text. width <= 0 fills the parent.
+    UI_Interaction UISearchField(const char* str, char* buffer, u32 buffer_size,
+                                 const char* placeholder, float width = 0.0f);
+
+    // Bar graph of the last `count` samples. markerValue > 0 draws a reference line.
+    void UIPlotHistogram(const char* str, const float* values, u32 count,
+                         float minValue, float maxValue, float width, float height,
+                         const Vec4& colour, const Vec4& bgColour, float markerValue = 0.0f);
+
+    // Draggable number field - horizontal drag scrubs the value. minValue >= maxValue
+    // leaves it unbounded. Editable numeric field without needing a slider range.
+    UI_Interaction UIDragFloat(const char* str, float* value, float speed = 0.01f,
+                               float minValue = 0.0f, float maxValue = 0.0f,
+                               const char* fmt = "%.3f", float width = 84.0f);
+    // Labelled rows built on it. Return true while the value is being changed.
+    bool UIDragFloatRow(const char* str, const String8& label, float* value, float speed = 0.01f,
+                        float minValue = 0.0f, float maxValue = 0.0f, const char* fmt = "%.3f");
+    bool UIDragVec3Row(const char* str, const String8& label, float* xyz, float speed = 0.01f);
+
+    // Full-viewport dimming quad that swallows clicks. Build at root level.
+    // The returned interaction is how a modal picks up click-outside-to-close.
+    UI_Interaction UIDimBackdrop(const char* str, float alpha);
+
     void UIBeginScrollArea(const char* str, float height, float* scroll_offset);
+    // Lua-facing variant: engine-held scroll offset, transparent skin.
+    void UIBeginScrollAreaAuto(const char* str, float height);
+    void UIFocusNextTextInput();
     void UIEndScrollArea();
 
     // Text input
@@ -452,7 +542,7 @@ namespace Lumos
 
     // Layout
     UI_Widget* UIWidgetRecurseDepthFirstPreOrder(UI_Widget* Node);
-    UI_Widget* UIWidgetRecurseDepthFirstPostOrder(UI_Widget* Node);
+    UI_Widget* UIWidgetRecurseDepthFirstPostOrder(UI_Widget* Node, UI_Widget* SubtreeRoot = nullptr);
 
     void UILayoutSolveStandaloneSizes(UI_Widget* Root, UIAxis Axis);
     void UILayoutSolveUpwardsSizes(UI_Widget* Root, UIAxis Axis);
@@ -465,6 +555,18 @@ namespace Lumos
     
     // Theme management
     void UISetTheme(UITheme theme);
+    void UISetClickOnRelease(bool enable);
+
+    // Safe-area tuning (see UISafeAreaConfig).
+    void UISetSafeAreaConfig(const UISafeAreaConfig& cfg);
+    UISafeAreaConfig UIGetSafeAreaConfig();
+    SafeAreaInsets UIResolveSafeAreaInsets(const SafeAreaInsets& raw, bool isEditor);
+
+    bool UIIsMouseOverUI();
+
+    // Locate a live widget by its displayed text, for scripted input. outMousePos
+    // comes back in Input::GetMousePosition space so it can be injected directly.
+    bool UIFindWidgetByText(const char* text, Vec2* outMousePos, Vec4* outRect = nullptr, bool substring = false);
     const char* UIGetThemeName(UITheme theme);
     void UIApplyLightTheme();
     void UIApplyDarkTheme();

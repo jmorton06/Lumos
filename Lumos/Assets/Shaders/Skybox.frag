@@ -35,16 +35,6 @@ vec3 mie(float dist, vec3 sunL)
 	return max(exp(-pow(dist, 0.25)) * sunL - 0.4, 0.0);
 }
 
-// 2D gradient (Perlin-style) noise. Value noise is axis-aligned per cell,
-// which produces visible diamond/triangle moiré once you stack octaves —
-// gradient noise samples a random direction per lattice point, so the
-// resulting field is isotropic and reads as natural cloud breakup.
-//
-// Dave Hoskins' "hash without sine" — sin()-based hashes lose precision
-// catastrophically at large arguments, and the high-frequency FBM octaves
-// here push the input range well past sin()'s safe zone (causing aliased,
-// polygon-looking artifacts on GPUs that implement sin() with naive range
-// reduction). This variant stays accurate for any input magnitude.
 vec2 Hash22(vec2 p)
 {
 	vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
@@ -66,8 +56,6 @@ float GradNoise(vec2 p)
 	return mix(mix(a, b, u.x), mix(c, d, u.x), u.y) * 0.5 + 0.5;
 }
 
-// Standard FBM (no per-octave rotation — gradient noise is already isotropic
-// so rotation just adds aliasing). 5 octaves, freq * 2, amp * 0.5.
 float FBM(vec2 p)
 {
 	float total = 0.0;
@@ -82,11 +70,6 @@ float FBM(vec2 p)
 	return total;
 }
 
-// Equirectangular-XZ projection. The classic dir.xz/dir.y has a horizon
-// singularity that amplifies the screen-quad triangulation into visible
-// diagonal facets; sampling dir.xz directly is uniform over the hemisphere
-// (compresses toward the zenith, which is fine — clouds calm out overhead).
-// Scale sets cloud-cell size in world-ish units.
 vec2 CloudUV(vec3 dir, float speed)
 {
 	const float SKY_SCALE = 6.0;
@@ -95,10 +78,6 @@ vec2 CloudUV(vec3 dir, float speed)
 	return uv + wind;
 }
 
-// Stylised cumulus (hand-drawn cartoon). Two billow scales build rounded
-// puffs, a crisp narrow edge gives the bold outline, and the shading is
-// posterised into a few flat bands so it reads like cel-shaded artwork
-// rather than a smooth gradient. CloudColour.a drives the dark rim/outline.
 vec4 CloudsStylised(vec3 dir, vec3 sunDir)
 {
 	vec2 uv = CloudUV(dir, data.CloudParams.z);
@@ -116,8 +95,6 @@ vec4 CloudsStylised(vec3 dir, vec3 sunDir)
 	float outline = smoothstep(cut - 0.07, cut, n) * (1.0 - core);
 	float alpha   = clamp(core + outline, 0.0, 1.0) * data.CloudParams.y;
 
-	// Fake form shading: brighter toward the cloud "top" (dense centre) and
-	// toward the sun, then quantise to flat cel bands.
 	float form    = smoothstep(cut, 0.95, n);
 	float lightDot = clamp(dot(normalize(dir), sunDir) * 0.5 + 0.5, 0.0, 1.0);
 	float lit     = mix(0.55, 1.0, form) * mix(0.78, 1.0, lightDot);
@@ -132,15 +109,9 @@ vec4 CloudsStylised(vec3 dir, vec3 sunDir)
 	return vec4(cloud, alpha);
 }
 
-// Realistic stratocumulus: domain-warped FBM for organic shapes, a higher-freq
-// erosion pass for wispy boundaries, and a Beer–Powder lighting model that
-// fakes self-shadowing depth. A tight forward-scatter lobe gives the silver
-// lining when looking toward the sun.
 vec4 CloudsRealistic(vec3 dir, vec3 sunDir)
 {
 	vec2 uv = CloudUV(dir, data.CloudParams.z);
-	// Domain warp — two channels of low-freq FBM offset the main lookup so
-	// shapes flow instead of sitting on a grid.
 	vec2 warp = vec2(FBM(uv * 0.5 + 5.2), FBM(uv * 0.5 + 9.7));
 	float n   = FBM(uv + warp * 0.6);
 	// Erode edges with detail noise — eats into low-density rims for wisps.
@@ -151,9 +122,6 @@ vec4 CloudsRealistic(vec3 dir, vec3 sunDir)
 	float cut      = mix(0.70, 0.20, coverage);
 	float density  = smoothstep(cut, cut + 0.30, n) * data.CloudParams.y;
 
-	// Beer–Powder: density stands in for optical depth. Beer darkens dense
-	// cores, the powder term restores the dark-edge falloff that pure Beer
-	// misses, together giving believable volumetric shading.
 	float beer   = exp(-density * 3.0);
 	float powder = 1.0 - exp(-density * 4.0);
 	float energy = clamp(beer * powder * 2.0, 0.0, 1.0);
@@ -172,10 +140,6 @@ vec4 CloudsRealistic(vec3 dir, vec3 sunDir)
 	return vec4(cloud, alpha);
 }
 
-// Aurora borealis — animated curtains in the upper sky. Seamless sky-plane
-// projection (avoids the atan azimuth seam), three layered curtains for depth,
-// each warped by flowing FBM so the rays ripple. Colour ramps from the base
-// tint at the bottom to a magenta tip up high, the classic aurora gradient.
 vec3 Aurora(vec3 dir)
 {
 	float intensity = data.AuroraParams.x;
@@ -214,11 +178,6 @@ vec3 Aurora(vec3 dir)
 	return col * intensity * vis;
 }
 
-// Cheap 3D hash for star placement — quantises the view direction onto a
-// grid so each cell either contains a star (above the sparsity threshold)
-// or doesn't. Density param controls threshold; brightness scales the
-// resulting point. Twinkle uses Time + per-cell phase so adjacent stars
-// don't pulse in sync.
 float Hash13(vec3 p)
 {
 	p = fract(p * 0.1031);
@@ -231,8 +190,6 @@ vec3 Stars(vec3 dir)
 	float density = data.StarParams.x;
 	if(density <= 0.001) return vec3(0.0);
 
-	// Two layered grids (different cell sizes) — looks denser without each
-	// cell needing a fine threshold.
 	vec3 total = vec3(0.0);
 	for(int layer = 0; layer < 2; ++layer)
 	{
@@ -244,8 +201,6 @@ vec3 Stars(vec3 dir)
 		vec3 local = fract(g) - 0.5 - (hOff - 0.5) * 0.6;
 		float dist = length(local.xy);
 
-		// Threshold drives sparsity. Higher density -> lower threshold ->
-		// more cells contain a star. Soft falloff for antialiasing.
 		float starProb = Hash13(cell);
 		float thresh = mix(0.997, 0.965, density);
 		float gate = step(thresh, starProb);
@@ -265,17 +220,11 @@ vec3 Stars(vec3 dir)
 	return total * data.StarColour.rgb * data.StarParams.y;
 }
 
-// Per-planet procedural sky.
-// Mixes HorizonColour -> ZenithColour by view.y, then adds a soft sun glow
-// in the SunDirection. Optional cloud dome + horizon fog tint applied on top.
 vec3 GetSky()
 {
 	vec3 uv = normalize(outPosition.xyz);
 
 	float h = clamp(uv.y, 0.0, 1.0);
-	// Two-stop gradient with an extra horizon-haze lift. The zenith->horizon
-	// mix uses a 2.5 power so the rich zenith colour holds across most of the
-	// dome instead of washing toward the pale horizon too early.
 	float horizonBlend = pow(1.0 - h, 2.5);
 	vec3 base = mix(data.ZenithColour.rgb, data.HorizonColour.rgb, horizonBlend);
 
@@ -297,8 +246,6 @@ vec3 GetSky()
 
 	vec3 sky = base + sun + mieGlow;
 
-	// How dark the underlying sky reads — drives night-only effects (stars,
-	// aurora) so they fade out automatically in daylight without a toggle.
 	float skyLuma  = dot(base, vec3(0.2126, 0.7152, 0.0722));
 	float darkness = clamp(1.0 - skyLuma / 0.35, 0.0, 1.0);
 
@@ -306,10 +253,6 @@ vec3 GetSky()
 	if(data.AuroraParams.x > 0.001)
 		sky += Aurora(uv) * darkness;
 
-	// Stars composited under clouds/fog so atmospheric effects can occlude
-	// them. Visibility scales with how dark the underlying sky tint is,
-	// gated by StarParams.w threshold — daytime skies suppress stars
-	// automatically (no per-time-of-day toggle needed).
 	if(data.StarParams.x > 0.001)
 	{
 		float starDark = clamp(1.0 - skyLuma / max(data.StarParams.w, 0.001), 0.0, 1.0);
@@ -334,9 +277,6 @@ vec3 GetSky()
 		sky = mix(sky, cloud.rgb, cloud.a);
 	}
 
-	// Horizon fog tint — pull lowest portion of sky toward FogColour so
-	// scene fog blends seamlessly with the dome. Fixed band 0..0.25 of view.y
-	// (just above horizon). FogColour.a scales overall strength.
 	if(data.FogColour.a > 0.001)
 	{
 		float fh = 1.0 - clamp(uv.y / 0.25, 0.0, 1.0);
@@ -344,8 +284,6 @@ vec3 GetSky()
 		sky = mix(sky, data.FogColour.rgb, mixAmt);
 	}
 
-	// Gentle saturation lift — procedural sky reads washed out after the
-	// tonemapper compresses it, so push colour purity back in a touch.
 	float luma = dot(sky, vec3(0.2126, 0.7152, 0.0722));
 	sky = mix(vec3(luma), sky, 1.15);
 

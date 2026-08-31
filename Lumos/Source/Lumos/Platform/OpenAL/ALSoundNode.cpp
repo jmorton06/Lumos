@@ -73,6 +73,11 @@ namespace Lumos
         m_Sound = s;
         if(m_Sound)
         {
+            ALint state = 0;
+            alGetSourcei(m_Source, AL_SOURCE_STATE, &state);
+            if(state == AL_PLAYING || state == AL_PAUSED)
+                alSourceStop(m_Source);
+
             m_TimeLeft = m_Sound->GetLength();
             alSourcei(m_Source, AL_BUFFER, m_Sound.As<ALSound>()->GetBuffer());
             alSourcef(m_Source, AL_MAX_DISTANCE, m_Radius);

@@ -47,6 +47,15 @@ namespace Lumos
 
     void TimeStep::OnUpdate()
     {
+        // Fixed step ignores the wall clock entirely so frame N is reproducible.
+        if(m_FixedTimestep > 0.0)
+        {
+            m_Timestep         = m_FixedTimestep;
+            m_SmoothedTimestep = m_FixedTimestep;
+            m_Elapsed += m_FixedTimestep;
+            return;
+        }
+
         double currentTime = m_Timer->GetElapsedMSD();
         double dt          = currentTime - m_LastTime;
 

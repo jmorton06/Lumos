@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "DebugRenderer.h"
 #include "Graphics/Light.h"
+#include "Graphics/Light2D.h"
 #include "Graphics/Camera/Camera.h"
 #include "Audio/SoundNode.h"
 #include "Graphics/Camera/Camera.h"
@@ -151,9 +152,9 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         if(ndt)
-            s_Instance->m_DrawListNDT.m_DebugThickLines.EmplaceBack(start, end, colour, time);
+            s_Instance->m_DrawListNDT.m_DebugThickLines.EmplaceBack(start, end, colour, line_width, time);
         else
-            s_Instance->m_DrawList.m_DebugThickLines.EmplaceBack(start, end, colour, time);
+            s_Instance->m_DrawList.m_DebugThickLines.EmplaceBack(start, end, colour, line_width, time);
     }
 
     void DebugRenderer::DrawThickLine(const Vec3& start, const Vec3& end, float line_width, bool depthTested, const Vec4& colour, float time)
@@ -183,9 +184,9 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         Vec3 position = Vec3(mtx[13], mtx[14], mtx[15]);
-        GenDrawHairLine(!depthTested, position, position + Vec3(mtx[0], mtx[1], mtx[2]), Vec4(1.0f, 0.0f, 0.0f, 1.0f), time);
-        GenDrawHairLine(!depthTested, position, position + Vec3(mtx[4], mtx[5], mtx[6]), Vec4(0.0f, 1.0f, 0.0f, 1.0f), time);
-        GenDrawHairLine(!depthTested, position, position + Vec3(mtx[8], mtx[9], mtx[10]), Vec4(0.0f, 0.0f, 1.0f, 1.0f), time);
+        GenDrawThickLine(!depthTested, position, position + Vec3(mtx[0], mtx[1], mtx[2]), DEBUG_LINE_WIDTH, Vec4(1.0f, 0.0f, 0.0f, 1.0f), time);
+        GenDrawThickLine(!depthTested, position, position + Vec3(mtx[4], mtx[5], mtx[6]), DEBUG_LINE_WIDTH, Vec4(0.0f, 1.0f, 0.0f, 1.0f), time);
+        GenDrawThickLine(!depthTested, position, position + Vec3(mtx[8], mtx[9], mtx[10]), DEBUG_LINE_WIDTH, Vec4(0.0f, 0.0f, 1.0f, 1.0f), time);
     }
     void DebugRenderer::DrawMatrix(const Mat3& mtx, const Vec3& position, bool depthTested, float time)
     {
@@ -449,18 +450,18 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         auto* vertices = frustum.GetVerticies();
 
-        DebugRenderer::DrawHairLine(vertices[0], vertices[1], false, colour);
-        DebugRenderer::DrawHairLine(vertices[1], vertices[2], false, colour);
-        DebugRenderer::DrawHairLine(vertices[2], vertices[3], false, colour);
-        DebugRenderer::DrawHairLine(vertices[3], vertices[0], false, colour);
-        DebugRenderer::DrawHairLine(vertices[4], vertices[5], false, colour);
-        DebugRenderer::DrawHairLine(vertices[5], vertices[6], false, colour);
-        DebugRenderer::DrawHairLine(vertices[6], vertices[7], false, colour);
-        DebugRenderer::DrawHairLine(vertices[7], vertices[4], false, colour);
-        DebugRenderer::DrawHairLine(vertices[0], vertices[4], false, colour);
-        DebugRenderer::DrawHairLine(vertices[1], vertices[5], false, colour);
-        DebugRenderer::DrawHairLine(vertices[2], vertices[6], false, colour);
-        DebugRenderer::DrawHairLine(vertices[3], vertices[7], false, colour);
+        DebugRenderer::DrawThickLine(vertices[0], vertices[1], DEBUG_LINE_WIDTH, false, colour);
+        DebugRenderer::DrawThickLine(vertices[1], vertices[2], DEBUG_LINE_WIDTH, false, colour);
+        DebugRenderer::DrawThickLine(vertices[2], vertices[3], DEBUG_LINE_WIDTH, false, colour);
+        DebugRenderer::DrawThickLine(vertices[3], vertices[0], DEBUG_LINE_WIDTH, false, colour);
+        DebugRenderer::DrawThickLine(vertices[4], vertices[5], DEBUG_LINE_WIDTH, false, colour);
+        DebugRenderer::DrawThickLine(vertices[5], vertices[6], DEBUG_LINE_WIDTH, false, colour);
+        DebugRenderer::DrawThickLine(vertices[6], vertices[7], DEBUG_LINE_WIDTH, false, colour);
+        DebugRenderer::DrawThickLine(vertices[7], vertices[4], DEBUG_LINE_WIDTH, false, colour);
+        DebugRenderer::DrawThickLine(vertices[0], vertices[4], DEBUG_LINE_WIDTH, false, colour);
+        DebugRenderer::DrawThickLine(vertices[1], vertices[5], DEBUG_LINE_WIDTH, false, colour);
+        DebugRenderer::DrawThickLine(vertices[2], vertices[6], DEBUG_LINE_WIDTH, false, colour);
+        DebugRenderer::DrawThickLine(vertices[3], vertices[7], DEBUG_LINE_WIDTH, false, colour);
     }
 
     void DebugRenderer::DebugDraw(Graphics::Light* light, const Quat& rotation, const Vec4& colour)
@@ -470,10 +471,10 @@ namespace Lumos
         if(light->Type < 0.1f)
         {
             Vec3 offset(0.0f, 0.1f, 0.0f);
-            DrawHairLine(Vec3(light->Position) + offset, Vec3(light->Position + (light->Direction) * 2.0f) + offset, false, colour);
-            DrawHairLine(Vec3(light->Position) - offset, Vec3(light->Position + (light->Direction) * 2.0f) - offset, false, colour);
+            DrawThickLine(Vec3(light->Position) + offset, Vec3(light->Position + (light->Direction) * 2.0f) + offset, DEBUG_LINE_WIDTH, false, colour);
+            DrawThickLine(Vec3(light->Position) - offset, Vec3(light->Position + (light->Direction) * 2.0f) - offset, DEBUG_LINE_WIDTH, false, colour);
 
-            DrawHairLine(Vec3(light->Position), Vec3(light->Position + (light->Direction) * 2.0f), false, colour);
+            DrawThickLine(Vec3(light->Position), Vec3(light->Position + (light->Direction) * 2.0f), DEBUG_LINE_WIDTH, false, colour);
             DebugDrawCone(20, 4, 30.0f, 1.5f, (light->Position - (light->Direction) * 1.5f), rotation, colour);
         }
         // Spot
@@ -494,7 +495,55 @@ namespace Lumos
         DrawPoint(sound->GetPosition(), sound->GetRadius(), false, colour);
     }
 
-    void DebugRenderer::DebugDrawCircle(int numVerts, float radius, const Vec3& position, const Quat& rotation, const Vec4& colour)
+    void DebugRenderer::DebugDraw(const Graphics::Light2D& light, const Vec3& position, const Quat& rotation, const Vec4& colour)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        // 2D lights live in the XY plane; draw on z = position.z.
+        const Quat flat = Quat(Vec3(0.0f, 0.0f, 0.0f)); // circle already in XY
+        const float thickness = DEBUG_LINE_WIDTH;
+
+        if(light.Type < 1.5f) // Point (0) or Spot (1)
+        {
+            DebugDrawCircle(32, light.Radius, position, flat, colour, thickness);
+            DrawPoint(position, 0.1f, false, colour);
+
+            if(light.Type > 0.5f) // Spot: draw cone edges from the stored cos angles
+            {
+                Vec3 facing = rotation * Vec3(0.0f, -1.0f, 0.0f);
+                facing.z    = 0.0f;
+                if(facing.LengthSquared() > 1e-6f)
+                    facing.Normalise();
+                float half  = Maths::Acos(light.OuterAngle);    // half-cone angle in degrees (Acos clamps + returns deg)
+                float baseA = Maths::Atan2(facing.y, facing.x); // degrees
+                Vec3 e0(Maths::Cos(baseA + half) * light.Radius, Maths::Sin(baseA + half) * light.Radius, 0.0f);
+                Vec3 e1(Maths::Cos(baseA - half) * light.Radius, Maths::Sin(baseA - half) * light.Radius, 0.0f);
+                DrawThickLine(position, position + e0, thickness, false, colour);
+                DrawThickLine(position, position + e1, thickness, false, colour);
+            }
+        }
+        else // Global: a small sun icon (centre dot + rays), position-independent reach
+        {
+            float r = 0.4f;
+            DebugDrawCircle(20, r, position, flat, colour, thickness);
+            for(int i = 0; i < 8; i++)
+            {
+                float a = 360.0f * (float(i) / 8.0f); // Maths::Cos/Sin take degrees
+                Vec3 d(Maths::Cos(a), Maths::Sin(a), 0.0f);
+                DrawThickLine(position + d * (r * 1.3f), position + d * (r * 2.0f), thickness, false, colour);
+            }
+        }
+    }
+
+    // Thickness > 0 expands to camera-facing quads (visible at distance); 0 = 1px hairline.
+    static inline void DrawShapeLine(const Vec3& a, const Vec3& b, const Vec4& colour, float thickness)
+    {
+        if(thickness > 0.0f)
+            DebugRenderer::DrawThickLine(a, b, thickness, false, colour);
+        else
+            DebugRenderer::DrawHairLine(a, b, false, colour);
+    }
+
+    void DebugRenderer::DebugDrawCircle(int numVerts, float radius, const Vec3& position, const Quat& rotation, const Vec4& colour, float thickness)
     {
         LUMOS_PROFILE_FUNCTION();
         float step = 360.0f / float(numVerts);
@@ -509,36 +558,34 @@ namespace Lumos
             float ny  = Maths::Sin(step * (i + 1)) * radius;
             Vec3 next = Vec3(nx, ny, 0.0f);
 
-            DrawHairLine(position + (rotation * current), position + (rotation * next), false, colour);
+            DrawShapeLine(position + (rotation * current), position + (rotation * next), colour, thickness);
         }
     }
-    void DebugRenderer::DebugDrawSphere(float radius, const Vec3& position, const Vec4& colour)
+    void DebugRenderer::DebugDrawSphere(float radius, const Vec3& position, const Vec4& colour, float thickness)
     {
         LUMOS_PROFILE_FUNCTION();
-        float offset = 0.0f;
-        DebugDrawCircle(20, radius, position, Quat(Vec3(0.0f, 0.0f, 0.0f)), colour);
-        DebugDrawCircle(20, radius, position, Quat(Vec3(90.0f, 0.0f, 0.0f)), colour);
-        DebugDrawCircle(20, radius, position, Quat(Vec3(0.0f, 90.0f, 90.0f)), colour);
+        DebugDrawCircle(20, radius, position, Quat(Vec3(0.0f, 0.0f, 0.0f)), colour, thickness);
+        DebugDrawCircle(20, radius, position, Quat(Vec3(90.0f, 0.0f, 0.0f)), colour, thickness);
+        DebugDrawCircle(20, radius, position, Quat(Vec3(0.0f, 90.0f, 90.0f)), colour, thickness);
     }
 
-    void DebugRenderer::DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const Vec3& position, const Quat& rotation, const Vec4& colour)
+    void DebugRenderer::DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const Vec3& position, const Quat& rotation, const Vec4& colour, float thickness)
     {
         LUMOS_PROFILE_FUNCTION();
         float endAngle   = Maths::Tan(angle * 0.5f) * length;
         Vec3 forward     = -(rotation * Vec3(0.0f, 0.0f, -1.0f));
         Vec3 endPosition = position + forward * length;
-        float offset     = 0.0f;
-        DebugDrawCircle(numCircleVerts, endAngle, endPosition, rotation, colour);
+        DebugDrawCircle(numCircleVerts, endAngle, endPosition, rotation, colour, thickness);
 
         for(int i = 0; i < numLinesToCircle; i++)
         {
             float a    = i * 90.0f;
             Vec3 point = rotation * Vec3(Maths::Cos(a), Maths::Sin(a), 0.0f) * endAngle;
-            DrawHairLine(position, position + point + forward * length, false, colour);
+            DrawShapeLine(position, position + point + forward * length, colour, thickness);
         }
     }
 
-    void DebugDrawArc(int numVerts, float radius, const Vec3& start, const Vec3& end, const Quat& rotation, const Vec4& colour)
+    void DebugDrawArc(int numVerts, float radius, const Vec3& start, const Vec3& end, const Quat& rotation, const Vec4& colour, float thickness = DEBUG_LINE_WIDTH)
     {
         LUMOS_PROFILE_FUNCTION();
         float step = 180.0f / numVerts;
@@ -556,11 +603,11 @@ namespace Lumos
             float ny  = Maths::Sin(step * (i + 1)) * radius;
             Vec3 next = Vec3(nx, ny, 0.0f);
 
-            DebugRenderer::DrawHairLine(arcCentre + (rot * current), arcCentre + (rot * next), false, colour);
+            DrawShapeLine(arcCentre + (rot * current), arcCentre + (rot * next), colour, thickness);
         }
     }
 
-    void DebugRenderer::DebugDrawCapsule(const Vec3& position, const Quat& rotation, float height, float radius, const Vec4& colour)
+    void DebugRenderer::DebugDrawCapsule(const Vec3& position, const Quat& rotation, float height, float radius, const Vec4& colour, float thickness)
     {
         LUMOS_PROFILE_FUNCTION();
         Vec3 up = (rotation * Vec3(0.0f, 1.0f, 0.0f));
@@ -568,8 +615,8 @@ namespace Lumos
         Vec3 topSphereCentre    = position + up * (height * 0.5f);
         Vec3 bottomSphereCentre = position - up * (height * 0.5f);
 
-        DebugDrawCircle(20, radius, topSphereCentre, rotation * Quat(Vec3(90.0f, 0.0f, 0.0f)), colour);
-        DebugDrawCircle(20, radius, bottomSphereCentre, rotation * Quat(Vec3(90.0f, 0.0f, 0.0f)), colour);
+        DebugDrawCircle(20, radius, topSphereCentre, rotation * Quat(Vec3(90.0f, 0.0f, 0.0f)), colour, thickness);
+        DebugDrawCircle(20, radius, bottomSphereCentre, rotation * Quat(Vec3(90.0f, 0.0f, 0.0f)), colour, thickness);
 
         // Draw 10 arcs
         // Sides
@@ -580,7 +627,7 @@ namespace Lumos
             float x = Maths::Sin(step * i) * radius;
 
             Vec3 offset = rotation * Vec3(x, 0.0f, z);
-            DrawHairLine(bottomSphereCentre + offset, topSphereCentre + offset, false, colour);
+            DrawShapeLine(bottomSphereCentre + offset, topSphereCentre + offset, colour, thickness);
 
             if(i < 10)
             {
@@ -589,9 +636,9 @@ namespace Lumos
 
                 Vec3 offset2 = rotation * Vec3(x2, 0.0f, z2);
                 // Top Hemishpere
-                DebugDrawArc(20, radius, topSphereCentre + offset, topSphereCentre + offset2, rotation, colour);
+                DebugDrawArc(20, radius, topSphereCentre + offset, topSphereCentre + offset2, rotation, colour, thickness);
                 // Bottom Hemisphere
-                DebugDrawArc(20, radius, bottomSphereCentre + offset, bottomSphereCentre + offset2, rotation * Quat(Vec3(180.0f, 0.0f, 0.0f)), colour);
+                DebugDrawArc(20, radius, bottomSphereCentre + offset, bottomSphereCentre + offset2, rotation * Quat(Vec3(180.0f, 0.0f, 0.0f)), colour, thickness);
             }
         }
     }
@@ -625,25 +672,25 @@ namespace Lumos
         for(int i = 0; i < 4; ++i)
         {
             int j = (i + 1) % 4;
-            DebugRenderer::DrawHairLine(baseVertices[i], baseVertices[j], false, colour);
+            DebugRenderer::DrawThickLine(baseVertices[i], baseVertices[j], DEBUG_LINE_WIDTH, false, colour);
         }
 
         // Draw lines from the top vertex to each base vertex
         for(int i = 0; i < 4; ++i)
         {
-            DebugRenderer::DrawHairLine(topVertex, baseVertices[i], false, colour);
+            DebugRenderer::DrawThickLine(topVertex, baseVertices[i], DEBUG_LINE_WIDTH, false, colour);
         }
     }
 
     void DebugRenderer::DebugDrawBone(const Vec3& parent, const Vec3& child, const Vec4& colour)
     {
-        DrawHairLine(parent, child, false, colour);
+        DrawThickLine(parent, child, DEBUG_LINE_WIDTH, false, colour);
     }
 
     void DebugRenderer::DebugDraw(const Maths::Ray& ray, const Vec4& colour, float distance)
     {
         LUMOS_PROFILE_FUNCTION();
-        DrawHairLine(ray.Origin, ray.Origin + ray.Direction * distance, false, colour);
+        DrawThickLine(ray.Origin, ray.Origin + ray.Direction * distance, DEBUG_LINE_WIDTH, false, colour);
     }
 
 }

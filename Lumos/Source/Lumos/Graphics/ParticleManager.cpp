@@ -71,7 +71,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION_LOW();
 
-        particle.Position = Vec3(m_Spread.x > Maths::M_EPSILON ? Random32::Rand(-m_Spread.x, m_Spread.x) : 0.0f, m_Spread.y > Maths::M_EPSILON ? Random32::Rand(-m_Spread.y, m_Spread.y) : 0.0f, m_Spread.z > Maths::M_EPSILON ? Random32::Rand(-m_Spread.z, m_Spread.z) : 0.0f) + emitterPosition;
+        particle.Position = Vec3(m_Spread.x > Maths::M_EPSILON ? Random32::Rand(-m_Spread.x, m_Spread.x) : 0.0f, m_Spread.y > Maths::M_EPSILON ? Random32::Rand(-m_Spread.y, m_Spread.y) : 0.0f, m_Spread.z > Maths::M_EPSILON ? Random32::Rand(-m_Spread.z, m_Spread.z) : 0.0f) + (m_LocalSpace ? Vec3(0.0f) : emitterPosition) + m_SpawnOffset;
         particle.Colour   = m_InitialColour;
         particle.Life     = m_ParticleLife + Random32::Rand(-m_LifeSpread, m_LifeSpread);
         particle.Velocity = m_InitialVelocity + Vec3(m_VelocitySpread.x > Maths::M_EPSILON ? Random32::Rand(-m_VelocitySpread.x, m_VelocitySpread.x) : 0.0f, m_VelocitySpread.y > Maths::M_EPSILON ? Random32::Rand(-m_VelocitySpread.y, m_VelocitySpread.y) : 0.0f, m_VelocitySpread.z > Maths::M_EPSILON ? Random32::Rand(-m_VelocitySpread.z, m_VelocitySpread.z) : 0.0f);

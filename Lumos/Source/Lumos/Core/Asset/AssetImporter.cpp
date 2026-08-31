@@ -99,9 +99,6 @@ namespace Lumos
             auto ext = entry.path().extension().string();
             if(ext == ".lmesh" || ext == ".lanim" || ext == ".limg" || ext == ".lmat")
             {
-                // Check if a .meta file references this hash — if orphaned, delete
-                // For now just log; actual orphan detection requires scanning all source paths
-                // which we don't track globally. Skip files newer than 1 hour to avoid race conditions.
             }
         }
 
@@ -264,13 +261,8 @@ namespace Lumos
 
         std::string json = oss.str();
 
-        // Build physical path from source path rather than ResolvePhysicalPath,
-        // because ResolvePhysicalPath returns false for non-existent files
-        // and the .meta file won't exist yet on first import.
         String8 sourcePhysical;
         FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(sourcePath), &sourcePhysical);
-        // ResolvePhysicalPath populates outPhysicalPath even when returning false,
-        // but for non-VFS paths it just returns the input. Construct meta path from source.
         String8 physicalPath = PushStr8F(scratch.arena, "%s.meta", (const char*)sourcePhysical.str);
         NullTerminate(physicalPath);
 
@@ -301,6 +293,10 @@ namespace Lumos
                 if(peekHeader.Version == LMESH_VERSION)
                     needsImport = false;
             }
+            else
+            {
+                needsImport = false;
+            }
         }
 
         ScratchEnd(scratch);
@@ -330,7 +326,15 @@ namespace Lumos
                 // Copy to Assets/Models/
                 String8 modelsDir = PushStr8F(scratch.arena, "%s/Models", assetsDir.c_str());
                 NullTerminate(modelsDir);
-                std::filesystem::create_directories((const char*)modelsDir.str);
+                std::error_code mkdirEc;
+                std::filesystem::create_directories((const char*)modelsDir.str, mkdirEc);
+                if(mkdirEc)
+                {
+                    LERROR("AssetImporter: can't create %s (%s) - skipping import of %s",
+                           (const char*)modelsDir.str, mkdirEc.message().c_str(), sourcePath.c_str());
+                    ScratchEnd(scratch);
+                    return "";
+                }
 
                 std::string filename = StringUtilities::GetFileName(physSourceStr);
                 std::string dstPath = std::string((const char*)modelsDir.str) + "/" + filename;
@@ -373,8 +377,6 @@ namespace Lumos
             FileSystem::CreateFolderIfDoesntExist(physDir);
         }
 
-        // Delete existing .lmesh and .lanim before loading source, to prevent
-        // LoadModel from finding stale/corrupt files and trying to load them
         std::string normalizedEffective = NormalizeAssetPath(effectivePath);
         u64 pathHash = MurmurHash64A(normalizedEffective.c_str(), (int)normalizedEffective.size(), 0);
         {
@@ -419,8 +421,6 @@ namespace Lumos
                 entry.Name = buf;
             }
 
-            // Extract vertex/index data from GPU buffers
-            // The mesh was just created, so we reconstruct from the buffers
             auto& vb  = mesh->GetVertexBuffer();
             auto& avb = mesh->GetAnimVertexBuffer();
             auto& ib  = mesh->GetIndexBuffer();
@@ -529,11 +529,19 @@ namespace Lumos
         }
 
         // Export .lmat files for each material
-        if(settings.ImportMaterials)
+        std::error_code matDirEc;
         {
             String8 matDir = PushStr8F(scratch.arena, "%s/Imported/Materials", (const char*)assetsPath.str);
             NullTerminate(matDir);
-            std::filesystem::create_directories((const char*)matDir.str);
+            std::filesystem::create_directories((const char*)matDir.str, matDirEc);
+            if(matDirEc)
+                LWARN("AssetImporter: can't create %s (%s) - skipping .lmat export (lmesh has inline materials)",
+                      (const char*)matDir.str, matDirEc.message().c_str());
+        }
+        if(settings.ImportMaterials && !matDirEc)
+        {
+            String8 matDir = PushStr8F(scratch.arena, "%s/Imported/Materials", (const char*)assetsPath.str);
+            NullTerminate(matDir);
 
             static const char* texNames[] = { "Albedo", "Normal", "Metallic", "Roughness", "Ao", "Emissive" };
 
@@ -556,7 +564,7 @@ namespace Lumos
                     ar(cereal::make_nvp("albedoColour", props.albedoColour),
                        cereal::make_nvp("roughnessValue", props.roughness),
                        cereal::make_nvp("metallicValue", props.metallic),
-                       cereal::make_nvp("emissiveValue", props.emissive),
+                       cereal::make_nvp("emissiveColour", props.emissiveColour),
                        cereal::make_nvp("albedoMapFactor", props.albedoMapFactor),
                        cereal::make_nvp("metallicMapFactor", props.metallicMapFactor),
                        cereal::make_nvp("roughnessMapFactor", props.roughnessMapFactor),

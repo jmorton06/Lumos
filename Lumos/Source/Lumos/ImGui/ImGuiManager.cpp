@@ -144,6 +144,7 @@ namespace Lumos
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
         m_DPIScale = app.GetWindow()->GetDPIScale();
+        m_MousePosScale = app.GetWindow()->GetMousePosScale();
 
 #ifdef LUMOS_PLATFORM_IOS
         io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
@@ -160,7 +161,7 @@ namespace Lumos
 
 #ifdef LUMOS_PLATFORM_LINUX
         m_FontSize *= ((GLFWWindow*)app.GetWindow())->GetMonitorXScale();
-#else
+#elif !defined(LUMOS_PLATFORM_IOS)
         m_FontSize *= m_DPIScale;
 #endif
 
@@ -308,7 +309,7 @@ namespace Lumos
     {
         ImGuiIO& io = ImGui::GetIO();
         if(Input::Get().GetMouseMode() == MouseMode::Visible)
-            io.MousePos = ImVec2(e.GetX() * m_DPIScale, e.GetY() * m_DPIScale);
+            io.MousePos = ImVec2(e.GetX() * m_MousePosScale, e.GetY() * m_MousePosScale);
 
         return false;
     }
@@ -405,8 +406,6 @@ namespace Lumos
 
     bool ImGuiManager::OnGestureSwipeEvent(GestureSwipeEvent& /*e*/)
     {
-        // Swipe → undo/redo is handled in Editor::OnEvent. Stub kept so the dispatcher
-        // call site stays symmetric with the other gesture handlers.
         return false;
     }
 
@@ -480,9 +479,6 @@ namespace Lumos
             0,
         };
 
-        // Editor font set — JetBrains Mono at four sizes.
-        // Fonts[0] body, Fonts[1] "bold" (larger regular for headers/emphasis),
-        // Fonts[2] small (existing callsites), Fonts[3] tiny (chips/breadcrumb/badges).
         io.Fonts->AddFontFromMemoryCompressedTTF(JetBrainsMonoRegular_compressed_data, JetBrainsMonoRegular_compressed_size, m_FontSize, &icons_config, ranges);
         AddIconFont();
 

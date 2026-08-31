@@ -40,6 +40,8 @@ namespace Lumos::Graphics
 
         void AddState(const std::vector<Vec2>& frames, float frameDuration, const std::string& stateName);
         void SetState(const std::string& state);
+        void SetPlayMode(const std::string& state, PlayMode mode);
+        void SetFrameDuration(const std::string& state, float duration);
         const std::string& GetState() const { return m_State; }
         std::unordered_map<std::string, AnimationState>& GetAnimationStates() { return m_AnimationStates; }
 
@@ -48,5 +50,8 @@ namespace Lumos::Graphics
         float m_FrameTimer      = 0.0f;
         std::string m_State;
         bool m_Forward = true;
+
+        // Frame size in texture pixels. Zero falls back to the sprite scale.
+        Vec2 FrameSize = Vec2(0.0f);
     };
 }

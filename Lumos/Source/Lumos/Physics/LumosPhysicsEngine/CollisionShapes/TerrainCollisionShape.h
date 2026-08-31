@@ -12,9 +12,6 @@ namespace Lumos
 
         void SetHeightData(uint32_t width, uint32_t height, float* heightData, float scaleXZ, float scaleY);
 
-        // Lightweight refresh — width/height/scale unchanged, just copy the new
-        // heights and recompute min/max. Used by terrain sculpt to keep collision
-        // tracking with the mesh without rebuilding the body.
         void UpdateHeights(const float* heightData);
 
         float GetHeightAt(float x, float z) const;

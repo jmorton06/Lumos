@@ -118,8 +118,6 @@ namespace Lumos
             range.baseArrayLayer = 0;
             range.layerCount     = depthArray->GetCount();
 
-            // Cover both prior clear (TRANSFER_WRITE) and prior cascade renderpass (DEPTH_STENCIL_WRITE).
-            // Force the next renderpass's EARLY_FRAGMENT_TESTS to wait. Workaround for Intel macOS MoltenVK.
             VKUtilities::InsertImageMemoryBarrier(
                 ((VKCommandBuffer*)commandBuffer)->GetHandle(),
                 depthArray->GetImage(),
@@ -718,7 +716,7 @@ namespace Lumos
             }
             else
             {
-                return CreatePool(VKDevice::Get().GetDevice(), 500, VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT);
+                return CreatePool(VKDevice::Get().GetDevice(), 2048, VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT);
             }
         }
 

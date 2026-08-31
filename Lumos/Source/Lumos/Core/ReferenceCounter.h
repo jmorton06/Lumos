@@ -20,17 +20,11 @@ namespace Lumos
             return count.fetch_add(1, std::memory_order_relaxed) + 1;
         }
 
-        // Returns true when this call dropped the count to zero.
-        // Uses acq_rel so the destructor that follows sees all writes made
-        // by other threads while they held a reference.
         inline bool Unref()
         {
             return count.fetch_sub(1, std::memory_order_acq_rel) == 1;
         }
 
-        // CAS-loop: increment only if the current value is greater than zero.
-        // Used by WeakReference::Lock to safely promote without racing the
-        // last strong unref.
         inline bool TryRef()
         {
             int curr = count.load(std::memory_order_relaxed);

@@ -165,8 +165,6 @@ namespace Lumos
         void SetWarmStartingEnabled(bool enabled) { m_WarmStartingEnabled = enabled; }
         bool GetWarmStartingEnabled() const { return m_WarmStartingEnabled; }
 
-        // Raycast vehicles are engine-owned and stepped at the fixed timestep,
-        // before the solver. CreateVehicle returns a non-owning pointer.
         RaycastVehicle* CreateVehicle(RigidBody3D* chassis);
         void DestroyVehicle(RaycastVehicle* vehicle);
 
@@ -188,8 +186,8 @@ namespace Lumos
         // Solves all engine constraints (constraints and manifolds)
         void SolveConstraints();
 
-        // Warm-starting: apply persisted impulses from previous frame as the
-        // initial guess for the solver, then save them back after solving.
+        void ApplyImpulses();
+
         void WarmStartManifolds();
         void SavePersistentImpulses();
 
@@ -203,9 +201,10 @@ namespace Lumos
         float m_DampingFactor;
         uint32_t m_MaxUpdatesPerFrame = 5;
         uint32_t m_PositionIterations = 2;
-        uint32_t m_VelocityIterations = 10;
+        uint32_t m_VelocityIterations = 8;
         float m_TimeScale             = 1.0f;
         bool m_ParallelNarrowphase    = true;
+        bool m_ParallelSolver         = true; // Solve independent contact islands on the job system.
 
         float m_BaumgarteScalar = 0.2f;   // Amount of force to add to the System to solve error
         float m_BaumgarteSlop   = 0.001f; // Amount of allowed penetration, ensures a complete manifold each frame
@@ -247,9 +246,6 @@ namespace Lumos
         int m_OverrunIndex                         = 0;
         float m_AvgOverrun                         = 0.0f;
 
-        // ---- Warm-starting persistent contact cache ----
-        // Each entry stores last frame's accumulated impulses for a body pair's contacts,
-        // keyed in body-local space so it survives body motion/rotation between frames.
         struct PersistentContactPoint
         {
             Vec3 localPosA       = Vec3(0.0f); // contact pos in A's local frame
@@ -263,8 +259,6 @@ namespace Lumos
         {
             static constexpr int kMaxPersistedContacts = 16;
             PersistentContactPoint contacts[kMaxPersistedContacts];
-            // Manifold.NodeA() pointer at save time. Used to detect if the body
-            // ordering flipped between frames (would invert relPosA/B semantics).
             const RigidBody3D* savedNodeA = nullptr;
             int count                     = 0;
             bool usedThisFrame            = false;

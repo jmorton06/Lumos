@@ -17,6 +17,8 @@
 #endif
 
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoRegular.inl>
+#include <imgui/Plugins/ImGuiAl/fonts/MaterialDesign.inl>
+#include "Graphics/MDIIcons.h"
 #include <stb/deprecated/stb.h>
 #include <fstream>
 
@@ -80,16 +82,31 @@ namespace Lumos
 
         static std::filesystem::path GetCacheDirectory()
         {
-#ifdef LUMOS_PLATFORM_WINDOWS
+#if defined(LUMOS_PLATFORM_WINDOWS)
+            const char* appData = std::getenv("LOCALAPPDATA");
+            if(appData && *appData)
+                return std::filesystem::path(appData) / "Lumos/FontAtlases";
             return OS::Get().GetCurrentWorkingDirectory();
-#else
+#elif defined(LUMOS_PLATFORM_MACOS)
             const char* home = std::getenv("HOME");
             if(!home)
-            {
                 throw std::runtime_error("Can't obtain HOME");
-            }
-
+            return std::filesystem::path(home) / "Library/Application Support/Lumos/FontAtlases";
+#elif defined(LUMOS_PLATFORM_IOS)
+            // Sandboxed on iOS — Documents is the app's private container, no prompt.
+            const char* home = std::getenv("HOME");
+            if(!home)
+                throw std::runtime_error("Can't obtain HOME");
             return std::filesystem::path(home) / "Documents/Lumos/Resources/Cache/FontAtlases";
+#else
+            // Linux / other — XDG cache dir.
+            const char* xdg = std::getenv("XDG_CACHE_HOME");
+            if(xdg && *xdg)
+                return std::filesystem::path(xdg) / "Lumos/FontAtlases";
+            const char* home = std::getenv("HOME");
+            if(!home)
+                throw std::runtime_error("Can't obtain HOME");
+            return std::filesystem::path(home) / ".cache/Lumos/FontAtlases";
 #endif
         }
 
@@ -110,7 +127,7 @@ namespace Lumos
             }
         }
 
-        static constexpr uint32_t FONT_ATLAS_VERSION = 1;
+        static constexpr uint32_t FONT_ATLAS_VERSION = 2; // bumped: MDI icon glyphs merged in
 
         struct AtlasHeader
         {
@@ -415,6 +432,34 @@ namespace Lumos
             if(fontInput.fontName)
                 m_MSDFData->FontGeometry.setName(fontInput.fontName);
 
+            {
+                msdfgen::FreetypeHandle* iconFt = msdfgen::initializeFreetype();
+                if(iconFt)
+                {
+                    const unsigned int mdiSize    = stb_decompress_length((unsigned char*)MaterialDesign_compressed_data);
+                    unsigned char* mdiData        = (unsigned char*)malloc(mdiSize);
+                    stb_decompress(mdiData, (unsigned char*)MaterialDesign_compressed_data, (unsigned int)MaterialDesign_compressed_size);
+
+                    if(msdfgen::FontHandle* iconFont = msdfgen::loadFontData(iconFt, mdiData, int(mdiSize)))
+                    {
+                        Charset iconCharset;
+                        for(uint32_t i = 0; i < g_MDIIconCount; i++)
+                            iconCharset.add(g_MDIIcons[i].codepoint);
+
+                        m_MSDFData->IconFontGeometry = FontGeometry(&m_MSDFData->Glyphs);
+                        int iconsLoaded              = m_MSDFData->IconFontGeometry.loadCharset(iconFont, 1.0, iconCharset);
+                        FONT_LOG("Font: Loaded %i of %i MDI icon glyphs", iconsLoaded, (int)iconCharset.size());
+                        msdfgen::destroyFont(iconFont);
+                    }
+                    else
+                    {
+                        FONT_LOG("Font: Failed to load embedded MDI icon font");
+                    }
+                    free(mdiData);
+                    msdfgen::deinitializeFreetype(iconFt);
+                }
+            }
+
             // Determine final atlas dimensions, scale and range, pack glyphs
             double pxRange       = rangeValue;
             bool fixedDimensions = fixedWidth >= 0 && fixedHeight >= 0;
@@ -556,14 +601,19 @@ namespace Lumos
             const auto& metrics = fontGeometry.getMetrics();
 
             Vec2 size = Vec2(0.0f);
+            int newlineCount = 0;
 
             {
                 double x       = 0.0;
                 double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
                 double y       = 0.0;
+                const MSDFData* msdfData = GetMSDFData();
                 for(int i = 0; i < text.size; i++)
                 {
-                    char32_t character = text.str[i];
+                    UnicodeDecode dec  = Utf8Decode(text.str + i, text.size - i);
+                    char32_t character = dec.codepoint;
+                    if(dec.inc > 1)
+                        i += dec.inc - 1;
 
                     if(character == '\r')
                         continue;
@@ -572,6 +622,7 @@ namespace Lumos
                     {
                         x = 0;
                         y -= fsScale * metrics.lineHeight + lineHeightOffset;
+                        newlineCount++;
                         continue;
                     }
 
@@ -583,7 +634,7 @@ namespace Lumos
                         continue;
                     }
 
-                    auto glyph = fontGeometry.getGlyph(character);
+                    auto glyph = msdfData->GetGlyph(character);
                     if(!glyph)
                         glyph = fontGeometry.getGlyph('?');
                     if(!glyph)
@@ -637,8 +688,15 @@ namespace Lumos
                     }
 
                     double advance = glyph->getAdvance();
-                    fontGeometry.getAdvance(advance, character, text.str[i + 1]);
+                    char32_t next = (i + 1 < text.size) ? Utf8Decode(text.str + i + 1, text.size - i - 1).codepoint : 0;
+                    fontGeometry.getAdvance(advance, character, next);
                     x += fsScale * advance + kerningOffset;
+                }
+
+                if(newlineCount > 0)
+                {
+                    double fsScale2 = 1 / (metrics.ascenderY - metrics.descenderY);
+                    size.y += (float)(newlineCount * (fsScale2 * metrics.lineHeight + lineHeightOffset)) * fontSize;
                 }
             }
 

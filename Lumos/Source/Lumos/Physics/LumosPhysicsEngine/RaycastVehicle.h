@@ -8,8 +8,6 @@ namespace Lumos
     class RigidBody3D;
     class LumosPhysicsEngine;
 
-    // Per-wheel tuning. Connection point + axis are in chassis-local space.
-    // Engine forward is -Z, up +Y, right +X (matches Maths::Transform).
     struct VehicleWheelConfig
     {
         Vec3 ConnectionPointLocal = Vec3(0.0f);
@@ -38,9 +36,6 @@ namespace Lumos
         Quat WorldRotation     = Quat();
     };
 
-    // Raycast vehicle: one chassis rigidbody, N suspension rays. Suspension +
-    // tyre forces are applied as impulses at the contact points each fixed step.
-    // Mirrors the classic Bullet btRaycastVehicle / Unity WheelCollider model.
     class RaycastVehicle
     {
     public:
@@ -69,10 +64,6 @@ namespace Lumos
         void SetBrakeForce(float f) { m_BrakeForce = f; }
         void SetMaxSteerAngle(float radians) { m_MaxSteerAngle = radians; }
         void SetSteerSpeed(float s) { m_SteerSpeed = s; }
-        // Height at which tyre grip + drive/brake forces are applied, lerped
-        // from the contact patch toward the COM. 0 = at contact (realistic body
-        // roll + accel squat/wheelie, flips easily), 1 = at COM (no roll/pitch
-        // moment). Default 0.8. Controls both anti-roll and anti-wheelie/dive.
         void SetAntiRoll(float f) { m_AntiRollGrip = f; }
 
         // Runtime tuning across all wheels (for in-game settings panels).

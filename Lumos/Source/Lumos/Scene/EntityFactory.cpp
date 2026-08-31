@@ -58,8 +58,6 @@ namespace Lumos
         SharedPtr<Graphics::Material> matInstance = CreateSharedPtr<Graphics::Material>();
         Graphics::MaterialProperties properties;
         properties.albedoColour       = colour;
-        // Deterministic matte material — random metallic turned spheres into
-        // sky mirrors that bloomed to pure white at distance.
         properties.roughness          = 0.85f;
         properties.metallic           = 0.0f;
         properties.albedoMapFactor    = 0.0f;
@@ -121,7 +119,7 @@ namespace Lumos
         // Deterministic matte, no emissive — glow is opt-in via SetEntityPulse.
         properties.roughness          = 0.85f;
         properties.metallic           = 0.0f;
-        properties.emissive           = 0.0f;
+        properties.emissiveColour     = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
         properties.albedoMapFactor    = 0.0f;
         properties.roughnessMapFactor = 0.0f;
         properties.normalMapFactor    = 0.0f;
@@ -299,12 +297,7 @@ namespace Lumos
         auto entity = scene->GetEntityManager()->Create("Terrain");
         entity.AddComponent<Maths::Transform>(Mat4::Translation(pos));
 
-        // Bake uvTile into the mesh's per-vertex UV scale so we don't need a
-        // per-material tiling uniform — keeps the shader path identical to
-        // every other PBR object.
         const float uvScale = (1.0f / 16.0f) * std::max(mat.uvTile, 0.0001f);
-        // Convert world-space tile position into grid-unit noise offsets so
-        // adjacent tiles share edge values (no seam discontinuity).
         const int tileOriginX = (int)std::floor(pos.x / std::max(scaleXZ, 0.0001f));
         const int tileOriginZ = (int)std::floor(pos.z / std::max(scaleXZ, 0.0001f));
         SharedPtr<Lumos::Terrain> terrainMesh = CreateSharedPtr<Lumos::Terrain>(
@@ -319,9 +312,6 @@ namespace Lumos
 
         auto& modelComp = entity.AddComponent<Graphics::ModelComponent>(model);
 
-        // Attach a TerrainComponent capturing the procedural heights so the editor
-        // can sculpt them and the scene can serialize the result. Marked clean (no
-        // custom edits yet) so back-compat scenes still regenerate procedurally.
         {
             auto& tc = entity.AddComponent<TerrainComponent>();
             tc.GridW       = gridSize;
@@ -343,9 +333,6 @@ namespace Lumos
         properties.albedoColour       = mat.albedoColour;
         properties.roughness          = mat.roughness;
         properties.metallic           = mat.metallic;
-        // Texture factors auto-flip to 1.0 when the corresponding texture loads
-        // below. Default to 0 (flat) so the material reads correctly when no
-        // textures are supplied.
         properties.albedoMapFactor    = 0.0f;
         properties.roughnessMapFactor = 0.0f;
         properties.normalMapFactor    = 0.0f;
@@ -354,11 +341,6 @@ namespace Lumos
         properties.occlusionMapFactor = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
-        // Material::SetAlbedoTexture constructs a VKTexture2D unconditionally
-        // even when the file fails to load — that leaves a non-null SharedPtr
-        // wrapping an object with VK_NULL_HANDLE image, which crashes MoltenVK
-        // when bound. Gate on a VFS existence check so missing PNGs are
-        // skipped cleanly and fall back to the flat albedo colour.
         auto FileOnDisk = [](const std::string& vfsPath) -> bool
         {
             if(vfsPath.empty()) return false;
@@ -480,8 +462,6 @@ namespace Lumos
         if(!entity.Valid() || gridSize <= 1 || scaleXZ <= 0.0f)
             return;
 
-        // Position drives noise tile origin so a terrain placed at world X derives
-        // a matching noise offset. Use the existing transform if present, else (0,0,0).
         Vec3 pos(0.0f);
         if(auto t = entity.TryGetComponent<Maths::Transform>())
             pos = t->GetWorldPosition();
@@ -500,8 +480,6 @@ namespace Lumos
         SharedPtr<Graphics::Model> model = CreateSharedPtr<Graphics::Model>(
             SharedPtr<Graphics::Mesh>(terrainMesh), Graphics::PrimitiveType::Terrain);
 
-        // Replace any prior ModelComponent on this entity — the user explicitly
-        // asked for a terrain, so a non-terrain model would be stale anyway.
         entity.TryRemoveComponent<Graphics::ModelComponent>();
         auto& modelComp = entity.AddComponent<Graphics::ModelComponent>(model);
 
@@ -598,7 +576,7 @@ namespace Lumos
         properties.albedoColour       = colour;
         properties.roughness          = 0.35f;
         properties.metallic           = 0.6f;
-        properties.emissive           = 1.5f;
+        properties.emissiveColour     = Vec4(1.0f, 1.0f, 1.0f, 1.5f); // white glow, intensity 1.5
         properties.albedoMapFactor    = 0.0f;
         properties.roughnessMapFactor = 0.0f;
         properties.normalMapFactor    = 0.0f;

@@ -18,7 +18,7 @@ namespace Lumos
         std::string GetExecutablePath() override;
         void SetTitleBarColour(const Vec4& colour, bool dark = true) override;
         void SetWindowDecorations(bool decorated) override;
-        void BeginWindowDrag() override;
+        bool BeginWindowDrag() override;
         void UpdateWindowDrag() override;
         bool IsWindowMaximised() const override;
         bool IsWindowFullscreen() const override;

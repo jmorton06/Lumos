@@ -626,13 +626,24 @@ namespace Lumos
                 // Vertex Layout
                 m_VertexInputStride = 0;
 
+                TDArray<const spirv_cross::Resource*> sortedInputs;
+                sortedInputs.Reserve(resources.stage_inputs.size());
                 for(const spirv_cross::Resource& resource : resources.stage_inputs)
+                    sortedInputs.PushBack(&resource);
+
+                sortedInputs.Sort([&comp](const spirv_cross::Resource* a, const spirv_cross::Resource* b)
                 {
-                    const spirv_cross::SPIRType& InputType = comp.get_type(resource.type_id);
+                    return comp.get_decoration(a->id, spv::DecorationLocation)
+                         < comp.get_decoration(b->id, spv::DecorationLocation);
+                });
+
+                for(const spirv_cross::Resource* resource : sortedInputs)
+                {
+                    const spirv_cross::SPIRType& InputType = comp.get_type(resource->type_id);
 
                     VkVertexInputAttributeDescription Description = {};
-                    Description.binding                           = comp.get_decoration(resource.id, spv::DecorationBinding);
-                    Description.location                          = comp.get_decoration(resource.id, spv::DecorationLocation);
+                    Description.binding                           = comp.get_decoration(resource->id, spv::DecorationBinding);
+                    Description.location                          = comp.get_decoration(resource->id, spv::DecorationLocation);
                     Description.offset                            = m_VertexInputStride;
                     Description.format                            = GetVulkanFormat(InputType);
                     m_VertexInputAttributeDescriptions.PushBack(Description);

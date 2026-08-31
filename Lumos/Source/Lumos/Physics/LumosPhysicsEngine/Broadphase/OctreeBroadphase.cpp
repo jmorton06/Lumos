@@ -29,9 +29,7 @@ namespace Lumos
                                                        TDArray<CollisionPair>& collisionPairs, uint32_t totalRigidBodyCount)
     {
         LUMOS_PROFILE_FUNCTION();
-        //ArenaClear(m_Arena);
-        ArenaRelease(m_Arena);
-        m_Arena = ArenaAlloc(Megabytes(8));
+        ArenaClear(m_Arena);
 
         m_LeafCount = 0;
 
@@ -39,7 +37,13 @@ namespace Lumos
         m_RootNode.PhysicsObjectCount = 0;
         m_RootNode.boundingBox        = Maths::BoundingBox();
         m_RootNode.PhysicsObjects     = PushArrayNoZero(m_Arena, RigidBody3D*, totalRigidBodyCount);
-        m_Leaves = PushArrayNoZero(m_Arena, OctreeNode*, m_MaxLeafCount);
+        m_Leaves                      = PushArrayNoZero(m_Arena, OctreeNode*, m_MaxLeafCount);
+
+        if((totalRigidBodyCount > 0 && !m_RootNode.PhysicsObjects) || !m_Leaves)
+        {
+            LWARN("Octree arena overflow on root allocation (%u bodies) — skipping broadphase", totalRigidBodyCount);
+            return;
+        }
 
         // Early exit if no objects
         if(totalRigidBodyCount == 0)
@@ -67,7 +71,6 @@ namespace Lumos
         Divide(m_RootNode, 0);
 
         HashSet(uint64_t) collisionPairHashSet = { 0 };
-        //collisionPairHashSet.arena           = m_Arena;
 
         // Add collision pairs in leaf world divisions
         for(uint32_t leafIndex = 0; leafIndex < m_LeafCount; leafIndex++)

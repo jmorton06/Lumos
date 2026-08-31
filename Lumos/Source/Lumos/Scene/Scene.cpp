@@ -7,6 +7,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/AnimatedSprite.h"
+#include "Graphics/Light2D.h"
 #include "Utilities/TimeStep.h"
 #include "Audio/AudioManager.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
@@ -241,6 +242,7 @@ namespace Lumos
         m_EntityManager->AddDependency<Graphics::AnimatedSprite, Maths::Transform>();
         m_EntityManager->AddDependency<TextComponent, Maths::Transform>();
         m_EntityManager->AddDependency<ParticleEmitter, Maths::Transform>();
+        m_EntityManager->AddDependency<Graphics::Light2D, Maths::Transform>();
 
         m_SceneGraph = CreateUniquePtr<SceneGraph>();
         m_SceneGraph->Init(m_EntityManager->GetRegistry());
@@ -381,6 +383,7 @@ namespace Lumos
 #define ALL_COMPONENTSENTTV10(input) get<Maths::Transform>(input).get<NameComponent>(input).get<ActiveComponent>(input).get<Hierarchy>(input).get<Camera>(input).get<LuaScriptComponent>(input).get<Graphics::Model>(input).get<Graphics::Light>(input).get<RigidBody3DComponent>(input).get<Graphics::Environment>(input).get<Graphics::Sprite>(input).get<RigidBody2DComponent>(input).get<DefaultCameraController>(input).get<Graphics::AnimatedSprite>(input).get<SoundComponent>(input).get<Listener>(input).get<IDComponent>(input).get<Graphics::ModelComponent>(input).get<AxisConstraintComponent>(input).get<TextComponent>(input).get<ParticleEmitter>(input).get<SpringConstraintComponent>(input)
 #define ALL_COMPONENTSENTTV11(input) ALL_COMPONENTSENTTV10(input).get<TerrainComponent>(input)
 #define ALL_COMPONENTSENTTV12(input) ALL_COMPONENTSENTTV11(input).get<VoxelWorldComponent>(input)
+#define ALL_COMPONENTSENTTV13(input) ALL_COMPONENTSENTTV12(input).get<Graphics::Light2D>(input)
 
     void Scene::Serialise(const std::string& filePath, bool binary)
     {
@@ -399,7 +402,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::BinaryOutputArchive output { file };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV12(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV13(output);
             }
             file.close();
         }
@@ -411,7 +414,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::JSONOutputArchive output { storage };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV12(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV13(output);
             }
             FileSystem::WriteTextFile(path, Str8StdS(storage.str()));
         }
@@ -491,8 +494,10 @@ namespace Lumos
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV10(input);
                 else if(m_SceneSerialisationVersion >= 30 && m_SceneSerialisationVersion < 31)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV11(input);
-                else if(m_SceneSerialisationVersion >= 31)
+                else if(m_SceneSerialisationVersion >= 31 && m_SceneSerialisationVersion < 34)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV12(input);
+                else if(m_SceneSerialisationVersion >= 34)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV13(input);
 
 #if MIN_SCENE_VERSION <= 6
                 if(m_SceneSerialisationVersion < 6)
@@ -606,8 +611,10 @@ namespace Lumos
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV10(input);
                 else if(m_SceneSerialisationVersion >= 30 && m_SceneSerialisationVersion < 31)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV11(input);
-                else if(m_SceneSerialisationVersion >= 31)
+                else if(m_SceneSerialisationVersion >= 31 && m_SceneSerialisationVersion < 34)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV12(input);
+                else if(m_SceneSerialisationVersion >= 34)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV13(input);
                 }
 #if MIN_SCENE_VERSION <= 6
                 if(m_SceneSerialisationVersion < 6)
@@ -642,10 +649,6 @@ namespace Lumos
             }
         }
 
-        // Sync terrain meshes & collision shapes from TerrainComponent authoring
-        // data. ModelComponent::load only reconstructs the default-Terrain primitive
-        // (tileOrigin = 0, default seed), so any tiled / sculpt-edited terrain
-        // would render wrong without this rebuild step.
         {
             auto& reg = m_EntityManager->GetRegistry();
             auto view = reg.view<TerrainComponent, Graphics::ModelComponent>();
@@ -669,16 +672,11 @@ namespace Lumos
                 }
                 else
                 {
-                    // Procedural — regenerate with the correct tile origin so seams
-                    // line up. The default-Terrain built by ModelComponent::load
-                    // doesn't know the origin yet.
                     Terrain regen(tc.GridW, tc.GridH, 50, 10,
                                   tc.ScaleXZ, tc.ScaleY, tc.ScaleXZ,
                                   1.0f / 16.0f, 1.0f / 16.0f,
                                   tc.TileOriginX, tc.TileOriginZ);
                     terrain->Rebuild(regen.GetHeightData().Data());
-                    // Also refresh the component's cached heights so editor sculpt
-                    // starts from the right baseline.
                     const TDArray<float>& h = regen.GetHeightData();
                     tc.Heights.Resize(h.Size());
                     for(uint32_t i = 0; i < (uint32_t)h.Size(); i++)

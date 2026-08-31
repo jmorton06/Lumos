@@ -218,8 +218,19 @@ namespace Lumos
                 ImGuiUtilities::Property("Min iOS Version", projectSettings.MinIOSVersion);
                 if(ImGui::IsItemHovered()) ImGui::SetTooltip("IPHONEOS_DEPLOYMENT_TARGET, e.g. 16.0");
                 ImGuiUtilities::Property("Status Bar Hidden", projectSettings.StatusBarHidden);
-                ImGuiUtilities::Property("Use Safe Area", projectSettings.UseSafeArea);
-                if(ImGui::IsItemHovered()) ImGui::SetTooltip("On: UI/HUD respects notch + home indicator insets.\nOff: edge-to-edge fullscreen, draws under system UI.");
+                LabelColumn("Safe Area", "Notch / home-indicator layout");
+                {
+                    const char* modes[] = { "Fullscreen", "Safe Area", "Fullscreen + Safe UI" };
+                    int mode = projectSettings.SafeAreaMode;
+                    if(mode < 0 || mode > 2) mode = (int)Application::SafeAreaLayout::FullscreenSafeUI;
+                    if(ImGui::Combo("##SafeAreaMode", &mode, modes, IM_ARRAYSIZE(modes)))
+                        projectSettings.SafeAreaMode = mode;
+                    if(ImGui::IsItemHovered())
+                        ImGui::SetTooltip("Fullscreen: scene + UI edge-to-edge, under system UI.\n"
+                                          "Safe Area: scene render AND UI inset (black bars).\n"
+                                          "Fullscreen + Safe UI: scene edge-to-edge, only UI respects insets.");
+                }
+                EndProperty();
                 ImGuiUtilities::Property("Non-Exempt Encryption", projectSettings.UsesNonExemptEncryption);
                 if(ImGui::IsItemHovered()) ImGui::SetTooltip("ITSAppUsesNonExemptEncryption. Leave off unless you ship custom encryption.");
             }

@@ -4,8 +4,6 @@
 
 namespace Lumos
 {
-    // Single-producer single-consumer lock-free ring buffer.
-    // N must be a power of 2.
     template <typename T, uint32_t N>
     class RingBuffer
     {

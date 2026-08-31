@@ -31,6 +31,7 @@ namespace Lumos
         m_MouseOnScreen = true;
         m_ScrollOffset  = 0.0f;
         m_ScrollOffsetX = 0.0f;
+        m_TouchCount    = 0;
     }
 
     void Input::ResetPressed()
@@ -216,6 +217,68 @@ namespace Lumos
 
     void Input::RemoveController(int id)
     {
+    }
+
+    int Input::FirstGamepadID() const
+    {
+        for(int i = 0; i < MAX_CONTROLLER_COUNT; i++)
+        {
+            if(m_Controllers[i].Present && m_Controllers[i].IsGamepad)
+                return i;
+        }
+        return -1;
+    }
+
+    bool Input::IsGamepadPresent(int id) const
+    {
+        if(id < 0)
+            return FirstGamepadID() >= 0;
+        return id < MAX_CONTROLLER_COUNT && m_Controllers[id].Present && m_Controllers[id].IsGamepad;
+    }
+
+    std::string Input::GetGamepadName(int id) const
+    {
+        if(id < 0)
+            id = FirstGamepadID();
+        if(id < 0 || !m_Controllers[id].IsGamepad)
+            return {};
+        return m_Controllers[id].GamepadName;
+    }
+
+    float Input::GetGamepadAxis(InputCode::GamepadAxis axis, int id) const
+    {
+        if(id < 0)
+            id = FirstGamepadID();
+        if(id < 0 || !m_Controllers[id].IsGamepad || axis >= InputCode::GamepadAxisCount)
+            return 0.0f;
+        return m_Controllers[id].GamepadAxes[axis];
+    }
+
+    bool Input::GetGamepadButtonHeld(InputCode::GamepadButton button, int id) const
+    {
+        if(id < 0)
+            id = FirstGamepadID();
+        if(id < 0 || !m_Controllers[id].IsGamepad || button >= InputCode::GamepadButtonCount)
+            return false;
+        return m_Controllers[id].GamepadDown[button];
+    }
+
+    bool Input::GetGamepadButtonPressed(InputCode::GamepadButton button, int id) const
+    {
+        if(id < 0)
+            id = FirstGamepadID();
+        if(id < 0 || !m_Controllers[id].IsGamepad || button >= InputCode::GamepadButtonCount)
+            return false;
+        return m_Controllers[id].GamepadStates[button].State == KeyState::Pressed;
+    }
+
+    bool Input::AddGamepadMappings(const char* mappings)
+    {
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
+        return mappings && glfwUpdateGamepadMappings(mappings) == GLFW_TRUE;
+#else
+        return false;
+#endif
     }
 
     void Input::SetClipboard(const char* text)

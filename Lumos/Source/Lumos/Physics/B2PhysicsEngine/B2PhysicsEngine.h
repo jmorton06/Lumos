@@ -47,6 +47,9 @@ namespace Lumos
 
         uint32_t GetDebugDrawFlags();
         void SetDebugDrawFlags(uint32_t flags);
+
+        // Live body count - 0 means nothing for the debug draw to show.
+        uint32_t GetBodyCount() const;
         void SetGravity(const Vec2& gravity);
 
         void SyncTransforms(Scene* scene);

@@ -14,6 +14,7 @@
 #include "Graphics/Renderers/GridRenderer.h"
 #include "Graphics/Font.h"
 #include "Graphics/UI.h"
+#include "Graphics/PointCloud.h"
 #include "Maths/Transform.h"
 #include "Maths/MathsUtilities.h"
 #include "Scene/EntityFactory.h"
@@ -29,7 +30,9 @@
 #include "Core/String.h"
 #include "Core/DataStructures/TDArray.h"
 #include "Core/CommandLine.h"
+#include "Core/TestRunner.h"
 #include "Core/Asset/AssetManager.h"
+#include "Core/Asset/AssetImporter.h"
 #include "Scripting/Lua/LuaManager.h"
 #include "ImGui/ImGuiManager.h"
 #include "Events/ApplicationEvent.h"
@@ -50,6 +53,7 @@
 #include "Embedded/EmbeddedAssetData.h"
 #include "Core/OS/OS.h"
 #include "Core/Undo.h"
+#include "Core/DebugMenu.h"
 
 #include <cereal/archives/json.hpp>
 #include <cereal/types/vector.hpp>
@@ -57,8 +61,17 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
+#include <filesystem>
+
 namespace Lumos
 {
+    int Application::s_ExitCode = 0;
+
+    // File-static rather than a member: Runtime/Editor subclass Application and
+    // the generated projects don't track header deps, so growing the layout
+    // silently breaks them.
+    static bool s_TestUIRequested = false;
+
     Application::Application()
         : m_Frames(0)
         , m_Updates(0)
@@ -102,7 +115,9 @@ namespace Lumos
         m_MainThreadQueueMutex = PushObject(m_Arena, Mutex);
 
         MutexInit(m_EventQueueMutex);
+        MutexSetName(m_EventQueueMutex, "Event Queue");
         MutexInit(m_MainThreadQueueMutex);
+        MutexSetName(m_MainThreadQueueMutex, "Main Thread Queue");
 
         m_EventQueue.Reserve(16);
 
@@ -158,7 +173,8 @@ namespace Lumos
         // Test UI visibility
         if(cmdline->OptionBool(Str8Lit("test-ui")))
         {
-            m_ShowTestUI = true;
+            m_ShowTestUI     = true;
+            s_TestUIRequested = true;
         }
         if(cmdline->OptionBool(Str8Lit("disable-test-ui")))
         {
@@ -178,6 +194,8 @@ namespace Lumos
             m_InitialSceneName = std::string((const char*)sceneOpt.str, sceneOpt.size);
         }
 
+        const bool forceNoVSync = cmdline->OptionBool(Str8Lit("no-vsync"));
+
         // Benchmark mode
         String8 benchmarkOpt = cmdline->OptionString(Str8Lit("benchmark"));
         if(benchmarkOpt.size > 0)
@@ -186,7 +204,43 @@ namespace Lumos
             m_BenchmarkFrameCount = (int)atoi((const char*)benchmarkOpt.str);
         }
 
+        if(cmdline->OptionBool(Str8Lit("import-assets")))
+        {
+            m_ImportAssetsMode = true;
+        }
+
+        // Scripted test run. The script is a physical path so a stale asset pack
+        // can't shadow it the way it can shadow loose //Assets scripts.
+        String8 testOpt = cmdline->OptionString(Str8Lit("test"));
+        if(testOpt.size > 0)
+        {
+            TestRunner& runner = TestRunner::Get();
+            runner.Init(std::string((const char*)testOpt.str, testOpt.size));
+            runner.SetUpdateGolden(cmdline->OptionBool(Str8Lit("test-update-golden")));
+
+            String8 reportOpt = cmdline->OptionString(Str8Lit("test-report"));
+            if(reportOpt.size > 0)
+                runner.SetReportPath(std::string((const char*)reportOpt.str, reportOpt.size));
+
+            String8 timeoutOpt = cmdline->OptionString(Str8Lit("test-timeout"));
+            if(timeoutOpt.size > 0)
+            {
+                int frames = (int)atoi((const char*)timeoutOpt.str);
+                if(frames > 0)
+                    runner.SetTimeoutFrames(frames);
+            }
+        }
+
         Engine::Get();
+
+        String8 fixedDtOpt = cmdline->OptionString(Str8Lit("fixed-dt"));
+        if(fixedDtOpt.size > 0)
+        {
+            double ms = atof((const char*)fixedDtOpt.str);
+            if(ms > 0.0)
+                Engine::GetTimeStep().SetFixedTimestep(ms);
+        }
+
         LuaManager::Get().OnInit();
         LuaManager::Get().OnNewProject(m_ProjectSettings.m_ProjectRoot);
         m_Timer = CreateUniquePtr<Timer>();
@@ -215,8 +269,8 @@ namespace Lumos
         windowDesc.Borderless  = m_ProjectSettings.Borderless;
         windowDesc.ShowConsole = m_ProjectSettings.ShowConsole;
         windowDesc.Title       = Str8StdS(m_ProjectSettings.Title);
-        windowDesc.VSync       = m_ProjectSettings.VSync;
-        
+        windowDesc.VSync       = m_ProjectSettings.VSync && !forceNoVSync;
+
         if(GetAppType() == AppType::Editor)
         {
             windowDesc.Fullscreen = true;
@@ -286,6 +340,11 @@ namespace Lumos
             Graphics::Renderer::Init(loadEmbeddedShaders, m_ProjectSettings.m_EngineAssetPath);
         }
 
+        if(cmdline->OptionBool(Str8Lit("embed-engine-shaders")))
+        {
+            EmbedEngineShaders();
+        }
+
         if(m_ProjectSettings.Fullscreen)
         {
 #ifndef LUMOS_PLATFORM_MACOS
@@ -309,7 +368,20 @@ namespace Lumos
             if(!splashTexture)
             {
                 const auto& splashData = Embedded::GetSplashData();
-                splashTexture = Graphics::Texture2D::CreateFromSource(splashData.width, splashData.height, (void*)splashData.data, desc);
+                u64 pixelCount   = u64(splashData.width) * u64(splashData.height);
+                Arena* splashArena = ArenaAlloc(pixelCount * 4 + 1024);
+                u8* composited     = PushArrayNoZero(splashArena, u8, pixelCount * 4);
+                const float* bg    = m_ProjectSettings.SplashBGColour;
+                for(u64 i = 0; i < pixelCount; i++)
+                {
+                    const u8* src = splashData.data + i * 4;
+                    float a       = src[3] / 255.0f;
+                    for(u32 c = 0; c < 3; c++)
+                        composited[i * 4 + c] = u8(Maths::Lerp(bg[c] * 255.0f, float(src[c]), a) + 0.5f);
+                    composited[i * 4 + 3] = 255;
+                }
+                splashTexture = Graphics::Texture2D::CreateFromSource(splashData.width, splashData.height, (void*)composited, desc);
+                ArenaRelease(splashArena);
             }
 
             if(splashTexture && Graphics::Renderer::GetRenderer()->Begin())
@@ -367,6 +439,13 @@ namespace Lumos
 
         m_CurrentState = AppState::Running;
 
+        if(m_ImportAssetsMode)
+        {
+            ImportAllProjectAssets();
+            m_BenchmarkMode = true;
+            m_BenchmarkFrameCount = 5;
+        }
+
         {
             LUMOS_PROFILE_SCOPE("Init::DefaultTexture");
             Graphics::Material::InitDefaultTexture();
@@ -382,6 +461,8 @@ namespace Lumos
         m_SceneRenderer->EnableDebugRenderer(true);
         LINFO("Debug Renderer Enabled");
 
+        LuaManager::Get().RunScriptFile(m_ProjectSettings.AppScript);
+
 #ifdef LUMOS_SSE
         LINFO("SSE Maths Enabled");
 #endif
@@ -393,6 +474,8 @@ namespace Lumos
 
         float dpiScale = Application::Get().GetWindow()->GetDPIScale();
         GetUIState()->DPIScale = dpiScale;
+        // Mouse mapping scales separately: iOS touches are already native px.
+        GetUIState()->InputScale = Application::Get().GetWindow()->GetMousePosScale();
 
         // Scale UI style defaults by DPI so text/padding are correct on Retina
         if(dpiScale > 1.0f)
@@ -407,6 +490,11 @@ namespace Lumos
             styles[StyleVar_ShadowOffset].first->value.y *= dpiScale;
             styles[StyleVar_ShadowBlur].first->value.x *= dpiScale;
         }
+
+        // In-game debug overlay (command palette + HUD panels). The editor has
+        // its own tooling and its own function-key bindings, so leave it off there.
+        DebugMenu::Get().Init();
+        DebugMenu::Get().SetEnabled(GetAppType() != AppType::Editor);
 
         if(cmdline->OptionBool(Str8Lit("test-maths")))
         {
@@ -423,6 +511,72 @@ namespace Lumos
             m_Window->Show();
     }
 
+    static bool IsImportableModelExt(const std::string& ext)
+    {
+        return ext == "obj" || ext == "gltf" || ext == "glb" || ext == "fbx" || ext == "FBX";
+    }
+
+    void Application::ImportAllProjectAssets()
+    {
+        LUMOS_PROFILE_FUNCTION();
+
+        const String8& assetsPathStr = FileSystem::Get().GetAssetPath();
+        std::string assetsDir((const char*)assetsPathStr.str, assetsPathStr.size);
+
+        int imported = 0, cached = 0, failed = 0;
+
+        try
+        {
+            for(auto& entry : std::filesystem::recursive_directory_iterator(assetsDir))
+            {
+                if(!entry.is_regular_file())
+                    continue;
+
+                std::string filePath = entry.path().string();
+                std::string ext      = StringUtilities::GetFilePathExtension(filePath);
+                if(!IsImportableModelExt(ext))
+                    continue;
+
+                // Skip files inside Imported/ (the .lmesh cache itself)
+                if(filePath.find("/Imported/") != std::string::npos)
+                    continue;
+
+                // Build VFS path: strip assetsDir prefix, prepend //Assets/
+                std::string rel = filePath.substr(assetsDir.size());
+                for(char& c : rel)
+                    if(c == '\\') c = '/';
+                if(!rel.empty() && rel[0] == '/')
+                    rel = rel.substr(1);
+                std::string vfsPath = "//Assets/" + rel;
+
+                if(!AssetImporter::NeedsImport(vfsPath))
+                {
+                    cached++;
+                    continue;
+                }
+
+                LINFO("[ImportAssets] Importing %s", vfsPath.c_str());
+                ImportSettings settings;
+                std::string result = AssetImporter::Import(vfsPath, settings);
+                if(result.empty())
+                {
+                    LERROR("[ImportAssets] Failed to import %s", vfsPath.c_str());
+                    failed++;
+                }
+                else
+                {
+                    imported++;
+                }
+            }
+        }
+        catch(const std::exception& e)
+        {
+            LERROR("[ImportAssets] Filesystem walk failed: %s", e.what());
+        }
+
+        LINFO("[ImportAssets] Done: %d imported, %d already cached, %d failed", imported, cached, failed);
+    }
+
     void Application::OnQuit()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -432,6 +586,11 @@ namespace Lumos
         MutexDestroy(m_MainThreadQueueMutex);
 
         ReleaseUndo();
+
+        DebugMenu::Get().Shutdown();
+        DebugMenu::Release();
+
+        Graphics::ClearPointClouds();
 
         Graphics::Material::ReleaseDefaultTexture();
         Graphics::Font::ShutdownDefaultFont();
@@ -584,8 +743,10 @@ namespace Lumos
             LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
             ts.OnUpdate();
 
+            // Unscaled: a paused game (time scale 0) still has to hand ImGui a
+            // positive delta, and debug UI should keep animating while paused.
             ImGuiIO& io  = ImGui::GetIO();
-            io.DeltaTime = (float)ts.GetSeconds();
+            io.DeltaTime = Maths::Max(0.0001f, (float)(ts.GetUnscaledMillis() * 0.001));
 
             stats.FrameTime = ts.GetRawMillis(); // Use raw time for stats display
         }
@@ -596,6 +757,13 @@ namespace Lumos
         Input::Get().ResetGestures();
         if(m_Window)
             m_Window->ProcessInput();
+
+        // Scripted input overwrites the real pump, before the UI hit-tests it this frame.
+        TestRunner::Get().Step();
+
+        // Every resize the poll above reported collapses into a single rebuild here,
+        // before this frame's update or render sees the new size.
+        ApplyPendingWindowResize();
 
         ArenaClear(m_FrameArena);
 
@@ -610,8 +778,6 @@ namespace Lumos
             s_FullscreenFrame++;
             if(s_FullscreenStage == 0 && s_FullscreenFrame >= 2)
             {
-                // Done a few frames in, not during init — toggling while the scene/renderer
-                // are still spinning up churns the swapchain and is crash-prone.
                 OS::Get().SetWindowFullscreen(true);
                 s_FullscreenStage    = 1;
                 s_FullscreenFrame    = 0;
@@ -677,11 +843,20 @@ namespace Lumos
             ImGui::NewFrame();
         }
 
+        // The UI runs on unscaled time so the overlay still animates when the
+        // game is paused or slowed down.
+        const float uiDelta = Maths::Max(0.0001f, (float)(ts.GetUnscaledMillis() * 0.001));
+
         Vec2 frameSize = { (float)m_SceneViewWidth, (float)m_SceneViewHeight };
-        UIBeginFrame(frameSize, (float)ts.GetSeconds(), m_SceneViewPosition);
+        UIBeginFrame(frameSize, uiDelta, m_SceneViewPosition);
         UIBeginBuild();
 
-        if(m_Window && Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape))
+        // Before OnUpdate so the palette can take the keyboard off the game.
+        DebugMenu::Get().OnUpdate(uiDelta);
+
+        // Escape only toggles the demo panel for runs that asked for it - games
+        // use Escape for their own menus and shouldn't get a debug panel on top.
+        if(s_TestUIRequested && m_Window && Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape))
             m_ShowTestUI = !m_ShowTestUI;
         if(m_ShowTestUI)
             TestUI();
@@ -709,16 +884,14 @@ namespace Lumos
 
 #ifdef LUMOS_PLATFORM_IOS
         {
-            SafeAreaInsets sa = OS::Get().GetSafeAreaInsets();
             const bool isEditor = GetAppType() == AppType::Editor;
-            if(!isEditor && !m_ProjectSettings.UseSafeArea)
-                sa = { 0.0f, 0.0f, 0.0f, 0.0f };
+            SafeAreaInsets sa = UIResolveSafeAreaInsets(OS::Get().GetSafeAreaInsets(), isEditor);
             ImGuiViewportP* vp = (ImGuiViewportP*)ImGui::GetMainViewport();
 
             const ImVec2 vpPos  = vp->Pos;
             const ImVec2 vpSize = vp->Size;
 
-            if(sa.left > 0.0f || sa.right > 0.0f || sa.top > 0.0f || sa.bottom > 0.0f)
+            if(isEditor && (sa.left > 0.0f || sa.right > 0.0f || sa.top > 0.0f || sa.bottom > 0.0f))
             {
                 const ImU32 bg = ImGui::GetColorU32(ImGuiCol_DockingEmptyBg);
                 ImDrawList* dl = ImGui::GetBackgroundDrawList(vp);
@@ -727,7 +900,7 @@ namespace Lumos
                 if(sa.left > 0.0f)   dl->AddRectFilled(ImVec2(vpPos.x, vpPos.y + sa.top), ImVec2(vpPos.x + sa.left, vpPos.y + vpSize.y - sa.bottom), bg);
                 if(sa.right > 0.0f)  dl->AddRectFilled(ImVec2(vpPos.x + vpSize.x - sa.right, vpPos.y + sa.top), ImVec2(vpPos.x + vpSize.x, vpPos.y + vpSize.y - sa.bottom), bg);
             }
-            
+
             vp->BuildWorkOffsetMin = ImVec2(sa.left, sa.top);
             vp->BuildWorkOffsetMax = ImVec2(-sa.right, -sa.bottom);
 
@@ -759,6 +932,13 @@ namespace Lumos
             System::JobSystem::Wait(context);
             return false;
         }
+
+        // After the game update so the fly camera and gizmo win over game code,
+        // and before rendering so their transforms land this frame.
+        DebugMenu::Get().OnPostUpdate(uiDelta);
+
+        // Built last so the overlay sits on top of whatever the game drew.
+        DebugMenu::Get().OnUI();
 
         UIEndBuild();
         UILayout();
@@ -829,6 +1009,9 @@ namespace Lumos
 
         if(!m_Minimized)
             Graphics::Renderer::GetRenderer()->Present();
+
+        // Test-requested captures - the swap chain image is only readable here.
+        TestRunner::Get().ServiceScreenshots(!m_Minimized && m_SceneRenderer && m_Window);
 
         // Take screenshot after a few frames so UI is stable
         if(m_TakeScreenshotOnInit && !m_ScreenshotTaken && m_CurrentState == AppState::Running)
@@ -1049,10 +1232,45 @@ namespace Lumos
 
                 UISeparator();
 
+                // Text wrap / ellipsis demo
+                UILabelWrapped("WrapDemo", Str8Lit("This is a long sentence that word-wraps to the width given, and hard-breaks superlongunbrokenwords too."), 220.0f);
+                UILabelEllipsis("EllipsisDemo", Str8Lit("This long line gets truncated with an ellipsis"), 180.0f);
+
+                // Flex-grow demo: fixed | grow(1) | grow(2)
+                {
+                    UIBeginRow();
+                    UI_Widget* row = GetUIState()->parents.Back();
+                    row->semantic_size[UIAxis_X] = { SizeKind_PercentOfParent, 1.0f };
+                    UIColouredBox("GrowFixed", 40.0f, 14.0f, Vec4(0.8f, 0.3f, 0.3f, 1.0f), 3.0f);
+                    {
+                        UI_Interaction g1 = UIColouredBox("Grow1", 1.0f, 14.0f, Vec4(0.3f, 0.8f, 0.3f, 1.0f), 3.0f);
+                        g1.widget->semantic_size[UIAxis_X] = { SizeKind_Grow, 1.0f };
+                        UI_Interaction g2 = UIColouredBox("Grow2", 1.0f, 14.0f, Vec4(0.3f, 0.3f, 0.8f, 1.0f), 3.0f);
+                        g2.widget->semantic_size[UIAxis_X] = { SizeKind_Grow, 2.0f };
+                    }
+                    UIEndRow();
+                }
+
+                // Exit-animation demo: panel below fades out when hidden
+                static bool showFadePanel = false;
+                if(UIButton(showFadePanel ? "Hide Fading Panel" : "Show Fading Panel").clicked)
+                    showFadePanel = !showFadePanel;
+
+                UISeparator();
+
                 if(UIButton("Exit").clicked)
                     SetAppState(Lumos::AppState::Closing);
 
                 UIEndPanel();
+
+                if(showFadePanel)
+                {
+                    UIBeginPanel("Fading Panel", WidgetFlags_StackVertically | WidgetFlags_Floating_X | WidgetFlags_Floating_Y | WidgetFlags_DragParent | WidgetFlags_AnimateExit | WidgetFlags_AnimateAppear);
+                    UIWindowAnchor(UIAnchor_BottomCenter, 0.0f, 40.0f);
+                    UILabel("FadeL1", Str8Lit("This panel fades out when hidden"));
+                    UILabel("FadeL2", Str8Lit("(AnimateExit on the panel covers the subtree)"));
+                    UIEndPanel();
+                }
 
                 // Context menu
                 if(UIBeginContextMenu("DemoContextMenu"))
@@ -1078,6 +1296,25 @@ namespace Lumos
 
                 if(showDebugDearImGuiPanel)
                     DearIMGUIDebugPanel();
+            }
+
+            // StyleVar_Alpha ladder: four identical panels at descending opacity.
+            // A pushed alpha applies to every widget built inside the push, so
+            // each panel and its contents should step visibly darker/fainter.
+            // Screenshot this to check the whole opacity path in one run.
+            {
+                const float alphas[] = { 1.0f, 0.6f, 0.3f, 0.1f };
+                const char* names[]  = { "Alpha 1.0", "Alpha 0.6", "Alpha 0.3", "Alpha 0.1" };
+                for(int a = 0; a < 4; a++)
+                {
+                    UIPushStyle(StyleVar_Alpha, alphas[a]);
+                    UIBeginPanel(names[a], WidgetFlags_StackVertically | WidgetFlags_Floating_X | WidgetFlags_Floating_Y);
+                    UIWindowAnchor(UIAnchor_TopRight, 20.0f, 20.0f + (float)a * 110.0f);
+                    UILabelCStr("alphaladderlabel", "Opacity test");
+                    UIColouredBox(names[a], 120.0f, 18.0f, Vec4(0.35f, 0.75f, 0.95f, 1.0f), 3.0f);
+                    UIEndPanel();
+                    UIPopStyle(StyleVar_Alpha);
+                }
             }
 
             if(showSecondPanel)
@@ -1117,9 +1354,26 @@ namespace Lumos
     void Application::OnEvent(Event& e)
     {
         LUMOS_PROFILE_FUNCTION();
+
+        // Resizes arrive in bursts: the window manager sends one configure event
+        // per step of an interactive edge drag, and every one of them would
+        // rebuild the swapchain and each render target. That stalls the frame far
+        // longer than the drag takes, so the window ends up showing whatever was
+        // last presented - old borders left behind at the sizes the drag passed
+        // through. Keep only the newest size and apply it once, at the top of the
+        // next frame.
+        if(e.GetEventType() == WindowResizeEvent::GetStaticType())
+        {
+            WindowResizeEvent& resizeEvent = static_cast<WindowResizeEvent&>(e);
+            m_PendingWindowWidth           = resizeEvent.GetWidth();
+            m_PendingWindowHeight          = resizeEvent.GetHeight();
+            m_PendingWindowDPIScale        = resizeEvent.GetDPIScale();
+            m_HasPendingWindowResize       = true;
+            return;
+        }
+
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
-        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
         // UI keyboard input
         dispatcher.Dispatch<KeyTypedEvent>([](KeyTypedEvent& event) -> bool
@@ -1235,6 +1489,46 @@ namespace Lumos
         return false;
     }
 
+    void Application::ApplyPendingWindowResize()
+    {
+        LUMOS_PROFILE_FUNCTION();
+        if(!m_HasPendingWindowResize)
+            return;
+
+        m_HasPendingWindowResize = false;
+
+        const uint32_t width  = m_PendingWindowWidth;
+        const uint32_t height = m_PendingWindowHeight;
+
+        // A zero size still has to reach OnWindowResize to flag minimised, but a
+        // repeat of the size already in use is pure rebuild cost.
+        if(width != 0 && height != 0 && width == m_AppliedWindowWidth && height == m_AppliedWindowHeight)
+            return;
+
+        m_AppliedWindowWidth  = width;
+        m_AppliedWindowHeight = height;
+
+        WindowResizeEvent e(width, height, m_PendingWindowDPIScale);
+
+        EventDispatcher dispatcher(e);
+        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
+
+        if(m_ImGuiManager)
+            m_ImGuiManager->OnEvent(e);
+        if(e.Handled())
+            return;
+
+        if(m_SceneRenderer)
+            m_SceneRenderer->OnEvent(e);
+        if(e.Handled())
+            return;
+
+        if(m_SceneManager->GetCurrentScene())
+            m_SceneManager->GetCurrentScene()->OnEvent(e);
+
+        Input::Get().OnEvent(e);
+    }
+
     void Application::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -1293,6 +1587,15 @@ namespace Lumos
     void Application::Serialise()
     {
         LUMOS_PROFILE_FUNCTION();
+
+        // A test run must leave the project exactly as it found it - otherwise
+        // its --width/--height end up committed to the .lmproj.
+        if(TestRunner::Get().Active())
+        {
+            LINFO("Test run - skipping project serialisation");
+            return;
+        }
+
         {
             std::stringstream storage;
             {
@@ -1456,5 +1759,25 @@ namespace Lumos
 #else
         m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath()) + "../../Lumos/Assets/";
 #endif
+    }
+
+    bool Application::EmbedEngineShaders()
+    {
+        std::string coreDataPath;
+        auto shaderPath = std::filesystem::path(m_ProjectSettings.m_EngineAssetPath + "Shaders/CompiledSPV/");
+        int shaderCount = 0;
+        if(std::filesystem::is_directory(shaderPath))
+        {
+            for(auto entry : std::filesystem::directory_iterator(shaderPath))
+            {
+                auto extension = StringUtilities::GetFilePathExtension(entry.path().string());
+                if(extension == "spv")
+                {
+                    EmbedShader(entry.path().string());
+                    shaderCount++;
+                }
+            }
+        }
+        LINFO("Embedded %i shaders. Recompile to use", shaderCount);
     }
 }

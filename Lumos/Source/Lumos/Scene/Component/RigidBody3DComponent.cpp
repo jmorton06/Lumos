@@ -16,9 +16,6 @@ namespace Lumos
 
     RigidBody3DComponent::RigidBody3DComponent(RigidBody3D* physics)
     {
-        // Take ownership of the passed-in body. All existing callers create the body
-        // immediately before constructing the component and don't keep a reference,
-        // so the component is the sole owner.
         m_RigidBody    = physics;
         m_OwnRigidBody = true;
     }

@@ -309,6 +309,7 @@ namespace Lumos
         TransformType["GetWorldOrientation"] = &Maths::Transform::GetWorldOrientation;
         TransformType["GetForwardDirection"] = &Maths::Transform::GetForwardDirection;
         TransformType["GetRightDirection"]   = &Maths::Transform::GetRightDirection;
+        TransformType["GetUpDirection"]      = &Maths::Transform::GetUpDirection;
 
         state["SineOut"]          = Maths::SineOut;
         state["SineIn"]           = Maths::SineIn;

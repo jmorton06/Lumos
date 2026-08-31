@@ -99,10 +99,6 @@ void main()
                 float fMipLevel = max(0.5 * log2(max(fOmegaS / fOmegaP, 1e-6)) + fMipBias, 0.0f);
 
                 vec3 sampleColour = texture(u_Texture, L, fMipLevel).rgb;
-                // Karis' firefly fix: down-weight bright samples so a lone HDR
-                // pixel (the sun) cannot dominate the average and speckle the
-                // prefiltered mip. Without this, mid-roughness surfaces reflect
-                // that baked-in noise as speckles all over.
                 float sampleWeight = NdotL / (1.0 + dot(sampleColour, vec3(0.2126, 0.7152, 0.0722)));
                 prefilteredColor += sampleColour * sampleWeight;
                 totalWeight      += sampleWeight;

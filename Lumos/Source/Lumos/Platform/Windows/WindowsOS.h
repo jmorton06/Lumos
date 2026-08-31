@@ -20,11 +20,12 @@ namespace Lumos
 
         void SetTitleBarColour(const Vec4& colour, bool dark = true) override;
         void SetWindowDecorations(bool decorated) override;
-        void BeginWindowDrag() override;
+        bool BeginWindowDrag() override;
         void UpdateWindowDrag() override;
-        void BeginWindowResize(int edgeMask) override;
+        bool BeginWindowResize(int edgeMask) override;
         void UpdateWindowResize() override;
         bool IsWindowMaximised() const override;
+        void MaximiseWindow() override;
         void RestoreWindow() override;
         void IconifyWindow() override;
     };

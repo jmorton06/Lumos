@@ -66,8 +66,6 @@ namespace Lumos
 
             bool IsLoading() const { return m_Loading; }
 
-            // Load model asynchronously — file I/O + CPU parse on background thread,
-            // GPU buffer creation deferred to main thread
             void LoadModelAsync(const std::string& path);
 
         private:

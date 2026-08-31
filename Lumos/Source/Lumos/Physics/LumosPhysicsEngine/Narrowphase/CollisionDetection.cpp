@@ -881,9 +881,6 @@ namespace Lumos
 
         if(out_coldata)
         {
-            // Normal from GetNormalAt points away from terrain surface (upward).
-            // Convention: normal points from obj1 to obj2.
-            // If terrain is obj2, flip so normal points toward terrain.
             if(shape2->GetType() == CollisionShapeType::CollisionTerrain)
                 bestNormal = -bestNormal;
 
@@ -934,6 +931,83 @@ namespace Lumos
         return false;
     }
 
+    static bool BuildCapsuleSideContacts(RigidBody3D* capsuleObj, CapsuleCollisionShape* capsule,
+                                         CollisionShape* otherShape, RigidBody3D* otherObj,
+                                         const CollisionData& coldata, bool capsuleIsA, Manifold* manifold)
+    {
+        ReferencePolygon face;
+        const Vec3 otherAxis = capsuleIsA ? -coldata.normal : coldata.normal;
+        otherShape->GetIncidentReferencePolygon(otherObj, otherAxis, face);
+        if(face.FaceCount < 3) // sphere/capsule opponent — no face to clip to
+            return false;
+
+        // Capsule inner segment (local +/-Y) in world space.
+        const float halfH  = capsule->GetHeight() * 0.5f;
+        const float radius = capsule->GetRadius();
+        const Mat4& ws     = capsuleObj->GetWorldSpaceTransform();
+        const Vec3 s0      = ws * Vec4(0.0f, -halfH, 0.0f, 1.0f);
+        const Vec3 s1      = ws * Vec4(0.0f, halfH, 0.0f, 1.0f);
+
+        const Vec3 seg     = s1 - s0;
+        const float segLen = Maths::Length(seg);
+        if(segLen < Maths::M_EPSILON)
+            return false;
+        const Vec3 segDir = seg / segLen;
+
+        // End-on: capsule axis ~parallel to the normal, one cap point is right.
+        if(Maths::Abs(Maths::Dot(segDir, coldata.normal)) > 0.965f) // ~15 deg
+            return false;
+
+        float tEnter = 0.0f, tExit = 1.0f;
+        for(uint32_t i = 1; i < face.PlaneCount; i++)
+        {
+            const Plane& pl  = face.AdjacentPlanes[i];
+            const float d0   = pl.Distance(s0);
+            const float d1   = pl.Distance(s1);
+            const float diff = d1 - d0;
+            if(Maths::Abs(diff) < Maths::M_EPSILON)
+            {
+                if(d0 < 0.0f)
+                    return false; // segment entirely outside this side plane
+                continue;
+            }
+            const float t = -d0 / diff; // crossing where Distance == 0
+            if(diff > 0.0f)
+                tEnter = Maths::Max(tEnter, t);
+            else
+                tExit = Maths::Min(tExit, t);
+        }
+        if(tEnter > tExit)
+            return false; // shaft doesn't overlap the face laterally
+
+        const Plane facePlane(face.Normal, -Maths::Dot(face.Normal, face.Faces[0]));
+        const Vec3 surfDir = capsuleIsA ? coldata.normal : -coldata.normal; // capsule -> other
+
+        const float ts[2]      = { tEnter, tExit };
+        const bool singlePoint = (Maths::Abs(tExit - tEnter) * segLen < 0.01f);
+        int added              = 0;
+        for(int i = 0; i < 2; i++)
+        {
+            const Vec3 segPoint = s0 + seg * ts[i];
+            const Vec3 surface  = segPoint + surfDir * radius;
+
+            float pen = facePlane.Distance(surface); // negative = penetrating
+            if(pen > 0.02f)                          // this end isn't touching
+                continue;
+            pen = Maths::Min(pen, 0.0f);
+
+            if(capsuleIsA)
+                manifold->AddContact(surface, surface - coldata.normal * pen, coldata.normal, pen);
+            else
+                manifold->AddContact(surface + coldata.normal * pen, surface, coldata.normal, pen);
+            added++;
+
+            if(singlePoint)
+                break;
+        }
+        return added > 0;
+    }
+
     bool CollisionDetection::BuildCollisionManifold(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData& coldata, Manifold* manifold)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
@@ -954,6 +1028,18 @@ namespace Lumos
             Vec3 globalOnB = coldata.pointOnPlane;
             manifold->AddContact(globalOnA, globalOnB, coldata.normal, coldata.penetration);
             return true;
+        }
+
+        {
+            const bool cap1 = shape1->GetType() == CollisionShapeType::CollisionCapsule;
+            const bool cap2 = shape2->GetType() == CollisionShapeType::CollisionCapsule;
+            if(cap1 != cap2)
+            {
+                if(cap1 && BuildCapsuleSideContacts(obj1, static_cast<CapsuleCollisionShape*>(shape1), shape2, obj2, coldata, true, manifold))
+                    return true;
+                if(cap2 && BuildCapsuleSideContacts(obj2, static_cast<CapsuleCollisionShape*>(shape2), shape1, obj1, coldata, false, manifold))
+                    return true;
+            }
         }
 
         ReferencePolygon poly1, poly2;

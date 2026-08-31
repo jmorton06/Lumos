@@ -27,8 +27,10 @@ namespace Lumos
             void SetSpriteSheetIndex(int x, int y);
             void SetSpriteSheet(const Vec2& index, const Vec2& cellSize, const Vec2& spriteSize, float boarder = 0.0f);
             void SetTexture(const SharedPtr<Texture2D>& texture) { m_Texture = texture; }
+            void SetNormalTexture(const SharedPtr<Texture2D>& texture) { m_NormalTexture = texture; }
 
             void SetTextureFromFile(const std::string& filePath);
+            void SetNormalTextureFromFile(const std::string& filePath);
 
             bool UsingSpriteSheet    = false;
             u32 SpriteSheetTileSizeX = 32;

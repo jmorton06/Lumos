@@ -320,6 +320,7 @@ namespace Lumos
                 unsigned char* pixels;
                 int width, height;
                 io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+                LINFO("ImGui font atlas %ix%i", width, height);
 
                 auto desc  = TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT);
                 desc.flags = TextureFlags::Texture_Sampled;

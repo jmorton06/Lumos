@@ -16,7 +16,6 @@ namespace Lumos
             Material* material = nullptr;
             Pipeline* pipeline = nullptr;
             Mat4 transform;
-            Mat4 textureMatrix;
             bool animated                        = false;
             DescriptorSet* AnimatedDescriptorSet = nullptr;
             u32 instanceCount                    = 1;

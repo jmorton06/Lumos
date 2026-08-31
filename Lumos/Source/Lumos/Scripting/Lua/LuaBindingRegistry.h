@@ -2,18 +2,6 @@
 #include "Core/String.h"
 #include "Core/DataStructures/TDArray.h"
 
-// Typed catalogue of every binding exposed to Lua. Populated once at startup;
-// the editor uses it to drive autocomplete + type-chain inference.
-//
-// Owner is the type name on which the entry hangs:
-//   ""       -> global symbol (function, value, table)
-//   "Vec3"   -> method/field of Vec3
-//   "Entity" -> Entity method (AddX / GetX / HasX / etc.)
-//
-// ReturnType is the Lua-side type name (matches Owner of subsequent chained
-// entries). Use "" for void / no return.
-//
-// All strings are interned in the registry arena; Entry copies are cheap.
 
 namespace Lumos::LuaRegistry
 {

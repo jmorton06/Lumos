@@ -11,8 +11,6 @@ namespace Lumos
     {
         namespace
         {
-            // Per-face data, CCW winding viewed from outside (cross(U,V) == normal,
-            // VK default front face). corners walk origin, +U, +U+V, +V.
             struct FaceDef
             {
                 int nx, ny, nz;       // neighbour offset to test for culling
@@ -99,8 +97,6 @@ namespace Lumos
                         m_Blocks[Index(x, y, z)] = id;
                     }
 
-                    // Carve caves out of the solid column (keep the top crust + a
-                    // bedrock floor so the world isn't holed through).
                     for(int y = 1; y < height - 1; ++y)
                         if(VoxelIsCave(gx, y, gz))
                             m_Blocks[Index(x, y, z)] = Block_Air;
@@ -112,8 +108,6 @@ namespace Lumos
                 }
             }
 
-            // Pass 2: scatter trees on grassy land above water. Kept clear of the
-            // chunk border so the canopy never needs to write into a neighbour.
             for(int x = 2; x < CHUNK_W - 2; ++x)
             {
                 for(int z = 2; z < CHUNK_D - 2; ++z)
@@ -171,8 +165,6 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
-            // Sample a block, crossing into a neighbour chunk when the coord leaves
-            // local bounds. Out-of-world (above/below, or null neighbour) = air.
             auto solidAt = [&](int x, int y, int z) -> bool
             {
                 if(y < 0 || y >= CHUNK_H)
@@ -220,8 +212,6 @@ namespace Lumos
                                 cell + f.origin + f.v,
                             };
 
-                            // Atlas tile rect, inset half a texel so NEAREST never
-                            // grabs a neighbouring tile.
                             const uint8_t tile = BlockFaceTile(block, fi);
                             const float tw = 1.0f / ATLAS_COLS, th = 1.0f / ATLAS_ROWS;
                             const float u0 = (tile % ATLAS_COLS) * tw;
@@ -229,10 +219,6 @@ namespace Lumos
                             const float ex = 0.5f / (ATLAS_COLS * ATLAS_TILE_PX);
                             const float ey = 0.5f / (ATLAS_ROWS * ATLAS_TILE_PX);
 
-                            // The grass-side tile has its grassy lip in the atlas top
-                            // rows, so atlas-V must follow world height (top -> V0).
-                            // Derive UVs from each corner's cell-local position rather
-                            // than the face u/v axes, whose up-axis isn't consistent.
                             const bool sideFace = (f.normal.y == 0.0f);
                             for(int i = 0; i < 4; ++i)
                             {

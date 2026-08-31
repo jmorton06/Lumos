@@ -24,8 +24,6 @@ namespace Lumos::Graphics
         LoadFromLibrary(path);
     }
 
-    // Find the source model file for a stale imported .lmesh path by scanning
-    // all model files in the assets directory and comparing old (raw) hashes.
     static std::string FindSourceForImportedPath(const std::string& importedLmeshPath)
     {
         ArenaTemp scratch = ScratchBegin(nullptr, 0);
@@ -110,8 +108,6 @@ namespace Lumos::Graphics
         }
         else if(!previewOnly && ext == "lmesh" && path.find("//Assets/Imported/") != std::string::npos)
         {
-            // Migration: old scenes stored the imported .lmesh path directly.
-            // Scan all source model files to find the original, then reimport.
             std::string foundSource = FindSourceForImportedPath(path);
 
             if(!foundSource.empty())

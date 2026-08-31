@@ -24,6 +24,10 @@ layout(set = 0, binding = 0) uniform UniformBuffer
     float near;
     float far;
     float strength;
+    int SampleCount; // quality-driven kernel size
+    int _pad0;
+    int _pad1;
+    int _pad2;
 } ubo;
 
 float LinearizeDepth(float depth)
@@ -35,23 +39,18 @@ float LinearizeDepth(float depth)
 vec3 reconstructVSPosFromDepth(vec2 uv)
 {
     float depth = texture(in_Depth, uv).r;
-    // Vulkan clip space uses a [0, 1] depth range, so the depth buffer value
-    // is the NDC z directly - it must NOT be remapped to [-1, 1].
     vec4 clipPos = vec4(uv * 2.0 - 1.0, depth, 1.0);
     vec4 viewPos = ubo.invProj * clipPos;
     return viewPos.xyz / viewPos.w;
 }
 
-const int MAX_KERNEL_SIZE = 32;
-const float INV_MAX_KERNEL_SIZE_F = 1.0/float(MAX_KERNEL_SIZE);
+const int MAX_KERNEL_SIZE = 64; // upper bound; actual count is ubo.SampleCount
 const vec2 HALF_2 = vec2(0.5);
 
 #define MAX_DISTANCE 1.0
 
 vec3 GetNormal(vec2 uv)
 {
-    // in_Normal is the packed G-buffer: octahedral world normal in .rg. SSAO
-    // works in view space (posVS, kernel and projection all view space).
     vec3 worldNormal = OctDecodeNormal(texture(in_Normal, uv).rg);
     return normalize(mat3(ubo.view) * worldNormal);
 }
@@ -85,7 +84,8 @@ void main()
 
 	float occlusion = 0.0f;
 	int sampleCount = 0;
-	for (uint i = 0; i < MAX_KERNEL_SIZE; i++)
+	int kernelSize = clamp(ubo.SampleCount, 1, MAX_KERNEL_SIZE);
+	for (int i = 0; i < kernelSize; i++)
 	{
 		vec3 samplePos = TBN * ubo.samples[i].xyz;
 		samplePos = posVS + samplePos * ubo.ssaoRadius;
@@ -114,7 +114,7 @@ void main()
 	//occlusion = 1.0f - (occlusion * INV_MAX_KERNEL_SIZE_F);
 	//occlusion = pow(occlusion, ubo.strength);
 
-	occlusion = clamp(1.0 - occlusion * INV_MAX_KERNEL_SIZE_F, 0.0, 1.0);
+	occlusion = clamp(1.0 - occlusion / float(kernelSize), 0.0, 1.0);
 	occlusion = pow(occlusion, ubo.strength);
 
 	fragColour = occlusion.xxxx;

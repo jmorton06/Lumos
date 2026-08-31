@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "String.h"
+#include "LMLog.h"
 #include <cstdarg>
 #include <stb/stb_sprintf.h>
 
@@ -208,7 +209,26 @@ namespace Lumos
         result.str            = PushArrayNoZero(arena, uint8_t, needed_bytes);
         result.size           = needed_bytes - 1;
 
+        // A full arena hands back null, and formatting into it crashes rather
+        // than reporting the real problem. Hand back an empty string instead.
+        if(!result.str)
+        {
+            static uint8_t s_Empty[1] = { 0 };
+            static bool s_Reporting   = false;
+            result.str  = s_Empty;
+            result.size = 0;
+            if(!s_Reporting)
+            {
+                s_Reporting = true;
+                LERROR("Arena full: dropped a %llu byte string (\"%s\")", (unsigned long long)needed_bytes, fmt);
+                s_Reporting = false;
+            }
+            va_end(args2);
+            return result;
+        }
+
         stbsp_vsnprintf((char*)result.str, (int)needed_bytes, fmt, args2);
+        va_end(args2);
 
         return result;
     }

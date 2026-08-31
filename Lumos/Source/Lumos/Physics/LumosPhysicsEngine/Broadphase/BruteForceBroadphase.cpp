@@ -23,12 +23,6 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        // Clear arena for hash set
-        ArenaClear(m_Arena);
-        
-        // Use hash set for O(1) duplicate detection instead of O(n) linear search
-        HashSet(size_t) collisionPairHashSet = { 0 };
-        collisionPairHashSet.arena = m_Arena;
 
         // Iterate through all objects using array indexing instead of linked list
         for(uint32_t i = 0; i < totalRigidBodyCount; i++)
@@ -61,7 +55,7 @@ namespace Lumos
                     continue;
 
                 CollisionPair pair;
-                // Always order pairs consistently for hash lookup
+                // Order consistently so narrowphase/manifold lookups are stable.
                 if(&obj1 < &obj2)
                 {
                     pair.pObjectA = &obj1;
@@ -73,13 +67,7 @@ namespace Lumos
                     pair.pObjectB = &obj1;
                 }
 
-                // Use hash-based duplicate detection (O(1) instead of O(n))
-                size_t pairHash = (size_t)pair.pObjectA + ((size_t)pair.pObjectB << 8);
-                if(!HashSetContains(&collisionPairHashSet, pairHash))
-                {
-                    HashSetAdd(&collisionPairHashSet, pairHash);
-                    collisionPairs.EmplaceBack(pair);
-                }
+                collisionPairs.EmplaceBack(pair);
             }
         }
     }

@@ -231,6 +231,8 @@ namespace Lumos::Graphics
             properties.roughnessMapFactor = 0.0f;
         if(!textures.emissive)
             properties.emissiveMapFactor = 0.0f;
+        else
+            properties.emissiveColour = Vec4(1.0f, 1.0f, 1.0f, 1.0f); // FBX has no emissive factor — tint white so the map shows
         if(!textures.ao)
             properties.occlusionMapFactor = 0.0f;
 

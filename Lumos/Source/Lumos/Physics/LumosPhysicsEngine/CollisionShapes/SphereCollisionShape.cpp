@@ -84,6 +84,6 @@ namespace Lumos
         Vec3 pos    = transform.GetPositionVector();
         auto sphere = Maths::BoundingSphere(pos, m_Radius);
         DebugRenderer::DebugDraw(sphere, Vec4(1.0f, 1.0f, 1.0f, 0.2f));
-        DebugRenderer::DebugDrawSphere(m_Radius, pos, Vec4(1.0f, 0.3f, 1.0f, 1.0f));
+        DebugRenderer::DebugDrawSphere(m_Radius, pos, Vec4(1.0f, 0.3f, 1.0f, 1.0f), DEBUG_LINE_WIDTH);
     }
 }

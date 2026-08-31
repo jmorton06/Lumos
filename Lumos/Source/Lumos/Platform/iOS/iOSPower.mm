@@ -1,3 +1,4 @@
+#ifdef LUMOS_PLATFORM_IOS
 #include "iOSPower.h"
 
 
@@ -55,3 +56,4 @@ namespace Lumos
         }
     }
 }
+#endif // LUMOS_PLATFORM_IOS

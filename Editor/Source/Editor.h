@@ -226,6 +226,8 @@ namespace Lumos
         class TerrainEditorPanel* GetTerrainEditorPanel();
 
         void FileOpenCallback(const std::string& filepath);
+        // Import a glTF/glb as an entity hierarchy (meshes + lights + cameras), opt-in alternative to the single-entity drop.
+        void ImportModelAsScene(const std::string& filepath);
         void ProjectOpenCallback(const std::string& filepath);
         void NewProjectOpenCallback(const std::string& filepath);
         void FileEmbedCallback(const std::string& filepath);

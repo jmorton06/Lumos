@@ -85,6 +85,7 @@ namespace Lumos
         virtual uint32_t GetWidth() const    = 0;
         virtual uint32_t GetHeight() const   = 0;
         virtual float GetDPIScale() const { return 1.0f; }
+        virtual float GetMousePosScale() const { return GetDPIScale(); }
         virtual bool GetVSync() const { return m_VSync; };
         virtual void UpdateControllers() { }
         virtual void RefreshSize() { }

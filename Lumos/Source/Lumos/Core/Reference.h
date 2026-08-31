@@ -29,8 +29,6 @@ namespace Lumos
         bool reference();
         bool unreference();
 
-        // Race-safe upgrade for WeakReference::Lock — only increments when the
-        // strong refcount is greater than zero. Returns true on success.
         bool tryReference();
 
         bool weakReference();

@@ -32,6 +32,8 @@ namespace Lumos
         }
 
         m_vpAllScenes.Clear();
+        
+        TextureCache::Clear();
 
         ArenaRelease(m_Arena);
     }

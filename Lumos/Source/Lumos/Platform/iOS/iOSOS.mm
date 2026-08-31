@@ -1,3 +1,4 @@
+#ifdef LUMOS_PLATFORM_IOS
 #include "iOSOS.h"
 #include "iOSWindow.h"
 #include "iOSKeyCodes.h"
@@ -24,6 +25,7 @@
 
 #import <UIKit/UIKit.h>
 #import <AudioToolbox/AudioServices.h>
+#import <AVFoundation/AVFoundation.h>
 
 #define MAX_SIMULTANEOUS_TOUCHES 10
 
@@ -42,19 +44,6 @@ namespace Lumos
     {
     }
 
-    void AudioInterruptionListenerCallback(void* user_data, UInt32 interruption_state)
-    {
-       if (kAudioSessionBeginInterruption == interruption_state)
-       {
-           //alcMakeContextCurrent(NULL);
-       }
-       else if (kAudioSessionEndInterruption == interruption_state)
-       {
-           AudioSessionSetActive(true);
-           //alcMakeContextCurrent(openALContext);
-       }
-    }
-
     void iOSOS::Init()
     {
         Lumos::Internal::CoreSystem::Init(false);
@@ -62,13 +51,28 @@ namespace Lumos
 
         iOSWindow::MakeDefault();
 
-        //TODO: Replace with non depricated functions
-        AudioSessionInitialize(NULL, NULL, AudioInterruptionListenerCallback, NULL);
+        NSError* audioSessionError = nil;
+        AVAudioSession* audioSession = [AVAudioSession sharedInstance];
+        [audioSession setCategory:AVAudioSessionCategoryPlayback error:&audioSessionError];
+        if (audioSessionError)
+            LERROR("Failed to set AVAudioSession category: %s", [[audioSessionError localizedDescription] UTF8String]);
 
-        UInt32 session_category = kAudioSessionCategory_MediaPlayback;
-        AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(session_category), &session_category);
+        audioSessionError = nil;
+        [audioSession setActive:YES error:&audioSessionError];
+        if (audioSessionError)
+            LERROR("Failed to activate AVAudioSession: %s", [[audioSessionError localizedDescription] UTF8String]);
 
-        AudioSessionSetActive(true);
+        [[NSNotificationCenter defaultCenter] addObserverForName:AVAudioSessionInterruptionNotification
+                                                           object:audioSession
+                                                            queue:[NSOperationQueue mainQueue]
+                                                       usingBlock:^(NSNotification* note) {
+            NSNumber* typeValue = note.userInfo[AVAudioSessionInterruptionTypeKey];
+            if ([typeValue unsignedIntegerValue] == AVAudioSessionInterruptionTypeEnded)
+            {
+                NSError* resumeError = nil;
+                [[AVAudioSession sharedInstance] setActive:YES error:&resumeError];
+            }
+        }];
 
         auto app = Lumos::CreateApplication();
         app->Init();
@@ -507,9 +511,7 @@ CALayer* layer;
 }
 
 - (UIRectEdge)preferredScreenEdgesDeferringSystemGestures {
-    if(Lumos::Application::Get().GetAppType() == Lumos::AppType::Editor)
-        return UIRectEdgeAll;
-    return UIRectEdgeNone;
+    return UIRectEdgeAll;
 }
 
 - (UIView<LumosView> *)lumosView {
@@ -628,10 +630,9 @@ CALayer* layer;
         initWithTarget:self action:@selector(handleLongPress:)];
     longPress.minimumPressDuration = 0.5;
     longPress.delaysTouchesBegan = NO;
+    longPress.cancelsTouchesInView = NO;
     [self.view addGestureRecognizer:longPress];
 
-    // Top-edge swipe-down to reveal hidden menu bar. Dispatched as a 1-touch Down swipe
-    // so the editor can subscribe via GestureSwipeEvent.
     UIScreenEdgePanGestureRecognizer *topEdgePan = [[UIScreenEdgePanGestureRecognizer alloc]
         initWithTarget:self action:@selector(handleTopEdgePan:)];
     topEdgePan.edges = UIRectEdgeTop;
@@ -655,8 +656,7 @@ CALayer* layer;
 
     if (iosOS->GetDeviceType() == Lumos::iOSOS::iOSDeviceType::iPad)
     {
-        // iPad editor: allow all orientations, runtime: prefer landscape
-        return isEditor ? UIInterfaceOrientationMaskAll : UIInterfaceOrientationMaskLandscape;
+        return isEditor ? UIInterfaceOrientationMaskAll : UIInterfaceOrientationMaskAllButUpsideDown;
     }
     else
     {
@@ -678,10 +678,18 @@ CALayer* layer;
     [super viewDidLayoutSubviews];
     UIEdgeInsets insets = self.view.safeAreaInsets;
     CGFloat scale = self.view.contentScaleFactor;
-    // Ignore the home-indicator inset — we render under it to reclaim screen space.
+    Lumos::iOSOS::Get()->SetSafeAreaScale(scale);
     Lumos::iOSOS::Get()->SetSafeAreaInsets(
-        insets.top * scale, 0.0f,
+        insets.top * scale, insets.bottom * scale,
         insets.left * scale, insets.right * scale);
+    if (@available(iOS 11.0, *)) {
+        [self setNeedsUpdateOfHomeIndicatorAutoHidden];
+        [self setNeedsUpdateOfScreenEdgesDeferringSystemGestures];
+    }
+}
+
+- (BOOL)prefersHomeIndicatorAutoHidden {
+    return YES;
 }
 
 - (void)didReceiveMemoryWarning {
@@ -962,6 +970,18 @@ typedef enum {
 }
 
 
+
+static uint32_t ActiveTouchCount(UIEvent* event)
+{
+    uint32_t count = 0;
+    for(UITouch* touch in event.allTouches)
+    {
+        if(touch.phase != UITouchPhaseEnded && touch.phase != UITouchPhaseCancelled)
+            count++;
+    }
+    return count;
+}
+
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     if (@available(iOS 13.4, *)) {
         if (event.type == UIEventTypeHover && (event.buttonMask & UIEventButtonMaskSecondary)) {
@@ -978,6 +998,7 @@ typedef enum {
     }
 
     NSUInteger totalTouches = event.allTouches.count;
+    Lumos::Input::Get().SetTouchCount(ActiveTouchCount(event));
 
     if(totalTouches == 1 && !self.wasMultiTouch)
     {
@@ -1007,6 +1028,7 @@ typedef enum {
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     NSUInteger totalTouches = event.allTouches.count;
+    Lumos::Input::Get().SetTouchCount(ActiveTouchCount(event));
 
     // If multi-touch active, don't send single-finger events
     if(totalTouches > 1 || self.wasMultiTouch || [self isMultiFingerGestureActive])
@@ -1047,12 +1069,8 @@ typedef enum {
         }
     }
 
-    NSUInteger remainingTouches = 0;
-    for(UITouch *touch in event.allTouches)
-    {
-        if(touch.phase != UITouchPhaseEnded && touch.phase != UITouchPhaseCancelled)
-            remainingTouches++;
-    }
+    NSUInteger remainingTouches = ActiveTouchCount(event);
+    Lumos::Input::Get().SetTouchCount((uint32_t)remainingTouches);
 
     // Single-finger ended - send mouse up
     if(self.singleTouchValid && !self.wasMultiTouch && ![self isMultiFingerGestureActive])
@@ -1074,6 +1092,7 @@ typedef enum {
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
+    Lumos::Input::Get().SetTouchCount(ActiveTouchCount(event));
     // Release mouse button and reset state
     if(self.singleTouchValid)
     {
@@ -1109,8 +1128,6 @@ typedef enum {
 }
 
 - (UIView *)inputView {
-    // Return empty view to suppress software keyboard when not requested
-    // nil = show default keyboard, empty view = hide keyboard
     return self.keyboardRequested ? nil : self.emptyInputView;
 }
 
@@ -1354,3 +1371,4 @@ int main(int argc, char * argv[])
         return UIApplicationMain(argc, argv, nil, NSStringFromClass([LumosAppDelegate class]));
     }
 }
+#endif // LUMOS_PLATFORM_IOS

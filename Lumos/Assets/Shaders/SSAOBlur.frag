@@ -39,9 +39,6 @@ void main()
 		vec2 offset = ubo.ssaoTexelOffset * float(i);
 		float depth = LinearizeDepth(texture(in_Depth, outTexCoord + offset).r);
 		vec3 normal = normalize(mat3(ubo.view) * OctDecodeNormal(texture(in_Normal, outTexCoord + offset).rg));
-		// Raw [0,1] depth is non-linear, so a fixed epsilon rejected every
-		// neighbour on sloped/curved surfaces and the blur did nothing.
-		// Compare linear depth with a distance-relative threshold instead.
 		if (abs(ourDepth - depth) < ourDepth * 0.05f && dot(ourNormal, normal) > 0.85f)
 		{
 			sum += texture(in_SSAO, outTexCoord + offset).r;

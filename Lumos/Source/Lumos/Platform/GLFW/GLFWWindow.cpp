@@ -4,6 +4,10 @@
 #define GLFW_EXPOSE_NATIVE_COCOA
 #endif
 
+#if defined(LUMOS_PLATFORM_LINUX)
+#define GLFW_EXPOSE_NATIVE_X11
+#endif
+
 #ifdef LUMOS_RENDER_API_OPENGL
 #include "Platform/OpenGL/GL.h"
 #endif
@@ -28,7 +32,34 @@
 #include <GLFW/glfw3native.h>
 #include <imgui/imgui.h>
 
+#ifdef LUMOS_PLATFORM_LINUX
+#include <X11/cursorfont.h>
+// Xlib defines a pile of single-word macros that collide with ordinary
+// identifiers. The types are already declared, so drop the worst offenders.
+#undef None
+#undef Always
+#undef Bool
+#undef True
+#undef False
+#undef Complex
+#undef CursorShape
+#undef KeyPress
+#undef KeyRelease
+#undef FocusIn
+#undef FocusOut
+#undef Expose
+#endif
+
 static GLFWcursor* g_MouseCursors[ImGuiMouseCursor_COUNT] = { 0 };
+
+#if defined(LUMOS_PLATFORM_LINUX) && !defined(GLFW_RESIZE_NWSE_CURSOR)
+// GLFW 3.3 has no diagonal-resize, move or not-allowed cursors, so the
+// borderless-window edge hit-test has nothing to show for corners. Fall back to
+// the X11 font cursors for the shapes GLFW is missing; anything left at 0 goes
+// through glfwSetCursor as usual.
+static ::Cursor g_X11Cursors[ImGuiMouseCursor_COUNT] = { 0 };
+#define LUMOS_X11_CURSOR_FALLBACK
+#endif
 #define LOG_CONTROLLER 0
 namespace Lumos
 {
@@ -37,8 +68,6 @@ namespace Lumos
 
     static void GLFWErrorCallback(int error, const char* description)
     {
-        // 65545 = GLFW_FORMAT_UNAVAILABLE — fires every time Cocoa's NSPasteboard
-        // has no string for us (very common, harmless). Demote to a trace.
         if(error == 65545)
         {
             LINFO("GLFW: %s", description);
@@ -64,6 +93,18 @@ namespace Lumos
             glfwDestroyCursor(g_MouseCursors[cursor_n]);
             g_MouseCursors[cursor_n] = NULL;
         }
+
+#ifdef LUMOS_X11_CURSOR_FALLBACK
+        if(Display* display = glfwGetX11Display())
+        {
+            for(ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
+            {
+                if(g_X11Cursors[cursor_n])
+                    XFreeCursor(display, g_X11Cursors[cursor_n]);
+                g_X11Cursors[cursor_n] = 0;
+            }
+        }
+#endif
 
         glfwDestroyWindow(m_Handle);
 
@@ -144,6 +185,23 @@ namespace Lumos
         {
             ScreenWidth  = mode->width;
             ScreenHeight = mode->height;
+
+#ifdef LUMOS_PLATFORM_LINUX
+            // The editor draws its own title bar, so an exclusive-fullscreen
+            // window is wrong here: the WM refuses to maximise/restore/resize it
+            // and the custom window controls end up inert. Start maximised over
+            // the monitor work area instead.
+            int workX, workY, workW, workH;
+            glfwGetMonitorWorkarea(monitor, &workX, &workY, &workW, &workH);
+            if(workW > 0 && workH > 0)
+            {
+                // The size passed here becomes the restored geometry, so keep it
+                // below the work area or "restore" would be a no-op on screen.
+                ScreenWidth  = uint32_t(workW * 0.8f);
+                ScreenHeight = uint32_t(workH * 0.8f);
+            }
+            glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+#endif
         }
         else
         {
@@ -162,9 +220,7 @@ namespace Lumos
 #endif
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
-#ifdef LUMOS_PLATFORM_MACOS
-        // macOS: create a normal window and switch to native fullscreen post-init so the
-        // traffic-light buttons + system menu bar are preserved (GLFW exclusive fullscreen hides them).
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_LINUX)
         GLFWmonitor* fullscreenMonitor = nullptr;
 #else
         GLFWmonitor* fullscreenMonitor = properties.Fullscreen ? monitor : nullptr;
@@ -175,6 +231,11 @@ namespace Lumos
         glfwGetFramebufferSize(m_Handle, &w, &h);
         m_Data.Width  = w;
         m_Data.Height = h;
+
+        int winW, winH;
+        glfwGetWindowSize(m_Handle, &winW, &winH);
+        if(winW > 0 && winH > 0)
+            m_Data.DPIScale = (float)w / (float)winW;
 
 #ifdef LUMOS_RENDER_API_OPENGL
         if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
@@ -333,14 +394,32 @@ namespace Lumos
                                 WindowFileEvent event(filePath);
                                 data.EventCallback(event); });
 
-        g_MouseCursors[ImGuiMouseCursor_Arrow]      = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        g_MouseCursors[ImGuiMouseCursor_TextInput]  = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_Arrow]     = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeNS]  = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeEW]  = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_Hand]      = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+
+#ifdef GLFW_RESIZE_NWSE_CURSOR
+        g_MouseCursors[ImGuiMouseCursor_ResizeAll]  = glfwCreateStandardCursor(GLFW_RESIZE_ALL_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_RESIZE_NESW_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_RESIZE_NWSE_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_NotAllowed] = glfwCreateStandardCursor(GLFW_NOT_ALLOWED_CURSOR);
+#else
         g_MouseCursors[ImGuiMouseCursor_ResizeAll]  = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        g_MouseCursors[ImGuiMouseCursor_ResizeNS]   = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
-        g_MouseCursors[ImGuiMouseCursor_ResizeEW]   = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        g_MouseCursors[ImGuiMouseCursor_Hand]       = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+#endif
+
+#ifdef LUMOS_X11_CURSOR_FALLBACK
+        if(Display* display = glfwGetX11Display())
+        {
+            g_X11Cursors[ImGuiMouseCursor_ResizeAll]  = XCreateFontCursor(display, XC_fleur);
+            g_X11Cursors[ImGuiMouseCursor_ResizeNESW] = XCreateFontCursor(display, XC_bottom_left_corner);
+            g_X11Cursors[ImGuiMouseCursor_ResizeNWSE] = XCreateFontCursor(display, XC_bottom_right_corner);
+            g_X11Cursors[ImGuiMouseCursor_NotAllowed] = XCreateFontCursor(display, XC_X_cursor);
+        }
+#endif
 
         // Setting fullscreen overrides width and heigh in Init
         auto propCopy   = properties;
@@ -524,6 +603,17 @@ namespace Lumos
         }
         else
         {
+#ifdef LUMOS_X11_CURSOR_FALLBACK
+            if(g_X11Cursors[imgui_cursor])
+            {
+                // Applied every frame, same as glfwSetCursor below, so GLFW
+                // re-applying its own cursor on enter events cannot win.
+                Display* display = glfwGetX11Display();
+                XDefineCursor(display, glfwGetX11Window(m_Handle), g_X11Cursors[imgui_cursor]);
+                XFlush(display);
+                return;
+            }
+#endif
             glfwSetCursor(m_Handle, g_MouseCursors[imgui_cursor] ? g_MouseCursors[imgui_cursor] : g_MouseCursors[ImGuiMouseCursor_Arrow]);
             // glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
@@ -563,24 +653,34 @@ namespace Lumos
     void GLFWWindow::UpdateControllers()
     {
         LUMOS_PROFILE_FUNCTION();
-#ifdef LUMOS_PLATFORM_LINUX
-        // Disable on linux for now. Keyboard is classed as a controller
-        return;
-#endif
         auto& controllers = Input::Get().m_Controllers;
         for(i32 id = 0; id < MAX_CONTROLLER_COUNT; id++)
         {
             if(glfwJoystickPresent(id) == GLFW_FALSE)
             {
-                controllers[id].Present = false;
+                controllers[id].Present   = false;
+                controllers[id].IsGamepad = false;
             }
         }
         // Update controllers
-        for(int id = GLFW_JOYSTICK_1; id < GLFW_JOYSTICK_LAST; id++)
+        for(int id = GLFW_JOYSTICK_1; id < GLFW_JOYSTICK_LAST && id < MAX_CONTROLLER_COUNT; id++)
         {
             if(glfwJoystickPresent(id) == GLFW_TRUE)
             {
                 Controller* controller = &controllers[id];
+                const bool isGamepad   = glfwJoystickIsGamepad(id) == GLFW_TRUE;
+#ifdef LUMOS_PLATFORM_LINUX
+                // Linux enumerates keyboards and other HID oddities as
+                // joysticks; a mapped gamepad is the only thing worth reading.
+                // (This used to early-out of the whole function, which is why
+                // controllers never worked on Linux/Steam Deck at all.)
+                if(!isGamepad)
+                {
+                    controller->Present   = false;
+                    controller->IsGamepad = false;
+                    continue;
+                }
+#endif
                 if(!controller->Present)
                 {
                     controller->ID      = id;
@@ -590,9 +690,71 @@ namespace Lumos
                     LINFO("Controller Connected : %s", controller->Name.c_str());
                 }
 
+                // Standardised gamepad state, if GLFW has a mapping for it.
+                if(isGamepad != controller->IsGamepad)
+                {
+                    controller->IsGamepad = isGamepad;
+                    if(isGamepad)
+                    {
+                        const char* gpName       = glfwGetGamepadName(id);
+                        controller->GamepadName  = gpName ? gpName : controller->Name;
+                        LINFO("Gamepad mapped : %s", controller->GamepadName.c_str());
+                    }
+                }
+                if(isGamepad)
+                {
+                    GLFWgamepadstate state;
+                    if(glfwGetGamepadState(id, &state) == GLFW_TRUE)
+                    {
+                        for(int i = 0; i < InputCode::GamepadButtonCount; i++)
+                        {
+                            const bool down = state.buttons[i] == GLFW_PRESS;
+                            if(down && !controller->GamepadDown[i])
+                                controller->GamepadStates[i].State = KeyState::Pressed;
+                            else if(!down && controller->GamepadDown[i])
+                                controller->GamepadStates[i].State = KeyState::Released;
+                            else
+                                controller->GamepadStates[i].State = down ? KeyState::Held : KeyState::None;
+                            controller->GamepadDown[i] = down;
+                        }
+
+                        const float dz = Input::Get().GetGamepadDeadZone();
+                        // Radial dead zone per stick: a per-axis one clips
+                        // diagonals into a cross and makes slow pans impossible.
+                        auto stick = [&](int ax, int ay)
+                        {
+                            float x = state.axes[ax], y = state.axes[ay];
+                            const float len = std::sqrt(x * x + y * y);
+                            if(len <= dz || len <= 0.0f)
+                            {
+                                x = 0.0f;
+                                y = 0.0f;
+                            }
+                            else
+                            {
+                                // Rescale so the live range starts at 0 past the
+                                // dead zone instead of jumping to dz.
+                                const float scaled = (len - dz) / (1.0f - dz) / len;
+                                x *= scaled;
+                                y *= scaled;
+                            }
+                            controller->GamepadAxes[ax] = x;
+                            controller->GamepadAxes[ay] = y;
+                        };
+                        stick(GLFW_GAMEPAD_AXIS_LEFT_X, GLFW_GAMEPAD_AXIS_LEFT_Y);
+                        stick(GLFW_GAMEPAD_AXIS_RIGHT_X, GLFW_GAMEPAD_AXIS_RIGHT_Y);
+                        // Triggers come in -1..1 with -1 = released. Normalise.
+                        controller->GamepadAxes[InputCode::GamepadAxisLeftTrigger]
+                            = (state.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER] + 1.0f) * 0.5f;
+                        controller->GamepadAxes[InputCode::GamepadAxisRightTrigger]
+                            = (state.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] + 1.0f) * 0.5f;
+                    }
+                }
+
                 int buttonCount;
                 const unsigned char* buttons = glfwGetJoystickButtons(id, &buttonCount);
 
+                if(buttonCount > 64) buttonCount = 64; // TArray bound
                 for(int i = 0; i < buttonCount; i++)
                 {
                     if(buttons[i] == GLFW_PRESS && !controller->ButtonDown[i])
@@ -606,6 +768,7 @@ namespace Lumos
                 int axisCount;
                 const float* axes = glfwGetJoystickAxes(id, &axisCount);
 
+                if(axisCount > 16) axisCount = 16; // TArray bound
                 for(int i = 0; i < axisCount; i++)
                 {
                     controller->AxisStates[i] = abs(axes[i]) > controller->DeadZones[i] ? axes[i] : 0.0f;
@@ -616,6 +779,7 @@ namespace Lumos
 
                 int hatCount;
                 const unsigned char* hats = glfwGetJoystickHats(id, &hatCount);
+                if(hatCount > 16) hatCount = 16; // TArray bound
                 for(int i = 0; i < hatCount; i++)
                     controller->HatStates[i] = hats[i];
             }

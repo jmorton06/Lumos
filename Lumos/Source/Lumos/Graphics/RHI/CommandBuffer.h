@@ -22,6 +22,8 @@ namespace Lumos
             virtual void EndRecording()                                                             = 0;
             virtual void ExecuteSecondary(CommandBuffer* primaryCmdBuffer)                          = 0;
             virtual void UpdateViewport(uint32_t width, uint32_t height, bool flipViewport = false) = 0;
+            // Inset viewport + scissor (with x/y offset). Used for safe-area letterboxing. No-op unless overridden.
+            virtual void SetViewportRect(int32_t x, int32_t y, uint32_t width, uint32_t height, bool flipViewport = false) { }
             virtual bool Flush() { return true; }
             virtual void Submit() { }
             virtual void BindPipeline(Pipeline* pipeline)                 = 0;

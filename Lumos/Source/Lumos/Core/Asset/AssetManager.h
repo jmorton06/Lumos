@@ -60,9 +60,6 @@ namespace Lumos
 
         SharedPtr<AssetRegistry> GetAssetRegistry() { return m_AssetRegistry; }
 
-        // Texture hot-reload — when enabled, AssetManager polls source files
-        // for loaded textures and re-uploads their pixel data when the file
-        // on disk changes. Default off; editor enables it after Init.
         void SetTextureHotReloadEnabled(bool enabled) { m_HotReloadEnabled = enabled; }
         bool IsTextureHotReloadEnabled() const { return m_HotReloadEnabled; }
 

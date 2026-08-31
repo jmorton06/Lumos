@@ -7,6 +7,12 @@
 #endif
 
 #include <time.h>
+#include "Core/Profiler.h" // LUMOS_PROFILE
+
+#if LUMOS_PROFILE
+// Tracy C lock-context handle (defined in Tracy/public/tracy/TracyC.h, global namespace).
+struct __tracy_lockable_context_data;
+#endif
 
 namespace Lumos
 {
@@ -17,12 +23,18 @@ namespace Lumos
 #else
         pthread_mutex_t handle;
 #endif
+#if LUMOS_PROFILE
+        __tracy_lockable_context_data* tracyLock = nullptr;
+#endif
     };
 
     i32 MutexInit(Mutex* m);
     int MutexDestroy(Mutex* m);
     int MutexLock(Mutex* m);
     int MutexUnlock(Mutex* m);
+
+    // Optional readable name for the lock in Tracy's lock list. No-op without profiling.
+    void MutexSetName(Mutex* m, const char* name);
 
     class ScopedMutex
     {

@@ -5,11 +5,14 @@
 
 #include "../public/common/TracySocket.hpp"
 #include "../public/common/TracyVersion.hpp"
+#include "GitRef.hpp"
 #include "HttpRequest.hpp"
 
 #if defined _WIN32
 #  include <windows.h>
 extern "C" typedef LONG (WINAPI *t_RtlGetVersion)( PRTL_OSVERSIONINFOW );
+extern "C" typedef char* (WINAPI *t_WineGetVersion)();
+extern "C" typedef char* (WINAPI *t_WineGetBuildId)();
 #elif defined __linux__
 #  include <sys/utsname.h>
 #elif defined __APPLE__
@@ -39,7 +42,16 @@ static const char* GetOsInfo()
 #  ifdef __MINGW32__
         sprintf( buf, "Windows %i.%i.%i (MingW)", (int)ver.dwMajorVersion, (int)ver.dwMinorVersion, (int)ver.dwBuildNumber );
 #  else
-        sprintf( buf, "Windows %i.%i.%i", ver.dwMajorVersion, ver.dwMinorVersion, ver.dwBuildNumber );
+        auto WineGetVersion = (t_WineGetVersion)GetProcAddress( GetModuleHandleA( "ntdll.dll" ), "wine_get_version" );
+        auto WineGetBuildId = (t_WineGetBuildId)GetProcAddress( GetModuleHandleA( "ntdll.dll" ), "wine_get_build_id" );
+        if( WineGetVersion && WineGetBuildId )
+        {
+            sprintf( buf, "Windows %i.%i.%i (Wine %s [%s])", ver.dwMajorVersion, ver.dwMinorVersion, ver.dwBuildNumber, WineGetVersion(), WineGetBuildId() );
+        }
+        else
+        {
+            sprintf( buf, "Windows %i.%i.%i", ver.dwMajorVersion, ver.dwMinorVersion, ver.dwBuildNumber );
+        }
 #  endif
     }
 #elif defined __linux__
@@ -66,6 +78,8 @@ static const char* GetOsInfo()
     sprintf( buf, "BSD (NetBSD)" );
 #elif defined __OpenBSD__
     sprintf( buf, "BSD (OpenBSD)" );
+#elif defined __QNX__
+    sprintf( buf, "QNX" );
 #else
     sprintf( buf, "unknown" );
 #endif
@@ -77,7 +91,7 @@ void HttpRequest( const char* server, const char* resource, int port, const std:
     tracy::Socket sock;
     if( !sock.ConnectBlocking( server, port ) ) return;
     char request[4096];
-    const auto len = sprintf( request, "GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: Tracy Profiler %i.%i.%i (%s)\r\nConnection: close\r\nCache-Control: no-cache, no-store, must-revalidate\r\n\r\n", resource, server, tracy::Version::Major, tracy::Version::Minor, tracy::Version::Patch, GetOsInfo() );
+    const auto len = sprintf( request, "GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: Tracy Profiler %i.%i.%i (%s) [%s]\r\nConnection: close\r\nCache-Control: no-cache, no-store, must-revalidate\r\n\r\n", resource, server, tracy::Version::Major, tracy::Version::Minor, tracy::Version::Patch, GetOsInfo(), tracy::GitRef );
     sock.Send( request, len );
     char response[4096];
     const auto sz = sock.ReadUpTo( response, 4096 );

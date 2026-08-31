@@ -43,7 +43,7 @@ namespace Lumos
 
         for(auto entity : nonHierarchyView)
         {
-            registry.get<Maths::Transform>(entity).SetWorldMatrix(Mat4(1.0f));
+            registry.get<Maths::Transform>(entity).SetWorldMatrix();
         }
 
         auto view = registry.view<Hierarchy>();
@@ -76,12 +76,12 @@ namespace Lumos
                     }
                     else
                     {
-                        transform->SetWorldMatrix(Mat4(1.0f));
+                        transform->SetWorldMatrix();
                     }
                 }
                 else
                 {
-                    transform->SetWorldMatrix(Mat4(1.0f));
+                    transform->SetWorldMatrix();
                 }
             }
 

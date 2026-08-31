@@ -159,7 +159,8 @@ namespace Lumos
     void B2PhysicsEngine::SetDebugDrawFlags(uint32_t flags)
     {
         m_DebugDrawFlags = flags;
-        // m_DebugDraw.drawShapes = true;
+        m_DebugDraw.drawShapes           = m_DebugDrawFlags & PhysicsDebugFlags2D::COLLISIONVOLUMES2D;
+        m_DebugDraw.drawBodyNames        = false;
         m_DebugDraw.drawJoints           = m_DebugDrawFlags & PhysicsDebugFlags2D::CONSTRAINT2D;
         m_DebugDraw.drawJointExtras      = m_DebugDrawFlags & PhysicsDebugFlags2D::CONSTRAINT2D;
         m_DebugDraw.drawBounds           = m_DebugDrawFlags & PhysicsDebugFlags2D::AABB2D;
@@ -168,6 +169,11 @@ namespace Lumos
         m_DebugDraw.drawContactNormals   = m_DebugDrawFlags & PhysicsDebugFlags2D::COLLISIONNORMALS2D;
         m_DebugDraw.drawContactImpulses  = m_DebugDrawFlags & PhysicsDebugFlags2D::MANIFOLD2D;
         m_DebugDraw.drawFrictionImpulses = m_DebugDrawFlags & PhysicsDebugFlags2D::MANIFOLD2D;
+    }
+
+    uint32_t B2PhysicsEngine::GetBodyCount() const
+    {
+        return (uint32_t)b2World_GetCounters(m_B2DWorld).bodyCount;
     }
 
     uint32_t B2PhysicsEngine::GetDebugDrawFlags()

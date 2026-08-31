@@ -32,6 +32,7 @@ namespace Lumos
         static void Create();
 
         virtual SafeAreaInsets GetSafeAreaInsets() const { return {}; }
+        virtual float GetSafeAreaScale() const { return 1.0f; }
 
         static std::string PowerStateToString(PowerState state);
 
@@ -41,10 +42,12 @@ namespace Lumos
         virtual void Vibrate() const { };
         virtual void SetTitleBarColour(const Vec4& colour, bool dark = true) { };
         virtual void SetWindowDecorations(bool decorated) { };
-        virtual void BeginWindowDrag() { };
+        // Begin* return true when the window manager took the interaction over.
+        // In that case the caller must stop tracking it and not call Update*.
+        virtual bool BeginWindowDrag() { return false; };
         virtual void UpdateWindowDrag() { };
         // Resize edge bitmask: Top=1 Bottom=2 Left=4 Right=8 (corners = OR of two).
-        virtual void BeginWindowResize(int edgeMask) { };
+        virtual bool BeginWindowResize(int edgeMask) { return false; };
         virtual void UpdateWindowResize() { };
         virtual bool IsWindowMaximised() const { return false; }
         virtual bool IsWindowFullscreen() const { return false; }
@@ -58,7 +61,6 @@ namespace Lumos
         virtual void HideKeyboard() { };
         virtual void Delay(uint32_t usec) { };
 
-        // Needed for MaxOS
         virtual void MaximiseWindow() { }
 
         virtual void OpenFileLocation(const std::string& path) { }

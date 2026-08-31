@@ -23,7 +23,10 @@ const float RAD_SCALE = 1.0; // Smaller = nicer blur, larger = faster
 
 float GetBlurSize(float depth, float focusPoint, float focusScale)
 {
-	float coc = clamp((1.0 / focusPoint - 1.0 / depth) * focusScale, -1.0, 1.0);
+	float coc = (1.0 - focusPoint / max(depth, focusPoint * 1e-4)) * focusScale;
+	const float DEAD = 0.12;
+	coc = sign(coc) * max(abs(coc) - DEAD, 0.0) / (1.0 - DEAD);
+	coc = clamp(coc, -1.0, 1.0);
 	return abs(coc) * MAX_BLUR_SIZE;
 }
 
@@ -55,7 +58,17 @@ void main()
 	ivec2 texSize = textureSize(u_Texture, 0);
 	vec2 fTexSize = vec2(float(texSize.x), float(texSize.y));
 
-	float focusPoint = LinearizeDepth(texture(u_DepthTexture, vec2(0.5f, 0.5f)).r, ubo.DepthConsts.x , ubo.DepthConsts.y);
+	float focusPoint = ubo.DOFParams.x;
+	if(focusPoint <= 0.0)
+	{
+		float cd = texture(u_DepthTexture, vec2(0.5f, 0.5f)).r;
+		if(cd >= 0.9999)
+		{
+			outFrag = texture(u_Texture, outTexCoord); // looking at empty sky: no DoF
+			return;
+		}
+		focusPoint = LinearizeDepth(cd, ubo.DepthConsts.x, ubo.DepthConsts.y);
+	}
 	float blurScale = ubo.DOFParams.y;
 
 	vec3 color = DepthOfField(outTexCoord, focusPoint, blurScale, 1.0 / fTexSize);
