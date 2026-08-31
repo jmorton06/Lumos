@@ -1779,5 +1779,6 @@ namespace Lumos
             }
         }
         LINFO("Embedded %i shaders. Recompile to use", shaderCount);
+        return shaderCount > 0;
     }
 }
