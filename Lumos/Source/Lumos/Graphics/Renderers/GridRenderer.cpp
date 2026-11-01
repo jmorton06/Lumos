@@ -123,7 +123,7 @@ namespace Lumos
             if(!m_Camera || !m_CameraTransform)
                 return;
 
-            auto proj = m_Camera->GetProjectionMatrix();
+            auto proj = m_Camera->GetGPUProjectionMatrix(); // reversed-Z, like every pass with a depth test
             auto view = m_CameraTransform->GetWorldMatrix().Inverse();
 
             UBOFrag test;
@@ -168,8 +168,8 @@ namespace Lumos
             height -= (height % 2 != 0) ? 1 : 0;
 
             const QualitySettings& qs = Application::Get().GetQualitySettings();
-            width                     = uint32_t(qs.RendererScale * float(width));
-            height                    = uint32_t(qs.RendererScale * float(height));
+            width                     = uint32_t(qs.RendererScale * m_ViewScale * float(width));
+            height                    = uint32_t(qs.RendererScale * m_ViewScale * float(height));
 
             SetScreenBufferSize(width, height);
 

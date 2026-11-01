@@ -182,6 +182,15 @@ namespace Lumos
             caps.MaxTextureUnits              = m_PhysicalDeviceProperties.limits.maxDescriptorSetSamplers;
             caps.UniformBufferOffsetAlignment = int(m_PhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment);
             caps.SupportCompute               = true;
+            caps.VideoMemoryMB                = m_DeviceInfo.Memory;
+            switch(m_DeviceInfo.Type)
+            {
+            case PhysicalDeviceType::INTEGRATED: caps.GPUType = 1; break;
+            case PhysicalDeviceType::DISCRETE:   caps.GPUType = 2; break;
+            case PhysicalDeviceType::VIRTUAL:    caps.GPUType = 3; break;
+            case PhysicalDeviceType::CPU:        caps.GPUType = 4; break;
+            default:                             caps.GPUType = 0; break;
+            }
 
             uint32_t queueFamilyCount;
             vkGetPhysicalDeviceQueueFamilyProperties(m_Handle, &queueFamilyCount, nullptr);
@@ -390,6 +399,7 @@ namespace Lumos
         VKDevice::~VKDevice()
         {
             LINFO("Destroying VKDevice");
+            VKUtilities::PollBatches(true); // uploads still in flight own command buffers from the pool
             m_CommandPool.reset();
             SavePipelineCache();
             vkDestroyPipelineCache(m_Device, m_PipelineCache, VK_NULL_HANDLE);
@@ -451,6 +461,9 @@ namespace Lumos
 
             if(supportedFeatures.samplerAnisotropy)
                 m_EnabledFeatures.samplerAnisotropy = true;
+
+            m_EnabledFeatures.fillModeNonSolid           = supportedFeatures.fillModeNonSolid;
+            Renderer::GetCapabilities().FillModeNonSolid = supportedFeatures.fillModeNonSolid;
 
             if(supportedFeatures.depthClamp)
                 m_EnabledFeatures.depthClamp = true;
@@ -640,7 +653,7 @@ namespace Lumos
         {
             LINFO("Creating VK Pipeline Cache");
 
-            m_PipelineCachePath = Application::Get().GetProjectSettings().m_ProjectRoot + "pipeline_cache.bin";
+            m_PipelineCachePath = Application::Get().WritableRoot() + "pipeline_cache.bin";
 
             VkPipelineCacheCreateInfo pipelineCacheCI = {};
             pipelineCacheCI.sType                     = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;

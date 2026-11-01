@@ -1,6 +1,8 @@
 #include "Precompiled.h"
 #include "LineCloud.h"
 #include "Graphics/RHI/StorageBuffer.h"
+#include "Graphics/RHI/Renderer.h"
+#include "Graphics/RHI/SwapChain.h"
 
 namespace Lumos
 {
@@ -8,7 +10,7 @@ namespace Lumos
     {
         LineCloud::~LineCloud()
         {
-            delete m_Buffer;
+            ReleaseBuffer();
         }
 
         void LineCloud::AddLine(const Vec3& a, const Vec3& b, const Vec4& colour, float width,
@@ -29,10 +31,17 @@ namespace Lumos
                 return;
 
             uint32_t size = m_Count * sizeof(LineCloudSegment);
-            if(!m_Buffer)
-                m_Buffer = StorageBuffer::Create(size, m_Segments.Data());
-            else
-                m_Buffer->Resize(size, m_Segments.Data());
+            auto* swapChain = Renderer::GetMainSwapChain();
+            m_Current       = swapChain ? swapChain->GetCurrentBufferIndex() % kBufferCount : 0;
+
+            StorageBuffer*& buf = m_Buffers[m_Current];
+            if(!buf || m_Capacity[m_Current] < size)
+            {
+                delete buf;
+                buf                  = StorageBuffer::Create(size, nullptr);
+                m_Capacity[m_Current] = size;
+            }
+            buf->SetData(size, m_Segments.Data());
         }
 
         void LineCloud::Clear()
@@ -43,9 +52,13 @@ namespace Lumos
 
         void LineCloud::ReleaseBuffer()
         {
-            delete m_Buffer;
-            m_Buffer = nullptr;
-            m_Count  = 0;
+            for(uint32_t i = 0; i < kBufferCount; i++)
+            {
+                delete m_Buffers[i];
+                m_Buffers[i]  = nullptr;
+                m_Capacity[i] = 0;
+            }
+            m_Count = 0;
             m_Segments.Clear();
         }
 

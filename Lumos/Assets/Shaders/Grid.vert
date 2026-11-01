@@ -2,12 +2,12 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec4 inColour;
-layout(location = 2) in vec2 inTexCoord;
-layout(location = 3) in vec3 inNormal;
-layout(location = 4) in vec3 inTangent;
-layout(location = 5) in vec3 inBitangent;
+// Graphics::PackedVertex (suffixes give the formats, see VKShader)
+layout(location = 0) in vec3 inPosition_f32x3;
+layout(location = 1) in vec4 inNormal_snorm16;
+layout(location = 2) in vec4 inTangent_snorm16; // w = bitangent sign
+layout(location = 3) in vec2 inTexCoord_f32x2;
+layout(location = 4) in vec4 inColor_unorm8;
 
 layout(set = 0,binding = 0) uniform UBO 
 {    
@@ -43,18 +43,19 @@ vec3 UnprojectPoint(float x, float y, float z, mat4 view, mat4 projection) {
 
 void main()
 {
-	vec4 position = vec4(inPosition, 1.0);// * ubo.u_MVP;
+	vec4 position = vec4(inPosition_f32x3, 1.0);// * ubo.u_MVP;
     gl_Position  = position;
-	fragPosition = inPosition;
+	fragPosition = inPosition_f32x3;
 	
-	vec4 test = inColour; //SPV vertex layout incorrect when inColour not used
-	fragTexCoord = inTexCoord;
+	vec4 test = inColor_unorm8; //SPV vertex layout incorrect when inColor_unorm8 not used
+	fragTexCoord = inTexCoord_f32x2;
 	
 	fragView = ubo.view;
 	fragProj = ubo.proj;
 	
 	vec3 p =  position.xyz;//gridPlane[gl_VertexIndex].xyz;
-    nearPoint = UnprojectPoint(p.x, p.y, 0.0, ubo.view, ubo.proj).xyz; // unprojecting on the near plane
-    farPoint = UnprojectPoint(p.x, p.y, 1.0, ubo.view, ubo.proj).xyz; // unprojecting on the far plane
+    // reversed-Z: depth 1 is the near plane, 0 the far one
+    nearPoint = UnprojectPoint(p.x, p.y, 1.0, ubo.view, ubo.proj).xyz;
+    farPoint = UnprojectPoint(p.x, p.y, 0.0, ubo.view, ubo.proj).xyz;
     gl_Position = vec4(p.xyz, 1.0); // using directly
 }

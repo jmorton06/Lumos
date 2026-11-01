@@ -17,15 +17,8 @@ namespace Lumos
     {
         ArenaTemp scratch = ScratchBegin(&arena, 1);
 
-        String8 physicalPath;
-        if(!FileSystem::Get().ResolvePhysicalPath(scratch.arena, path, &physicalPath))
-        {
-            LERROR("LAnimReader: Failed to resolve path %.*s", (int)path.size, path.str);
-            ScratchEnd(scratch);
-            return false;
-        }
-
-        int64_t fileSize = FileSystem::GetFileSize(physicalPath);
+        // VFS read: the file may live in a pack with no path on disk
+        int64_t fileSize = FileSystem::Get().GetFileSizeVFS(path);
         if(fileSize < (int64_t)sizeof(LAnimHeader))
         {
             LERROR("LAnimReader: File too small %.*s", (int)path.size, path.str);
@@ -34,7 +27,7 @@ namespace Lumos
         }
 
         Arena* fileArena = ArenaAlloc((u64)fileSize + Kilobytes(4));
-        u8* fileData = FileSystem::ReadFile(fileArena, physicalPath);
+        u8* fileData = FileSystem::Get().ReadFileVFS(fileArena, path);
         if(!fileData)
         {
             LERROR("LAnimReader: Failed to read %.*s", (int)path.size, path.str);

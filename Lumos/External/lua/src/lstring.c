@@ -30,7 +30,9 @@
 ** compute its hash
 */
 #if !defined(LUAI_HASHLIMIT)
-#define LUAI_HASHLIMIT		5
+/* Lumos: hash every byte (as Lua 5.4 does). Sampling made file paths - long strings sharing a
+   prefix and differing in a few characters - collide, turning path-keyed tables into chains. */
+#define LUAI_HASHLIMIT		31
 #endif
 
 

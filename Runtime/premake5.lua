@@ -182,6 +182,12 @@ project "Runtime"
     		"-framework IOKit",
     		"-framework CoreVideo",
     		"-framework OpenAL",
+			"-framework AudioToolbox",
+			"-framework CoreAudio",
+			"-framework MediaPlayer",
+			"-framework AVKit",
+			"-framework CoreServices",
+			"-framework CoreMIDI",
     		"-framework QuartzCore",
     		"-framework Metal",
     		"-framework IOSurface",
@@ -197,8 +203,35 @@ project "Runtime"
 		}
 
 		if game_project then
-			files { "../" .. game_project_dir }
-			xcodebuildresources { "../" .. game_project_dir, "../Lumos/Assets/Shaders" }
+			local pdir = "../" .. game_project_dir
+			if _OPTIONS["package"] and os.isfile(game_project.dir .. "/Assets.lpak") then
+				-- shipping build: the packed assets (scripts included) and the project file only
+				files { pdir .. "/*.lpak", pdir .. "/*.lmproj" }
+				xcodebuildresources { "Assets.lpak", path.getname(game_project.lmproj) }
+				-- the engine looks for Resources/EngineAssets in a shipped app (a sandbox can't reach the repo)
+				postbuildcommands
+				{
+					'mkdir -p "$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/EngineAssets"',
+					'rsync -a --delete --exclude "*.frag" --exclude "*.vert" --exclude "*.comp" --exclude "*.glsl" --exclude "*.sh" --exclude "*.bat" "$PROJECT_DIR/../Lumos/Assets/Shaders" "$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/EngineAssets/"',
+				}
+			else
+				files { pdir }
+				xcodebuildresources { pdir, "../Lumos/Assets/Shaders" }
+			end
+			-- App Store privacy manifest
+			if os.isfile(game_project.dir .. "/PrivacyInfo.xcprivacy") then
+				files { pdir .. "/PrivacyInfo.xcprivacy" }
+				xcodebuildresources { "PrivacyInfo.xcprivacy" }
+			end
+			-- Production builds are signed for distribution: hardened runtime, the project's entitlements (sandbox...)
+			local ent = game_project.dir .. "/macOS/" .. path.getbasename(game_project.lmproj or game_project_dir) .. ".entitlements"
+			filter { "system:macosx", "configurations:Production" }
+				xcodebuildsettings
+				{
+					['ENABLE_HARDENED_RUNTIME'] = 'YES',
+					['CODE_SIGN_ENTITLEMENTS'] = os.isfile(ent) and path.getrelative(_SCRIPT_DIR, ent) or nil,
+				}
+			filter "system:macosx"
 		end
 
 		links
@@ -241,6 +274,8 @@ project "Runtime"
 			"OpenAL.framework",
 			"AudioToolbox.framework",
 			"AVFoundation.framework",
+			"MediaPlayer.framework",
+			"AVKit.framework",
 			"Foundation.framework",
 			"SystemConfiguration.framework",
 			"IOSurface.framework",
@@ -274,18 +309,26 @@ project "Runtime"
 		-- Check if packed assets exist (prefer .lpak over raw Assets/)
 		local ios_has_lpak = game_project and os.isfile(game_project.dir .. "/Assets.lpak")
 
+		-- PackageGame generates a launch screen from the project's splash; fall back to the stock one
+		local ios_launch_files = os.isfile(path.join(_SCRIPT_DIR, "../bin-int/LaunchScreen/Launch Screen.storyboard"))
+			and { "../bin-int/LaunchScreen/Launch Screen.storyboard", "../bin-int/LaunchScreen/LaunchSplash.png" }
+			or { ios_launch_dir .. "/**" }
 		files
 		{
 			"../Resources/AppIcons/Assets.xcassets",
 			"../Lumos/Assets/Shaders",
-			ios_launch_dir .. "/**",
 		}
+		files(ios_launch_files)
 
 		if ios_has_lpak then
 			-- Bundle only .lpak + .lmproj (smaller, faster builds)
 			files { ios_project_dir .. "/*.lpak", ios_project_dir .. "/*.lmproj" }
 		else
 			files { ios_project_dir }
+		end
+		-- App Store privacy manifest
+		if game_project and os.isfile(game_project.dir .. "/PrivacyInfo.xcprivacy") then
+			files { ios_project_dir .. "/PrivacyInfo.xcprivacy" }
 		end
 
 		-- Orientation arrays injected via INFOPLIST_KEY_* override values in Info.plist.
@@ -320,7 +363,8 @@ project "Runtime"
 			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',
 			['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = '',
 			['IPHONEOS_DEPLOYMENT_TARGET'] = min_ios_target,
-			['INFOPLIST_FILE'] = ios_launch_dir .. '/Info.plist',
+			-- a project can ship its own (e.g. background audio for a music app): <project>/iOS/Info.plist
+			['INFOPLIST_FILE'] = os.isfile(path.join(_SCRIPT_DIR, ios_project_dir .. '/iOS/Info.plist')) and (ios_project_dir .. '/iOS/Info.plist') or (ios_launch_dir .. '/Info.plist'),
 			-- Required for INFOPLIST_KEY_* values to actually land in the
 			-- compiled plist. Without it Xcode copies INFOPLIST_FILE verbatim
 			-- and silently ignores every INFOPLIST_KEY_* build setting.

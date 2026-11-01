@@ -11,10 +11,6 @@
 #include "IconsMaterialDesignIcons.h"
 #include "Graphics/RHI/Renderer.h"
 
-#ifdef LUMOS_PLATFORM_LINUX
-#include "Lumos/Platform/GLFW/GLFWWindow.h"
-#endif
-
 #ifdef LUMOS_PLATFORM_IOS
 #include "Lumos/Platform/iOS/iOSOS.h"
 #endif
@@ -60,13 +56,11 @@
         }
     }
 #endif
-#include <imgui/Plugins/ImGuizmo.h>
 #include <imgui/Plugins/ImGuiAl/fonts/MaterialDesign.inl>
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoMedium.inl>
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoRegular.inl>
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoBold.inl>
 #include <imgui/Plugins/ImGuiAl/fonts/JetBrainsMono-Regular.inl>
-#include <imgui/Plugins/implot/implot.h>
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
 #define USING_GLFW
@@ -110,7 +104,6 @@ namespace Lumos
         // ImGui::DestroyContext();
 
         m_IMGUIRenderer.reset();
-        ImPlot::DestroyContext();
     }
 
 #ifdef USING_GLFW
@@ -134,7 +127,6 @@ namespace Lumos
         LINFO("ImConfig File : %s", IMGUI_USER_CONFIG);
 #endif
         ImGui::CreateContext();
-        ImPlot::CreateContext();
         ImGui::StyleColorsDark();
 
         Application& app = Application::Get();
@@ -142,8 +134,19 @@ namespace Lumos
         io.DisplaySize   = ImVec2(static_cast<float>(app.GetWindow()->GetWidth()), static_cast<float>(app.GetWindow()->GetHeight()));
         // io.DisplayFramebufferScale = ImVec2(app.GetWindow()->GetDPIScale(), app.GetWindow()->GetDPIScale());
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        // exported apps can't write next to themselves (macOS starts them in Contents/Resources)
+        if(app.GetProjectSettings().Packaged)
+        {
+            static std::string s_IniPath;
+            s_IniPath      = app.WritableRoot() + "imgui.ini";
+            io.IniFilename = s_IniPath.c_str();
+        }
 
         m_DPIScale = app.GetWindow()->GetDPIScale();
+        // Fonts and style scale by the DESKTOP's scale, not the framebuffer ratio.
+        // They're the same on Retina; on X11 and Windows the ratio is 1.0 however
+        // dense the panel is, which is what left the editor tiny on a 4K display.
+        m_ContentScale = app.GetWindow()->GetContentScale();
         m_MousePosScale = app.GetWindow()->GetMousePosScale();
 
 #ifdef LUMOS_PLATFORM_IOS
@@ -159,10 +162,8 @@ namespace Lumos
         io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
         io.ConfigWindowsMoveFromTitleBarOnly = true;
 
-#ifdef LUMOS_PLATFORM_LINUX
-        m_FontSize *= ((GLFWWindow*)app.GetWindow())->GetMonitorXScale();
-#elif !defined(LUMOS_PLATFORM_IOS)
-        m_FontSize *= m_DPIScale;
+#ifndef LUMOS_PLATFORM_IOS
+        m_FontSize *= m_ContentScale;
 #endif
 
 #ifdef LUMOS_PLATFORM_IOS
@@ -207,8 +208,11 @@ namespace Lumos
         sbBg.w                  = 0.85f;
         style.Colors[ImGuiCol_ScrollbarBg] = sbBg;
 #endif
-#ifdef LUMOS_PLATFORM_MACOS
-        ImGui::GetStyle().ScaleAllSizes(m_DPIScale);
+        // Padding, scrollbars and rounding have to follow the font, or a 2x font
+        // sits in 1x chrome.
+#ifndef LUMOS_PLATFORM_IOS
+        if(m_ContentScale > 1.0f)
+            ImGui::GetStyle().ScaleAllSizes(m_ContentScale);
 #endif
 
         m_IMGUIRenderer = UniquePtr<Graphics::IMGUIRenderer>(Graphics::IMGUIRenderer::Create(app.GetWindow()->GetWidth(), app.GetWindow()->GetHeight(), m_ClearScreen));
@@ -229,8 +233,6 @@ namespace Lumos
     void ImGuiManager::OnUpdate(const TimeStep& dt, Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
-        ImGuizmo::BeginFrame();
-
         Application::Get().OnImGui();
     }
 
@@ -482,8 +484,8 @@ namespace Lumos
         io.Fonts->AddFontFromMemoryCompressedTTF(JetBrainsMonoRegular_compressed_data, JetBrainsMonoRegular_compressed_size, m_FontSize, &icons_config, ranges);
         AddIconFont();
 
+        // icons only on the main font: the MDI set is most of the atlas build time
         io.Fonts->AddFontFromMemoryCompressedTTF(JetBrainsMonoRegular_compressed_data, JetBrainsMonoRegular_compressed_size, m_FontSize + 2.0f, &icons_config, ranges);
-        AddIconFont();
 
         io.Fonts->AddFontFromMemoryCompressedTTF(JetBrainsMonoRegular_compressed_data, JetBrainsMonoRegular_compressed_size, m_FontSize * 0.8f, &icons_config, ranges);
         // AddIconFont();

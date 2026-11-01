@@ -78,6 +78,8 @@ layout(std140, set = 2, binding = 5) uniform UniformSceneData
 	int FilterShadows;
 	int TileCountX;
 	int TileSize;
+	float EnvExposure;
+	float ScenePad0;
 	vec4 FogColour;
 	vec4 FogParams;
 } u_SceneData;

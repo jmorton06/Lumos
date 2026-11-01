@@ -9,6 +9,8 @@
 #include "Core/Application.h"
 #include "Core/OS/Window.h"
 #include "ImGui/IconsMaterialDesignIcons.h" // ICON_MDI_* string macros for use in UI labels
+#include "UIInternal.h"
+#include "Core/Undo.h"
 
 #include <imgui/imgui.h>
 
@@ -24,10 +26,73 @@
 namespace Lumos
 {
     static UI_State* s_UIState;
+    static f32 s_UIFrameDT = 0.016f;
+
+    // Scroll bars that only show while scrolling (or when the pointer is at them)
+    static bool s_ScrollbarFade = false;
+    struct ScrollbarFadeState
+    {
+        u64 hash;
+        f32 lastOffset;
+        f32 idle;
+        f32 alpha;
+        u64 lastFrame;
+        f32 velocity;   // px/s, scroll physics
+        f32 physOffset; // offset we left it at, to spot outside changes
+    };
+    static ScrollbarFadeState s_ScrollbarFades[64];
+
+    void UISetScrollbarFade(bool enable) { s_ScrollbarFade = enable; }
+
+    // Momentum after a flick and a rubber band past the ends
+    static bool s_ScrollPhysics = false;
+    void UISetScrollPhysics(bool enable) { s_ScrollPhysics = enable; }
+
+    static ScrollbarFadeState& ScrollbarFadeFor(u64 hash, f32 offset)
+    {
+        ScrollbarFadeState* oldest = &s_ScrollbarFades[0];
+        for(ScrollbarFadeState& f : s_ScrollbarFades)
+        {
+            if(f.hash == hash)
+                return f;
+            if(f.lastFrame < oldest->lastFrame)
+                oldest = &f;
+        }
+        *oldest = { hash, offset, 10.0f, 0.0f, 0, 0.0f, offset };
+        return *oldest;
+    }
+
+    UI_State* UICreateContext(Arena* arena)
+    {
+        UI_State* previous = s_UIState;
+        InitialiseUI(arena);
+        UI_State* created = s_UIState;
+        if(previous)
+            s_UIState = previous;
+        return created;
+    }
+
+    void UIDestroyContext(UI_State* state)
+    {
+        if(!state)
+            return;
+        UI_State* previous = s_UIState;
+        s_UIState          = state;
+        ShutDownUI();
+        s_UIState = (previous == state) ? nullptr : previous;
+    }
+
+    void UISetContext(UI_State* state)
+    {
+        if(state)
+            s_UIState = state;
+    }
 
     bool InitialiseUI(Arena* arena)
     {
-        s_UIState                  = PushArray(arena, UI_State, 1);
+        // constructed, not just zeroed: the member defaults (double-click time, safe-area scales,
+        // tooltip delay...) were silently 0
+        s_UIState                  = new(PushArray(arena, UI_State, 1)) UI_State();
         s_UIState->active_widget   = 0;
         s_UIState->hot_widget      = 0;
         s_UIState->next_hot_widget = 0;
@@ -37,11 +102,13 @@ namespace Lumos
         s_UIState->UIArena      = arena;
         // Every widget's label and id string is formatted in here each frame, so
         // a text-heavy panel over a big scene needs real headroom.
-        s_UIState->UIFrameArena = ArenaAlloc(Megabytes(4));
+        s_UIState->UIFrameArena     = ArenaAlloc(Megabytes(4));
+        s_UIState->UIPrevFrameArena = ArenaAlloc(Megabytes(4));
         s_UIState->UIExitArena  = ArenaAlloc(Megabytes(1));
 
         s_UIState->WidgetAllocator = new PoolAllocator<UI_Widget>();
         s_UIState->parents         = TDArray<UI_Widget*>(arena);
+        s_UIState->UndoTargets     = TDArray<UIUndoTarget>(arena);
 
         Style_Variable_List* style_variable_lists = s_UIState->style_variable_lists;
 
@@ -89,13 +156,14 @@ namespace Lumos
         {
             HashMapDeinit(&s_UIState->widgets);
             ArenaRelease(s_UIState->UIFrameArena);
+            ArenaRelease(s_UIState->UIPrevFrameArena);
             ArenaRelease(s_UIState->UIExitArena);
             delete s_UIState->WidgetAllocator;
             s_UIState->WidgetAllocator = nullptr;
         }
     }
 
-    static bool UIThemeIsDark()
+    bool UIThemeIsDark()
     {
         const Vec4& bg = s_UIState->style_variable_lists[StyleVar_BackgroundColor].first->value;
         return (bg.x * 0.299f + bg.y * 0.587f + bg.z * 0.114f) < 0.5f;
@@ -104,6 +172,27 @@ namespace Lumos
     void UISetNextFlags(u32 flags)
     {
         s_UIState->NextWidgetFlags |= flags;
+    }
+
+    void UIPushUndoTarget(void* ptr, u64 size, u64 owner, u64 typeKey)
+    {
+        s_UIState->UndoTargets.PushBack({ ptr, size, owner, typeKey, nullptr, nullptr });
+    }
+
+    void UIPushUndoCallbacks(UIUndoEditFn begin, UIUndoEditFn end, u64 owner)
+    {
+        s_UIState->UndoTargets.PushBack({ nullptr, 0, owner, 0, begin, end });
+    }
+
+    void UIPopUndoTarget()
+    {
+        if(!s_UIState->UndoTargets.Empty())
+            s_UIState->UndoTargets.PopBack();
+    }
+
+    Vec2 UIMousePosition()
+    {
+        return Input::Get().GetMousePosition() * s_UIState->InputScale - s_UIState->InputOffset;
     }
 
     void UIPushStyle(StyleVar style_variable, float value)
@@ -168,18 +257,17 @@ namespace Lumos
         list->count--;
     }
 
-    static UI_Widget*
-    GetCurrentParent()
+    UI_Widget* GetCurrentParent()
     {
         return s_UIState->parents.Back();
     }
 
-    static void PushParent(UI_Widget* widget)
+    void PushParent(UI_Widget* widget)
     {
         s_UIState->parents.PushBack(widget);
     }
 
-    static void PopParent(UI_Widget* widget)
+    void PopParent(UI_Widget* widget)
     {
         UI_ASSERT(!s_UIState->parents.Empty());
         UI_ASSERT(s_UIState->parents.Back() == widget);
@@ -196,16 +284,74 @@ namespace Lumos
         }
     }
 
-    static u64 UIHashCombine(u64 a, u64 b)
+    // splitmix64 finaliser: ids differing by a character must not land on the same chained hash
+    // (the old xor/shift combine collided for "art14" vs another row's "art19" - duplicate ids, layout cycles)
+    static inline u64 UIHashMix(u64 x)
     {
-        return a ^ (b + 0x9E3779B97F4A7C15ULL + (a << 6) + (a >> 2));
+        x ^= x >> 30;
+        x *= 0xBF58476D1CE4E5B9ULL;
+        x ^= x >> 27;
+        x *= 0x94D049BB133111EBULL;
+        x ^= x >> 31;
+        return x;
     }
 
-    static UI_Widget* PushWidget(u32 flags,
-                                 const String8& text,
-                                 u64 hash,
-                                 UI_Size semantic_size_x,
-                                 UI_Size semantic_size_y)
+    u64 UIHashCombine(u64 a, u64 b)
+    {
+        return UIHashMix(a ^ UIHashMix(b + 0x9E3779B97F4A7C15ULL));
+    }
+
+    // Copy text into the widget's own storage (see UI_Widget::OwnedText) and
+    // point it there. For engine-formatted strings, which must outlive the
+    // frame arena they were built in.
+    void UIAdoptText(UI_Widget* widget, const String8& src)
+    {
+        const u64 n = Maths::Min<u64>(src.size, sizeof(widget->OwnedText) - 1);
+        if(n && src.str)
+            memcpy(widget->OwnedText, src.str, (size_t)n);
+        widget->OwnedText[n] = 0;
+        widget->text.str     = (u8*)widget->OwnedText;
+        widget->text.size    = n;
+    }
+
+    // One per UI context (there are only ever a few).
+    struct LongPress
+    {
+        UI_State* Owner = nullptr;
+        Vec2 At;
+        f32 Start  = 0.0f;
+        bool Down  = false;
+        bool Done  = false; // fired during this press
+        bool Fired = false; // fired this frame
+    };
+    static LongPress s_LongPress[4];
+
+    static LongPress& LongPressFor(UI_State* ui)
+    {
+        for(LongPress& entry : s_LongPress)
+            if(entry.Owner == ui)
+                return entry;
+        for(LongPress& entry : s_LongPress)
+            if(!entry.Owner)
+            {
+                entry.Owner = ui;
+                return entry;
+            }
+        s_LongPress[0]       = LongPress();
+        s_LongPress[0].Owner = ui;
+        return s_LongPress[0];
+    }
+
+    bool UILongPressed()
+    {
+        return s_UIState && LongPressFor(s_UIState).Fired;
+    }
+
+    UI_Widget* PushWidget(u32 flags,
+                          const String8& text,
+                          u64 hash,
+                          UI_Size semantic_size_x,
+                          UI_Size semantic_size_y)
     {
         UI_Widget* parent = GetCurrentParent();
 
@@ -229,20 +375,51 @@ namespace Lumos
             HashMapInsert(&s_UIState->widgets, hash, widget);
         }
         widget->FirstFrame = created;
+        static u64 s_WidgetBuildCounter = 0;
+        widget->BuildIndex = ++s_WidgetBuildCounter;
         // Rebuilt while mid-exit-fade = revived.
         widget->ExitTransition = 0.0f;
+
+        // Same id built twice in one frame. The linking below assumes each
+        // widget goes into a child list once; re-linking one that is already in
+        // a list can leave the sibling pointers crossed, and the layout walk
+        // then goes round in circles (the app hung with the trade terminal
+        // open). Reported, not prevented: some widgets deliberately share an id
+        // across siblings, and the layout walk has its own cycle guard.
+        if(widget->LastFrameIndexActive == s_UIState->FrameIndex)
+        {
+            LWARN("UI: duplicate widget id this frame: '%.*s' under '%.*s' - disambiguate with '#id'",
+                  (int)text.size, text.size ? (const char*)text.str : "",
+                  (int)parent->text.size, parent->text.size ? (const char*)parent->text.str : "");
+        }
 
         widget->parent               = parent;
         widget->flags                = flags | s_UIState->NextWidgetFlags;
         s_UIState->NextWidgetFlags   = 0;
-        widget->text                 = text;
+        // Own the text until the frame is drawn: callers (Lua especially) pass temporaries
+        // that can be freed and reused before layout / render read them
+        widget->text = text;
+        if(text.size > 0)
+        {
+            u8* copy = PushArrayNoZero(s_UIState->UIFrameArena, u8, text.size + 1);
+            if(copy)
+            {
+                MemoryCopy(copy, text.str, text.size);
+                copy[text.size] = 0;
+                widget->text    = Str8(copy, text.size);
+            }
+        }
         widget->hash                 = hash;
         widget->texture              = nullptr;
+        widget->MonoText             = s_UIState->MonoTextDepth > 0;
         widget->LastFrameIndexActive = s_UIState->FrameIndex;
         widget->ActiveTransition     = 0.0f;
         widget->Anchor               = UIAnchor_None;
         widget->AnchorMargin         = Vec2(0.0f, 0.0f);
         widget->Rotation             = 0.0f;
+        widget->WarpStrips           = 0;
+        widget->WarpVertical         = false;
+        widget->FlipV                = false;
         widget->RenderSize           = Vec2(0.0f, 0.0f);
         widget->Clip                 = false;
         widget->ChildOffset          = Vec2(0.0f, 0.0f);
@@ -275,7 +452,7 @@ namespace Lumos
         return widget;
     }
 
-    static UI_Interaction HandleWidgetInteraction(UI_Widget* widget)
+    UI_Interaction HandleWidgetInteraction(UI_Widget* widget)
     {
         UI_ASSERT(widget);
 
@@ -308,6 +485,25 @@ namespace Lumos
             interaction.hovering = true;
         }
 
+        // A press on anything inside an undo-target scope may be the start of an edit:
+        // mark the target now, the commit happens once the pointer lets go.
+        if(widget->clicked && s_UIState->UndoTargets.Size() > 0)
+        {
+            const UIUndoTarget& target = s_UIState->UndoTargets.Back();
+            if(target.Ptr)
+            {
+                UndoPushOwned(target.Ptr, (i64)target.Size, target.Owner, target.TypeKey);
+                s_UIState->UndoPending = true;
+            }
+            else if(target.Begin && !s_UIState->UndoEndFn)
+            {
+                target.Begin(target.Owner);
+                s_UIState->UndoEndFn    = target.End;
+                s_UIState->UndoEndOwner = target.Owner;
+                s_UIState->UndoPending  = true;
+            }
+        }
+
         interaction.clicked        = s_UIState->ClickOnRelease ? widget->released : widget->clicked;
         interaction.right_clicked  = widget->right_clicked;
         interaction.double_clicked = widget->double_clicked;
@@ -320,9 +516,26 @@ namespace Lumos
         return interaction;
     }
 
+    // LUMOS_FAKE_SAFE_AREA="top,bottom,left,right" in points: try a notched phone layout on desktop
+    static SafeAreaInsets FakeSafeArea(const SafeAreaInsets& raw)
+    {
+        static const char* s_Fake = getenv("LUMOS_FAKE_SAFE_AREA");
+        if(!s_Fake)
+            return raw;
+        float t = 0, b = 0, l = 0, r = 0;
+        sscanf(s_Fake, "%f,%f,%f,%f", &t, &b, &l, &r);
+        const float d = s_UIState->DPIScale;
+        return { t * d, b * d, l * d, r * d };
+    }
+
+    SafeAreaInsets UIRawSafeAreaInsets()
+    {
+        return FakeSafeArea(OS::Get().GetSafeAreaInsets());
+    }
+
     SafeAreaInsets UIResolveSafeAreaInsets(const SafeAreaInsets& raw, bool isEditor)
     {
-        SafeAreaInsets sa = raw;
+        SafeAreaInsets sa = FakeSafeArea(raw);
 
         // Game, pure Fullscreen mode: edge-to-edge, ignore the safe area.
         const int saMode = Application::Get().GetProjectSettings().SafeAreaMode;
@@ -356,10 +569,44 @@ namespace Lumos
         return sa;
     }
 
+    static void UIKeyboardFrameCheck();
+    static void UIScribbleBeginFrame();
+
     void UIBeginFrame(const Vec2& frame_buffer_size, f32 dt, const Vec2& inputOffset)
     {
         LUMOS_PROFILE_FUNCTION();
+
+        // A push without its pop leaks across frames: every widget built after
+        // it silently inherits the stale value, and the effect shows up
+        // somewhere else entirely. Say so once per offending var.
+        for(u32 v = 0; v < StyleVar_Count; v++)
+        {
+            if(s_UIState->style_variable_lists[v].count != 0)
+            {
+                LWARN("UI: style var %u left pushed %d deep at end of frame - a UIPushStyle without its UIPopStyle",
+                      v, (int)s_UIState->style_variable_lists[v].count);
+            }
+        }
+
+        if(s_UIState->MonoTextDepth != 0)
+        {
+            LWARN("UI: UIPushMonoText left pushed %u deep at end of frame", s_UIState->MonoTextDepth);
+            s_UIState->MonoTextDepth = 0;
+        }
+
+        Swap(s_UIState->UIFrameArena, s_UIState->UIPrevFrameArena);
         ArenaClear(s_UIState->UIFrameArena);
+
+        // An edit started by a widget is one undo step: closed once nothing is held or being typed into.
+        if(s_UIState->UndoPending && s_UIState->active_widget == 0 && s_UIState->FocusedTextInput == 0)
+        {
+            if(s_UIState->UndoEndFn)
+                s_UIState->UndoEndFn(s_UIState->UndoEndOwner);
+            s_UIState->UndoEndFn = nullptr;
+            UndoCommit();
+            s_UIState->UndoPending = false;
+        }
+        s_UIState->UndoTargets.Clear();
 
         s_UIState->InputOffset         = inputOffset;
         s_UIState->FrameBufferSize     = frame_buffer_size;
@@ -368,7 +615,10 @@ namespace Lumos
         s_UIState->CurrentTime += dt;
         s_UIState->parents.Clear();
         s_UIState->FrameIndex++;
+        UIKeyboardFrameCheck();
+        UIScribbleBeginFrame();
         s_UIState->AnimationRateDT = s_UIState->AnimationRate * dt;
+        s_UIFrameDT                = dt;
         s_UIState->TreeIndentLevel = 0;
 
         s_UIState->PendingFocusWidget = 0;
@@ -431,6 +681,9 @@ namespace Lumos
         SafeAreaInsets sa = OS::Get().GetSafeAreaInsets();
         const bool isEditor = Application::Get().GetAppType() == AppType::Editor;
         sa = UIResolveSafeAreaInsets(sa, isEditor);
+        // this UI places its own controls round the notch
+        if(s_UIState->FullBleed)
+            sa = { 0.0f, 0.0f, 0.0f, 0.0f };
 
         {
             const float viewportMin = Maths::Min(
@@ -492,6 +745,44 @@ namespace Lumos
             w->released         = false;
         }
 
+        // touch has no right button: a finger held still stands in for one
+        LongPress& longPress = LongPressFor(s_UIState);
+        longPress.Fired      = false;
+        if(s_UIState->ClickOnRelease)
+        {
+            const bool held = Input::Get().GetMouseHeld(Lumos::InputCode::MouseKey::ButtonLeft);
+            if(Input::Get().GetMouseClicked(Lumos::InputCode::MouseKey::ButtonLeft))
+            {
+                longPress.Down  = true;
+                longPress.Done  = false;
+                longPress.Start = s_UIState->CurrentTime;
+                longPress.At    = mouse_p;
+            }
+            else if(!held)
+                longPress.Down = false;
+            if(longPress.Down && !longPress.Done)
+            {
+                const f32 slop = 12.0f * s_UIState->DPIScale;
+                const Vec2 d   = mouse_p - longPress.At;
+                if(d.x * d.x + d.y * d.y > slop * slop)
+                    longPress.Down = false;
+                else if(s_UIState->CurrentTime - longPress.Start >= 0.5f)
+                {
+                    longPress.Done = longPress.Fired = true;
+                    if(UI_Widget* w = s_UIState->active_widget ? s_UIState->active_widget_state : nullptr)
+                    {
+                        w->right_clicked                        = true;
+                        s_UIState->ContextMenuPos               = mouse_p;
+                        s_UIState->ContextMenuTrigger           = s_UIState->active_widget;
+                        s_UIState->ContextMenuOpen              = true;
+                        s_UIState->ContextMenuCloseRequestFrame = 0;
+                    }
+                }
+            }
+        }
+        else
+            longPress.Down = false;
+
         // Handle mouse release (drag position updates moved to UIBeginFrame for responsiveness)
         if(s_UIState->active_widget)
         {
@@ -512,7 +803,8 @@ namespace Lumos
                     // Finger travelled too far since press = a drag, not a tap.
                     const f32 slop = 12.0f * s_UIState->DPIScale;
                     Vec2 d         = mouse_p - w->press_mouse_p;
-                    if(d.x * d.x + d.y * d.y > slop * slop)
+                    // lifting after a long press is not a tap as well
+                    if(d.x * d.x + d.y * d.y > slop * slop || longPress.Done)
                         w->released = false;
                 }
                 w->drag_mouse_p          = { 0.0f, 0.0f };
@@ -583,12 +875,14 @@ namespace Lumos
 
         TDArray<UI_Widget*> lWidgetsToDelete(s_UIState->UIFrameArena);
         bool anyExitFading = false;
+        // a finger that has lifted isn't hovering: no highlight left on the last thing tapped
+        const bool showHover = !s_UIState->ClickOnRelease || Input::Get().GetMouseHeld(Lumos::InputCode::MouseKey::ButtonLeft);
         ForHashMapEach(u64, UI_Widget*, &s_UIState->widgets, it)
         {
             u64 key          = *it.key;
             UI_Widget* value = *it.value;
 
-            if(key == s_UIState->hot_widget || key == s_UIState->active_widget)
+            if((key == s_UIState->hot_widget && showHover) || key == s_UIState->active_widget)
             {
                 if(key == s_UIState->hot_widget)
                     value->HotTransition += s_UIState->AnimationRateDT;
@@ -663,6 +957,19 @@ namespace Lumos
         if(!anyExitFading)
             ArenaClear(s_UIState->UIExitArena);
 
+        if(lWidgetsToDelete.Size() > 0)
+        {
+            for(auto widget : lWidgetsToDelete)
+                widget->LastFrameIndexActive = UINT64_MAX; // doomed marker; nothing reads it after this
+
+            ForHashMapEach(u64, UI_Widget*, &s_UIState->widgets, it)
+            {
+                UI_Widget* w = *it.value;
+                if(w->parent && w->parent->LastFrameIndexActive == UINT64_MAX)
+                    w->parent = nullptr;
+            }
+        }
+
         for(auto widget : lWidgetsToDelete)
         {
             if(s_UIState->active_widget_state == widget)
@@ -712,6 +1019,18 @@ namespace Lumos
         return text;
     }
 
+    // Identity for the wrapper window a panel/overlay puts around its content.
+    // Derived arithmetically from the content hash: this used to be a string
+    // formatted into UIFrameArena every frame, and when that arena ran dry the
+    // format came back EMPTY - so every panel in the frame hashed identically,
+    // collapsed onto one widget, corrupted the sibling lists and sent the
+    // layout walk round in circles (the app hung with the trade terminal open).
+    static inline u64 UIWrapperHash(u64 contentHash, u64 salt)
+    {
+        u64 h = UIHashMix(contentHash ^ UIHashMix(salt));
+        return h ? h : 1;
+    }
+
     UI_Interaction UIBeginPanel(const char* str, u32 extraFlags)
     {
         return UIBeginPanel(str, SizeKind_MaxChild, 1.0f, SizeKind_ChildSum, 1.0f, extraFlags);
@@ -722,11 +1041,9 @@ namespace Lumos
         u64 hash;
         String8 text = HandleUIString(str, &hash);
 
-        String8 WindowText = PushStr8F(s_UIState->UIFrameArena, "Window###window%s", (char*)text.str);
-        u64 hashWindow;
-        String8 WindowText2 = HandleUIString((char*)WindowText.str, &hashWindow);
-        UI_Widget* window   = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | extraFlags,
-                                         WindowText2,
+        const u64 hashWindow = UIWrapperHash(hash, 0x57494E444F57ull); // "WINDOW"
+        UI_Widget* window    = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | extraFlags,
+                                         Str8Lit("Window"),
                                          hashWindow,
                                          { sizeKindX, xValue },
                                          { sizeKindY, yValue });
@@ -753,9 +1070,8 @@ namespace Lumos
 
         PushParent(window);
 
-        String8 HeaderText = PushStr8F(s_UIState->UIFrameArena, "Header###header%s", (char*)text.str);
-        u64 hashHeader;
-        String8 HeaderText2 = HandleUIString((char*)HeaderText.str, &hashHeader);
+        const u64 hashHeader = UIWrapperHash(hash, 0x484541444552ull); // "HEADER"
+        String8 HeaderText2  = Str8Lit("Header");
         UIPushStyle(StyleVar_Padding, { 0.0f, 0.0f, 0.0f, 0.0f });
         UI_Widget* header = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_StackVertically | WidgetFlags_DragParent,
                                        HeaderText2,
@@ -819,11 +1135,9 @@ namespace Lumos
         u64 hash;
         String8 text = HandleUIString(str, &hash);
 
-        String8 windowText = PushStr8F(s_UIState->UIFrameArena, "Overlay###overlay%s", (char*)text.str);
-        u64 hashWindow;
-        String8 windowText2 = HandleUIString((char*)windowText.str, &hashWindow);
-        UI_Widget* window   = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | extraFlags,
-                                         windowText2,
+        const u64 hashWindow = UIWrapperHash(hash, 0x4F5645524C4159ull); // "OVERLAY"
+        UI_Widget* window    = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | extraFlags,
+                                         Str8Lit("Overlay"),
                                          hashWindow,
                                          { sizeKindX, xValue },
                                          { sizeKindY, yValue });
@@ -946,21 +1260,30 @@ namespace Lumos
         return UILabel(str, Str8C((char*)text));
     }
 
-    UI_Interaction UILabel(const char* str, const String8& text)
+    static UI_Interaction LabelWithFlags(const char* str, const String8& text, u32 extraFlags)
     {
         u64 hash;
         HandleUIString(str, &hash);
 
-        UI_Widget* widget = PushWidget(WidgetFlags_DrawText,
+        UI_Widget* widget = PushWidget(WidgetFlags_DrawText | extraFlags,
                                        text,
                                        hash,
                                        { SizeKind_TextContent, 1.0f },
                                        { SizeKind_TextContent, 1.0f });
 
         widget->style_vars[StyleVar_Padding] = Vec4(2.0f * s_UIState->DPIScale, 2.0f * s_UIState->DPIScale, 0.0f, 0.0f);
+        // a hovered clickable lerps its border toward the theme's hot colour: a link has none
+        if(extraFlags & WidgetFlags_Clickable)
+        {
+            widget->style_vars[StyleVar_BorderColor]       = Vec4(0.0f);
+            widget->style_vars[StyleVar_HotBorderColor]    = Vec4(0.0f);
+            widget->style_vars[StyleVar_ActiveBorderColor] = Vec4(0.0f);
+        }
 
         return HandleWidgetInteraction(widget);
     }
+
+    UI_Interaction UILabel(const char* str, const String8& text) { return LabelWithFlags(str, text, 0); }
 
     static String8 UIWrapText(const String8& text, f32 fontSize, f32 maxWidth)
     {
@@ -1060,34 +1383,55 @@ namespace Lumos
         return UILabel(str, UIWrapText(text, fontSize, maxWidth));
     }
 
-    UI_Interaction UILabelEllipsis(const char* str, const String8& text, float maxWidth)
+    // text cut to fit maxWidth (logical px) with "...", or the text itself when it fits
+    static String8 EllipsisText(const String8& text, float maxWidth)
     {
         maxWidth *= s_UIState->DPIScale;
         const f32 fontSize = s_UIState->style_variable_lists[StyleVar_FontSize].last->value.x;
 
         if(GetStringSize(text, fontSize).x <= maxWidth)
-            return UILabel(str, text);
+            return text;
 
         const f32 budget = maxWidth - GetStringSize(Str8Lit("..."), fontSize).x;
 
-        // Longest codepoint-aligned prefix that fits the budget.
-        u64 fit = 0;
-        u64 ci  = 0;
-        while(ci < text.size)
+        // Longest codepoint-aligned prefix that fits the budget: binary search over the codepoint ends
+        // (measuring every prefix in turn was quadratic - long truncated labels cost ~1ms each on a phone)
+        ArenaTemp scratch = ScratchBegin(nullptr, 0);
+        u64* ends         = PushArrayNoZero(scratch.arena, u64, text.size);
+        u64 count         = 0;
+        for(u64 ci = 0; ci < text.size;)
         {
             UnicodeDecode dec = Utf8Decode(text.str + ci, text.size - ci);
-            u64 cl            = dec.inc > 0 ? (u64)dec.inc : 1;
+            ci += dec.inc > 0 ? (u64)dec.inc : 1;
+            ends[count++] = ci;
+        }
+        u64 fit = 0;
+        i64 lo = 0, hi = (i64)count - 1;
+        while(lo <= hi)
+        {
+            i64 mid = (lo + hi) / 2;
             String8 prefix;
             prefix.str  = text.str;
-            prefix.size = ci + cl;
-            if(GetStringSize(prefix, fontSize).x > budget)
-                break;
-            ci += cl;
-            fit = ci;
+            prefix.size = ends[mid];
+            if(GetStringSize(prefix, fontSize).x <= budget)
+            {
+                fit = ends[mid];
+                lo  = mid + 1;
+            }
+            else
+                hi = mid - 1;
         }
+        ScratchEnd(scratch);
 
-        String8 truncated = PushStr8F(s_UIState->UIFrameArena, "%.*s...", (int)fit, (const char*)text.str);
-        return UILabel(str, truncated);
+        return PushStr8F(s_UIState->UIFrameArena, "%.*s...", (int)fit, (const char*)text.str);
+    }
+
+    UI_Interaction UILabelEllipsis(const char* str, const String8& text, float maxWidth) { return UILabel(str, EllipsisText(text, maxWidth)); }
+
+    // a label that reports clicks: no background or border, so it looks like any other text
+    UI_Interaction UILabelLink(const char* str, const String8& text, float maxWidth)
+    {
+        return LabelWithFlags(str, maxWidth > 0.0f ? EllipsisText(text, maxWidth) : text, WidgetFlags_Clickable);
     }
 
     UI_Interaction UIButton(const char* str)
@@ -1295,7 +1639,7 @@ namespace Lumos
                                               labelHash,
                                               { SizeKind_TextContent, 1.0f },
                                               { SizeKind_TextContent, 1.0f });
-            (void)widget;
+            UIAdoptText(widget, slider_label);
         }
         PopParent(spacer);
 
@@ -1329,7 +1673,14 @@ namespace Lumos
             float textHeight = GetStringSize(Str8Lit("A"), fontSize).y;
             float trackWidth = textHeight * 1.9f;
             float trackHeight = textHeight;
-            float knobSize   = textHeight - 4.0f * dpi;
+            // finger-sized on touch screens
+            if(s_UIState->ClickOnRelease && trackHeight < 26.0f * dpi)
+            {
+                trackHeight = 26.0f * dpi;
+                trackWidth  = trackHeight * 1.65f;
+                spacer->style_vars[StyleVar_Padding] = Vec4(0.0f, 6.0f * dpi, 0.0f, 0.0f);
+            }
+            float knobSize   = trackHeight - 4.0f * dpi;
 
             // Label first (left).
             String8 labelText = PushStr8F(s_UIState->UIFrameArena, "label###label%s", (char*)text.str);
@@ -1380,6 +1731,8 @@ namespace Lumos
                 offColor = Vec4(0.75f, 0.75f, 0.75f, 1.0f);
                 onColor  = Vec4(0.32f, 0.78f, 0.5f, 1.0f);
             }
+            if(s_UIState->AccentColour.w > 0.0f)
+                onColor = Vec4(s_UIState->AccentColour.x, s_UIState->AccentColour.y, s_UIState->AccentColour.z, 1.0f);
             toggle_track->style_vars[StyleVar_BackgroundColor] = offColor.Lerp(onColor, easedT);
 
             // Toggle knob (sliding circle)
@@ -1430,6 +1783,41 @@ namespace Lumos
         box->style_vars[StyleVar_Border]          = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
         box->style_vars[StyleVar_CornerRadius]    = Vec4(cornerRadius * dpi, 0.0f, 0.0f, 0.0f);
         return HandleWidgetInteraction(box);
+    }
+
+    static UI_Widget* PushFreeShape(const char* str, float x, float y, float width, float height, const Vec4& colour)
+    {
+        const float dpi = s_UIState->DPIScale;
+        u64 hash;
+        String8 text = HandleUIString(str, &hash);
+
+        // child of the root so the position is in screen space whatever panel is being built
+        PushParent(&s_UIState->root_parent);
+        UI_Widget* shape = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_Floating_X | WidgetFlags_Floating_Y,
+                                      text, hash,
+                                      { SizeKind_Pixels, width * dpi },
+                                      { SizeKind_Pixels, height * dpi });
+        PopParent(&s_UIState->root_parent);
+
+        shape->relative_position                    = Vec2(x * dpi, y * dpi);
+        shape->style_vars[StyleVar_BackgroundColor] = colour;
+        shape->style_vars[StyleVar_BorderColor]     = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        shape->style_vars[StyleVar_Border]          = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        shape->style_vars[StyleVar_Padding]         = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        return shape;
+    }
+
+    void UIRect(const char* str, float x, float y, float width, float height, const Vec4& colour, float cornerRadius)
+    {
+        UI_Widget* rect                         = PushFreeShape(str, x, y, width, height, colour);
+        rect->style_vars[StyleVar_CornerRadius] = Vec4(Maths::Max(cornerRadius, 0.0f) * s_UIState->DPIScale, 0.0f, 0.0f, 0.0f);
+    }
+
+    void UIRing(const char* str, float x, float y, float radius, const Vec4& colour, float thickness)
+    {
+        UI_Widget* ring = PushFreeShape(str, x - radius, y - radius, radius * 2.0f, radius * 2.0f, colour);
+        // a negative corner radius draws an outline that many pixels thick
+        ring->style_vars[StyleVar_CornerRadius] = Vec4(-Maths::Max(1.0f, thickness * s_UIState->DPIScale), 0.0f, 0.0f, 0.0f);
     }
 
     UI_Interaction UIBeginRadar(const char* str, float diameter,
@@ -1557,7 +1945,7 @@ namespace Lumos
                 UI_Widget* val  = PushWidget(WidgetFlags_DrawText | WidgetFlags_AlignRight,
                                              valStr, HashUIStr8Name(valText),
                                              { SizeKind_TextContent, 1.0f }, { SizeKind_TextContent, 1.0f });
-                (void)val;
+                UIAdoptText(val, valStr);
             }
             PopParent(head);
 
@@ -1702,6 +2090,135 @@ namespace Lumos
         }
         PopParent(row);
 
+        return interaction;
+    }
+
+    UI_Interaction UIImageWarp(const char* str, Graphics::Texture2D* texture, const Vec2& pos, const Vec2& size,
+                               const Vec2 corners[4], float depthLeft, float depthRight,
+                               const Vec4& topColour, const Vec4& bottomColour, bool flipV, bool clickable, float cornerRadius, bool vertical)
+    {
+        const float dpi = s_UIState->DPIScale;
+        u64 hash;
+        String8 text = HandleUIString(str, &hash);
+
+        UI_Widget* widget = PushWidget((clickable ? WidgetFlags_Clickable : 0) | WidgetFlags_DrawBackground | WidgetFlags_Floating_X | WidgetFlags_Floating_Y,
+                                       Str8Lit(""),
+                                       hash,
+                                       { SizeKind_Pixels, Maths::Max(1.0f, size.x * dpi) },
+                                       { SizeKind_Pixels, Maths::Max(1.0f, size.y * dpi) });
+        (void)text;
+        widget->relative_position = pos * dpi;
+        widget->texture           = texture;
+        for(int i = 0; i < 4; i++)
+            widget->WarpCorners[i] = corners[i] * dpi;
+        widget->WarpDepth[0]     = Maths::Max(0.0001f, depthLeft);
+        widget->WarpDepth[1]     = Maths::Max(0.0001f, depthRight);
+        widget->WarpColourBottom = bottomColour;
+        widget->WarpFlipV        = flipV;
+        widget->WarpVertical     = vertical;
+        // more strips when the edges differ a lot in depth
+        float ratio        = Maths::Max(depthLeft, depthRight) / Maths::Max(0.0001f, Maths::Min(depthLeft, depthRight));
+        widget->WarpStrips = (u8)Maths::Clamp((int)(ratio * 8.0f), 1, 32);
+
+        // colours set on the widget directly: hovered clickables otherwise take the theme's hot fill
+        widget->style_vars[StyleVar_BackgroundColor]       = topColour;
+        widget->style_vars[StyleVar_HotBackgroundColor]    = topColour;
+        widget->style_vars[StyleVar_ActiveBackgroundColor] = topColour;
+        widget->style_vars[StyleVar_Border]                = Vec4(0.0f);
+        widget->style_vars[StyleVar_BorderColor]           = Vec4(0.0f);
+        widget->style_vars[StyleVar_HotBorderColor]        = Vec4(0.0f);
+        widget->style_vars[StyleVar_ActiveBorderColor]     = Vec4(0.0f);
+        widget->style_vars[StyleVar_ShadowColor]           = Vec4(0.0f);
+        widget->style_vars[StyleVar_CornerRadius]          = Vec4(cornerRadius * dpi);
+        widget->style_vars[StyleVar_Padding]               = Vec4(0.0f);
+        return HandleWidgetInteraction(widget);
+    }
+
+    UI_Interaction UIScrubBar(const char* str, float* value, float width, float height,
+                              const Vec4& fillColour, const Vec4& trackColour, bool* active)
+    {
+        static u64 s_ActiveScrub = 0;
+        const float dpi          = s_UIState->DPIScale;
+        u64 hash;
+        String8 text = HandleUIString(str, &hash);
+
+        // Hit area is taller than the visible bar so it's easy to grab
+        const float hitH = Maths::Max(height * 3.0f, 12.0f) * dpi;
+        UI_Widget* area  = PushWidget(WidgetFlags_Clickable | WidgetFlags_CentreY | WidgetFlags_StackHorizontally,
+                                      text,
+                                      hash,
+                                      { SizeKind_Pixels, width * dpi },
+                                      { SizeKind_Pixels, hitH });
+        area->style_vars[StyleVar_Padding]           = Vec4(0.0f);
+        area->style_vars[StyleVar_Border]            = Vec4(0.0f);
+        area->style_vars[StyleVar_BorderColor]       = Vec4(0.0f);
+        area->style_vars[StyleVar_HotBorderColor]    = Vec4(0.0f);
+        area->style_vars[StyleVar_ActiveBorderColor] = Vec4(0.0f);
+        area->style_vars[StyleVar_ShadowColor]       = Vec4(0.0f);
+        UI_Interaction interaction                   = HandleWidgetInteraction(area);
+
+        Vec2 mouse = Input::Get().GetMousePosition() * s_UIState->InputScale - s_UIState->InputOffset;
+        if(interaction.hovering && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft))
+            s_ActiveScrub = area->hash;
+        bool dragging = s_ActiveScrub == area->hash;
+        if(dragging && !Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonLeft))
+        {
+            s_ActiveScrub = 0;
+            dragging      = false;
+        }
+        if(dragging && area->size.x > 0.0f)
+            *value = Maths::Clamp((mouse.x - area->position.x) / area->size.x, 0.0f, 1.0f);
+        if(active)
+            *active = dragging;
+
+        const float t     = Maths::Clamp(*value, 0.0f, 1.0f);
+        const float barH  = height * dpi;
+        const bool emph   = dragging || interaction.hovering;
+        const float drawH = emph ? barH * 1.5f : barH;
+
+        PushParent(area);
+        {
+            UI_Widget* bar = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_CentreY | WidgetFlags_StackHorizontally,
+                                        Str8Lit(""),
+                                        UIHashCombine(area->hash, 0x5343525542ull),
+                                        { SizeKind_PercentOfParent, 1.0f },
+                                        { SizeKind_Pixels, drawH });
+            bar->style_vars[StyleVar_Padding]         = Vec4(0.0f);
+            bar->style_vars[StyleVar_Border]          = Vec4(0.0f);
+            bar->style_vars[StyleVar_BackgroundColor] = trackColour;
+            bar->style_vars[StyleVar_CornerRadius]    = Vec4(drawH * 0.5f, 0.0f, 0.0f, 0.0f);
+            bar->style_vars[StyleVar_ShadowColor]     = Vec4(0.0f);
+
+            PushParent(bar);
+            UI_Widget* fill = PushWidget(t > 0.0f ? WidgetFlags_DrawBackground : 0,
+                                         Str8Lit(""),
+                                         UIHashCombine(area->hash, 0x46494C4Cull),
+                                         { SizeKind_PercentOfParent, Maths::Max(t, 0.0001f) },
+                                         { SizeKind_PercentOfParent, 1.0f });
+            fill->style_vars[StyleVar_Padding]         = Vec4(0.0f);
+            fill->style_vars[StyleVar_Border]          = Vec4(0.0f);
+            fill->style_vars[StyleVar_BackgroundColor] = fillColour;
+            fill->style_vars[StyleVar_CornerRadius]    = Vec4(drawH * 0.5f, 0.0f, 0.0f, 0.0f);
+            fill->style_vars[StyleVar_ShadowColor]     = Vec4(0.0f);
+            PopParent(bar);
+
+            if(emph)
+            {
+                const float knob = barH * 4.0f;
+                UI_Widget* k     = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_Floating_X | WidgetFlags_Floating_Y,
+                                              Str8Lit(""),
+                                              UIHashCombine(area->hash, 0x4B4E4F42ull),
+                                              { SizeKind_Pixels, knob },
+                                              { SizeKind_Pixels, knob });
+                k->relative_position                     = Vec2(t * area->size.x - knob * 0.5f, (hitH - knob) * 0.5f);
+                k->style_vars[StyleVar_Padding]          = Vec4(0.0f);
+                k->style_vars[StyleVar_Border]           = Vec4(0.0f);
+                k->style_vars[StyleVar_BackgroundColor]  = Vec4(1.0f);
+                k->style_vars[StyleVar_CornerRadius]     = Vec4(knob * 0.5f, 0.0f, 0.0f, 0.0f);
+                k->style_vars[StyleVar_ShadowColor]      = Vec4(0.0f, 0.0f, 0.0f, 0.35f);
+            }
+        }
+        PopParent(area);
         return interaction;
     }
 
@@ -1917,11 +2434,12 @@ namespace Lumos
             String8 slider_text  = PushStr8F(s_UIState->UIFrameArena, "  %.*s: %d###slvali", (int)text.size, (const char*)text.str, *value);
             u64 labelHash;
             String8 slider_label = HandleUIString((char*)slider_text.str, &labelHash);
-            PushWidget(WidgetFlags_DrawText | WidgetFlags_CentreY,
-                       slider_label,
-                       labelHash,
-                       { SizeKind_TextContent, 1.0f },
-                       { SizeKind_TextContent, 1.0f });
+            UIAdoptText(PushWidget(WidgetFlags_DrawText | WidgetFlags_CentreY,
+                                   slider_label,
+                                   labelHash,
+                                   { SizeKind_TextContent, 1.0f },
+                                   { SizeKind_TextContent, 1.0f }),
+                        slider_label);
         }
         PopParent(spacer);
 
@@ -2126,6 +2644,19 @@ namespace Lumos
     static u64 s_ScrollDragHash   = 0;
     static float s_ScrollDragLastY = 0.0f;
 
+    // Areas nest (a list inside a scrolling dock panel): the outer one waits here.
+    struct ScrollAreaFrame
+    {
+        UI_Widget* widget;
+        float* offset;
+        float height;
+    };
+    static ScrollAreaFrame s_ScrollAreaStack[8];
+    static i32 s_ScrollAreaDepth = 0;
+    // The innermost hovered area takes the wheel; the ones around it leave it alone that frame.
+    static u64 s_WheelFrame        = 0;
+    static UI_State* s_WheelState  = nullptr;
+
     void UIBeginScrollArea(const char* str, float height, float* scroll_offset)
     {
         u64 hash;
@@ -2154,6 +2685,10 @@ namespace Lumos
         area->Clip        = true;
         area->ChildOffset = Vec2(0.0f, -(*scroll_offset));
 
+        if(s_ScrollAreaDepth < 8)
+            s_ScrollAreaStack[s_ScrollAreaDepth] = { s_ScrollAreaWidget, s_ScrollAreaOffset, s_ScrollAreaHeight };
+        s_ScrollAreaDepth++;
+
         s_ScrollAreaWidget = area;
         s_ScrollAreaOffset = scroll_offset;
         s_ScrollAreaHeight = height;
@@ -2161,7 +2696,204 @@ namespace Lumos
         PushParent(area);
     }
 
+    static UI_Widget* UIRootChildOf(UI_Widget* w)
+    {
+        for(int depth = 0; w->parent && w->parent->parent && depth < 128; depth++)
+            w = w->parent;
+        return w;
+    }
+
+    // true when whatever the pointer is on (last frame's hot / active widget) sits outside
+    // this area - a popup or backdrop drawn over it. An area never claims hot itself, so a
+    // scrim BEHIND it is often the hot widget: that one doesn't count.
+    static bool UIPointerOwnedElsewhere(UI_Widget* area)
+    {
+        const u64 owner = s_UIState->hot_widget ? s_UIState->hot_widget : s_UIState->active_widget;
+        if(!owner)
+            return false;
+        UI_Widget* found = nullptr;
+        HashMapFind(&s_UIState->widgets, owner, &found);
+        if(!found)
+            return false;
+        UI_Widget* w = found;
+        for(int depth = 0; w && depth < 128; depth++, w = w->parent)
+            if(w == area)
+                return false;
+        UI_Widget* ownerTop = UIRootChildOf(found);
+        for(UI_Widget* s = UIRootChildOf(area)->prev; s; s = s->prev)
+            if(s == ownerTop)
+                return false;
+        return true;
+    }
+
+    // ---- horizontal scroll row: a clipped strip that slides sideways (wheel / trackpad x,
+    // shift + wheel, or a finger drag on touch screens)
+
+    static UI_Widget* s_HScrollWidget = nullptr;
+    static f32* s_HScrollOffset       = nullptr;
+    static u64 s_HScrollDragHash      = 0;
+    static f32 s_HScrollDragLastX     = 0.0f;
+    static Vec2 s_HScrollStart        = Vec2(0.0f);
+    static int s_HScrollAxis          = 0;     // 0 undecided, 1 sideways (ours), 2 up / down (the page's)
+    static bool s_HScrollOwnsDrag     = false; // this frame's finger drag moved a row: the page stays put
+
+    void UIBeginHScrollArea(const char* str, float* offset)
+    {
+        u64 hash;
+        HandleUIString(str, &hash);
+        UI_Widget* area = PushWidget(WidgetFlags_StackHorizontally, Str8Lit(""), hash,
+                                     { SizeKind_PercentOfParent, 1.0f }, { SizeKind_MaxChild, 1.0f });
+        area->style_vars[StyleVar_Padding] = Vec4(0.0f);
+        area->style_vars[StyleVar_Border]  = Vec4(0.0f);
+        area->Clip                         = true;
+        area->ChildOffset                  = Vec2(-(*offset), 0.0f);
+        s_HScrollWidget                    = area;
+        s_HScrollOffset                    = offset;
+        PushParent(area);
+    }
+
+    void UIEndHScrollArea()
+    {
+        UI_Widget* area = s_HScrollWidget;
+        if(!area)
+            return;
+        const float dpi = s_UIState->DPIScale;
+        float contentW  = 0.0f;
+        int n           = 0;
+        for(UI_Widget* c = area->first; c; c = c->next)
+        {
+            if(c->flags & WidgetFlags_Floating_X)
+                continue;
+            const UI_Size& sx = c->semantic_size[UIAxis_X];
+            contentW += sx.kind == SizeKind_Pixels ? sx.value : c->size.x;
+            n++;
+        }
+        if(n > 1)
+            contentW += area->style_vars[StyleVar_ItemSpacing].x * (f32)(n - 1);
+        const float maxScroll = Maths::Max(0.0f, contentW - area->size.x);
+
+        Vec2 mousePos = Input::Get().GetMousePosition() * s_UIState->InputScale - s_UIState->InputOffset;
+        bool hovering = mousePos.x >= area->position.x && mousePos.x <= area->position.x + area->size.x &&
+                        mousePos.y >= area->position.y && mousePos.y <= area->position.y + area->size.y;
+        if(hovering && UIPointerOwnedElsewhere(area))
+            hovering = false;
+        float& off = *s_HScrollOffset;
+        ScrollbarFadeState* phys = s_ScrollPhysics ? &ScrollbarFadeFor(area->hash, off) : nullptr;
+        const float dt           = Maths::Max(s_UIFrameDT, 0.0001f);
+        if(phys && Maths::Abs(off - phys->physOffset) > 0.5f)
+            phys->velocity = 0.0f; // set from outside: stop coasting
+        const float viewW = Maths::Max(1.0f, area->size.x);
+        auto push         = [&](float d) {
+            // past an end a push only gets part of the way (rubber band)
+            if(phys && ((off < 0.0f && d < 0.0f) || (off > maxScroll && d > 0.0f)))
+                d /= 1.0f + (off < 0.0f ? -off : off - maxScroll) / (0.12f * viewW);
+            off += d;
+        };
+        bool input = false;
+        if(hovering)
+        {
+            float dx = Input::Get().GetScrollOffsetX();
+            const bool shift = Input::Get().GetKeyHeldRaw(InputCode::Key::LeftShift) || Input::Get().GetKeyHeldRaw(InputCode::Key::RightShift);
+            if(shift && dx == 0.0f)
+                dx = Input::Get().GetScrollOffset();
+            if(dx != 0.0f)
+            {
+                // wheel / trackpad stop at the ends (the rubber band is for fingers)
+                off = Maths::Clamp(off - dx * 30.0f * dpi, Maths::Min(off, 0.0f), Maths::Max(off, maxScroll));
+                input = true;
+                if(phys)
+                    phys->velocity = 0.0f; // trackpads coast by themselves
+            }
+        }
+        if(s_UIState->ClickOnRelease && maxScroll > 0.0f)
+        {
+            const bool held = Input::Get().GetMouseHeld(Lumos::InputCode::MouseKey::ButtonLeft);
+            if(held && (hovering || s_HScrollDragHash == area->hash))
+            {
+                if(s_HScrollDragHash != area->hash)
+                {
+                    s_HScrollDragHash  = area->hash;
+                    s_HScrollStart     = mousePos;
+                    s_HScrollAxis      = 0;
+                    if(phys)
+                        phys->velocity = 0.0f; // a finger down catches it
+                }
+                else
+                {
+                    // decide the direction once the finger has moved a little; up / down belongs to the page
+                    if(s_HScrollAxis == 0)
+                    {
+                        const Vec2 moved = mousePos - s_HScrollStart;
+                        if(Maths::Abs(moved.x) > 6.0f * dpi || Maths::Abs(moved.y) > 6.0f * dpi)
+                            s_HScrollAxis = Maths::Abs(moved.x) > Maths::Abs(moved.y) ? 1 : 2;
+                    }
+                    if(s_HScrollAxis == 1)
+                    {
+                        const float d = -(mousePos.x - s_HScrollDragLastX);
+                        push(d);
+                        if(phys)
+                            phys->velocity = Maths::Lerp(phys->velocity, d / dt, 0.35f);
+                        s_HScrollOwnsDrag = true;
+                    }
+                }
+                s_HScrollDragLastX = mousePos.x;
+                input              = s_HScrollAxis != 2;
+            }
+            else if(s_HScrollDragHash == area->hash)
+                s_HScrollDragHash = 0;
+        }
+        if(phys)
+        {
+            if(!input)
+            {
+                // coast, then spring back from past either end
+                off += phys->velocity * dt;
+                const bool out = off < 0.0f || off > maxScroll;
+                phys->velocity *= expf(-dt * (out ? 18.0f : 2.2f));
+                if(Maths::Abs(phys->velocity) < 20.0f * dpi)
+                    phys->velocity = 0.0f;
+                if(off < 0.0f)
+                    off *= expf(-dt * 12.0f);
+                else if(off > maxScroll)
+                    off = maxScroll + (off - maxScroll) * expf(-dt * 12.0f);
+                if(off < 0.0f && off > -0.5f)
+                    off = 0.0f;
+                if(off > maxScroll && off < maxScroll + 0.5f)
+                    off = maxScroll;
+            }
+            const float limit = 0.35f * viewW;
+            off               = Maths::Clamp(off, -limit, maxScroll + limit);
+            phys->physOffset  = off;
+            phys->lastFrame   = s_UIState->FrameIndex;
+        }
+        else
+            off = Maths::Clamp(off, 0.0f, maxScroll);
+        area->ChildOffset = Vec2(-off, 0.0f);
+        PopParent(area);
+        s_HScrollWidget = nullptr;
+        s_HScrollOffset = nullptr;
+    }
+
+    static void UIEndScrollAreaInner();
+
     void UIEndScrollArea()
+    {
+        UIEndScrollAreaInner();
+
+        if(s_ScrollAreaDepth > 0)
+        {
+            s_ScrollAreaDepth--;
+            if(s_ScrollAreaDepth < 8)
+            {
+                const ScrollAreaFrame& outer = s_ScrollAreaStack[s_ScrollAreaDepth];
+                s_ScrollAreaWidget           = outer.widget;
+                s_ScrollAreaOffset           = outer.offset;
+                s_ScrollAreaHeight           = outer.height;
+            }
+        }
+    }
+
+    static void UIEndScrollAreaInner()
     {
         if(!s_ScrollAreaWidget)
         {
@@ -2183,7 +2915,9 @@ namespace Lumos
         {
             if(child->flags & WidgetFlags_Floating_Y)
                 continue;
-            contentHeight += child->size.y;
+            // fixed-height children built this frame have no laid-out size yet (jumps, virtualised lists)
+            const UI_Size& sy = child->semantic_size[UIAxis_Y];
+            contentHeight += sy.kind == SizeKind_Pixels ? sy.value : child->size.y;
             contentCount++;
         }
         if(contentCount > 1)
@@ -2201,10 +2935,37 @@ namespace Lumos
         Vec2 areaMax   = areaMin + s_ScrollAreaWidget->size;
         bool hovering  = mousePos.x >= areaMin.x && mousePos.x <= areaMax.x &&
                          mousePos.y >= areaMin.y && mousePos.y <= areaMax.y;
-        if(hovering)
+        if(hovering && UIPointerOwnedElsewhere(s_ScrollAreaWidget))
+            hovering = false;
+        float& off = *s_ScrollAreaOffset;
+        ScrollbarFadeState* phys = s_ScrollPhysics ? &ScrollbarFadeFor(s_ScrollAreaWidget->hash, off) : nullptr;
+        const float dt = Maths::Max(s_UIFrameDT, 0.0001f);
+        if(phys && Maths::Abs(off - phys->physOffset) > 0.5f)
+            phys->velocity = 0.0f; // someone set it (jump to a letter, keep a row in view): stop coasting
+        // how far past either end, and a move that pushes further out only gets part of the way
+        auto overscroll = [&]() { return off < 0.0f ? -off : Maths::Max(0.0f, off - maxScroll); };
+        auto push       = [&](float d) {
+            if(phys && ((off < 0.0f && d < 0.0f) || (off > maxScroll && d > 0.0f)))
+                d /= 1.0f + overscroll() / (0.12f * visibleHeight);
+            off += d;
+        };
+        bool input = false;
+
+        const bool wheelTaken = s_WheelState == s_UIState && s_WheelFrame == s_UIState->FrameIndex;
+        if(hovering && !wheelTaken)
         {
             float scrollDelta = Input::Get().GetScrollOffset() * 30.0f * dpi;
-            *s_ScrollAreaOffset -= scrollDelta;
+            if(scrollDelta != 0.0f && maxScroll > 0.0f)
+            {
+                s_WheelFrame = s_UIState->FrameIndex;
+                s_WheelState = s_UIState;
+                // wheel / trackpad stop at the ends: macOS keeps sending momentum events after the
+                // fingers lift, which dragged the rubber band far out and held it there
+                off = Maths::Clamp(off - scrollDelta, Maths::Min(off, 0.0f), Maths::Max(off, maxScroll));
+                input = true;
+                if(phys)
+                    phys->velocity = 0.0f; // trackpads send their own momentum
+            }
         }
 
         if(s_UIState->ClickOnRelease && maxScroll > 0.0f)
@@ -2213,10 +2974,18 @@ namespace Lumos
             const bool held    = Input::Get().GetMouseHeld(Lumos::InputCode::MouseKey::ButtonLeft);
             if(held && (hovering || s_ScrollDragHash == areaHash))
             {
-                if(s_ScrollDragHash == areaHash)
-                    *s_ScrollAreaOffset -= (mousePos.y - s_ScrollDragLastY);
+                if(s_ScrollDragHash == areaHash && !s_HScrollOwnsDrag)
+                {
+                    const float d = -(mousePos.y - s_ScrollDragLastY);
+                    push(d);
+                    if(phys)
+                        phys->velocity = Maths::Lerp(phys->velocity, d / dt, 0.35f);
+                }
+                else if(phys)
+                    phys->velocity = 0.0f; // a finger down catches a coasting list
                 s_ScrollDragHash  = areaHash;
                 s_ScrollDragLastY = mousePos.y;
+                input             = true;
             }
             else if(s_ScrollDragHash == areaHash)
             {
@@ -2224,7 +2993,33 @@ namespace Lumos
             }
         }
 
-        *s_ScrollAreaOffset = Maths::Clamp(*s_ScrollAreaOffset, 0.0f, maxScroll);
+        if(phys)
+        {
+            if(!input)
+            {
+                // coast, slowing like iOS; hard braking once past an end
+                off += phys->velocity * dt;
+                const bool out = off < 0.0f || off > maxScroll;
+                phys->velocity *= expf(-dt * (out ? 18.0f : 2.2f));
+                if(Maths::Abs(phys->velocity) < 20.0f * dpi)
+                    phys->velocity = 0.0f;
+                // spring back to the end
+                if(off < 0.0f)
+                    off *= expf(-dt * 12.0f);
+                else if(off > maxScroll)
+                    off = maxScroll + (off - maxScroll) * expf(-dt * 12.0f);
+                if(off < 0.0f && off > -0.5f)
+                    off = 0.0f;
+                if(off > maxScroll && off < maxScroll + 0.5f)
+                    off = maxScroll;
+            }
+            const float limit = 0.35f * visibleHeight;
+            off = Maths::Clamp(off, -limit, maxScroll + limit);
+            phys->physOffset = off;
+            phys->lastFrame  = s_UIState->FrameIndex;
+        }
+        else
+            off = Maths::Clamp(off, 0.0f, maxScroll);
 
         // Only show scrollbar if content exceeds visible area
         if(contentHeight > visibleHeight)
@@ -2233,14 +3028,33 @@ namespace Lumos
             float trackHeight = visibleHeight;
             float thumbRatio = visibleHeight / contentHeight;
             float thumbHeight = Maths::Max(20.0f * dpi, trackHeight * thumbRatio);
-            float scrollRatio = (maxScroll > 0.0f) ? (*s_ScrollAreaOffset / maxScroll) : 0.0f;
+            float scrollRatio = (maxScroll > 0.0f) ? Maths::Clamp(*s_ScrollAreaOffset / maxScroll, 0.0f, 1.0f) : 0.0f;
             float thumbOffset = scrollRatio * (trackHeight - thumbHeight);
 
-            // Scrollbar track
-            u64 scrollId = s_UIState->WidgetIdCounter++;
-            String8 trackId = PushStr8F(s_UIState->UIFrameArena, "scrolltrack###st%llu", scrollId);
-            u64 trackHash;
-            HandleUIString((char*)trackId.str, &trackHash);
+            // fade: visible while it moves, while dragged, or with the pointer at the bar
+            float barAlpha = 1.0f;
+            if(s_ScrollbarFade)
+            {
+                const u64 thumbId          = UIHashCombine(s_ScrollAreaWidget->hash, 0x5448554Dull);
+                ScrollbarFadeState& fade   = ScrollbarFadeFor(s_ScrollAreaWidget->hash, *s_ScrollAreaOffset);
+                const float edgeX          = s_ScrollAreaWidget->position.x + s_ScrollAreaWidget->size.x;
+                const bool atBar           = hovering && mousePos.x > edgeX - 18.0f * dpi && !s_UIState->ClickOnRelease;
+                const bool moving          = Maths::Abs(*s_ScrollAreaOffset - fade.lastOffset) > 0.5f;
+                if(moving || atBar || s_UIState->active_widget == thumbId || s_ScrollDragHash == s_ScrollAreaWidget->hash)
+                    fade.idle = 0.0f;
+                else
+                    fade.idle += s_UIFrameDT;
+                const float target = fade.idle < 0.8f ? 1.0f : 0.0f;
+                const float rate   = target > fade.alpha ? 12.0f : 4.0f;
+                fade.alpha += Maths::Clamp(target - fade.alpha, -rate * s_UIFrameDT, rate * s_UIFrameDT);
+                fade.lastOffset = *s_ScrollAreaOffset;
+                fade.lastFrame  = s_UIState->FrameIndex;
+                barAlpha        = fade.alpha;
+            }
+
+            // Scrollbar track. Ids come from the area's own hash: a frame counter shifts whenever the
+            // number of widgets before it changes (virtualised lists), which dropped thumb drags mid-way.
+            const u64 trackHash = UIHashCombine(s_ScrollAreaWidget->hash, 0x5452434Bull);
 
             UI_Widget* track = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_Floating_X | WidgetFlags_Floating_Y,
                                           Str8Lit(""),
@@ -2252,15 +3066,16 @@ namespace Lumos
             track->style_vars[StyleVar_Padding] = Vec4(0.0f);
 
             if(UIThemeIsDark())
-                track->style_vars[StyleVar_BackgroundColor] = Vec4(0.2f, 0.2f, 0.2f, 0.5f);
+                track->style_vars[StyleVar_BackgroundColor] = Vec4(0.2f, 0.2f, 0.2f, 0.5f * barAlpha);
             else
-                track->style_vars[StyleVar_BackgroundColor] = Vec4(0.85f, 0.85f, 0.85f, 0.5f);
+                track->style_vars[StyleVar_BackgroundColor] = Vec4(0.85f, 0.85f, 0.85f, 0.5f * barAlpha);
+            // a fading bar is the thumb alone, like macOS
+            if(s_ScrollbarFade)
+                track->style_vars[StyleVar_BackgroundColor].w = 0.0f;
 
             track->style_vars[StyleVar_CornerRadius] = Vec4(4.0f * dpi, 0.0f, 0.0f, 0.0f);
 
-            String8 thumbId = PushStr8F(s_UIState->UIFrameArena, "scrollthumb###sth%llu", scrollId);
-            u64 thumbHash;
-            HandleUIString((char*)thumbId.str, &thumbHash);
+            const u64 thumbHash = UIHashCombine(s_ScrollAreaWidget->hash, 0x5448554Dull);
 
             UI_Widget* thumb = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_Floating_X | WidgetFlags_Floating_Y | WidgetFlags_Clickable,
                                           Str8Lit(""),
@@ -2272,9 +3087,9 @@ namespace Lumos
             thumb->style_vars[StyleVar_Padding] = Vec4(0.0f);
 
             if(UIThemeIsDark())
-                thumb->style_vars[StyleVar_BackgroundColor] = Vec4(0.5f, 0.5f, 0.5f, 0.8f);
+                thumb->style_vars[StyleVar_BackgroundColor] = Vec4(0.5f, 0.5f, 0.5f, 0.8f * barAlpha);
             else
-                thumb->style_vars[StyleVar_BackgroundColor] = Vec4(0.6f, 0.6f, 0.6f, 0.8f);
+                thumb->style_vars[StyleVar_BackgroundColor] = Vec4(0.6f, 0.6f, 0.6f, 0.8f * barAlpha);
 
             thumb->style_vars[StyleVar_CornerRadius] = Vec4(3.0f * dpi, 0.0f, 0.0f, 0.0f);
 
@@ -2334,7 +3149,10 @@ namespace Lumos
 
 #ifdef LUMOS_PLATFORM_IOS
     extern "C" void OpeniOSKeyboard(std::string* cppString);
-    static std::string s_NativeKeyboardText;
+    extern "C" void CloseiOSKeyboard();
+    // never destroyed: UIKit can still end editing (and write here) while the app tears down
+    static std::string& s_NativeKeyboardText = *new std::string();
+    static std::string& s_NativeKeyboardSeen = *new std::string(); // last native text copied in
     static u64 s_NativeKeyboardHash = 0;
 #endif
 
@@ -2344,6 +3162,261 @@ namespace Lumos
     void UIFocusNextTextInput()
     {
         s_ClaimNextTextInputFocus = true;
+    }
+
+    // ---- text field extras: drawn caret + selection, mouse placement / selection
+
+    static u64 s_TextDragHash   = 0;
+    static f32 s_CaretTime      = 0.0f;
+    static u32 s_CaretLastIndex = ~0u;
+
+    static bool IsWordByte(char c)
+    {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || (u8)c >= 0x80;
+    }
+
+    static u32 PrevWordIndex(const char* buf, u32 i)
+    {
+        while(i > 0 && !IsWordByte(buf[i - 1])) i--;
+        while(i > 0 && IsWordByte(buf[i - 1])) i--;
+        return i;
+    }
+
+    static u32 NextWordIndex(const char* buf, u32 i, u32 len)
+    {
+        while(i < len && !IsWordByte(buf[i])) i++;
+        while(i < len && IsWordByte(buf[i])) i++;
+        return i;
+    }
+
+    static f32 TextWidthTo(const char* buf, u32 i, f32 fontSize)
+    {
+        return i == 0 ? 0.0f : GetStringSize(Str8((u8*)buf, i), fontSize).x;
+    }
+
+    static u32 TextIndexAt(const char* buf, u32 len, f32 fontSize, f32 x)
+    {
+        u32 best    = 0;
+        f32 bestGap = Maths::Abs(x);
+        for(u32 i = 1; i <= len; i++)
+        {
+            if(i < len && ((u8)buf[i] & 0xC0) == 0x80)
+                continue; // inside a UTF-8 sequence
+            const f32 gap = Maths::Abs(x - TextWidthTo(buf, i, fontSize));
+            if(gap < bestGap)
+            {
+                bestGap = gap;
+                best    = i;
+            }
+        }
+        return best;
+    }
+
+    // Call after the field's focus handling. Places the cursor where it was clicked, selects by
+    // dragging / a word by double-clicking, and draws the selection and a softly pulsing caret.
+    // first byte shown by the focused field when its text is wider than it is
+    static u64 s_TextScrollHash  = 0;
+    static u32 s_TextScrollStart = 0;
+
+    static u32 Utf8Next(const char* buf, u32 i, u32 len)
+    {
+        if(i < len) i++;
+        while(i < len && ((u8)buf[i] & 0xC0) == 0x80) i++;
+        return i;
+    }
+
+    static u32 Utf8Prev(const char* buf, u32 i)
+    {
+        if(i > 0) i--;
+        while(i > 0 && ((u8)buf[i] & 0xC0) == 0x80) i--;
+        return i;
+    }
+
+    // The slice of the buffer that fits the field, kept round the cursor while focused.
+    static void TextFieldView(UI_Widget* field, const char* buffer, u64 fieldHash, u32* outStart, u32* outEnd, const Vec2* padding = nullptr)
+    {
+        const u32 len   = (u32)strlen(buffer);
+        const f32 fs    = field->style_vars[StyleVar_FontSize].x;
+        const f32 avail = field->size.x - (padding ? padding->x : field->style_vars[StyleVar_Padding].x) * 2.0f;
+        *outStart       = 0;
+        *outEnd         = len;
+        // size is last frame's: nothing to fit against on the first one
+        if(len == 0 || avail <= fs || GetStringSize(Str8((u8*)buffer, len), fs).x <= avail)
+        {
+            if(s_TextScrollHash == fieldHash)
+                s_TextScrollStart = 0;
+            return;
+        }
+
+        u32 start = 0;
+        if(s_UIState->FocusedTextInput == fieldHash)
+        {
+            if(s_TextScrollHash != fieldHash)
+            {
+                s_TextScrollHash  = fieldHash;
+                s_TextScrollStart = 0;
+            }
+            const u32 cursor = Maths::Min(s_UIState->TextInputCursor, len);
+            start            = Maths::Min(s_TextScrollStart, len);
+            if(cursor < start)
+                start = cursor;
+            while(start < cursor && GetStringSize(Str8((u8*)buffer + start, cursor - start), fs).x > avail)
+                start = Utf8Next(buffer, start, len);
+            // no empty space at the end while there is text off the front
+            while(start > 0)
+            {
+                const u32 prev = Utf8Prev(buffer, start);
+                if(GetStringSize(Str8((u8*)buffer + prev, len - prev), fs).x > avail)
+                    break;
+                start = prev;
+            }
+            s_TextScrollStart = start;
+        }
+
+        u32 end = start;
+        while(end < len)
+        {
+            const u32 next = Utf8Next(buffer, end, len);
+            if(GetStringSize(Str8((u8*)buffer + start, next - start), fs).x > avail)
+                break;
+            end = next;
+        }
+        *outStart = start;
+        *outEnd   = end;
+    }
+
+    static void UITextFieldExtras(UI_Widget* field, const char* fullBuffer, u64 fieldHash, bool placeholder,
+                                  const UI_Interaction& in, const Vec4& caretColour, u32 viewStart = 0, u32 viewEnd = ~0u,
+                                  const Vec2* padding = nullptr)
+    {
+        if(s_UIState->FocusedTextInput != fieldHash)
+        {
+            if(s_TextDragHash == fieldHash)
+                s_TextDragHash = 0;
+            return;
+        }
+        const f32 dpi    = s_UIState->DPIScale;
+        const f32 fs     = field->style_vars[StyleVar_FontSize].x;
+        const Vec2 pad   = padding ? *padding : field->style_vars[StyleVar_Padding].ToVector2();
+        const u32 fullLen = placeholder ? 0 : (u32)strlen(fullBuffer);
+        viewEnd           = Maths::Min(viewEnd, fullLen);
+        viewStart         = Maths::Min(viewStart, viewEnd);
+        // everything below works on the visible slice; indices are shifted back at the end
+        const char* buffer = fullBuffer + viewStart;
+        const u32 len      = viewEnd - viewStart;
+        const f32 textW    = len > 0 ? GetStringSize(Str8((u8*)buffer, len), fs).x : 0.0f;
+        const f32 originX  = (field->TextAlignment & UI_Text_Alignment_Center_X) ? Maths::Max(pad.x, (field->size.x - textW) * 0.5f) : pad.x;
+        const Vec2 mouse   = Input::Get().GetMousePosition() * s_UIState->InputScale - s_UIState->InputOffset;
+        const f32 localX   = mouse.x - (field->position.x + originX);
+        const bool held  = Input::Get().GetMouseHeld(Lumos::InputCode::MouseKey::ButtonLeft);
+
+        // a press anywhere else lets go of the field (and puts a phone's keyboard away)
+        if(Input::Get().GetMouseClicked(Lumos::InputCode::MouseKey::ButtonLeft) && !in.pressed && !in.clicked && !in.hovering)
+        {
+            s_UIState->FocusedTextInput    = 0;
+            s_UIState->TextInputBuffer     = nullptr;
+            s_UIState->TextInputBufferSize = 0;
+            s_UIState->TextInputSelStart = s_UIState->TextInputSelEnd = 0;
+            s_TextDragHash                 = 0;
+#ifdef LUMOS_PLATFORM_IOS
+            s_NativeKeyboardHash = 0;
+            CloseiOSKeyboard();
+#endif
+            return;
+        }
+
+        auto toView = [&](u32 i) { return Maths::Clamp(i, viewStart, viewEnd) - viewStart; };
+        u32 cursor   = toView(s_UIState->TextInputCursor);
+        u32 selStart = toView(s_UIState->TextInputSelStart);
+        u32 selEnd   = toView(s_UIState->TextInputSelEnd);
+        const u32 cursorBefore = cursor, selStartBefore = selStart, selEndBefore = selEnd;
+
+        if(in.double_clicked && len > 0)
+        {
+            u32 i = TextIndexAt(buffer, len, fs, localX);
+            u32 a = i, b = i;
+            while(a > 0 && IsWordByte(buffer[a - 1])) a--;
+            while(b < len && IsWordByte(buffer[b])) b++;
+            selStart = a;
+            selEnd = cursor = b;
+            s_TextDragHash  = 0;
+        }
+        else if(s_UIState->ClickOnRelease ? in.clicked : in.pressed)
+        {
+            const u32 i       = TextIndexAt(buffer, len, fs, localX);
+            const bool shift  = Input::Get().GetKeyHeldRaw(InputCode::Key::LeftShift) || Input::Get().GetKeyHeldRaw(InputCode::Key::RightShift);
+            if(shift)
+                selEnd = i;
+            else
+                selStart = selEnd = i;
+            cursor         = i;
+            s_TextDragHash = s_UIState->ClickOnRelease ? 0 : fieldHash;
+        }
+        else if(s_TextDragHash == fieldHash)
+        {
+            if(held)
+            {
+                selEnd = cursor = TextIndexAt(buffer, len, fs, localX);
+                // dragging past an end walks the view along
+                if(localX > textW + pad.x && viewEnd < fullLen)
+                    s_UIState->TextInputSelEnd = s_UIState->TextInputCursor = Utf8Next(fullBuffer, viewEnd, fullLen);
+                else if(localX < -pad.x && viewStart > 0)
+                    s_UIState->TextInputSelEnd = s_UIState->TextInputCursor = Utf8Prev(fullBuffer, viewStart);
+            }
+            else
+                s_TextDragHash = 0;
+        }
+
+        cursor   = Maths::Min(cursor, len);
+        selStart = Maths::Min(selStart, len);
+        selEnd   = Maths::Min(selEnd, len);
+        // only write back what the mouse changed: a selection can reach outside the view
+        if(cursor != cursorBefore)
+            s_UIState->TextInputCursor = cursor + viewStart;
+        if(selStart != selStartBefore)
+            s_UIState->TextInputSelStart = selStart + viewStart;
+        if(selEnd != selEndBefore)
+            s_UIState->TextInputSelEnd = selEnd + viewStart;
+
+        // text sits at the top padding (or centred): the caret is centred on that line
+        const f32 textH = GetStringSize(Str8Lit("A"), fs).y;
+        const f32 lineH = Maths::Min(fs * 1.15f, Maths::Max(textH, field->size.y - 6.0f * dpi));
+        const f32 textY = (field->TextAlignment & UI_Text_Alignment_Center_Y) ? (field->size.y - textH) * 0.5f : pad.y;
+        const f32 y     = Maths::Max(0.0f, textY + (textH - lineH) * 0.5f);
+        PushParent(field);
+        if(selStart != selEnd)
+        {
+            const f32 x0 = TextWidthTo(buffer, Maths::Min(selStart, selEnd), fs);
+            const f32 x1 = TextWidthTo(buffer, Maths::Max(selStart, selEnd), fs);
+            UI_Widget* sel = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_Floating_X | WidgetFlags_Floating_Y, Str8Lit(""),
+                                        UIHashCombine(fieldHash, 0x53454Cull), { SizeKind_Pixels, x1 - x0 }, { SizeKind_Pixels, lineH });
+            sel->relative_position                 = Vec2(originX + x0, y);
+            sel->style_vars[StyleVar_Padding]      = Vec4(0.0f);
+            sel->style_vars[StyleVar_Border]       = Vec4(0.0f);
+            sel->style_vars[StyleVar_CornerRadius] = Vec4(2.0f * dpi, 0.0f, 0.0f, 0.0f);
+            sel->style_vars[StyleVar_BackgroundColor] = Vec4(caretColour.x, caretColour.y, caretColour.z, 0.35f);
+        }
+        // solid while typing / moving, then a slow pulse
+        if(cursor + viewStart != s_CaretLastIndex)
+        {
+            s_CaretLastIndex = cursor + viewStart;
+            s_CaretTime      = 0.0f;
+        }
+        s_CaretTime += s_UIFrameDT;
+        const f32 pulse = s_CaretTime < 0.5f ? 1.0f : 0.55f + 0.45f * cosf((s_CaretTime - 0.5f) * 5.0f);
+        UI_Widget* caret = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_Floating_X | WidgetFlags_Floating_Y, Str8Lit(""),
+                                      UIHashCombine(fieldHash, 0x435254ull), { SizeKind_Pixels, Maths::Max(1.0f, 1.5f * dpi) }, { SizeKind_Pixels, lineH });
+        caret->relative_position                    = Vec2(originX + TextWidthTo(buffer, placeholder ? 0 : cursor, fs) - (len > 0 && cursor == 0 ? 1.0f * dpi : 0.0f), y);
+        caret->style_vars[StyleVar_Padding]         = Vec4(0.0f);
+        caret->style_vars[StyleVar_Border]          = Vec4(0.0f);
+        caret->style_vars[StyleVar_CornerRadius]    = Vec4(0.0f);
+        caret->style_vars[StyleVar_BackgroundColor] = Vec4(caretColour.x, caretColour.y, caretColour.z, caretColour.w * pulse);
+        PopParent(field);
+    }
+
+    static Vec4 CaretColour(const Vec4& text)
+    {
+        return s_UIState->AccentColour.w > 0.0f ? Vec4(s_UIState->AccentColour.x, s_UIState->AccentColour.y, s_UIState->AccentColour.z, 1.0f) : text;
     }
 
     UI_Interaction UITextInput(const char* str, char* buffer, u32 buffer_size, u32* cursor_pos)
@@ -2383,8 +3456,10 @@ namespace Lumos
 
 #ifdef LUMOS_PLATFORM_IOS
         // Mirror native-keyboard edits into the caller's buffer.
-        if(isFocused && s_NativeKeyboardHash == fieldHash)
+        // only when the keyboard changed it: the field can also be edited from here (or cleared by its owner)
+        if(isFocused && s_NativeKeyboardHash == fieldHash && s_NativeKeyboardText != s_NativeKeyboardSeen)
         {
+            s_NativeKeyboardSeen = s_NativeKeyboardText;
             strncpy(buffer, s_NativeKeyboardText.c_str(), buffer_size - 1);
             buffer[buffer_size - 1]    = 0;
             s_UIState->TextInputCursor = (u32)strlen(buffer);
@@ -2392,18 +3467,6 @@ namespace Lumos
 #endif
 
         String8 displayStr = Str8C(buffer);
-
-        if(isFocused)
-        {
-            // Show cursor as | character
-            u32 cursorIdx       = s_UIState->TextInputCursor;
-            u32 len             = (u32)strlen(buffer);
-            cursorIdx           = Maths::Min(cursorIdx, len);
-            String8 displayText = PushStr8F(s_UIState->UIFrameArena, "%.*s|%s",
-                                            cursorIdx, buffer,
-                                            buffer + cursorIdx);
-            displayStr          = displayText;
-        }
 
         // Input field
         UI_Widget* field = PushWidget(WidgetFlags_Clickable | WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | WidgetFlags_DrawText | WidgetFlags_CentreY,
@@ -2440,6 +3503,8 @@ namespace Lumos
 
         UI_Interaction interaction = HandleWidgetInteraction(field);
 
+        UIScribbleRegister(field, fieldHash, false);
+
         // Handle click focus
         if(interaction.clicked)
         {
@@ -2453,6 +3518,7 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_IOS
             // Tapping a field brings up the system keyboard.
             s_NativeKeyboardText = buffer;
+            s_NativeKeyboardSeen = buffer;
             s_NativeKeyboardHash = fieldHash;
             OpeniOSKeyboard(&s_NativeKeyboardText);
 #endif
@@ -2475,10 +3541,14 @@ namespace Lumos
             s_UIState->TextInputSelEnd     = (u32)strlen(buffer); // Select all on focus
 #ifdef LUMOS_PLATFORM_IOS
             s_NativeKeyboardText = buffer;
+            s_NativeKeyboardSeen = buffer;
             s_NativeKeyboardHash = fieldHash;
             OpeniOSKeyboard(&s_NativeKeyboardText);
 #endif
         }
+
+        UITextFieldExtras(field, buffer, fieldHash, false, interaction,
+                          CaretColour(UIThemeIsDark() ? Vec4(0.95f, 0.95f, 0.97f, 1.0f) : Vec4(0.1f, 0.1f, 0.12f, 1.0f)));
 
         // Update external cursor if provided
         if(cursor_pos && isFocused)
@@ -2489,10 +3559,245 @@ namespace Lumos
         return interaction;
     }
 
+    // The owner can replace the text under a focused field (e.g. clearing a search): keep the
+    // cursor / selection inside it or edits land past the terminator and vanish
+    static void ClampTextCursor()
+    {
+        u32 len = (u32)strlen(s_UIState->TextInputBuffer);
+        s_UIState->TextInputCursor   = Maths::Min(s_UIState->TextInputCursor, len);
+        s_UIState->TextInputSelStart = Maths::Min(s_UIState->TextInputSelStart, len);
+        s_UIState->TextInputSelEnd   = Maths::Min(s_UIState->TextInputSelEnd, len);
+    }
+
+    static void QueueKeyEvent(u16 key, char character)
+    {
+        if(s_UIState->KeySinkCount >= (u32)ArrayCount(s_UIState->KeySinkEvents))
+            return;
+        Input& input      = Input::Get();
+        UIKeyEvent& event = s_UIState->KeySinkEvents[s_UIState->KeySinkCount++];
+        event.Key         = key;
+        event.Character   = character;
+        event.Shift       = input.GetKeyHeldRaw(InputCode::Key::LeftShift) || input.GetKeyHeldRaw(InputCode::Key::RightShift);
+        event.Ctrl        = input.GetKeyHeldRaw(InputCode::Key::LeftControl) || input.GetKeyHeldRaw(InputCode::Key::RightControl);
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
+        event.Ctrl = event.Ctrl || input.GetKeyHeldRaw(InputCode::Key::LeftSuper) || input.GetKeyHeldRaw(InputCode::Key::RightSuper);
+#endif
+        event.Alt = input.GetKeyHeldRaw(InputCode::Key::LeftAlt) || input.GetKeyHeldRaw(InputCode::Key::RightAlt);
+    }
+
+    static bool KeySinkFocused()
+    {
+        return s_UIState->KeySink != 0 && s_UIState->FocusedTextInput == s_UIState->KeySink;
+    }
+
+#ifdef LUMOS_PLATFORM_IOS
+    extern "C" void iOSSetKeyboardStyle(int style);
+    extern "C" float iOSKeyboardCover();
+#endif
+
+    // the UI that asked for the on-screen keyboard: only it puts it away
+    static UI_State* s_KeyboardOwner = nullptr;
+    static u32 s_KeyboardUnfocusedFrames = 0;
+
+    void UIShowKeyboard(bool show)
+    {
+        if(show)
+        {
+            s_KeyboardOwner           = s_UIState;
+            s_KeyboardUnfocusedFrames = 0;
+        }
+        else if(s_KeyboardOwner == s_UIState)
+            s_KeyboardOwner = nullptr;
+        OS::Get().ShowKeyboard(show);
+    }
+
+    // The sink that wanted the keyboard lost the keys to something else: put it away.
+    // (A few frames' grace: focus asked for this frame lands on the next build.)
+    static void UIKeyboardFrameCheck()
+    {
+        if(s_KeyboardOwner != s_UIState)
+            return;
+        if(KeySinkFocused())
+            s_KeyboardUnfocusedFrames = 0;
+        else if(++s_KeyboardUnfocusedFrames > 3)
+            UIShowKeyboard(false);
+    }
+
+    // ---- handwriting targets ----
+    // Where the text fields built this frame are, per UI, for the platform's handwriting
+    // (iOS Scribble) to ask about. Rects are in raw input pixels.
+    struct ScribbleTarget
+    {
+        u64 Hash;
+        Vec4 Rect; // x y w h
+        bool Number;
+    };
+    struct ScribbleList
+    {
+        UI_State* Owner = nullptr;
+        u32 Count       = 0;
+        u64 Wanted      = 0; // a number field asked to switch to typing
+        ScribbleTarget Items[96];
+    };
+    static ScribbleList s_Scribble[4];
+
+    static ScribbleList& ScribbleFor(UI_State* ui)
+    {
+        for(ScribbleList& list : s_Scribble)
+            if(list.Owner == ui)
+                return list;
+        for(ScribbleList& list : s_Scribble)
+            if(!list.Owner)
+            {
+                list.Owner = ui;
+                return list;
+            }
+        s_Scribble[0].Owner = ui;
+        s_Scribble[0].Count = 0;
+        return s_Scribble[0];
+    }
+
+    static void UIScribbleBeginFrame()
+    {
+        ScribbleFor(s_UIState).Count = 0;
+    }
+
+    void UIScribbleRegister(UI_Widget* widget, u64 hash, bool number)
+    {
+        ScribbleList& list = ScribbleFor(s_UIState);
+        if(!widget || list.Count >= (u32)ArrayCount(list.Items) || widget->size.x < 4.0f || widget->size.y < 4.0f)
+            return;
+        // what is left of it inside its clip
+        const Vec4& clip = widget->ClipRect;
+        const f32 x0     = Maths::Max(widget->position.x, clip.x), y0 = Maths::Max(widget->position.y, clip.y);
+        const f32 x1     = Maths::Min(widget->position.x + widget->size.x, clip.z), y1 = Maths::Min(widget->position.y + widget->size.y, clip.w);
+        if(x1 - x0 < 4.0f || y1 - y0 < 4.0f)
+            return;
+        const f32 inputScale   = Maths::Max(s_UIState->InputScale, 0.0001f);
+        const Vec2 scale       = Vec2(inputScale, inputScale);
+        ScribbleTarget& target = list.Items[list.Count++];
+        target.Hash            = hash;
+        target.Number          = number;
+        target.Rect            = Vec4((x0 + s_UIState->InputOffset.x) / scale.x, (y0 + s_UIState->InputOffset.y) / scale.y, (x1 - x0) / scale.x, (y1 - y0) / scale.y);
+    }
+
+    bool UIScribbleTake(u64 hash)
+    {
+        ScribbleList& list = ScribbleFor(s_UIState);
+        if(list.Wanted != hash || hash == 0)
+            return false;
+        list.Wanted = 0;
+        return true;
+    }
+
+    // for the platform layer (iOSOS.mm)
+    extern "C" u32 UIScribbleTargets(u64* hashes, float* rects, u32 maxCount)
+    {
+        u32 count = 0;
+        for(ScribbleList& list : s_Scribble)
+            for(u32 i = 0; list.Owner && i < list.Count && count < maxCount; i++)
+            {
+                hashes[count]        = list.Items[i].Hash;
+                rects[count * 4 + 0] = list.Items[i].Rect.x;
+                rects[count * 4 + 1] = list.Items[i].Rect.y;
+                rects[count * 4 + 2] = list.Items[i].Rect.z;
+                rects[count * 4 + 3] = list.Items[i].Rect.w;
+                count++;
+            }
+        return count;
+    }
+
+    extern "C" bool UIScribbleIsFocused(u64 hash)
+    {
+        for(ScribbleList& list : s_Scribble)
+            if(list.Owner && hash != 0 && list.Owner->FocusedTextInput == hash)
+                return true;
+        return false;
+    }
+
+    extern "C" void UIScribbleFocus(u64 hash)
+    {
+        for(ScribbleList& list : s_Scribble)
+            for(u32 i = 0; list.Owner && i < list.Count; i++)
+                if(list.Items[i].Hash == hash)
+                {
+                    if(list.Items[i].Number)
+                        list.Wanted = hash;
+                    else
+                        list.Owner->PendingFocusWidget = hash;
+                    return;
+                }
+    }
+
+    static int s_RequestedCursor = -1;
+
+    void UISetCursor(UICursor cursor)
+    {
+        s_RequestedCursor = (int)cursor;
+    }
+
+    int UITakeCursor()
+    {
+        const int cursor  = s_RequestedCursor;
+        s_RequestedCursor = -1;
+        return cursor;
+    }
+
+    void UISetKeyboardStyle(UIKeyboardStyle style)
+    {
+#ifdef LUMOS_PLATFORM_IOS
+        iOSSetKeyboardStyle((int)style);
+#endif
+    }
+
+    float UIKeyboardCover()
+    {
+#ifdef LUMOS_PLATFORM_IOS
+        return iOSKeyboardCover();
+#else
+        return 0.0f;
+#endif
+    }
+
+    void UISetKeySink(u64 hash)
+    {
+        // letting go of the keys puts the keyboard away
+        if(hash == 0 && s_KeyboardOwner == s_UIState)
+            UIShowKeyboard(false);
+        s_UIState->KeySink             = hash;
+        s_UIState->KeySinkCount        = 0;
+        s_UIState->FocusedTextInput    = hash;
+        s_UIState->TextInputBuffer     = nullptr;
+        s_UIState->TextInputBufferSize = 0;
+    }
+
+    bool UIIsKeySink(u64 hash)
+    {
+        return hash != 0 && s_UIState->KeySink == hash && s_UIState->FocusedTextInput == hash;
+    }
+
+    u32 UITakeKeyEvents(u64 hash, UIKeyEvent* out, u32 maxEvents)
+    {
+        if(!UIIsKeySink(hash))
+            return 0;
+        const u32 count = Maths::Min(s_UIState->KeySinkCount, maxEvents);
+        for(u32 i = 0; i < count; i++)
+            out[i] = s_UIState->KeySinkEvents[i];
+        s_UIState->KeySinkCount = 0;
+        return count;
+    }
+
     void UIProcessKeyTyped(char character)
     {
+        if(KeySinkFocused())
+        {
+            if(character >= 32 && character < 127)
+                QueueKeyEvent(0, character);
+            return;
+        }
         if(s_UIState->FocusedTextInput == 0 || !s_UIState->TextInputBuffer)
             return;
+        ClampTextCursor();
 
         // Printable characters
         if(character >= 32 && character < 127)
@@ -2529,9 +3834,19 @@ namespace Lumos
 
     void UIProcessKeyPressed(InputCode::Key key)
     {
+        // a key sink takes everything, Tab included
+        if(KeySinkFocused())
+        {
+            QueueKeyEvent((u16)key, 0);
+            return;
+        }
+
         // Tab focus navigation (works even without focused text input)
         if(key == InputCode::Key::Tab)
         {
+            // Ctrl+Tab belongs to whoever owns the window (a panel switcher), not to field focus
+            if(Input::Get().GetKeyHeldRaw(InputCode::Key::LeftControl) || Input::Get().GetKeyHeldRaw(InputCode::Key::RightControl))
+                return;
             if(Input::Get().GetKeyHeldRaw(InputCode::Key::LeftShift) || Input::Get().GetKeyHeldRaw(InputCode::Key::RightShift))
                 s_UIState->ShiftTabPressed = true;
             else
@@ -2541,6 +3856,7 @@ namespace Lumos
 
         if(s_UIState->FocusedTextInput == 0 || !s_UIState->TextInputBuffer)
             return;
+        ClampTextCursor();
 
         u32 len = (u32)strlen(s_UIState->TextInputBuffer);
         bool shift = Input::Get().GetKeyHeldRaw(InputCode::Key::LeftShift) || Input::Get().GetKeyHeldRaw(InputCode::Key::RightShift);
@@ -2578,35 +3894,95 @@ namespace Lumos
             s_UIState->TextInputCursor = newCursor;
         };
 
+        // word / line modifiers: Alt = word and Cmd = line on macOS, Ctrl = word elsewhere
+        const bool alt = Input::Get().GetKeyHeldRaw(InputCode::Key::LeftAlt) || Input::Get().GetKeyHeldRaw(InputCode::Key::RightAlt);
+#ifdef LUMOS_PLATFORM_MACOS
+        const bool lineMod = Input::Get().GetKeyHeldRaw(InputCode::Key::LeftSuper) || Input::Get().GetKeyHeldRaw(InputCode::Key::RightSuper);
+        const bool wordMod = alt;
+#else
+        const bool lineMod = false;
+        const bool wordMod = ctrl;
+#endif
+        char* buf = s_UIState->TextInputBuffer;
+        auto deleteRange = [&](u32 a, u32 b) {
+            if(b <= a) return;
+            memmove(buf + a, buf + b, len - b + 1);
+            s_UIState->TextInputCursor   = a;
+            s_UIState->TextInputSelStart = s_UIState->TextInputSelEnd = a;
+        };
+        const u32 cur        = s_UIState->TextInputCursor;
+        const bool hasSel    = s_UIState->TextInputSelStart != s_UIState->TextInputSelEnd;
+        const u32 selLo      = Maths::Min(s_UIState->TextInputSelStart, s_UIState->TextInputSelEnd);
+        const u32 selHi      = Maths::Max(s_UIState->TextInputSelStart, s_UIState->TextInputSelEnd);
+
         switch(key)
         {
         case InputCode::Key::Backspace:
-            if(!deleteSelection() && s_UIState->TextInputCursor > 0)
+            if(deleteSelection())
+                break;
+            if(lineMod)
+                deleteRange(0, cur);
+            else if(wordMod)
+                deleteRange(PrevWordIndex(buf, cur), cur);
+            else if(cur > 0)
             {
-                u32 cursor = s_UIState->TextInputCursor;
-                for(u32 i = cursor - 1; i < len; i++)
-                    s_UIState->TextInputBuffer[i] = s_UIState->TextInputBuffer[i + 1];
-                s_UIState->TextInputCursor--;
+                u32 a = cur - 1;
+                while(a > 0 && ((u8)buf[a] & 0xC0) == 0x80) a--; // whole UTF-8 character
+                deleteRange(a, cur);
             }
             break;
 
         case InputCode::Key::Delete:
-            if(!deleteSelection() && s_UIState->TextInputCursor < len)
+            if(deleteSelection())
+                break;
+            if(lineMod)
+                deleteRange(cur, len);
+            else if(wordMod)
+                deleteRange(cur, NextWordIndex(buf, cur, len));
+            else if(cur < len)
             {
-                u32 cursor = s_UIState->TextInputCursor;
-                for(u32 i = cursor; i < len; i++)
-                    s_UIState->TextInputBuffer[i] = s_UIState->TextInputBuffer[i + 1];
+                u32 b = cur + 1;
+                while(b < len && ((u8)buf[b] & 0xC0) == 0x80) b++;
+                deleteRange(cur, b);
             }
             break;
 
         case InputCode::Key::Left:
-            if(s_UIState->TextInputCursor > 0)
-                updateSelection(s_UIState->TextInputCursor - 1);
+            if(hasSel && !shift)
+                updateSelection(selLo);
+            else if(lineMod)
+                updateSelection(0);
+            else if(wordMod)
+                updateSelection(PrevWordIndex(buf, cur));
+            else if(cur > 0)
+            {
+                u32 a = cur - 1;
+                while(a > 0 && ((u8)buf[a] & 0xC0) == 0x80) a--;
+                updateSelection(a);
+            }
             break;
 
         case InputCode::Key::Right:
-            if(s_UIState->TextInputCursor < len)
-                updateSelection(s_UIState->TextInputCursor + 1);
+            if(hasSel && !shift)
+                updateSelection(selHi);
+            else if(lineMod)
+                updateSelection(len);
+            else if(wordMod)
+                updateSelection(NextWordIndex(buf, cur, len));
+            else if(cur < len)
+            {
+                u32 b = cur + 1;
+                while(b < len && ((u8)buf[b] & 0xC0) == 0x80) b++;
+                updateSelection(b);
+            }
+            break;
+
+        case InputCode::Key::Up:
+            updateSelection(0);
+            break;
+
+        case InputCode::Key::Down:
+            updateSelection(len);
             break;
 
         case InputCode::Key::Home:
@@ -2779,7 +4155,7 @@ namespace Lumos
             u64 hashList;
             HandleUIString((char*)listId.str, &hashList);
 
-            UI_Widget* list = PushWidget(WidgetFlags_StackVertically | WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | WidgetFlags_Floating_X | WidgetFlags_Floating_Y,
+            UI_Widget* list = PushWidget(WidgetFlags_StackVertically | WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | WidgetFlags_Floating_X | WidgetFlags_Floating_Y | WidgetFlags_TopMost,
                                          Str8Lit(""),
                                          hashList,
                                          { SizeKind_MaxChild, 1.0f },
@@ -2880,7 +4256,11 @@ namespace Lumos
             if(hoverDuration >= s_UIState->TooltipDelay)
             {
                 s_UIState->ShowTooltip = true;
-                s_UIState->TooltipText = Str8C((char*)text);
+                size_t n = 0;
+                for(; text[n] && n < sizeof(s_UIState->TooltipBuffer) - 1; n++)
+                    s_UIState->TooltipBuffer[n] = text[n];
+                s_UIState->TooltipBuffer[n] = 0;
+                s_UIState->TooltipText      = Str8((u8*)s_UIState->TooltipBuffer, n);
             }
         }
         else if(s_UIState->HoveredWidget == targetWidget)
@@ -2892,7 +4272,8 @@ namespace Lumos
         if(s_UIState->ShowTooltip && s_UIState->TooltipText.size > 0 && s_UIState->hot_widget == targetWidget)
         {
             // Store position for deferred creation in UIEndBuild
-            s_UIState->TooltipPos = Input::Get().GetMousePosition() * s_UIState->InputScale - s_UIState->InputOffset;
+            s_UIState->TooltipPos      = Input::Get().GetMousePosition() * s_UIState->InputScale - s_UIState->InputOffset;
+            s_UIState->TooltipFontSize = s_UIState->style_variable_lists[StyleVar_FontSize].last->value.x;
         }
     }
 
@@ -2912,7 +4293,7 @@ namespace Lumos
 
         s_UIState->parents.PushBack(&s_UIState->root_parent);
 
-        UI_Widget* menu = PushWidget(WidgetFlags_StackVertically | WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | WidgetFlags_Floating_X | WidgetFlags_Floating_Y,
+        UI_Widget* menu = PushWidget(WidgetFlags_StackVertically | WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | WidgetFlags_Floating_X | WidgetFlags_Floating_Y | WidgetFlags_TopMost,
                                      text,
                                      hash,
                                      { SizeKind_MaxChild, 1.0f },
@@ -3420,10 +4801,15 @@ namespace Lumos
         s_UIState->ShiftTabPressed = true;
     }
 
+    Vec2 GetStringSizeFont(String8 text, float size, bool mono)
+    {
+        auto font = mono ? Graphics::Font::GetMonoFont() : Graphics::Font::GetDefaultFont();
+        return font->CalculateTextSize(text, size);
+    }
+
     Vec2 GetStringSize(String8 text, float size)
     {
-        Vec2 sizeVec = { size * text.size, size };
-        return Graphics::Font::GetDefaultFont()->CalculateTextSize(text, size); // sizeVec;
+        return GetStringSizeFont(text, size, s_UIState && s_UIState->MonoTextDepth > 0);
     }
 
     UI_Widget* UIWidgetRecurseDepthFirstPreOrder(UI_Widget* Node)
@@ -3487,9 +4873,9 @@ namespace Lumos
             case SizeKind_TextContent:
             {
                 Vec2 padding = Widget->style_vars[StyleVar_Padding].ToVector2();
-                Vec2 text_size = GetStringSize(Widget->text, fontSize);
+                Vec2 text_size = GetStringSizeFont(Widget->text, fontSize, Widget->MonoText);
                 if(Axis == UIAxis_Y)
-                    text_size.y = Maths::Max(text_size.y, GetStringSize(Str8Lit("Ay"), fontSize).y);
+                    text_size.y = Maths::Max(text_size.y, GetStringSizeFont(Str8Lit("Ay"), fontSize, Widget->MonoText).y);
                 f32 value = Widget->semantic_size[Axis].value;
                 // Add padding for both sides (left+right or top+bottom)
                 Widget->size[Axis] = (text_size[Axis] + padding[Axis] * 2.0f) * value;
@@ -3581,12 +4967,34 @@ namespace Lumos
     // has to solve its ChildSum/MaxChild children itself - without the stamp,
     // every level re-solved the whole subtree under it and a panel of nested
     // slider rows cost over a second a frame to lay out.
+    //
+    // The stamp alone is not enough: recursing into an already-solved child
+    // still WALKED its whole subtree to find nothing to do, so the cost stayed
+    // exponential in tree depth (each level re-walks every level below it).
+    // With two deep panels up at once - the trade terminal over a station
+    // callout - that reached minutes per frame, i.e. a hang. Both call sites
+    // below now check the stamp BEFORE recursing.
     static u64 s_DownwardsSizePass = 0;
 
     static void UILayoutSolveDownwardsSizesInner(UI_Widget* Root, UIAxis Axis)
     {
+        // Cycle guard. A widget linked into its own subtree (the same id pushed
+        // as a parent twice in one frame) makes this walk never terminate, and
+        // the app hangs with no output at all. Bail out and name the widget
+        // instead: a mis-laid-out panel is recoverable, a freeze is not.
+        const u64 walkCap = (u64)s_UIState->widgets.length * 8 + 4096;
+        u64 walked        = 0;
+
         for(UI_Widget* Widget = Root; Widget; Widget = UIWidgetRecurseDepthFirstPostOrder(Widget, Root))
         {
+            if(++walked > walkCap)
+            {
+                LWARN("UI layout: widget tree walk exceeded %llu steps at '%.*s' (axis %d) - cycle in the tree, layout abandoned this frame",
+                      (unsigned long long)walkCap,
+                      (int)Widget->text.size, Widget->text.size ? (const char*)Widget->text.str : "",
+                      (int)Axis);
+                break;
+            }
             UI_Size* Size = &Widget->semantic_size[Axis];
 
             if(Size->kind == SizeKind_ChildSum || Size->kind == SizeKind_MaxChild)
@@ -3611,7 +5019,8 @@ namespace Lumos
                     if(Child->flags & floatFlag)
                         continue;
 
-                    if(Child->semantic_size[Axis].kind == SizeKind_ChildSum || Child->semantic_size[Axis].kind == SizeKind_MaxChild)
+                    if((Child->semantic_size[Axis].kind == SizeKind_ChildSum || Child->semantic_size[Axis].kind == SizeKind_MaxChild)
+                       && Child->DownwardsSizePass[Axis] != s_DownwardsSizePass)
                     {
                         UILayoutSolveDownwardsSizesInner(Child, Axis);
                     }
@@ -3653,7 +5062,8 @@ namespace Lumos
                     if(Child->flags & floatFlag)
                         continue;
 
-                    if(Child->semantic_size[Axis].kind == SizeKind_ChildSum || Child->semantic_size[Axis].kind == SizeKind_MaxChild)
+                    if((Child->semantic_size[Axis].kind == SizeKind_ChildSum || Child->semantic_size[Axis].kind == SizeKind_MaxChild)
+                       && Child->DownwardsSizePass[Axis] != s_DownwardsSizePass)
                     {
                         UILayoutSolveDownwardsSizesInner(Child, Axis);
                     }
@@ -3773,13 +5183,65 @@ namespace Lumos
     void UIBeginBuild()
     {
         LUMOS_PROFILE_FUNCTION();
-        // Mark the beginning of UI building phase
-        // This can be used for validation or setup if needed
+        s_HScrollOwnsDrag = false;
+        s_ScrollAreaDepth  = 0;
+        s_ScrollAreaWidget = nullptr;
+        s_ScrollAreaOffset = nullptr;
+        UIWidgetsBeginBuild();
+    }
+
+    // Root-level widgets flagged TopMost go to the end of the list (in the order they
+    // were built), so a popup opened from an early panel still draws over later ones.
+    static void UIRaiseTopMost()
+    {
+        UI_Widget* root     = &s_UIState->root_parent;
+        UI_Widget* topFirst = nullptr;
+        UI_Widget* topLast  = nullptr;
+        u32 guard           = 0;
+        for(UI_Widget* w = root->first; w && guard < 100000; guard++)
+        {
+            UI_Widget* next = w->next;
+            if(w->flags & WidgetFlags_TopMost)
+            {
+                if(w->prev)
+                    w->prev->next = w->next;
+                else
+                    root->first = w->next;
+                if(w->next)
+                    w->next->prev = w->prev;
+                else
+                    root->last = w->prev;
+
+                w->prev = topLast;
+                w->next = nullptr;
+                if(topLast)
+                    topLast->next = w;
+                else
+                    topFirst = w;
+                topLast = w;
+            }
+            w = next;
+        }
+
+        if(topFirst)
+        {
+            if(root->last)
+            {
+                root->last->next = topFirst;
+                topFirst->prev   = root->last;
+            }
+            else
+                root->first = topFirst;
+            root->last = topLast;
+        }
     }
 
     void UIEndBuild()
     {
         LUMOS_PROFILE_FUNCTION();
+
+        UIWidgetsEndBuild();
+        UIRaiseTopMost();
 
         // Create deferred tooltip at root level (renders on top of everything)
         if(s_UIState->ShowTooltip && s_UIState->TooltipText.size > 0)
@@ -3787,33 +5249,40 @@ namespace Lumos
             // Push directly to root
             s_UIState->parents.PushBack(&s_UIState->root_parent);
 
-            String8 tipId             = PushStr8F(s_UIState->UIFrameArena, "tooltip###tip%llu", s_UIState->WidgetIdCounter++);
-            u64 hash;
-            HandleUIString((char*)tipId.str, &hash);
+            const f32 dp = s_UIState->DPIScale;
+            // a size below the label it explains, and never the huge one of a game HUD
+            const f32 fontSize = Maths::Clamp(s_UIState->TooltipFontSize * 0.92f, 11.0f * dp, 15.0f * dp);
+            const f32 maxWidth = 300.0f * dp;
+            String8 text       = s_UIState->TooltipText;
+            if(GetStringSize(text, fontSize).x > maxWidth)
+                text = UIWrapText(text, fontSize, maxWidth);
 
+            // one id: the size from last frame keeps it on screen
             UI_Widget* tooltip = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_DrawBorder | WidgetFlags_DrawText | WidgetFlags_Floating_X | WidgetFlags_Floating_Y,
-                                            s_UIState->TooltipText,
-                                            hash,
+                                            text,
+                                            UIHashCombine(s_UIState->root_parent.hash, 0x544F4F4C544950ull),
                                             { SizeKind_TextContent, 1.0f },
                                             { SizeKind_TextContent, 1.0f });
 
-            {float dp = s_UIState->DPIScale;
-            tooltip->relative_position               = s_UIState->TooltipPos + Vec2(10.0f * dp, 10.0f * dp);
-            tooltip->style_vars[StyleVar_Padding]      = Vec4(4.0f * dp, 3.0f * dp, 0.0f, 0.0f);
-            tooltip->style_vars[StyleVar_CornerRadius] = Vec4(3.0f * dp, 0.0f, 0.0f, 0.0f);}
+            // below the pointer, flipped above / pulled left at the screen edges
+            const Vec2 screen = s_UIState->root_parent.size;
+            const Vec2 size   = tooltip->size.x > 0.0f ? tooltip->size : GetStringSize(text, fontSize) + Vec2(18.0f * dp, 12.0f * dp);
+            Vec2 pos          = s_UIState->TooltipPos + Vec2(12.0f * dp, 20.0f * dp);
+            if(pos.y + size.y > screen.y - 4.0f * dp)
+                pos.y = s_UIState->TooltipPos.y - size.y - 8.0f * dp;
+            pos.x = Maths::Clamp(pos.x, 4.0f * dp, Maths::Max(4.0f * dp, screen.x - size.x - 4.0f * dp));
+            pos.y = Maths::Max(pos.y, 4.0f * dp);
 
-            if(UIThemeIsDark())
-            {
-                tooltip->style_vars[StyleVar_BackgroundColor] = Vec4(0.1f, 0.1f, 0.1f, 0.95f);
-                tooltip->style_vars[StyleVar_BorderColor]     = Vec4(0.4f, 0.4f, 0.4f, 1.0f);
-                tooltip->style_vars[StyleVar_TextColor]       = Vec4(0.9f, 0.9f, 0.9f, 1.0f);
-            }
-            else
-            {
-                tooltip->style_vars[StyleVar_BackgroundColor] = Vec4(1.0f, 1.0f, 0.9f, 0.98f);
-                tooltip->style_vars[StyleVar_BorderColor]     = Vec4(0.5f, 0.5f, 0.4f, 1.0f);
-                tooltip->style_vars[StyleVar_TextColor]       = Vec4(0.1f, 0.1f, 0.1f, 1.0f);
-            }
+            tooltip->relative_position                = Vec2(floorf(pos.x), floorf(pos.y));
+            tooltip->style_vars[StyleVar_FontSize]     = Vec4(fontSize, 0.0f, 0.0f, 0.0f);
+            tooltip->style_vars[StyleVar_Padding]      = Vec4(9.0f * dp, 6.0f * dp, 0.0f, 0.0f);
+            tooltip->style_vars[StyleVar_CornerRadius] = Vec4(6.0f * dp, 0.0f, 0.0f, 0.0f);
+            tooltip->style_vars[StyleVar_Border]       = Vec4(Maths::Max(1.0f, floorf(dp * 0.5f)), Maths::Max(1.0f, floorf(dp * 0.5f)), 0.0f, 0.0f);
+
+            // dark in both themes; opaque, since the border is a quad behind the fill
+            tooltip->style_vars[StyleVar_BackgroundColor] = Vec4(0.085f, 0.085f, 0.10f, 1.0f);
+            tooltip->style_vars[StyleVar_BorderColor]     = Vec4(0.26f, 0.26f, 0.30f, 1.0f);
+            tooltip->style_vars[StyleVar_TextColor]       = Vec4(0.90f, 0.90f, 0.92f, 1.0f);
 
             s_UIState->parents.PopBack();
         }
@@ -3961,6 +5430,8 @@ namespace Lumos
         Vec4 idle      = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
         Vec4 hot       = dark ? Vec4(1.0f, 1.0f, 1.0f, 0.07f) : Vec4(0.0f, 0.0f, 0.0f, 0.06f);
         Vec4 selectedC = dark ? Vec4(0.24f, 0.44f, 0.85f, 0.75f) : Vec4(0.30f, 0.52f, 0.95f, 0.60f);
+        if(s_UIState->AccentColour.w > 0.0f)
+            selectedC = Vec4(s_UIState->AccentColour.x, s_UIState->AccentColour.y, s_UIState->AccentColour.z, dark ? 0.35f : 0.25f);
 
         row->style_vars[StyleVar_BackgroundColor]       = selected ? selectedC : idle;
         row->style_vars[StyleVar_HotBackgroundColor]    = selected ? selectedC : hot;
@@ -4026,8 +5497,10 @@ namespace Lumos
         const u32 len        = (u32)strlen(buffer);
 
 #ifdef LUMOS_PLATFORM_IOS
-        if(isFocused && s_NativeKeyboardHash == fieldHash)
+        // only when the keyboard changed it: the field can also be edited from here (or cleared by its owner)
+        if(isFocused && s_NativeKeyboardHash == fieldHash && s_NativeKeyboardText != s_NativeKeyboardSeen)
         {
+            s_NativeKeyboardSeen = s_NativeKeyboardText;
             strncpy(buffer, s_NativeKeyboardText.c_str(), buffer_size - 1);
             buffer[buffer_size - 1]    = 0;
             s_UIState->TextInputCursor = (u32)strlen(buffer);
@@ -4037,22 +5510,27 @@ namespace Lumos
         String8 displayStr;
         const bool showPlaceholder = (len == 0) && placeholder && placeholder[0];
         if(showPlaceholder)
-        {
-            displayStr = isFocused ? PushStr8F(s_UIState->UIFrameArena, "|%s", placeholder)
-                                   : Str8C((char*)placeholder);
-        }
-        else if(isFocused)
-        {
-            u32 cursorIdx = Maths::Min(s_UIState->TextInputCursor, (u32)strlen(buffer));
-            displayStr    = PushStr8F(s_UIState->UIFrameArena, "%.*s|%s", cursorIdx, buffer, buffer + cursorIdx);
-        }
+            displayStr = Str8C((char*)placeholder);
         else
-        {
             displayStr = Str8C(buffer);
-        }
 
         UI_Size sizeX = width > 0.0f ? UI_Size{ SizeKind_Pixels, width * dpi }
                                      : UI_Size{ SizeKind_Grow, 1.0f };
+
+        // callers restyle the field after this returns: caret, selection and focus line go by what it ended up with last frame
+        Vec2 pad    = Vec2(10.0f * dpi, 8.0f * dpi);
+        f32 radius  = 6.0f * dpi;
+        bool filled = true;
+        {
+            UI_Widget* last = nullptr;
+            HashMapFind(&s_UIState->widgets, fieldHash, &last);
+            if(last && last->LastFrameIndexActive + 1 == s_UIState->FrameIndex)
+            {
+                pad    = last->style_vars[StyleVar_Padding].ToVector2();
+                radius = last->style_vars[StyleVar_CornerRadius].x;
+                filled = last->style_vars[StyleVar_BackgroundColor].w > 0.0f;
+            }
+        }
 
         UI_Widget* field = PushWidget(WidgetFlags_Clickable | WidgetFlags_DrawBackground | WidgetFlags_DrawText | WidgetFlags_CentreY,
                                       displayStr,
@@ -4060,29 +5538,34 @@ namespace Lumos
                                       sizeX,
                                       { SizeKind_TextContent, 1.0f });
 
-        field->style_vars[StyleVar_Padding]      = Vec4(10.0f * dpi, 8.0f * dpi, 0.0f, 0.0f);
-        field->style_vars[StyleVar_Border]       = Vec4(0.0f);
+        const bool dark = UIThemeIsDark();
+        field->style_vars[StyleVar_Padding]           = Vec4(10.0f * dpi, 8.0f * dpi, 0.0f, 0.0f);
+        field->style_vars[StyleVar_Border]            = Vec4(0.0f);
         field->style_vars[StyleVar_BorderColor]       = Vec4(0.0f);
         field->style_vars[StyleVar_HotBorderColor]    = Vec4(0.0f);
         field->style_vars[StyleVar_ActiveBorderColor] = Vec4(0.0f);
-        field->style_vars[StyleVar_CornerRadius] = Vec4(6.0f * dpi, 0.0f, 0.0f, 0.0f);
+        field->style_vars[StyleVar_CornerRadius]      = Vec4(6.0f * dpi, 0.0f, 0.0f, 0.0f);
 
-        const bool dark = UIThemeIsDark();
-        Vec4 bg   = dark ? Vec4(1.0f, 1.0f, 1.0f, 0.06f) : Vec4(0.0f, 0.0f, 0.0f, 0.05f);
-        Vec4 text = dark ? Vec4(0.95f, 0.95f, 0.97f, 1.0f) : Vec4(0.08f, 0.08f, 0.10f, 1.0f);
+        Vec4 bg    = dark ? Vec4(1.0f, 1.0f, 1.0f, 0.06f) : Vec4(0.0f, 0.0f, 0.0f, 0.05f);
+        Vec4 bgHot = dark ? Vec4(1.0f, 1.0f, 1.0f, 0.10f) : Vec4(0.0f, 0.0f, 0.0f, 0.08f);
+        Vec4 text  = dark ? Vec4(0.95f, 0.95f, 0.97f, 1.0f) : Vec4(0.08f, 0.08f, 0.10f, 1.0f);
+        // dimmed in rgb: text alpha is not a reliable fade
         if(showPlaceholder)
-            text.w = 0.45f;
+            text = dark ? Vec4(0.52f, 0.52f, 0.55f, 1.0f) : Vec4(0.55f, 0.55f, 0.58f, 1.0f);
 
         field->style_vars[StyleVar_BackgroundColor]       = bg;
-        field->style_vars[StyleVar_HotBackgroundColor]    = bg;
-        field->style_vars[StyleVar_ActiveBackgroundColor] = bg;
+        field->style_vars[StyleVar_HotBackgroundColor]    = isFocused ? bg : bgHot;
+        field->style_vars[StyleVar_ActiveBackgroundColor] = isFocused ? bg : bgHot;
         field->style_vars[StyleVar_TextColor]             = text;
         field->style_vars[StyleVar_HotTextColor]          = text;
         field->style_vars[StyleVar_ActiveTextColor]       = text;
 
         s_UIState->FocusableWidgets.PushBack(fieldHash);
+        UIScribbleRegister(field, fieldHash, false);
 
         UI_Interaction interaction = HandleWidgetInteraction(field);
+        if(interaction.hovering)
+            UISetCursor(UICursor_Text);
 
         auto takeFocus = [&](bool selectAll)
         {
@@ -4094,6 +5577,7 @@ namespace Lumos
             s_UIState->TextInputSelEnd     = selectAll ? (u32)strlen(buffer) : 0;
 #ifdef LUMOS_PLATFORM_IOS
             s_NativeKeyboardText = buffer;
+            s_NativeKeyboardSeen = buffer;
             s_NativeKeyboardHash = fieldHash;
             OpeniOSKeyboard(&s_NativeKeyboardText);
 #endif
@@ -4113,6 +5597,37 @@ namespace Lumos
             s_UIState->PendingFocusWidget = 0;
             takeFocus(true);
         }
+
+        // focus mark: an accent line along the bottom (a border would show through a see-through fill)
+        // not on a field with no box of its own
+        if(isFocused && filled && field->size.x > 0.0f)
+        {
+            const f32 inset = Maths::Min(radius, field->size.y * 0.5f);
+            const f32 lineH = Maths::Max(1.0f, floorf(1.5f * dpi));
+            Vec4 accent     = s_UIState->AccentColour.w > 0.0f ? s_UIState->AccentColour : Vec4(0.35f, 0.58f, 1.0f, 1.0f);
+            accent.w        = 1.0f;
+            PushParent(field);
+            UI_Widget* mark = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_Floating_X | WidgetFlags_Floating_Y, Str8Lit(""),
+                                         UIHashCombine(fieldHash, 0x464F43ull), { SizeKind_Pixels, Maths::Max(0.0f, field->size.x - inset * 2.0f) }, { SizeKind_Pixels, lineH });
+            mark->relative_position                    = Vec2(inset, field->size.y - lineH);
+            mark->style_vars[StyleVar_Padding]         = Vec4(0.0f);
+            mark->style_vars[StyleVar_Border]          = Vec4(0.0f);
+            mark->style_vars[StyleVar_CornerRadius]    = Vec4(lineH * 0.5f, 0.0f, 0.0f, 0.0f);
+            mark->style_vars[StyleVar_BackgroundColor] = accent;
+            PopParent(field);
+        }
+
+        // text wider than the field: show the part round the cursor
+        u32 viewStart = 0, viewEnd = len;
+        if(!showPlaceholder)
+        {
+            TextFieldView(field, buffer, fieldHash, &viewStart, &viewEnd, &pad);
+            if(viewStart != 0 || viewEnd != len)
+                field->text = PushStr8Copy(s_UIState->UIFrameArena, Str8((u8*)buffer + viewStart, viewEnd - viewStart));
+        }
+
+        UITextFieldExtras(field, buffer, fieldHash, showPlaceholder, interaction,
+                          CaretColour(dark ? Vec4(0.95f, 0.95f, 0.97f, 1.0f) : Vec4(0.08f, 0.08f, 0.10f, 1.0f)), viewStart, viewEnd, &pad);
 
         return interaction;
     }
@@ -4639,6 +6154,217 @@ namespace Lumos
         return n;
     }
 
+    u32 UIFindOverlappingText(UIOverlapPair* out, u32 maxOut, float minOverlapPx)
+    {
+        if(!s_UIState)
+            return 0;
+
+        // Collect the visible text widgets first: the hash map is unordered and
+        // we need pairwise tests, so one gather then an O(n^2) sweep over what
+        // is almost always a few dozen labels.
+        struct Entry
+        {
+            UI_Widget* w;
+            Vec4 rect;
+        };
+        TDArray<Entry> entries(s_UIState->UIFrameArena);
+
+        ForHashMapEach(u64, UI_Widget*, &s_UIState->widgets, it)
+        {
+            UI_Widget* w = *it.value;
+            if(!w || !(w->flags & WidgetFlags_DrawText) || w->text.size == 0)
+                continue;
+            if(w->size.x <= 0.0f || w->size.y <= 0.0f)
+                continue;
+            if(w->ExitTransition > 0.0f) // mid fade-out, on its way off screen
+                continue;
+            if(w->LastFrameIndexActive != s_UIState->FrameIndex) // not built this frame
+                continue;
+            // Clipped away (scrolled out of its area) - not visible, not a bug.
+            const Vec4& c = w->ClipRect;
+            if(w->position.x >= c.z || w->position.y >= c.w
+               || w->position.x + w->size.x <= c.x || w->position.y + w->size.y <= c.y)
+                continue;
+            Entry e;
+            e.w    = w;
+            e.rect = Vec4(w->position.x, w->position.y, w->size.x, w->size.y);
+            entries.PushBack(e);
+        }
+
+        u32 found = 0;
+        for(u32 i = 0; i < entries.Size(); i++)
+        {
+            for(u32 j = i + 1; j < entries.Size(); j++)
+            {
+                const Vec4& a = entries[i].rect;
+                const Vec4& b = entries[j].rect;
+
+                // One is nested inside the other (a label inside its own button,
+                // a row inside a panel): containment is layout, not collision.
+                const float ox = Maths::Min(a.x + a.z, b.x + b.z) - Maths::Max(a.x, b.x);
+                const float oy = Maths::Min(a.y + a.w, b.y + b.w) - Maths::Max(a.y, b.y);
+                if(ox <= minOverlapPx || oy <= minOverlapPx)
+                    continue;
+                if(entries[i].w->parent == entries[j].w || entries[j].w->parent == entries[i].w)
+                    continue;
+
+                if(found < maxOut && out)
+                {
+                    UINormaliseLabel(entries[i].w->text, out[found].A, sizeof(out[found].A));
+                    UINormaliseLabel(entries[j].w->text, out[found].B, sizeof(out[found].B));
+                }
+                found++;
+            }
+        }
+        return found;
+    }
+
+    u32 UIFindOffscreenText(UIOffscreenText* out, u32 maxOut, float tolPx)
+    {
+        if(!s_UIState)
+            return 0;
+
+        const Vec2 fb = s_UIState->root_parent.size;
+        const Vec2 origin = s_UIState->root_parent.position;
+        u32 found = 0;
+
+        ForHashMapEach(u64, UI_Widget*, &s_UIState->widgets, it)
+        {
+            UI_Widget* w = *it.value;
+            if(!w || !(w->flags & WidgetFlags_DrawText) || w->text.size == 0)
+                continue;
+            if(w->size.x <= 0.0f || w->size.y <= 0.0f)
+                continue;
+            if(w->ExitTransition > 0.0f) // mid fade-out, on its way off screen
+                continue;
+            if(w->LastFrameIndexActive != s_UIState->FrameIndex)
+                continue;
+            // Scrolled out of its own scroll area: clipped on purpose, and the
+            // player can bring it back - not the same as gone off the screen.
+            const Vec4& c = w->ClipRect;
+            if(w->position.x >= c.z || w->position.y >= c.w
+               || w->position.x + w->size.x <= c.x || w->position.y + w->size.y <= c.y)
+                continue;
+
+            const float outLeft   = origin.x - w->position.x;
+            const float outTop    = origin.y - w->position.y;
+            const float outRight  = (w->position.x + w->size.x) - (origin.x + fb.x);
+            const float outBottom = (w->position.y + w->size.y) - (origin.y + fb.y);
+            float worst = Maths::Max(Maths::Max(outLeft, outRight), Maths::Max(outTop, outBottom));
+            if(worst <= tolPx)
+                continue;
+
+            if(found < maxOut && out)
+            {
+                UINormaliseLabel(w->text, out[found].Text, sizeof(out[found].Text));
+                out[found].OutPx = worst;
+            }
+            found++;
+        }
+        return found;
+    }
+
+    u32 UIQueryWidgets(UIWidgetInfo* out, u32 maxOut, const char* textFilter)
+    {
+        if(!s_UIState)
+            return 0;
+
+        const Vec2 fb     = s_UIState->root_parent.size;
+        const Vec2 origin = s_UIState->root_parent.position;
+        u32 found         = 0;
+
+        ForHashMapEach(u64, UI_Widget*, &s_UIState->widgets, it)
+        {
+            UI_Widget* w = *it.value;
+            if(!w || w->LastFrameIndexActive != s_UIState->FrameIndex)
+                continue;
+
+            char label[64];
+            UINormaliseLabel(w->text, label, sizeof(label));
+            if(textFilter && textFilter[0] && !strstr(label, textFilter))
+                continue;
+
+            if(found < maxOut && out)
+            {
+                UIWidgetInfo& o = out[found];
+                memcpy(o.Text, label, sizeof(o.Text));
+
+                o.X = w->position.x;
+                o.Y = w->position.y;
+                o.W = w->size.x;
+                o.H = w->size.y;
+
+                o.Alpha = Maths::Clamp(w->style_vars[StyleVar_Alpha].x, 0.0f, 1.0f);
+
+                auto copy4 = [](float* dst, const Vec4& v)
+                { dst[0] = v.x; dst[1] = v.y; dst[2] = v.z; dst[3] = v.w; };
+                copy4(o.BG, w->style_vars[StyleVar_BackgroundColor]);
+                copy4(o.Border, w->style_vars[StyleVar_BorderColor]);
+                copy4(o.TextCol, w->style_vars[StyleVar_TextColor]);
+                o.CornerRadius = w->style_vars[StyleVar_CornerRadius].x;
+
+                const Vec4& c = w->ClipRect;
+                copy4(o.Clip, c);
+
+                o.Flags = w->flags;
+                o.Hot   = (s_UIState->hot_widget == w->hash);
+
+                o.Clipped = (w->position.x >= c.z || w->position.y >= c.w
+                             || w->position.x + w->size.x <= c.x
+                             || w->position.y + w->size.y <= c.y);
+
+                o.Offscreen = (w->position.x < origin.x - 1.0f
+                               || w->position.y < origin.y - 1.0f
+                               || w->position.x + w->size.x > origin.x + fb.x + 1.0f
+                               || w->position.y + w->size.y > origin.y + fb.y + 1.0f);
+            }
+            found++;
+        }
+        return found;
+    }
+
+    u32 UIGetClickableRects(Vec4* out, u32 max)
+    {
+        u32 count       = 0;
+        const Vec2 root = s_UIState->root_parent.size;
+
+        // a full-screen clickable is a scrim: what it covers can't be reached
+        u64 scrim = 0;
+        ForHashMapEach(u64, UI_Widget*, &s_UIState->widgets, find)
+        {
+            UI_Widget* w = *find.value;
+            if(w && (w->flags & WidgetFlags_Clickable) && w->LastFrameIndexActive + 1 >= s_UIState->FrameIndex
+               && w->ExitTransition <= 0.0f && w->size.x >= root.x * 0.9f && w->size.y >= root.y * 0.9f)
+                scrim = Maths::Max(scrim, w->BuildIndex);
+        }
+
+        ForHashMapEach(u64, UI_Widget*, &s_UIState->widgets, it)
+        {
+            UI_Widget* w = *it.value;
+            if(count >= max)
+                break;
+            if(!w || w->BuildIndex < scrim)
+                continue;
+            if(!(w->flags & WidgetFlags_Clickable) || w->Clip)
+                continue;
+            // callers are usually mid-build, before this frame's widgets exist: last frame's count
+            if(w->LastFrameIndexActive + 1 < s_UIState->FrameIndex || w->ExitTransition > 0.0f)
+                continue;
+            if(w->size.x <= 0.0f || w->size.y <= 0.0f)
+                continue;
+            if(w->size.x >= root.x * 0.9f && w->size.y >= root.y * 0.9f) // a scrim, not a control
+                continue;
+            const Vec4& c = w->ClipRect;
+            const float x0 = Maths::Max(w->position.x, c.x), y0 = Maths::Max(w->position.y, c.y);
+            const float x1 = Maths::Min(w->position.x + w->size.x, c.z), y1 = Maths::Min(w->position.y + w->size.y, c.w);
+            if(x1 <= x0 || y1 <= y0)
+                continue;
+            const Vec2 p = Vec2(x0, y0) + s_UIState->InputOffset;
+            out[count++] = Vec4(p.x, p.y, x1 - x0, y1 - y0);
+        }
+        return count;
+    }
+
     bool UIFindWidgetByText(const char* text, Vec2* outMousePos, Vec4* outRect, bool substring)
     {
         if(!s_UIState || !text)
@@ -4656,6 +6382,9 @@ namespace Lumos
             if(!w || w->size.x <= 0.0f || w->size.y <= 0.0f)
                 continue;
             if(w->ExitTransition > 0.0f) // mid fade-out, not clickable
+                continue;
+            // widgets stay in the map after they stop being built; only what's on screen counts
+            if(w->LastFrameIndexActive + 1 < s_UIState->FrameIndex)
                 continue;
 
             char candidate[256];
@@ -4727,10 +6456,32 @@ namespace Lumos
         return s_UIState->SafeArea;
     }
 
+    void UISetLayeredBatching(bool enable)
+    {
+        s_UIState->LayeredBatching = enable;
+    }
+
+    void UIPushMonoText()
+    {
+        if(s_UIState)
+            s_UIState->MonoTextDepth++;
+    }
+
+    void UIPopMonoText()
+    {
+        if(s_UIState && s_UIState->MonoTextDepth > 0)
+            s_UIState->MonoTextDepth--;
+    }
+
     void UISetClickOnRelease(bool enable)
     {
         if(s_UIState)
             s_UIState->ClickOnRelease = enable;
+    }
+
+    void UISetAccentColour(const Vec4& colour)
+    {
+        s_UIState->AccentColour = colour;
     }
 
     void UISetTheme(UITheme theme)

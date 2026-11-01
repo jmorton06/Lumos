@@ -282,4 +282,13 @@ namespace Lumos
         glfwSetWindowSize(window, newW, newH);
 #endif
     }
+
+    bool WindowsOS::IsDarkMode() const
+    {
+        DWORD light = 1, size = sizeof(light);
+        if(RegGetValueW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+                        L"AppsUseLightTheme", RRF_RT_REG_DWORD, nullptr, &light, &size) != ERROR_SUCCESS)
+            return false;
+        return light == 0;
+    }
 }

@@ -65,12 +65,16 @@ namespace Lumos
             return folder ? FileSystem::FolderExists(*outPhysicalPath) : FileSystem::FileExists(*outPhysicalPath);
         }
 
+        // results go in the frame arena (callers keep them for the frame); a worker thread must not push
+        // into that, so it gets the arena it passed
+        Arena* out = (arena && !IsMainThread()) ? arena : Application::Get().GetFrameArena();
+
 #ifndef LUMOS_PRODUCTION
         String8 assetsStr = Str8Lit("Assets");
         String8 pathSub2  = Substr8(path, { 2, Maths::Min(path.size, 8) });
         if(!Str8Match(pathSub2, assetsStr))
         {
-            *outPhysicalPath = PushStr8F(Application::Get().GetFrameArena(), "%s%s",
+            *outPhysicalPath = PushStr8F(out, "%s%s",
                                          (char*)m_AssetsPath.str,
                                          ToCChar(Substr8(path, { 1, path.size })));
             NullTerminate((*outPhysicalPath));
@@ -79,7 +83,7 @@ namespace Lumos
         else
 #endif
         {
-            *outPhysicalPath = PushStr8F(Application::Get().GetFrameArena(), "%s%s",
+            *outPhysicalPath = PushStr8F(out, "%s%s",
                                          (char*)m_AssetsPath.str,
                                          ToCChar(Substr8(path, { 8, path.size })));
             NullTerminate((*outPhysicalPath));
@@ -144,12 +148,37 @@ namespace Lumos
         return Str8Lit("");
     }
 
+    std::string FileSystem::UserDataPath(const std::string& appName)
+    {
+        std::string base;
+#if defined(LUMOS_PLATFORM_WINDOWS)
+        if(const char* appData = std::getenv("APPDATA"))
+            base = appData;
+#elif defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
+        if(const char* home = std::getenv("HOME"))
+            base = std::string(home) + "/Library/Application Support";
+#else
+        if(const char* xdg = std::getenv("XDG_DATA_HOME"))
+            base = xdg;
+        else if(const char* home = std::getenv("HOME"))
+            base = std::string(home) + "/.local/share";
+#endif
+        if(base.empty())
+            base = ".";
+        std::filesystem::path p = std::filesystem::path(base) / appName;
+        std::error_code ec;
+        std::filesystem::create_directories(p, ec);
+        return p.string();
+    }
+
     bool FileSystem::WriteFileVFS(const String8& path, uint8_t* buffer, uint32_t size)
     {
         LUMOS_PROFILE_FUNCTION();
         String8 physicalPath;
         ArenaTemp temp = ScratchBegin(nullptr, 0);
-        bool success   = Get().ResolvePhysicalPath(temp.arena, path, &physicalPath) ? FileSystem::WriteFile(physicalPath, buffer, size) : false;
+        // the bool is "exists": a new file still resolves to where it should go
+        Get().ResolvePhysicalPath(temp.arena, path, &physicalPath);
+        bool success = physicalPath.size > 0 && FileSystem::WriteFile(physicalPath, buffer, size);
         ScratchEnd(temp);
 
         return success;
@@ -161,7 +190,9 @@ namespace Lumos
         String8 physicalPath;
         ArenaTemp temp = ScratchBegin(nullptr, 0);
 
-        bool success = Get().ResolvePhysicalPath(temp.arena, path, &physicalPath) ? FileSystem::WriteTextFile(physicalPath, text) : false;
+        // the bool is "exists": a new file still resolves to where it should go
+        Get().ResolvePhysicalPath(temp.arena, path, &physicalPath);
+        bool success = physicalPath.size > 0 && FileSystem::WriteTextFile(physicalPath, text);
         ScratchEnd(temp);
 
         return success;

@@ -49,14 +49,14 @@ namespace Lumos
 
             void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Vec4 clearColour) override;
             void DepthArrayBarrier(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer) override;
-            void CopyDepthToArraySlice(Graphics::Texture* srcDepth, Graphics::Texture* dstDepthArray, uint32_t sliceIndex, Graphics::CommandBuffer* commandBuffer) override;
+            void CopyDepthToArraySlice(Graphics::Texture* srcDepth, Graphics::Texture* dstDepthArray, uint32_t slice, Graphics::CommandBuffer* commandBuffer) override;
             void ClearSwapChainImage() const;
 
             void SaveScreenshot(const std::string& path, Graphics::Texture* texture = nullptr, bool Blur = false, float BlurRadius = 2.0f) override;
 
             const char* GetTitleInternal() const override;
 
-            void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount) override;
+            void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount, uint32_t firstSet = 0) override;
             void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const override;
             void DrawIndexedInstancedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t indexCount, uint32_t instanceCount, uint32_t firstInstance) const override;
             void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const override;
@@ -65,8 +65,10 @@ namespace Lumos
             bool SupportsCompute() override { return true; }
             void Dispatch(CommandBuffer* commandBuffer, uint32_t workGroupSizeX, uint32_t workGroupSizeY, uint32_t workGroupSizeZ) override;
 
-            bool AllocateDescriptorSet(VkDescriptorSet* set, VkDescriptorPool& pool, VkDescriptorSetLayout layout, uint32_t descriptorCount);
-            bool DeallocateDescriptorSet(VkDescriptorSet* set, VkDescriptorPool& pool);
+            // samplers = combined image samplers the layout holds; pools are chosen by what they have left
+            bool AllocateDescriptorSet(VkDescriptorSet* set, VkDescriptorPool& pool, VkDescriptorSetLayout layout, uint32_t descriptorCount, uint32_t samplers = 0);
+            // gives a freed set's share back to its pool (the deletion queue calls it after vkFreeDescriptorSets)
+            static void ReleaseDescriptorUse(VkDescriptorPool pool, uint32_t sets, uint32_t samplers);
             void ReleaseDescriptorPools();
 
             static DeletionQueue& GetDeletionQueue(int frameIndex)
@@ -114,7 +116,14 @@ namespace Lumos
 
             VkDescriptorPool m_CurrentPool;
 
-            TDArray<u32> m_UsedDescriptorPoolsCapacity;
+            struct PoolUse
+            {
+                VkDescriptorPool pool;
+                uint32_t sets;
+                uint32_t samplers;
+            };
+            static TDArray<PoolUse> s_PoolUse;
+            VkDescriptorPool FindPoolWithRoom(uint32_t sets, uint32_t samplers);
             TDArray<VkDescriptorPool> m_UsedDescriptorPools;
             TDArray<VkDescriptorPool> m_FreeDescriptorPools;
 

@@ -17,6 +17,7 @@
 #include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/TerrainCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/MeshCollisionShape.h"
 
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
@@ -42,6 +43,7 @@
 
 #include "Scene/Component/SoundComponent.h"
 #include "Scene/Component/TextureMatrixComponent.h"
+#include "Scene/Component/DecalComponent.h"
 #include "Scene/Component/RigidBody2DComponent.h"
 #include "Scene/Component/RigidBody3DComponent.h"
 #include "Scene/Component/AIComponent.h"
@@ -63,6 +65,7 @@ CEREAL_REGISTER_TYPE(Lumos::PyramidCollisionShape);
 CEREAL_REGISTER_TYPE(Lumos::HullCollisionShape);
 CEREAL_REGISTER_TYPE(Lumos::CapsuleCollisionShape);
 CEREAL_REGISTER_TYPE(Lumos::TerrainCollisionShape);
+CEREAL_REGISTER_TYPE(Lumos::MeshCollisionShape);
 
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::SphereCollisionShape);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CuboidCollisionShape);
@@ -70,6 +73,7 @@ CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::PyramidCollis
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::HullCollisionShape);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CapsuleCollisionShape);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::TerrainCollisionShape);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::MeshCollisionShape);
 
 #define MIN_SCENE_VERSION 24
 
@@ -286,23 +290,24 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         const Vec2& mousePos = Input::Get().GetMousePosition();
 
-        auto defaultCameraControllerView = m_EntityManager->GetEntitiesWithType<DefaultCameraController>();
-        auto cameraView                  = m_EntityManager->GetEntitiesWithType<Camera>();
+        auto cameraControllers = m_EntityManager->GetEntitiesWithTypes<DefaultCameraController, Maths::Transform>();
+        auto cameraView        = m_EntityManager->GetEntitiesWithType<Camera>();
         Camera* camera                   = nullptr;
         if(!cameraView.Empty())
         {
             camera = &cameraView.Front().GetComponent<Camera>();
         }
 
-        if(!defaultCameraControllerView.Empty())
+        if(!cameraControllers.Empty())
         {
-            auto& cameraController = defaultCameraControllerView.Front().GetComponent<DefaultCameraController>();
-            auto trans             = defaultCameraControllerView.Front().TryGetComponent<Maths::Transform>();
-            if(Application::Get().GetSceneActive() && trans && cameraController.GetController())
+            Entity controllerEntity = cameraControllers.Front();
+            auto& cameraController  = cameraControllers.Get<DefaultCameraController>(controllerEntity);
+            auto& trans             = cameraControllers.Get<Maths::Transform>(controllerEntity);
+            if(Application::Get().GetSceneActive() && cameraController.GetController())
             {
                 cameraController.GetController()->SetCamera(camera);
-                cameraController.GetController()->HandleMouse(*trans, (float)timeStep.GetSeconds(), mousePos.x, mousePos.y);
-                cameraController.GetController()->HandleKeyboard(*trans, (float)timeStep.GetSeconds());
+                cameraController.GetController()->HandleMouse(trans, (float)timeStep.GetSeconds(), mousePos.x, mousePos.y);
+                cameraController.GetController()->HandleKeyboard(trans, (float)timeStep.GetSeconds());
             }
         }
 
@@ -327,8 +332,7 @@ namespace Lumos
             if(!model.ModelRef)
                 continue;
 
-            const auto& meshes = model.ModelRef->GetMeshes();
-            model.ModelRef->UpdateAnimation(Engine::GetTimeStep());
+            model.TickAnimation((float)Engine::GetTimeStep().GetSeconds());
         }
     }
 
@@ -377,6 +381,9 @@ namespace Lumos
 #define ALL_COMPONENTSV8 ALL_COMPONENTSV7, TextComponent
 
 #define ALL_COMPONENTSLISTV8 ALL_COMPONENTSV8
+// Everything a scene saves, for entities written on their own (undo, copy / paste)
+#define ALL_COMPONENTSLISTFULLV3 ALL_COMPONENTSV8, ParticleEmitter, SpringConstraintComponent, TerrainComponent, VoxelWorldComponent, Graphics::Light2D
+#define ALL_COMPONENTSLISTFULL ALL_COMPONENTSLISTFULLV3, DecalComponent
 #define ALL_COMPONENTSENTTV8(input) get<Maths::Transform>(input).get<NameComponent>(input).get<ActiveComponent>(input).get<Hierarchy>(input).get<Camera>(input).get<LuaScriptComponent>(input).get<Graphics::Model>(input).get<Graphics::Light>(input).get<RigidBody3DComponent>(input).get<Graphics::Environment>(input).get<Graphics::Sprite>(input).get<RigidBody2DComponent>(input).get<DefaultCameraController>(input).get<Graphics::AnimatedSprite>(input).get<SoundComponent>(input).get<Listener>(input).get<IDComponent>(input).get<Graphics::ModelComponent>(input).get<AxisConstraintComponent>(input).get<TextComponent>(input)
 
 #define ALL_COMPONENTSENTTV9(input) get<Maths::Transform>(input).get<NameComponent>(input).get<ActiveComponent>(input).get<Hierarchy>(input).get<Camera>(input).get<LuaScriptComponent>(input).get<Graphics::Model>(input).get<Graphics::Light>(input).get<RigidBody3DComponent>(input).get<Graphics::Environment>(input).get<Graphics::Sprite>(input).get<RigidBody2DComponent>(input).get<DefaultCameraController>(input).get<Graphics::AnimatedSprite>(input).get<SoundComponent>(input).get<Listener>(input).get<IDComponent>(input).get<Graphics::ModelComponent>(input).get<AxisConstraintComponent>(input).get<TextComponent>(input).get<ParticleEmitter>(input)
@@ -384,6 +391,7 @@ namespace Lumos
 #define ALL_COMPONENTSENTTV11(input) ALL_COMPONENTSENTTV10(input).get<TerrainComponent>(input)
 #define ALL_COMPONENTSENTTV12(input) ALL_COMPONENTSENTTV11(input).get<VoxelWorldComponent>(input)
 #define ALL_COMPONENTSENTTV13(input) ALL_COMPONENTSENTTV12(input).get<Graphics::Light2D>(input)
+#define ALL_COMPONENTSENTTV14(input) ALL_COMPONENTSENTTV13(input).get<DecalComponent>(input)
 
     void Scene::Serialise(const std::string& filePath, bool binary)
     {
@@ -402,7 +410,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::BinaryOutputArchive output { file };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV13(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV14(output);
             }
             file.close();
         }
@@ -414,7 +422,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::JSONOutputArchive output { storage };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV13(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV14(output);
             }
             FileSystem::WriteTextFile(path, Str8StdS(storage.str()));
         }
@@ -496,8 +504,10 @@ namespace Lumos
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV11(input);
                 else if(m_SceneSerialisationVersion >= 31 && m_SceneSerialisationVersion < 34)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV12(input);
-                else if(m_SceneSerialisationVersion >= 34)
+                else if(m_SceneSerialisationVersion >= 34 && m_SceneSerialisationVersion < 40)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV13(input);
+                else if(m_SceneSerialisationVersion >= 40)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV14(input);
 
 #if MIN_SCENE_VERSION <= 6
                 if(m_SceneSerialisationVersion < 6)
@@ -526,6 +536,10 @@ namespace Lumos
                     }
                 }
 #endif
+            }
+            catch(const std::exception& e)
+            {
+                LERROR("Failed to load scene - %s - %s", (const char*)path.str, e.what());
             }
             catch(...)
             {
@@ -613,8 +627,10 @@ namespace Lumos
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV11(input);
                 else if(m_SceneSerialisationVersion >= 31 && m_SceneSerialisationVersion < 34)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV12(input);
-                else if(m_SceneSerialisationVersion >= 34)
+                else if(m_SceneSerialisationVersion >= 34 && m_SceneSerialisationVersion < 40)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV13(input);
+                else if(m_SceneSerialisationVersion >= 40)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV14(input);
                 }
 #if MIN_SCENE_VERSION <= 6
                 if(m_SceneSerialisationVersion < 6)
@@ -643,7 +659,7 @@ namespace Lumos
                 }
 #endif
             }
-            catch(const cereal::Exception& e)
+            catch(const std::exception& e)
             {
                 LERROR("Failed to load scene - %s - %s", (const char*)path.str, e.what());
             }
@@ -839,6 +855,10 @@ namespace Lumos
         // Serialize the current entity
         if(version == 2)
             DeserialiseEntity<ALL_COMPONENTSLISTV8>(entity, archive);
+        else if(version == 3)
+            DeserialiseEntity<ALL_COMPONENTSLISTFULLV3>(entity, archive);
+        else if(version == 4)
+            DeserialiseEntity<ALL_COMPONENTSLISTFULL>(entity, archive);
         entity.ClearChildren();
 
         // Serialize the children recursively
@@ -908,10 +928,13 @@ namespace Lumos
         (SerialiseComponentIfExists<Component>(entity, archive), ...);
     }
 
-    void SerializeEntityHierarchy(Entity entity, cereal::JSONOutputArchive& archive)
+    void SerializeEntityHierarchy(Entity entity, cereal::JSONOutputArchive& archive, bool full = false)
     {
         // Serialize the current entity
-        SerialiseEntity<ALL_COMPONENTSLISTV8>(entity, archive);
+        if(full)
+            SerialiseEntity<ALL_COMPONENTSLISTFULL>(entity, archive);
+        else
+            SerialiseEntity<ALL_COMPONENTSLISTV8>(entity, archive);
 
         // Serialize the children recursively
         auto children  = entity.GetChildrenTemp();
@@ -920,8 +943,55 @@ namespace Lumos
 
         for(u32 i = 0; i < childCount; i++)
         {
-            SerializeEntityHierarchy(children[i], archive);
+            SerializeEntityHierarchy(children[i], archive, full);
         }
+    }
+
+    String8 Scene::SerialiseEntityToString(Arena* arena, Entity entity)
+    {
+        if(!entity.Valid())
+            return {};
+
+        std::stringstream storage;
+        {
+            cereal::JSONOutputArchive output { storage };
+            const int fullVersion = 4; // prefab layout with the whole component list (4: + decals)
+            output(cereal::make_nvp("Version", fullVersion));
+            output(cereal::make_nvp("Scene Version", SceneSerialisationVersion));
+            SerializeEntityHierarchy(entity, output, true);
+        }
+        return PushStr8Copy(arena, storage.str().c_str());
+    }
+
+    Entity Scene::DeserialiseEntityFromString(String8 data)
+    {
+        if(data.size == 0)
+            return Entity();
+
+        std::stringstream storage(std::string((const char*)data.str, (size_t)data.size));
+        cereal::JSONInputArchive input(storage);
+
+        int version;
+        int SceneVersion;
+        input(cereal::make_nvp("Version", version));
+        input(cereal::make_nvp("Scene Version", SceneVersion));
+
+        int cachedSceneVersion             = Serialisation::CurrentSceneVersion;
+        Serialisation::CurrentSceneVersion = SceneVersion;
+
+        Entity entity = m_EntityManager->Create();
+        DeserializeEntityHierarchy(entity, input, version);
+
+        // the saved links point at handles from before; the caller parents it again
+        if(Hierarchy* hierarchy = entity.TryGetComponent<Hierarchy>())
+        {
+            hierarchy->m_Parent = entt::null;
+            hierarchy->m_Next   = entt::null;
+            hierarchy->m_Prev   = entt::null;
+        }
+
+        Serialisation::CurrentSceneVersion = cachedSceneVersion;
+        return entity;
     }
 
     void Scene::SavePrefab(Entity entity, const std::string& path)

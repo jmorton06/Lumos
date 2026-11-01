@@ -100,8 +100,7 @@ namespace Lumos
             m_BoundingBox.Merge(verts[i].Position);
         }
 
-        m_VertexBuffer = SharedPtr<Graphics::VertexBuffer>(Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC));
-        m_VertexBuffer->SetData(sizeof(Graphics::Vertex) * numVertices, (void*)verts);
+        m_VertexBuffer = SharedPtr<Graphics::VertexBuffer>(Graphics::CreatePackedVertexBuffer(verts, numVertices));
 
         m_IndexBuffer = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indices, indicesCount)); // / sizeof(uint32_t));
 
@@ -185,8 +184,7 @@ namespace Lumos
             m_BoundingBox.Merge(verts[i].Position);
         }
 
-        m_VertexBuffer = SharedPtr<Graphics::VertexBuffer>(Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC));
-        m_VertexBuffer->SetData(sizeof(Graphics::Vertex) * numVertices, (void*)verts);
+        m_VertexBuffer = SharedPtr<Graphics::VertexBuffer>(Graphics::CreatePackedVertexBuffer(verts, numVertices));
         m_IndexBuffer = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indices, indicesCount));
 
         delete[] normals;

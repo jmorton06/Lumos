@@ -1,0 +1,164 @@
+{
+    "DockLayout": {
+        "Version": 1,
+        "Root": 0,
+        "Nodes": [
+            {
+                "Parent": -1,
+                "Child0": -1,
+                "Child1": -1,
+                "SideBySide": false,
+                "Central": true,
+                "Ratio": 0.5,
+                "ActiveTab": 1,
+                "Tabs": [
+                    "Scene",
+                    "Game"
+                ]
+            }
+        ],
+        "Panels": [
+            {
+                "Name": "Scene",
+                "Open": true,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Game",
+                "Open": true,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Hierarchy",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Inspector",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Console",
+                "Open": true,
+                "Drawer": true,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Stats",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Assets",
+                "Open": true,
+                "Drawer": true,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Scene Settings",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Project Settings",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Sprite Editor",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Theme",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Frame Explorer",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Physics Explorer",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Export",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Packaging Guide",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Lua Console",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Support Lumos",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Script",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Import",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Editor Settings",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Synth",
+                "Open": true,
+                "Drawer": true,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Example",
+                "Open": true,
+                "Drawer": true,
+                "DrawerSize": 0.3799999952316284
+            }
+        ],
+        "Slots": [
+            0,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
+        ]
+    }
+}

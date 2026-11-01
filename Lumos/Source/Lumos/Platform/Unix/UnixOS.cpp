@@ -154,6 +154,13 @@ namespace Lumos
         MoveResize_SizeLeft,
         MoveResize_Move
     };
+
+    // Hand the interactive move/resize to the window manager. Driving it client
+    // side (a SetWindowPos/SetWindowSize pair every frame) fights the compositor:
+    // the X window is resized part way through a frame that is still being drawn
+    // at the old swapchain size, which shows up as bands of stale pixels, and the
+    // window-position feedback loop makes edge drags wobble. The WM resizes
+    // between frames, honours snapping/tiling, and picks the right cursor.
     static bool BeginNativeMoveResize(int direction)
     {
         Display* display = glfwGetX11Display();

@@ -4,6 +4,7 @@
 #include "Core/Application.h"
 #include "Core/OS/Input.h"
 #include "Core/OS/Window.h"
+#include "Core/OS/OS.h"
 #include "Graphics/RHI/Renderer.h"
 #include "Graphics/RHI/SwapChain.h"
 #include "Graphics/UI.h"
@@ -98,6 +99,29 @@ function Test.WaitForWidget(label, timeout, substring)
     return Test.WaitUntil(function() return Test.WidgetExists(label, substring) end, timeout)
 end
 
+-- Scrolls (wheel at the current mouse position) until the widget sits fully inside its clip rect,
+-- so a click lands on it. Keep the mouse over the scroll area. Scrolls down while it isn't built yet.
+function Test.ScrollIntoView(label, tries)
+    local key = label:gsub("%s", ""):lower() -- Widgets() matches normalised labels
+    for _ = 1, tries or 60 do
+        local r = nil
+        for _, w in ipairs(Test.Widgets(key)) do
+            if not r or w.text == key then r = w end
+        end
+        if not r then
+            Test.Scroll(-2)
+        elseif r.y + r.h > r.clip.bottom - 2 then
+            Test.Scroll(-1)
+        elseif r.y < r.clip.y + 2 then
+            Test.Scroll(1)
+        else
+            return true
+        end
+        Test.Wait(2)
+    end
+    return false
+end
+
 function Test.Key(key)
     Test.KeyDown(key)
     Test.Wait(1)
@@ -144,6 +168,11 @@ function Test.Get(name) return store[name] end
     void TestRunner::Init(const std::string& scriptPath)
     {
         m_ScriptPath = scriptPath;
+#ifdef LUMOS_PLATFORM_IOS
+        // on device tests are copied into Documents; take paths relative to it
+        if(!m_ScriptPath.empty() && m_ScriptPath[0] != '/')
+            m_ScriptPath = OS::Get().GetCurrentWorkingDirectory() + "/" + m_ScriptPath;
+#endif
         m_Active     = true;
     }
 
@@ -192,7 +221,10 @@ function Test.Get(name) return store[name] end
         m_KeyHeld[key] = down;
         Input::Get().SetKeyHeld(InputCode::Key(key), down);
         if(down)
+        {
             Input::Get().SetKeyPressed(InputCode::Key(key), true);
+            UIProcessKeyPressed(InputCode::Key(key)); // what a real key event does too (text fields)
+        }
     }
 
     void TestRunner::SetScroll(float y, float x)
@@ -201,9 +233,9 @@ function Test.Get(name) return store[name] end
         Input::Get().SetScrollOffsetX(x);
     }
 
-    void TestRunner::RequestScreenshot(const std::string& name, bool compare)
+    void TestRunner::RequestScreenshot(const std::string& name, bool compare, float maxDiffPercent)
     {
-        m_PendingShots.PushBack(PendingShot { name, compare });
+        m_PendingShots.PushBack(PendingShot { name, compare, maxDiffPercent * 0.01f });
     }
 
     void TestRunner::Log(const std::string& msg)
@@ -257,8 +289,87 @@ function Test.Get(name) return store[name] end
                           { return TestRunner::Get().MoveToWidget(text, substring.value_or(false)); });
         test.set_function("WidgetExists", [](const std::string& text, sol::optional<bool> substring) -> bool
                           { return UIFindWidgetByText(text.c_str(), nullptr, nullptr, substring.value_or(false)); });
-        test.set_function("Screenshot", [](const std::string& name, sol::optional<bool> compare)
-                          { TestRunner::Get().RequestScreenshot(name, compare.value_or(true)); });
+        // Layout regression net. Returns a table of { a, b } text pairs whose
+        // rects collide - the failure mode screenshots only catch when somebody
+        // happens to look at the right panel.
+        test.set_function("OverlappingText", [&state](sol::optional<double> minPx) -> sol::table
+                          {
+                              UIOverlapPair pairs[32];
+                              u32 n = UIFindOverlappingText(pairs, 32, (float)minPx.value_or(2.0));
+                              sol::table out = state.create_table();
+                              for(u32 i = 0; i < n && i < 32; i++)
+                              {
+                                  sol::table row = state.create_table();
+                                  row["a"] = std::string(pairs[i].A);
+                                  row["b"] = std::string(pairs[i].B);
+                                  out.add(row);
+                              }
+                              return out;
+                          });
+        test.set_function("OffscreenText", [&state](sol::optional<double> tolPx) -> sol::table
+                          {
+                              UIOffscreenText items[32];
+                              u32 n = UIFindOffscreenText(items, 32, (float)tolPx.value_or(1.0));
+                              sol::table out = state.create_table();
+                              for(u32 i = 0; i < n && i < 32; i++)
+                              {
+                                  sol::table row = state.create_table();
+                                  row["text"]    = std::string(items[i].Text);
+                                  row["out"]     = items[i].OutPx;
+                                  out.add(row);
+                              }
+                              return out;
+                          });
+        // Test.Widgets([filter]) -> the live widget tree as data. Assert against
+        // this rather than a golden image where you can: it says WHY something
+        // looks wrong (alpha, clip, offscreen), and it doesn't need rebaselining.
+        test.set_function("Widgets", [&state](sol::optional<std::string> filter) -> sol::table
+                          {
+                              static constexpr u32 kMax = 256;
+                              UIWidgetInfo items[kMax];
+                              const char* f = filter ? filter->c_str() : nullptr;
+                              u32 n         = UIQueryWidgets(items, kMax, f);
+                              sol::table out = state.create_table();
+                              if(n > kMax)
+                              {
+                                  LWARN("[test] Widgets(): %u live widgets, reporting the first %u", n, kMax);
+                                  n = kMax;
+                              }
+                              auto vec4 = [&state](const float* v)
+                              {
+                                  sol::table t = state.create_table();
+                                  t["r"] = v[0]; t["g"] = v[1]; t["b"] = v[2]; t["a"] = v[3];
+                                  return t;
+                              };
+                              for(u32 i = 0; i < n; i++)
+                              {
+                                  const UIWidgetInfo& w = items[i];
+                                  sol::table row  = state.create_table();
+                                  row["text"]     = std::string(w.Text);
+                                  row["x"]        = w.X;
+                                  row["y"]        = w.Y;
+                                  row["w"]        = w.W;
+                                  row["h"]        = w.H;
+                                  row["alpha"]    = w.Alpha;
+                                  row["bg"]       = vec4(w.BG);
+                                  row["border"]   = vec4(w.Border);
+                                  row["colour"]   = vec4(w.TextCol);
+                                  row["radius"]   = w.CornerRadius;
+                                  row["flags"]    = w.Flags;
+                                  row["hot"]      = w.Hot;
+                                  row["offscreen"]= w.Offscreen;
+                                  row["clipped"]  = w.Clipped;
+                                  sol::table clip = state.create_table();
+                                  clip["x"] = w.Clip[0]; clip["y"] = w.Clip[1];
+                                  clip["right"] = w.Clip[2]; clip["bottom"] = w.Clip[3];
+                                  row["clip"]     = clip;
+                                  out.add(row);
+                              }
+                              return out;
+                          });
+        // maxDiffPercent: for a shot with things that move between runs
+        test.set_function("Screenshot", [](const std::string& name, sol::optional<bool> compare, sol::optional<float> maxDiffPercent)
+                          { TestRunner::Get().RequestScreenshot(name, compare.value_or(true), maxDiffPercent.value_or(-1.0f)); });
         test.set_function("Log", [](const std::string& msg)
                           { TestRunner::Get().Log(msg); });
         test.set_function("Fail", [](const std::string& msg)
@@ -280,6 +391,15 @@ function Test.Get(name) return store[name] end
         const std::string& root = Application::Get().GetProjectSettings().m_ProjectRoot;
         m_GoldenDir             = root + "Tests/Golden/";
         m_OutDir                = root + "Tests/Out/";
+#ifdef LUMOS_PLATFORM_IOS
+        // the bundle is read-only
+        m_GoldenDir = OS::Get().GetCurrentWorkingDirectory() + "/TestGolden/";
+        m_OutDir    = OS::Get().GetCurrentWorkingDirectory() + "/TestOut/";
+#endif
+        {
+            std::error_code ec;
+            std::filesystem::create_directories(m_OutDir, ec);
+        }
 
         sol::protected_function start = state["Test"]["__start"];
         auto result                   = start(m_ScriptPath);
@@ -385,6 +505,15 @@ function Test.Get(name) return store[name] end
         }
     }
 
+    void TestRunner::ReportScriptError(const char* context, const char* message)
+    {
+        if(!m_pInstance || !m_pInstance->m_Active || m_pInstance->m_Finished)
+            return;
+
+        m_pInstance->Fail(std::string("lua script error (") + (context ? context : "?") + "): " + (message ? message : "unknown"));
+        m_pInstance->Finish(false);
+    }
+
     void TestRunner::Finish(bool passed)
     {
         if(m_Finished)
@@ -448,6 +577,7 @@ function Test.Get(name) return store[name] end
                     actual, Application::Get().GetWindow()->GetSwapChain()->GetCurrentImage());
             }
 
+            m_ShotMaxFraction = shot.maxFraction;
             if(shot.compare)
                 CompareAgainstGolden(shot.name, actual);
             else
@@ -538,7 +668,7 @@ function Test.Get(name) return store[name] end
         const float fraction = pixels > 0 ? (float)differing / (float)pixels : 0.0f;
         m_Checks++;
 
-        bool passed = fraction <= FAIL_FRACTION;
+        bool passed = fraction <= (m_ShotMaxFraction >= 0.0f ? m_ShotMaxFraction : FAIL_FRACTION);
         if(!passed)
         {
             const std::string diffPath = m_OutDir + name + "_diff.png";

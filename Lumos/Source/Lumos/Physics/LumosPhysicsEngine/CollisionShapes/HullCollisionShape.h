@@ -96,6 +96,8 @@ namespace Lumos
             m_Type           = CollisionShapeType::CollisionHull;
         }
 
+        Hull* GetHull() const override { return m_Hull.get(); }
+
     protected:
         Vec3 m_HalfDimensions;
         Maths::BoundingBox m_BoundingBox;

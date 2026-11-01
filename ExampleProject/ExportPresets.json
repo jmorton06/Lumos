@@ -1,0 +1,19 @@
+{
+    "Presets": [
+        {
+            "Name": "macOS",
+            "Platform": "macos",
+            "Config": "release",
+            "SignIdentity": "-"
+        },
+        {
+            "Name": "iOS",
+            "Platform": "ios",
+            "Config": "release",
+            "AppName": "Archery",
+            "BundleId": "com.lumos.example",
+            "Team": "C5L4T5BF6L",
+            "Device": "Joseph’s iPhone"
+        }
+    ]
+}

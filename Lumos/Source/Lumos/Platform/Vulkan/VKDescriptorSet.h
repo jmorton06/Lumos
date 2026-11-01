@@ -67,6 +67,7 @@ namespace Lumos
             bool m_Dynamic           = false;
 
             uint32_t m_FramesInFlight = 0;
+            uint32_t m_SamplerCount   = 0; // combined image samplers in the layout
 
             struct DescriptorData
             {

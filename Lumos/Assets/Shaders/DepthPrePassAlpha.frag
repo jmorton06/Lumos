@@ -4,6 +4,8 @@
 #include "Buffers.glslh"
 #include "PBR.glslh"
 #include "Octahedral.glslh"
+#define GBUFFER_MATERIAL
+#include "GBuffer.glslh"
 
 struct VertexData
 {
@@ -16,16 +18,8 @@ struct VertexData
 
 layout(location = 0) in VertexData VertexOutput;
 
-// Packed G-buffer: rg = octahedral world normal, b = NDC depth, a = roughness.
+// Packed G-buffer, see GBuffer.glslh
 layout(location = 0) out vec4 OutGBuffer;
-
-float GetRoughness()
-{
-	if(u_MaterialData.RoughnessMapFactor < 0.05)
-		return u_MaterialData.Roughness;
-	return (1.0 - u_MaterialData.RoughnessMapFactor) * u_MaterialData.Roughness
-	     + u_MaterialData.RoughnessMapFactor * texture(u_RoughnessMap, VertexOutput.TexCoord).r;
-}
 
 void main(void)
 {
@@ -34,6 +28,7 @@ void main(void)
 	if(alpha < u_MaterialData.AlphaCutOff)
 		discard;
 
+	vec2 m    = GBufferMaterial(VertexOutput.TexCoord);
 	vec2 octN = OctEncodeNormal(normalize(VertexOutput.Normal));
-	OutGBuffer = vec4(octN, gl_FragCoord.z, GetRoughness());
+	OutGBuffer = vec4(octN, gl_FragCoord.z, GBufferPackMaterial(m.x, m.y));
 }

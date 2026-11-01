@@ -62,7 +62,7 @@ void main()
 	if(focusPoint <= 0.0)
 	{
 		float cd = texture(u_DepthTexture, vec2(0.5f, 0.5f)).r;
-		if(cd >= 0.9999)
+		if(cd <= 0.0001) // reversed-Z: sky
 		{
 			outFrag = texture(u_Texture, outTexCoord); // looking at empty sky: no DoF
 			return;

@@ -57,10 +57,16 @@ void main()
     // some of them. Sizing a world width by it inflates the quad enormously in
     // the camera-relative case. The fragment stage gets its pixel scale from
     // screen-space derivatives instead, which is correct in every frame.
+    // The quad is wider than the stroke so the edge filter has pixels to fade
+    // through: vSide is still +-1 at the TRUE edge, and runs past it to the
+    // quad's edge. A quad cut at the stroke edge clips the filter at half
+    // coverage, which is a hard aliased edge however the frag blends it.
     float halfWorld;
+    float expand;
     if(width < 0.0)
     {
         halfWorld = (-width) * 0.5;
+        expand    = 2.0; // pixel size unknown here; thin strokes are the common case
     }
     else
     {
@@ -68,13 +74,14 @@ void main()
         float pxPerWorld = (ubo.screenParams.y * 0.5) / max(ubo.screenParams.z * distCam, 1e-4);
         float halfPx     = max(width, ubo.screenParams.w) * 0.5;
         halfWorld        = halfPx / pxPerWorld;
+        expand           = (halfPx + 1.5) / halfPx;
     }
 
-    vec3 world = pos + perp * (inCorner.y * halfWorld);
+    vec3 world = pos + perp * (inCorner.y * halfWorld * expand);
 
     gl_Position = ubo.projView * vec4(world, 1.0);
     vColour     = colour;
-    vSide       = inCorner.y;
+    vSide       = inCorner.y * expand;
     vAlong      = arcAtA + (atB ? length(B - A) : 0.0);
     vDash       = dash;
 }

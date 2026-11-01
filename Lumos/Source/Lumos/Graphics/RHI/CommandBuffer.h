@@ -42,6 +42,9 @@ namespace Lumos
                 BOTTOM_OF_PIPE
             };
             virtual void BufferMemoryBarrier(PipelineStage srcStage, PipelineStage dstStage) { }
+            // Clears the depth attachment of the render pass that is open, without starting a new one
+            virtual void ClearDepthAttachment(float depth = 1.0f) { }
+            virtual void ClearDepthAttachmentRect(float depth, int32_t x, int32_t y, uint32_t width, uint32_t height) { }
 
         protected:
             static CommandBuffer* (*CreateFunc)();

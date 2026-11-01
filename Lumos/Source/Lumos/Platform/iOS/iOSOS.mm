@@ -6,14 +6,12 @@
 #include "Core/OS/Input.h"
 #include "Core/CoreSystem.h"
 #include "Core/Application.h"
+#include "Audio/NowPlaying.h"
+#include "Audio/AudioSession.h"
+#include "Platform/OpenAL/ALMusicStream.h"
 
-#ifdef LUMOS_RENDER_API_VULKAN
 #import <QuartzCore/CAMetalLayer.h>
 #import <MetalKit/MetalKit.h>
-#else
-#define LUMOS_RENDER_API_OPENGL
-#import <GLKit/GLKit.h>
-#endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/Vulkan/VKDevice.h"
@@ -31,10 +29,40 @@
 
 static void iOSShowKeyboard(bool show);
 
+// 0 = the system keyboard as it comes, 1 = for code (see UIKeyboardStyle)
+static int g_KeyboardStyle = 0;
+// share of the view's height under the keyboard
+static float g_KeyboardCover = 0.0f;
+
+extern "C" float iOSKeyboardCover() { return g_KeyboardCover; }
+
+// Handwriting: the UI's text fields (Graphics/UI.cpp) and the field the keyboard types into (iOSKeyboard.mm)
+extern "C" uint32_t UIScribbleTargets(uint64_t* hashes, float* rects, uint32_t maxCount);
+extern "C" bool UIScribbleIsFocused(uint64_t hash);
+extern "C" void UIScribbleFocus(uint64_t hash);
+UITextField *iOSKeyboardActiveField(void);
+
 namespace Lumos
 {
 	static CAMetalLayer* s_Layer = nullptr;
 	CAMetalLayer* iOSOS::GetStaticLayer() { return s_Layer; }
+
+    // UIKit can deliver touches / keys after the app has shut down
+    static iOSWindow* LiveWindow()
+    {
+        return Application::HasInstance() ? (iOSWindow*)Application::Get().GetWindow() : nullptr;
+    }
+
+
+    // scripts' background tick, run on demand while not in the foreground (frames handle it otherwise)
+    static void RunBackgroundTick()
+    {
+        if(iOSOS::IsQuitting() || !Application::HasInstance())
+            return;
+        if([UIApplication sharedApplication].applicationState == UIApplicationStateActive)
+            return;
+        Application::Get().OnBackgroundUpdate(0.0f);
+    }
 
     iOSOS::iOSOS()
     {
@@ -46,7 +74,15 @@ namespace Lumos
 
     void iOSOS::Init()
     {
-        Lumos::Internal::CoreSystem::Init(false);
+        // launch arguments (devicectl / Xcode scheme) reach the command line like on desktop
+        static char* s_Argv[64];
+        int argc = 0;
+        for(NSString* a in [[NSProcessInfo processInfo] arguments])
+        {
+            if(argc >= 64) break;
+            s_Argv[argc++] = strdup(a.UTF8String);
+        }
+        Lumos::Internal::CoreSystem::Init(argc, s_Argv);
         LINFO("Device : %s",GetModelName().c_str());
 
         iOSWindow::MakeDefault();
@@ -62,15 +98,34 @@ namespace Lumos
         if (audioSessionError)
             LERROR("Failed to activate AVAudioSession: %s", [[audioSessionError localizedDescription] UTF8String]);
 
+        // a suspended app gets no frames or timer ticks: handle the command now so what plays
+        // and what Control Center shows stay in step
+        Lumos::NowPlaying::SetCommandHook(&RunBackgroundTick);
+
+        // a call / Siri / another app's audio: Apple's OpenAL needs its context dropped and
+        // restored around it or it stays silent; the app pauses so its state matches
         [[NSNotificationCenter defaultCenter] addObserverForName:AVAudioSessionInterruptionNotification
                                                            object:audioSession
                                                             queue:[NSOperationQueue mainQueue]
                                                        usingBlock:^(NSNotification* note) {
-            NSNumber* typeValue = note.userInfo[AVAudioSessionInterruptionTypeKey];
-            if ([typeValue unsignedIntegerValue] == AVAudioSessionInterruptionTypeEnded)
+            NSUInteger type = [note.userInfo[AVAudioSessionInterruptionTypeKey] unsignedIntegerValue];
+            if (type == AVAudioSessionInterruptionTypeBegan)
+            {
+                Lumos::AudioSession::SetOpenALHold(Lumos::AudioSession::Hold_Interrupted, true);
+                Lumos::NowPlaying::Inject(Lumos::NowPlaying::CommandType::Pause);
+                RunBackgroundTick();
+            }
+            else if (type == AVAudioSessionInterruptionTypeEnded)
             {
                 NSError* resumeError = nil;
                 [[AVAudioSession sharedInstance] setActive:YES error:&resumeError];
+                Lumos::AudioSession::SetOpenALHold(Lumos::AudioSession::Hold_Interrupted, false);
+                NSUInteger opts = [note.userInfo[AVAudioSessionInterruptionOptionKey] unsignedIntegerValue];
+                if (opts & AVAudioSessionInterruptionOptionShouldResume)
+                {
+                    Lumos::NowPlaying::Inject(Lumos::NowPlaying::CommandType::Play);
+                    RunBackgroundTick();
+                }
             }
         }];
 
@@ -80,11 +135,27 @@ namespace Lumos
 
     bool iOSOS::OnFrame()
     {
-        return Application::Get().OnFrame();
+        // UIKit may still ask for a frame (e.g. resigning active) after OnQuit released the app
+        if(!Application::HasInstance())
+            return false;
+        // blocking pickers spin the run loop mid-frame and the display link fires again: skip those
+        static bool s_InFrame = false;
+        if(s_InFrame)
+            return true;
+        s_InFrame = true;
+        bool ok   = Application::Get().OnFrame();
+        s_InFrame = false;
+        return ok;
     }
+
+    static bool s_Quitting = false;
+    bool iOSOS::IsQuitting() { return s_Quitting; }
 
     void iOSOS::OnQuit()
     {
+        if(!Application::HasInstance())
+            return; // already quit
+        s_Quitting = true;
         Application::Get().OnQuit();
         Application::Release();
 	    Lumos::Internal::CoreSystem::Shutdown();
@@ -147,7 +218,8 @@ namespace Lumos
     {
         Lumos::InputCode::Key lumosKey = Lumos::iOSKeyCodes::iOSKeyToLumos(keycode);
 
-        iOSWindow* window = (iOSWindow*)Application::Get().GetWindow();
+        iOSWindow* window = LiveWindow();
+        if(!window) return;
         if (cmd) window->OnKeyEvent(Lumos::InputCode::Key::LeftSuper, down);
         if (shift) window->OnKeyEvent(Lumos::InputCode::Key::LeftShift, down);
         if (alt) window->OnKeyEvent(Lumos::InputCode::Key::LeftAlt, down);
@@ -158,56 +230,59 @@ namespace Lumos
 
     void iOSOS::OnKeyTyped(char character)
     {
-        iOSWindow* window = (iOSWindow*)Application::Get().GetWindow();
+        iOSWindow* window = LiveWindow();
+        if(!window) return;
         window->OnKeyTypedEvent(character);
     }
 
     void iOSOS::OnMouseButtonEvent(int button, bool down)
     {
-        iOSWindow* window = (iOSWindow*)Application::Get().GetWindow();
+        iOSWindow* window = LiveWindow();
+        if(!window) return;
         window->OnTouchEvent(0, 0, button, down);
     }
 
     void iOSOS::OnScrollWheelEvent(float xOffset, float yOffset)
     {
-        iOSWindow* window = (iOSWindow*)Application::Get().GetWindow();
+        iOSWindow* window = LiveWindow();
+        if(!window) return;
         window->OnScrollEvent(xOffset, yOffset);
     }
 
     void iOSOS::OnScreenPressed(uint32_t x, uint32_t y, uint32_t count, bool down)
     {
-        ((iOSWindow*)Application::Get().GetWindow())->OnTouchEvent(x,y,count, down);
+        if(iOSWindow* w = LiveWindow()) w->OnTouchEvent(x,y,count, down);
     }
 
     void iOSOS::OnMouseMovedEvent(uint32_t xPos, uint32_t yPos)
     {
-        ((iOSWindow*)Application::Get().GetWindow())->OnMouseMovedEvent(xPos,yPos);
+        if(iOSWindow* w = LiveWindow()) w->OnMouseMovedEvent(xPos,yPos);
     }
 
     void iOSOS::OnScreenResize(uint32_t width, uint32_t height)
     {
         LINFO("Resizing Window %u, %u", width, height);
-        ((iOSWindow*)Application::Get().GetWindow())->OnResizeEvent(width, height);
+        if(iOSWindow* w = LiveWindow()) w->OnResizeEvent(width, height);
     }
 
     void iOSOS::OnGesturePinch(float scale, float velocity, uint32_t x, uint32_t y, GestureState state)
     {
-        ((iOSWindow*)Application::Get().GetWindow())->OnGesturePinchEvent(scale, velocity, x, y, state);
+        if(iOSWindow* w = LiveWindow()) w->OnGesturePinchEvent(scale, velocity, x, y, state);
     }
 
     void iOSOS::OnGesturePan(float tx, float ty, float vx, float vy, uint32_t touches, GestureState state)
     {
-        ((iOSWindow*)Application::Get().GetWindow())->OnGesturePanEvent(tx, ty, vx, vy, touches, state);
+        if(iOSWindow* w = LiveWindow()) w->OnGesturePanEvent(tx, ty, vx, vy, touches, state);
     }
 
     void iOSOS::OnGestureSwipe(SwipeDirection direction, uint32_t touches)
     {
-        ((iOSWindow*)Application::Get().GetWindow())->OnGestureSwipeEvent(direction, touches);
+        if(iOSWindow* w = LiveWindow()) w->OnGestureSwipeEvent(direction, touches);
     }
 
     void iOSOS::OnGestureLongPress(uint32_t x, uint32_t y, GestureState state)
     {
-        ((iOSWindow*)Application::Get().GetWindow())->OnGestureLongPressEvent(x, y, state);
+        if(iOSWindow* w = LiveWindow()) w->OnGestureLongPressEvent(x, y, state);
     }
 
     std::string iOSOS::GetExecutablePath()
@@ -223,6 +298,37 @@ namespace Lumos
         {
             AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
         }
+    }
+
+    void iOSOS::Haptic(int kind) const
+    {
+        dispatch_block_t fire = ^{
+            // kept alive and prepared, or the first tick of a run lags
+            static UISelectionFeedbackGenerator* selection = nil;
+            static UIImpactFeedbackGenerator* impact[3]    = { nil, nil, nil };
+            if(kind <= 0)
+            {
+                if(!selection)
+                    selection = [[UISelectionFeedbackGenerator alloc] init];
+                [selection selectionChanged];
+                [selection prepare];
+            }
+            else
+            {
+                const int i = kind > 3 ? 2 : kind - 1;
+                if(!impact[i])
+                {
+                    const UIImpactFeedbackStyle styles[3] = { UIImpactFeedbackStyleLight, UIImpactFeedbackStyleMedium, UIImpactFeedbackStyleHeavy };
+                    impact[i] = [[UIImpactFeedbackGenerator alloc] initWithStyle:styles[i]];
+                }
+                [impact[i] impactOccurred];
+                [impact[i] prepare];
+            }
+        };
+        if([NSThread isMainThread])
+            fire();
+        else
+            dispatch_async(dispatch_get_main_queue(), fire);
     }
 
     iOSOS::iOSDeviceType iOSOS::GetDeviceType() const
@@ -404,6 +510,9 @@ namespace Lumos
 }
 
 - (void)drawInMTKView:(MTKView *)view {
+    UIViewController* vc = self.window.rootViewController;
+    SEL check = NSSelectorFromString(@"lumosCheckOrientation");
+    if (vc && [vc respondsToSelector:check]) ((void (*)(id, SEL))[vc methodForSelector:check])(vc, check);
     int newDrawableWidth = (int)self.drawableSize.width;
     int newDrawableHeight = (int)self.drawableSize.height;
     if (!self.surfaceCreatedNotified)
@@ -461,6 +570,7 @@ namespace Lumos
 @interface LumosAppDelegate : UIResponder <UIApplicationDelegate>
 @property(nonatomic, strong) UIWindow *window;
 @property(nonatomic, assign) BOOL active;
+@property(nonatomic, strong) NSTimer *backgroundTimer;
 @end
 
 UIView<LumosView> *lumosView = nil;
@@ -477,6 +587,7 @@ CALayer* layer;
 @property(nonatomic, assign) BOOL keyboardRequested;
 @property(nonatomic, assign) BOOL keyboardVisible;
 @property(nonatomic, strong) UIView *emptyInputView;
+@property(nonatomic, strong) UIView *codeBar;
 @property(nonatomic, strong) UIPinchGestureRecognizer *pinchGesture;
 @property(nonatomic, strong) UIPanGestureRecognizer *panGesture;
 
@@ -577,6 +688,13 @@ CALayer* layer;
                                                name:UIKeyboardWillChangeFrameNotification
                                              object:self.view.window];
 
+    // Pencil handwriting into the UI's own text fields (iOS 14+, iPad)
+    if (@available(iOS 14.0, *)) {
+        UIIndirectScribbleInteraction *scribble = [[UIIndirectScribbleInteraction alloc]
+            initWithDelegate:(id<UIIndirectScribbleInteractionDelegate>)self];
+        [self.view addInteraction:scribble];
+    }
+
     // Add pointer interaction for trackpad/mouse (iOS 13.4+)
     if (@available(iOS 13.4, *)) {
         UIPointerInteraction *pointerInteraction = [[UIPointerInteraction alloc] initWithDelegate:self];
@@ -660,8 +778,7 @@ CALayer* layer;
     }
     else
     {
-        // iPhone editor: landscape for more space, runtime: flexible
-        return isEditor ? UIInterfaceOrientationMaskLandscape : UIInterfaceOrientationMaskAllButUpsideDown;
+        return UIInterfaceOrientationMaskAllButUpsideDown;
     }
 }
 
@@ -674,14 +791,38 @@ CALayer* layer;
     }];
 }
 
-- (void)viewDidLayoutSubviews {
-    [super viewDidLayoutSubviews];
+// Landscape phones report the notch inset on BOTH sides; only the notch side needs it, the other just
+// keeps clear of the rounded corner. Which side depends on which way the phone is turned.
+static UIInterfaceOrientation s_SafeAreaOrientation = UIInterfaceOrientationUnknown;
+- (void)lumosUpdateSafeArea {
     UIEdgeInsets insets = self.view.safeAreaInsets;
+    UIInterfaceOrientation o = UIInterfaceOrientationUnknown;
+    if (@available(iOS 13.0, *))
+        o = self.view.window.windowScene.interfaceOrientation;
+    s_SafeAreaOrientation = o;
+    const CGFloat corner = 16.0; // points kept from the rounded corner on the side without the notch
+    if (insets.left > 0 && fabs(insets.left - insets.right) < 1.0) {
+        // landscape right = home side on the right, the notch on the left
+        if (o == UIInterfaceOrientationLandscapeRight) insets.right = MIN(insets.right, corner);
+        else if (o == UIInterfaceOrientationLandscapeLeft) insets.left = MIN(insets.left, corner);
+    }
     CGFloat scale = self.view.contentScaleFactor;
     Lumos::iOSOS::Get()->SetSafeAreaScale(scale);
     Lumos::iOSOS::Get()->SetSafeAreaInsets(
         insets.top * scale, insets.bottom * scale,
         insets.left * scale, insets.right * scale);
+}
+
+// per frame: a 180 degree turn between the two landscapes doesn't lay the view out again
+- (void)lumosCheckOrientation {
+    if (@available(iOS 13.0, *)) {
+        if (self.view.window.windowScene.interfaceOrientation != s_SafeAreaOrientation) [self lumosUpdateSafeArea];
+    }
+}
+
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    [self lumosUpdateSafeArea];
     if (@available(iOS 11.0, *)) {
         [self setNeedsUpdateOfHomeIndicatorAutoHidden];
         [self setNeedsUpdateOfScreenEdgesDeferringSystemGestures];
@@ -896,6 +1037,7 @@ CALayer* layer;
 - (void)insertText:(NSString *)text {
     if (text.length == 0) return;
 
+    if (!Lumos::Application::HasInstance()) return;
     Lumos::iOSWindow* window = (Lumos::iOSWindow*)Lumos::Application::Get().GetWindow();
     for (NSUInteger i = 0; i < text.length; i++) {
         unichar ch = [text characterAtIndex:i];
@@ -909,6 +1051,7 @@ CALayer* layer;
 }
 
 - (void)deleteBackward {
+    if (!Lumos::Application::HasInstance()) return;
     Lumos::iOSWindow* window = (Lumos::iOSWindow*)Lumos::Application::Get().GetWindow();
     window->OnKeyEvent(Lumos::InputCode::Key::Backspace, true);
     window->OnKeyEvent(Lumos::InputCode::Key::Backspace, false);
@@ -971,6 +1114,25 @@ typedef enum {
 
 
 
+// Publishes every finger still down (native px) for on-screen controls.
+static void PublishTouchPoints(UIEvent* event, UIView* view)
+{
+    Lumos::Input::TouchPoint points[Lumos::Input::MaxTouchPoints];
+    uint32_t n = 0;
+    for(UITouch* touch in event.allTouches)
+    {
+        if(n >= Lumos::Input::MaxTouchPoints)
+            break;
+        if(touch.phase == UITouchPhaseEnded || touch.phase == UITouchPhaseCancelled)
+            continue;
+        CGPoint p = [touch locationInView:view];
+        points[n].Id       = (uint64_t)(uintptr_t)(__bridge void*)touch;
+        points[n].Position = Lumos::Vec2(p.x * view.contentScaleFactor, p.y * view.contentScaleFactor);
+        n++;
+    }
+    Lumos::Input::Get().SetTouchPoints(points, n);
+}
+
 static uint32_t ActiveTouchCount(UIEvent* event)
 {
     uint32_t count = 0;
@@ -999,6 +1161,7 @@ static uint32_t ActiveTouchCount(UIEvent* event)
 
     NSUInteger totalTouches = event.allTouches.count;
     Lumos::Input::Get().SetTouchCount(ActiveTouchCount(event));
+    PublishTouchPoints(event, self.view);
 
     if(totalTouches == 1 && !self.wasMultiTouch)
     {
@@ -1029,6 +1192,7 @@ static uint32_t ActiveTouchCount(UIEvent* event)
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     NSUInteger totalTouches = event.allTouches.count;
     Lumos::Input::Get().SetTouchCount(ActiveTouchCount(event));
+    PublishTouchPoints(event, self.view);
 
     // If multi-touch active, don't send single-finger events
     if(totalTouches > 1 || self.wasMultiTouch || [self isMultiFingerGestureActive])
@@ -1071,6 +1235,7 @@ static uint32_t ActiveTouchCount(UIEvent* event)
 
     NSUInteger remainingTouches = ActiveTouchCount(event);
     Lumos::Input::Get().SetTouchCount((uint32_t)remainingTouches);
+    PublishTouchPoints(event, self.view);
 
     // Single-finger ended - send mouse up
     if(self.singleTouchValid && !self.wasMultiTouch && ![self isMultiFingerGestureActive])
@@ -1093,6 +1258,7 @@ static uint32_t ActiveTouchCount(UIEvent* event)
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
     Lumos::Input::Get().SetTouchCount(ActiveTouchCount(event));
+    PublishTouchPoints(event, self.view);
     // Release mouse button and reset state
     if(self.singleTouchValid)
     {
@@ -1111,7 +1277,224 @@ static uint32_t ActiveTouchCount(UIEvent* event)
         CGRect keyboardFrame = [nsValue CGRectValue];
 
         self.keyboardVisible = CGRectIntersectsRect(self.view.frame, keyboardFrame);
+
+        // How much of the view it covers (any keyboard: ours or a text field's). Only a keyboard
+        // docked along the bottom pushes the layout up: on an iPad it can float, be split, or be
+        // just the shortcut bar of a hardware keyboard - those sit over the view and move about.
+        CGRect inView  = [self.view convertRect:keyboardFrame fromView:nil];
+        CGRect bounds  = self.view.bounds;
+        CGFloat height = bounds.size.height;
+        CGRect onView  = CGRectIntersection(inView, bounds);
+        const BOOL docked = !CGRectIsNull(onView) && CGRectGetMaxY(onView) >= CGRectGetMaxY(bounds) - 1.0
+            && onView.size.width >= bounds.size.width * 0.9;
+        CGFloat cover  = (docked && height > 0.0) ? onView.size.height / height : 0.0;
+        g_KeyboardCover = (float)fmax(0.0, fmin(0.7, cover));
     }
+}
+
+// UITextInputTraits: nothing that rewrites what is typed
+- (UITextAutocapitalizationType)autocapitalizationType {
+    return UITextAutocapitalizationTypeNone;
+}
+
+- (UITextSpellCheckingType)spellCheckingType {
+    return UITextSpellCheckingTypeNo;
+}
+
+- (UITextSmartQuotesType)smartQuotesType {
+    return UITextSmartQuotesTypeNo;
+}
+
+- (UITextSmartDashesType)smartDashesType {
+    return UITextSmartDashesTypeNo;
+}
+
+- (UITextSmartInsertDeleteType)smartInsertDeleteType {
+    return UITextSmartInsertDeleteTypeNo;
+}
+
+- (UIKeyboardType)keyboardType {
+    return g_KeyboardStyle == 1 ? UIKeyboardTypeASCIICapable : UIKeyboardTypeDefault;
+}
+
+- (UIKeyboardAppearance)keyboardAppearance {
+    return UIKeyboardAppearanceDark;
+}
+
+#pragma mark - Scribble (UIIndirectScribbleInteractionDelegate)
+
+// The fields are drawn by the engine, so iOS is told where they are; each is known by its widget hash.
+- (BOOL)scribbleRect:(CGRect *)outRect forHash:(uint64_t)hash {
+    uint64_t hashes[128];
+    float rects[128 * 4];
+    const uint32_t count = Lumos::Application::HasInstance() ? UIScribbleTargets(hashes, rects, 128) : 0;
+    const CGFloat scale  = self.view.contentScaleFactor > 0.0 ? self.view.contentScaleFactor : 1.0;
+    for (uint32_t i = 0; i < count; i++) {
+        if (hashes[i] == hash) {
+            *outRect = CGRectMake(rects[i * 4] / scale, rects[i * 4 + 1] / scale, rects[i * 4 + 2] / scale, rects[i * 4 + 3] / scale);
+            return YES;
+        }
+    }
+    return NO;
+}
+
+- (void)indirectScribbleInteraction:(id)interaction
+              requestElementsInRect:(CGRect)rect
+                         completion:(void (^)(NSArray *elements))completion {
+    NSMutableArray *elements = [NSMutableArray array];
+    uint64_t hashes[128];
+    float rects[128 * 4];
+    const uint32_t count = Lumos::Application::HasInstance() ? UIScribbleTargets(hashes, rects, 128) : 0;
+    const CGFloat scale  = self.view.contentScaleFactor > 0.0 ? self.view.contentScaleFactor : 1.0;
+    for (uint32_t i = 0; i < count; i++) {
+        CGRect frame = CGRectMake(rects[i * 4] / scale, rects[i * 4 + 1] / scale, rects[i * 4 + 2] / scale, rects[i * 4 + 3] / scale);
+        if (CGRectIntersectsRect(frame, rect))
+            [elements addObject:@(hashes[i])];
+    }
+    completion(elements);
+}
+
+- (BOOL)indirectScribbleInteraction:(id)interaction isElementFocused:(id)elementIdentifier {
+    return UIScribbleIsFocused([(NSNumber *)elementIdentifier unsignedLongLongValue]) && iOSKeyboardActiveField() != nil;
+}
+
+- (CGRect)indirectScribbleInteraction:(id)interaction frameForElement:(id)elementIdentifier {
+    CGRect frame = CGRectZero;
+    [self scribbleRect:&frame forHash:[(NSNumber *)elementIdentifier unsignedLongLongValue]];
+    return frame;
+}
+
+// The engine focuses its field on the next frame and that opens the (hidden) system text field:
+// hand it over once it is there.
+- (void)scribbleDeliverField:(void (^)(UIResponder<UITextInput> *focusedInput))completion tries:(int)tries {
+    UITextField *field = iOSKeyboardActiveField();
+    if (field != nil || tries <= 0) {
+        completion(field);
+        return;
+    }
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.05 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self scribbleDeliverField:completion tries:tries - 1];
+    });
+}
+
+- (void)indirectScribbleInteraction:(id)interaction
+               focusElementIfNeeded:(id)elementIdentifier
+                     referencePoint:(CGPoint)focusReferencePoint
+                         completion:(void (^)(UIResponder<UITextInput> *focusedInput))completion {
+    UIScribbleFocus([(NSNumber *)elementIdentifier unsignedLongLongValue]);
+    [self scribbleDeliverField:completion tries:30];
+}
+
+#pragma mark - Code key bar
+
+// What sits above the keyboard in the code style: the keys a phone keyboard buries.
+// Strings are typed as they are; the rest are named below.
+static NSArray<NSString *> *LumosCodeKeys(void) {
+    static NSArray<NSString *> *keys = nil;
+    if (!keys) {
+        keys = @[ @"hide", @"tab", @"left", @"right", @"up", @"down", @"undo", @"redo",
+                  @"(", @")", @"{", @"}", @"[", @"]", @"=", @"\"", @"'", @".", @",", @":", @";",
+                  @"_", @"-", @"+", @"*", @"/", @"<", @">", @"#", @"%", @"~", @"!", @"&", @"|" ];
+    }
+    return keys;
+}
+
+- (UIView *)codeKeyBar {
+    if (self.codeBar)
+        return self.codeBar;
+
+    const CGFloat height = 46.0;
+    UIInputView *bar = [[UIInputView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, height)
+                                           inputViewStyle:UIInputViewStyleKeyboard];
+    bar.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+
+    UIScrollView *scroll = [[UIScrollView alloc] initWithFrame:bar.bounds];
+    scroll.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    scroll.showsHorizontalScrollIndicator = NO;
+    scroll.alwaysBounceHorizontal = YES;
+    [bar addSubview:scroll];
+
+    NSDictionary<NSString *, NSString *> *symbols = @{
+        @"hide" : @"keyboard.chevron.compact.down", @"tab" : @"arrow.right.to.line",
+        @"left" : @"arrow.left", @"right" : @"arrow.right", @"up" : @"arrow.up", @"down" : @"arrow.down",
+        @"undo" : @"arrow.uturn.backward", @"redo" : @"arrow.uturn.forward"
+    };
+
+    NSArray<NSString *> *keys = LumosCodeKeys();
+    CGFloat x = 6.0;
+    for (NSUInteger i = 0; i < keys.count; i++) {
+        NSString *key = keys[i];
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
+        button.tag = (NSInteger)i;
+        button.tintColor = UIColor.whiteColor;
+        button.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.14];
+        button.layer.cornerRadius = 6.0;
+        NSString *symbol = symbols[key];
+        UIImage *image = nil;
+        if (symbol) {
+            if (@available(iOS 13.0, *))
+                image = [UIImage systemImageNamed:symbol];
+        }
+        if (image) {
+            [button setImage:image forState:UIControlStateNormal];
+        } else {
+            [button setTitle:key forState:UIControlStateNormal];
+            if (@available(iOS 13.0, *))
+                button.titleLabel.font = [UIFont monospacedSystemFontOfSize:19.0 weight:UIFontWeightMedium];
+            else
+                button.titleLabel.font = [UIFont systemFontOfSize:19.0 weight:UIFontWeightMedium];
+        }
+        const CGFloat width = symbol ? 44.0 : 36.0;
+        button.frame = CGRectMake(x, 5.0, width, height - 10.0);
+        [button addTarget:self action:@selector(codeKeyPressed:) forControlEvents:UIControlEventTouchUpInside];
+        [scroll addSubview:button];
+        x += width + 6.0;
+    }
+    scroll.contentSize = CGSizeMake(x, height);
+
+    self.codeBar = bar;
+    return bar;
+}
+
+- (void)codeKeyPressed:(UIButton *)sender {
+    NSArray<NSString *> *keys = LumosCodeKeys();
+    if (sender.tag < 0 || (NSUInteger)sender.tag >= keys.count)
+        return;
+    NSString *key = keys[(NSUInteger)sender.tag];
+    [[UIDevice currentDevice] playInputClick];
+
+    if (!Lumos::Application::HasInstance()) return;
+    Lumos::iOSWindow* window = (Lumos::iOSWindow*)Lumos::Application::Get().GetWindow();
+    auto tap = [window](Lumos::InputCode::Key code) {
+        window->OnKeyEvent(code, true);
+        window->OnKeyEvent(code, false);
+    };
+
+    if ([key isEqualToString:@"hide"]) iOSShowKeyboard(false);
+    else if ([key isEqualToString:@"tab"]) tap(Lumos::InputCode::Key::Tab);
+    else if ([key isEqualToString:@"left"]) tap(Lumos::InputCode::Key::Left);
+    else if ([key isEqualToString:@"right"]) tap(Lumos::InputCode::Key::Right);
+    else if ([key isEqualToString:@"up"]) tap(Lumos::InputCode::Key::Up);
+    else if ([key isEqualToString:@"down"]) tap(Lumos::InputCode::Key::Down);
+    else if ([key isEqualToString:@"undo"] || [key isEqualToString:@"redo"]) {
+        // Cmd Z / Cmd Shift Z, as a keyboard would send them
+        const BOOL redo = [key isEqualToString:@"redo"];
+        window->OnKeyEvent(Lumos::InputCode::Key::LeftSuper, true);
+        if (redo) window->OnKeyEvent(Lumos::InputCode::Key::LeftShift, true);
+        tap(Lumos::InputCode::Key::Z);
+        if (redo) window->OnKeyEvent(Lumos::InputCode::Key::LeftShift, false);
+        window->OnKeyEvent(Lumos::InputCode::Key::LeftSuper, false);
+    }
+    else [self insertText:key];
+}
+
+// lets the bar's buttons click like keys
+- (BOOL)enableInputClicksWhenVisible {
+    return YES;
+}
+
+- (UIView *)inputAccessoryView {
+    return (self.keyboardRequested && g_KeyboardStyle == 1) ? [self codeKeyBar] : nil;
 }
 
 // UITextInputTraits - disable suggestion bar
@@ -1251,6 +1634,17 @@ static void iOSShowKeyboard(bool show) {
     }
 }
 
+extern "C" void iOSSetKeyboardStyle(int style) {
+    if (g_KeyboardStyle == style)
+        return;
+    g_KeyboardStyle = style;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        LumosViewController *vc = (LumosViewController *)[[[UIApplication sharedApplication] delegate] window].rootViewController;
+        if ([vc isKindOfClass:[LumosViewController class]])
+            [vc reloadInputViews];
+    });
+}
+
 @implementation LumosAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -1292,6 +1686,21 @@ static void iOSShowKeyboard(bool show) {
             vc.lumosView.animating = active;
         }
         [vc clearTouches];
+
+        // nothing playing through OpenAL: take its output down so iOS sees the app as paused
+        // (a Play lifts this again)
+        Lumos::AudioSession::SetOpenALHold(Lumos::AudioSession::Hold_Idle, !active && !Lumos::ALMusicStream::AnyPlaying());
+
+        // background audio keeps the app alive; let scripts tick a few times a second
+        [self.backgroundTimer invalidate];
+        self.backgroundTimer = nil;
+        if (!active) {
+            self.backgroundTimer = [NSTimer scheduledTimerWithTimeInterval:0.5 repeats:YES block:^(NSTimer* t) {
+                if (Lumos::iOSOS::IsQuitting()) { [t invalidate]; return; }
+                if (Lumos::Application::HasInstance())
+                    Lumos::Application::Get().OnBackgroundUpdate(0.5f);
+            }];
+        }
     }
 }
 
@@ -1318,7 +1727,8 @@ CGRect ComputeSafeArea(UIView* view)
     self.active = NO;
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
     // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
-    Lumos::Application::Get().GetWindow()->SetWindowFocus(false);
+    if (Lumos::Application::HasInstance() && Lumos::Application::Get().GetWindow())
+        Lumos::Application::Get().GetWindow()->SetWindowFocus(false);
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
@@ -1326,22 +1736,24 @@ CGRect ComputeSafeArea(UIView* view)
     self.active = NO;
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-    Lumos::Application::Get().GetWindow()->SetWindowFocus(false);
+    if (Lumos::Application::HasInstance() && Lumos::Application::Get().GetWindow())
+        Lumos::Application::Get().GetWindow()->SetWindowFocus(false);
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
     self.active = YES;
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
-    Lumos::Application::Get().GetWindow()->SetWindowFocus(true);
+    if (Lumos::Application::HasInstance() && Lumos::Application::Get().GetWindow())
+        Lumos::Application::Get().GetWindow()->SetWindowFocus(true);
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
     self.active = YES;
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
-	if(Lumos::Application::Get().GetWindow())
-	Lumos::Application::Get().GetWindow()->SetWindowFocus(true);
+	if(Lumos::Application::HasInstance() && Lumos::Application::Get().GetWindow())
+		Lumos::Application::Get().GetWindow()->SetWindowFocus(true);
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application
@@ -1364,6 +1776,15 @@ CGRect ComputeSafeArea(UIView* view)
 @end
 
 #pragma mark - Main
+
+extern "C" void iOSSendReturnKey()
+{
+    if (!Lumos::Application::HasInstance()) return;
+    auto* window = (Lumos::iOSWindow*)Lumos::Application::Get().GetWindow();
+    if (!window) return;
+    window->OnKeyEvent(Lumos::InputCode::Key::Enter, true);
+    window->OnKeyEvent(Lumos::InputCode::Key::Enter, false);
+}
 
 int main(int argc, char * argv[])
 {

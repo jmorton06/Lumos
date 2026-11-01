@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "ALManager.h"
 #include "ALSoundNode.h"
+#include "Audio/MusicStream.h"
 #include "Graphics/Camera/Camera.h"
 #include "Utilities/TimeStep.h"
 #include "Scene/Component/SoundComponent.h"
@@ -27,6 +28,7 @@ namespace Lumos
 
         ALManager::~ALManager()
         {
+            MusicStream::ShutdownAll();
             alcDestroyContext(m_Context);
             alcCloseDevice(m_Device);
         }

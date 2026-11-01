@@ -23,6 +23,9 @@
 #include "Maths/Transform.h"
 #include "Scene/EntityManager.h"
 #include "Core/OS/FileSystem.h"
+#include "Utilities/Hash.h"
+#include <filesystem>
+#include "Graphics/ModelLoader/GLTFSceneImport.h"
 
 namespace Lumos
 {
@@ -538,7 +541,8 @@ namespace Lumos
     Entity EntityFactory::AddArrow(Scene* scene, const Vec3& pos, const Vec3& velocity, float radius, float length, float mass)
     {
         auto entity = scene->GetEntityManager()->Create("Arrow");
-        entity.AddComponent<Maths::Transform>(Mat4::Translation(pos) * Mat4::Scale(Vec3(radius * 2.0f, length, radius * 2.0f)));
+        // the capsule primitive is 3 units tall (2 of cylinder, a 0.5 cap each end): `length` is tip to tip
+        entity.AddComponent<Maths::Transform>(Mat4::Translation(pos) * Mat4::Scale(Vec3(radius * 2.0f, length / 3.0f, radius * 2.0f)));
 
         auto& modelComp = entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Capsule);
         SharedPtr<Graphics::Material> matInstance = CreateSharedPtr<Graphics::Material>();
@@ -603,5 +607,130 @@ namespace Lumos
 
         platform.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetIsStatic(true);
         platform.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetFriction(0.8f);
+    }
+
+    // SetParent only reparents, it does not rebase the transform, so a node's LOCAL glTF transform
+    // is already the right value.
+    static Entity CreateEntityFromImportNode(Scene* scene, const Graphics::GLTFImportNode& node)
+    {
+        Entity entity = scene->GetEntityManager()->Create(node.name.empty() ? "Node" : node.name);
+
+        auto& transform = entity.GetOrAddComponent<Maths::Transform>();
+        if(node.hasMatrix)
+            transform.SetLocalTransform(node.matrix);
+        else
+        {
+            transform.SetLocalPosition(node.translation);
+            transform.SetLocalOrientation(node.rotation);
+            transform.SetLocalScale(node.scale);
+        }
+
+        if(node.model)
+            entity.AddComponent<Graphics::ModelComponent>(node.model);
+        if(node.hasLight)
+            entity.AddComponent<Graphics::Light>(node.light);
+        // aspect is the viewport's: the camera system fixes it on resize
+        if(node.hasCamera)
+            entity.AddComponent<Camera>(node.cameraFovDegrees, node.cameraNear, node.cameraFar, 1.0f);
+
+        for(size_t i = 0; i < node.children.Size(); i++)
+            CreateEntityFromImportNode(scene, node.children[i]).SetParent(entity);
+        return entity;
+    }
+
+    // tinygltf reads files off disk, so a glTF inside a pack is written out under the writable root first
+    static bool ExtractPackedFile(const std::string& vfsPath, const std::string& dstPath, std::string* outText)
+    {
+        const i64 size = FileSystem::Get().GetFileSizeVFS(Str8StdS(vfsPath));
+        if(size <= 0)
+            return false;
+        Arena* arena = ArenaAlloc((u64)size + Kilobytes(4));
+        u8* data     = FileSystem::Get().ReadFileVFS(arena, Str8StdS(vfsPath));
+        bool ok      = false;
+        if(data)
+        {
+            if(outText)
+                outText->assign((const char*)data, (size_t)size);
+            if(FILE* f = fopen(dstPath.c_str(), "wb"))
+            {
+                ok = fwrite(data, 1, (size_t)size, f) == (size_t)size;
+                fclose(f);
+            }
+        }
+        ArenaRelease(arena);
+        return ok;
+    }
+
+    static bool UnpackGLTF(const std::string& vfsPath, std::string& outPhysical)
+    {
+        const std::string root = Application::Get().WritableRoot() + "/GLTFCache";
+        const size_t slash     = vfsPath.find_last_of('/');
+        const std::string dir  = slash == std::string::npos ? "" : vfsPath.substr(0, slash + 1);
+        const std::string name = vfsPath.substr(slash + 1);
+        const std::string out  = root + "/" + std::to_string(MurmurHash64A(dir.c_str(), (int)dir.size(), 0));
+        std::error_code ec;
+        std::filesystem::create_directories(out, ec);
+
+        std::string text;
+        if(!ExtractPackedFile(vfsPath, out + "/" + name, &text))
+            return false;
+
+        // every file it points at (.bin, textures) goes alongside
+        for(size_t at = text.find("\"uri\""); at != std::string::npos; at = text.find("\"uri\"", at + 5))
+        {
+            const size_t q1 = text.find('"', text.find(':', at) + 1);
+            const size_t q2 = q1 == std::string::npos ? q1 : text.find('"', q1 + 1);
+            if(q2 == std::string::npos)
+                break;
+            const std::string uri = text.substr(q1 + 1, q2 - q1 - 1);
+            if(uri.rfind("data:", 0) == 0)
+                continue;
+            std::filesystem::create_directories(std::filesystem::path(out + "/" + uri).parent_path(), ec);
+            ExtractPackedFile(dir + uri, out + "/" + uri, nullptr);
+        }
+        outPhysical = out + "/" + name;
+        return true;
+    }
+
+    Entity EntityFactory::ImportGLTFScene(Scene* scene, const std::string& path)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        if(!scene)
+            return {};
+
+        // tinygltf reads straight off disk
+        std::string physical = path;
+        if(path.rfind("//", 0) == 0)
+        {
+            ArenaTemp scratch = ScratchBegin(nullptr, 0);
+            String8 physicalPath;
+            bool ok = FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(path), &physicalPath);
+            if(ok)
+                physical = ToStdString(physicalPath);
+            ScratchEnd(scratch);
+            if(!ok && UnpackGLTF(path, physical))
+                ok = true;
+            if(!ok)
+            {
+                LERROR("ImportGLTFScene: could not resolve %s", path.c_str());
+                return {};
+            }
+        }
+
+        Graphics::GLTFImportNode root;
+        if(!Graphics::LoadGLTFSceneTree(physical, root))
+        {
+            LERROR("ImportGLTFScene: failed to load %s", path.c_str());
+            return {};
+        }
+
+        // the loader's root holds the glTF scene's roots: one entity, so the import moves as a unit
+        Entity parent = scene->GetEntityManager()->Create(root.name.empty() ? "Import" : root.name);
+        parent.GetOrAddComponent<Maths::Transform>();
+        for(size_t i = 0; i < root.children.Size(); i++)
+            CreateEntityFromImportNode(scene, root.children[i]).SetParent(parent);
+
+        LINFO("Imported %s as %u root node(s)", path.c_str(), (u32)root.children.Size());
+        return parent;
     }
 }

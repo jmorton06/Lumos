@@ -1,4 +1,6 @@
 #!/bin/bash
+# Superseded by the export system: Scripts/lumos export|deploy (or Project > Export... in the editor),
+# which uses prebuilt templates instead of regenerating the Runtime project per game. See Docs/Packaging.md.
 # PackageGame.sh <project-dir> [--ios]
 # Builds a standalone .app (macOS) or generates iOS Xcode project from a Lumos game project
 set -e
@@ -10,11 +12,13 @@ ROOT_DIR="$SCRIPT_DIR/../.."
 PROJECT_DIR=""
 IOS_MODE=false
 SHADERC=""
+NO_BUILD=false
 
 for arg in "$@"; do
     case "$arg" in
         --ios) IOS_MODE=true ;;
         --shaderc) SHADERC="1" ;;
+        --no-build) NO_BUILD=true ;; # generate the project only (ArchiveApp.sh archives it)
         *) PROJECT_DIR="$arg" ;;
     esac
 done
@@ -137,8 +141,9 @@ if [ "$IOS_MODE" = true ]; then
     echo "Generating iOS Xcode project..."
     eval "Tools/premake5 xcode4 $PREMAKE_ARGS --os=ios"
 else
-    echo "Generating macOS Xcode project..."
-    eval "Tools/premake5 xcode4 $PREMAKE_ARGS"
+    # shipping build: only the pack in the bundle, Apple Silicon + Intel
+    echo "Generating macOS Xcode project (packaged, universal)..."
+    eval "Tools/premake5 xcode4 $PREMAKE_ARGS --package --arch=universal"
 fi
 
 # Post-process pbxproj (SKIP_INSTALL fix + orientation array split)
@@ -192,7 +197,10 @@ for pbx in glob.glob('**/project.pbxproj', recursive=True):
         print(f'  Patched {pbx}')
 "
 
-if [ "$IOS_MODE" = true ]; then
+if [ "$NO_BUILD" = true ]; then
+    echo ""
+    echo "=== Xcode project generated (no build) ==="
+elif [ "$IOS_MODE" = true ]; then
     echo ""
     echo "=== iOS project generated ==="
     echo "Open in Xcode: $ROOT_DIR/Runtime/Runtime.xcodeproj"
@@ -211,6 +219,29 @@ else
     APP_PATH=$(find "$ROOT_DIR/bin" -name "*.app" -path "*Production*" -type d 2>/dev/null | head -1)
     if [ -z "$APP_PATH" ]; then
         APP_PATH=$(find "$ROOT_DIR/bin" -name "Runtime.app" -type d 2>/dev/null | head -1)
+    fi
+
+    # Optional <project>/Package.json: {"DocumentTypes": [{"Name", "Extensions", "ContentTypes", "Role"}]}
+    # lets Finder offer the app under "Open With" (kept out of the .lmproj, which the runtime rewrites).
+    if [ -n "$APP_PATH" ] && [ -f "$PROJECT_DIR/Package.json" ]; then
+        python3 - "$APP_PATH/Contents/Info.plist" "$PROJECT_DIR/Package.json" <<'PYEOF'
+import json, plistlib, sys
+plist_path, pkg_path = sys.argv[1], sys.argv[2]
+pkg = json.load(open(pkg_path))
+types = []
+for d in pkg.get("DocumentTypes", []):
+    t = {"CFBundleTypeName": d.get("Name", "Document"),
+         "CFBundleTypeRole": d.get("Role", "Viewer"),
+         "LSHandlerRank": d.get("Rank", "Alternate")}
+    if d.get("Extensions"): t["CFBundleTypeExtensions"] = d["Extensions"]
+    if d.get("ContentTypes"): t["LSItemContentTypes"] = d["ContentTypes"]
+    types.append(t)
+if types:
+    with open(plist_path, "rb") as f: plist = plistlib.load(f)
+    plist["CFBundleDocumentTypes"] = types
+    with open(plist_path, "wb") as f: plistlib.dump(plist, f)
+    print("  Added %d document type(s) to Info.plist" % len(types))
+PYEOF
     fi
 
     if [ -n "$APP_PATH" ]; then

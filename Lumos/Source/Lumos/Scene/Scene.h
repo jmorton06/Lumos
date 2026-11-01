@@ -4,6 +4,7 @@
 #include <entt/fwd.hpp>
 #include "Core/DataStructures/TDArray.h"
 #include "Core/UUID.h"
+#include "Core/String.h"
 
 namespace Lumos
 {
@@ -102,6 +103,9 @@ namespace Lumos
         Entity InstantiatePrefab(const std::string& path);
         void DestroyEntity(Entity entity);
         void SavePrefab(Entity entity, const std::string& path);
+        // An entity and its children as prefab JSON, and back (same UUIDs). For undo / copy-paste.
+        String8 SerialiseEntityToString(Arena* arena, Entity entity);
+        Entity DeserialiseEntityFromString(String8 data);
 
         EntityManager* GetEntityManager() { return m_EntityManager.get(); }
 
@@ -133,6 +137,10 @@ namespace Lumos
             bool DepthOfFieldEnabled       = false;
             bool SharpenEnabled            = false;
             bool DepthPrePass              = true;
+            bool Wireframe                 = false; // debug view, not serialised
+            bool LightRange                = false; // not serialised; spot / point Radius is a hard range (fast, tile culling exact)
+            bool OcclusionCulling          = false; // not serialised; helps in occluder-heavy levels only
+            float MinScreenSize            = 0.0f;  // not serialised; skip meshes smaller than this share of the view height (0 = off)
             float DepthOfFieldStrength     = 1.0f;
             float DepthOfFieldDistance     = 100.0f;
 
@@ -148,12 +156,49 @@ namespace Lumos
             int SSRMaxSteps       = 32;     // march steps
             int SSRBinarySteps    = 5;      // refinement after a hit
             float SSRThickness    = 0.5f;   // depth-compare tolerance
-            float SSRStrength     = 1.0f;   // reflection blend amount
+            float SSRStrength     = 1.0f;   // scales the Fresnel-weighted reflection
             float SSRMaxRoughness = 0.6f;   // skip/fade reflections past this
-            float SSREnvIntensity = 1.0f;   // env-map fallback for missed rays; 0 = off
+            float SSREnvIntensity = 1.0f;   // the forward IBL reflection a hit replaces; keep at 1 to match it
 
             float MotionBlurStrength = 0.5f;
             int MotionBlurSamples    = 8;
+
+            // Temporal anti-aliasing: the camera is jittered under a pixel each frame and the frames are blended
+            bool TAAEnabled        = false;
+            float TAAHistoryWeight = 0.92f; // share of last frames kept on a still pixel
+            float TAAMotionWeight  = 0.8f;  // ... and on one moving fast (less, or motion smears)
+            float TAAClipGamma     = 1.25f; // how far history may stray from this frame's neighbourhood; lower = less ghosting, more flicker
+
+            // Contact shadows: a short screen-space ray towards the sun for the contacts shadow maps are too coarse for
+            bool ContactShadowsEnabled   = false;
+            float ContactShadowLength    = 0.35f; // metres
+            float ContactShadowThickness = 0.2f;
+            int ContactShadowSteps       = 16;
+
+            // Volumetric fog: height fog marched with the sun's shadow (light shafts). Replaces the Environment's flat fog while on.
+            bool VolumetricFogEnabled     = false;
+            float VolumetricFogDensity    = 0.02f; // extinction per metre at the base height
+            float VolumetricFogFalloff    = 0.08f; // thins out this fast going up
+            float VolumetricFogBaseHeight = 0.0f;
+            Vec3 VolumetricFogColour      = Vec3(1.0f);
+            float VolumetricFogAnisotropy = 0.6f;  // > 0 = light scatters forwards (bright looking towards the sun)
+            float VolumetricFogSun        = 1.0f;
+            float VolumetricFogAmbient    = 1.0f;
+            float VolumetricFogDistance   = 150.0f;
+            int VolumetricFogSteps        = 24;
+
+            // Probe GI: a grid of probes over the static scene, traced against it on the GPU every frame
+            bool GIEnabled       = false;
+            float GIProbeSpacing = 2.0f;  // metres; widened to keep the grid under the probe cap
+            float GIIntensity    = 1.0f;
+            float GIBounce       = 1.0f;  // how much light carries into further bounces
+            float GIHysteresis   = 0.97f; // share of the old value kept per update: higher = smoother, slower to follow the sun
+            int GIUpdateStride   = 4;     // each frame updates one probe in this many
+
+            // Spot light shadows: the lights with CastShadows nearest the camera get a tile of the shadow atlas
+            int MaxSpotShadows          = 8;     // 0 = none, up to 16
+            int SpotShadowMaxResolution = 1024;  // largest tile, pixels
+            float SpotShadowDistance    = 60.0f; // lights further than this from the camera cast none (fades over the last 20%)
 
             // Shadow Settings
             float m_CascadeSplitLambda = 0.92f;

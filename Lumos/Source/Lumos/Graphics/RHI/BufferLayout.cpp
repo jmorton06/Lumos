@@ -3,9 +3,6 @@
 
 #include "GraphicsContext.h"
 
-#ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/OpenGL/GLTypes.h"
-#endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 #include "Graphics/DirectX/DXTypes.h"
 #endif

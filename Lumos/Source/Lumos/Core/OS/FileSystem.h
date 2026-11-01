@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include "Core/DataStructures/TDArray.h"
 #include "Utilities/TSingleton.h"
 #include "Core/String.h"
@@ -41,6 +42,10 @@ namespace Lumos
         }
 
         const String8& GetAssetPath() const { return m_AssetsPath; }
+
+        // Per-user writable folder for an app, created on demand: ~/Library/Application Support/<app>
+        // (macOS / iOS container), %APPDATA%/<app>, $XDG_DATA_HOME or ~/.local/share/<app>
+        static std::string UserDataPath(const std::string& appName);
 
         bool MountPack(const String8& packPath);
         void UnmountPack();

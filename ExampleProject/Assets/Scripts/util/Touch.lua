@@ -67,9 +67,18 @@ local function _PointerPos()
     return Input.GetMousePosition()
 end
 
+-- _IsDownFor already splits by screen half; just don't start a drag on a button.
 function Pad:_InRegion(pos, screen)
-    -- _IsDownFor already handles region filtering for every input source.
+    if self.blocked then return false end
+    if UIIsMouseOverUI and UIIsMouseOverUI() then return false end
     return true
+end
+
+-- Swallow the current press until it's released (e.g. the tap that closed a menu).
+function Pad:Block()
+    self.active = false
+    self.total = Vec2.new(0, 0)
+    self.blocked = true
 end
 
 function Pad:Update()
@@ -95,6 +104,7 @@ function Pad:Update()
     else
         if self.active then self.released = true end
         self.active = false
+        self.blocked = false
         self.total = Vec2.new(0, 0)
     end
 end

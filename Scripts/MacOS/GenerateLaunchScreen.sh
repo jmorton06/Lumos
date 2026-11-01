@@ -13,32 +13,30 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR="$SCRIPT_DIR/../.."
 OUTPUT_DIR="$ROOT_DIR/bin-int/LaunchScreen"
 
-# Extract title and splash color from .lmproj
-read -r TITLE BG_R BG_G BG_B <<< $(python3 -c "
-import json, sys, os
-with open('$LMPROJ') as f:
-    data = json.load(f)
-v = data.get('value0', data)
-title = v.get('Title', '')
-if not title:
-    title = os.path.basename(os.path.dirname('$LMPROJ'))
-r = v.get('SplashBGR', 0.0)
-g = v.get('SplashBGG', 0.023)
-b = v.get('SplashBGB', 0.169)
-print(f'{title}\t{r}\t{g}\t{b}')
-" 2>/dev/null | tr '\t' ' ')
+# Splash colour and image from the .lmproj - the launch screen matches the engine splash that follows it
+read -r BG_R BG_G BG_B SPLASH <<< $(python3 -c "
+import json, os
+p = '$LMPROJ'
+v = json.load(open(p))
+v = v.get('value0', v)
+splash = v.get('SplashPath', '') or ''
+if splash:
+    splash = os.path.join(os.path.dirname(p), splash.replace('//Assets/', 'Assets/'))
+print(v.get('SplashBGR', 0.0), v.get('SplashBGG', 0.023), v.get('SplashBGB', 0.169), splash or '-')
+" 2>/dev/null)
 
-# Fallbacks
-TITLE="${TITLE:-Game}"
 BG_R="${BG_R:-0.0}"
 BG_G="${BG_G:-0.023}"
 BG_B="${BG_B:-0.169}"
+if [ -z "$SPLASH" ] || [ "$SPLASH" = "-" ] || [ ! -f "$SPLASH" ]; then
+    SPLASH="$ROOT_DIR/ExampleProject/Assets/Textures/splash.png"
+fi
 
+rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
+cp "$SPLASH" "$OUTPUT_DIR/LaunchSplash.png"
 
-# Copy Info.plist from original iOS client dir
-cp "$ROOT_DIR/Lumos/Source/Lumos/Platform/iOS/Client/Info.plist" "$OUTPUT_DIR/Info.plist"
-
+# Centred, half the width in portrait (the engine splash uses the same size)
 cat > "$OUTPUT_DIR/Launch Screen.storyboard" << STORYBOARD_EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
@@ -47,11 +45,9 @@ cat > "$OUTPUT_DIR/Launch Screen.storyboard" << STORYBOARD_EOF
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17505"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
-        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--View Controller-->
         <scene sceneID="EHf-IW-A2E">
             <objects>
                 <viewController id="01J-lp-oVM" sceneMemberID="viewController">
@@ -59,14 +55,8 @@ cat > "$OUTPUT_DIR/Launch Screen.storyboard" << STORYBOARD_EOF
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="${TITLE}" textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" minimumFontSize="18" translatesAutoresizingMaskIntoConstraints="NO" id="GJd-Yh-RWb">
-                                <rect key="frame" x="0.0" y="147" width="414" height="131"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="48"/>
-                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                <color key="highlightedColor" systemColor="systemBackgroundColor"/>
-                            </label>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="icon.png" translatesAutoresizingMaskIntoConstraints="NO" id="QVp-xv-xe6">
-                                <rect key="frame" x="79" y="320" width="256" height="256"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="LaunchSplash.png" translatesAutoresizingMaskIntoConstraints="NO" id="QVp-xv-xe6">
+                                <rect key="frame" x="103.5" y="344.5" width="207" height="207"/>
                                 <constraints>
                                     <constraint firstAttribute="width" secondItem="QVp-xv-xe6" secondAttribute="height" multiplier="1:1" id="WtK-RP-Ypo"/>
                                 </constraints>
@@ -75,30 +65,23 @@ cat > "$OUTPUT_DIR/Launch Screen.storyboard" << STORYBOARD_EOF
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
                         <color key="backgroundColor" red="${BG_R}" green="${BG_G}" blue="${BG_B}" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="GJd-Yh-RWb" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" id="2GV-f7-yNg"/>
-                            <constraint firstAttribute="trailing" secondItem="GJd-Yh-RWb" secondAttribute="trailing" id="3eh-lJ-j5q"/>
-                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="bottom" secondItem="QVp-xv-xe6" secondAttribute="bottom" constant="286" id="791-uY-me5"/>
-                            <constraint firstItem="QVp-xv-xe6" firstAttribute="top" secondItem="GJd-Yh-RWb" secondAttribute="bottom" constant="42" id="J4w-lH-7yK"/>
-                            <constraint firstItem="GJd-Yh-RWb" firstAttribute="top" secondItem="Bcu-3y-fUS" secondAttribute="top" constant="103" id="Tsu-wg-jwm"/>
-                            <constraint firstItem="GJd-Yh-RWb" firstAttribute="centerX" secondItem="QVp-xv-xe6" secondAttribute="centerX" id="YFx-X1-D0D"/>
-                            <constraint firstItem="QVp-xv-xe6" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="mvz-A1-bp4"/>
+                            <constraint firstItem="QVp-xv-xe6" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="cx1-aa-001"/>
+                            <constraint firstItem="QVp-xv-xe6" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="cy1-aa-002"/>
+                            <constraint firstItem="QVp-xv-xe6" firstAttribute="width" secondItem="Ze5-6b-2t3" secondAttribute="width" multiplier="0.5" priority="750" id="w1a-aa-003"/>
+                            <constraint firstItem="QVp-xv-xe6" firstAttribute="width" relation="lessThanOrEqual" secondItem="Ze5-6b-2t3" secondAttribute="height" multiplier="0.5" id="w2a-aa-004"/>
                         </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="52.173913043478265" y="375"/>
+            <point key="canvasLocation" x="52" y="375"/>
         </scene>
     </scenes>
     <resources>
-        <image name="icon.png" width="1024" height="1024"/>
-        <systemColor name="systemBackgroundColor">
-            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-        </systemColor>
+        <image name="LaunchSplash.png" width="512" height="512"/>
     </resources>
 </document>
 STORYBOARD_EOF
 
 echo "Generated launch screen: $OUTPUT_DIR/Launch Screen.storyboard"
-echo "  Title: $TITLE"
-echo "  Background: rgb($BG_R, $BG_G, $BG_B)"
+echo "  Background: rgb($BG_R, $BG_G, $BG_B)  Splash: $SPLASH"

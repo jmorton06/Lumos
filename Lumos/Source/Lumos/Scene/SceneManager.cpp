@@ -149,6 +149,34 @@ namespace Lumos
         LINFO("[SceneManager] - Scene switched to : %s", m_CurrentScene->GetSceneName().c_str());
 
         m_SwitchingScenes = false;
+
+        if(m_PendingRemove && m_PendingRemove != m_CurrentScene)
+            EraseScene(m_PendingRemove);
+        m_PendingRemove = nullptr;
+    }
+
+    bool SceneManager::RemoveScene(uint32_t index)
+    {
+        if(index >= m_vpAllScenes.Size() || m_vpAllScenes.Size() < 2)
+            return false;
+        Scene* scene = m_vpAllScenes[index].get();
+        LINFO("[SceneManager] - Removing scene from the project : %s", scene->GetSceneName().c_str());
+        if(scene == m_CurrentScene)
+        {
+            m_PendingRemove = scene;
+            SwitchScene(index == 0 ? 1 : (int)index - 1);
+            return true;
+        }
+        EraseScene(scene);
+        return true;
+    }
+
+    void SceneManager::EraseScene(Scene* scene)
+    {
+        m_vpAllScenes.RemoveIf([scene](const SharedPtr<Scene>& s) { return s.get() == scene; });
+        for(uint32_t i = 0; i < m_vpAllScenes.Size(); i++)
+            if(m_vpAllScenes[i].get() == m_CurrentScene)
+                m_SceneIdx = i;
     }
 
     TDArray<String8> SceneManager::GetSceneNames(Arena* arena)
@@ -220,7 +248,8 @@ namespace Lumos
     {
         m_SceneFilePaths.Clear();
         for(Scene* scene : m_vpAllScenes)
-            m_SceneFilePaths.PushBack(PushStr8F(m_Arena, "//Assets/Scenes/%s", scene->GetSceneName().c_str()));
+            if(scene != m_PendingRemove)
+                m_SceneFilePaths.PushBack(PushStr8F(m_Arena, "//Assets/Scenes/%s", scene->GetSceneName().c_str()));
         return m_SceneFilePaths;
     }
 

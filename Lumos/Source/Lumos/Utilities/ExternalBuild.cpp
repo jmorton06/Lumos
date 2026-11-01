@@ -9,20 +9,11 @@
 #include <Tracy/public/TracyClient.cpp>
 #endif
 
-#ifdef LUMOS_RENDER_API_OPENGL
-#include <glad/src/glad.c>
-#endif
-
 #ifdef LUMOS_RENDER_API_VULKAN
 #ifdef LUMOS_VOLK
 #define VOLK_IMPLEMENTATION
 #include <vulkan/volk/volk.h>
 #endif
-#endif
-
-#ifdef LUMOS_RENDER_API_OPENGL
-#define IMGUI_IMPL_OPENGL_LOADER_CUSTOM
-#include <imgui/backends/imgui_impl_opengl3.cpp>
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -37,6 +28,9 @@
 #include <stb/deprecated/stb.h>
 
 #include <stb/stb_vorbis.c>
+
+#define DR_MP3_IMPLEMENTATION
+#include <dr_libs/dr_mp3.h>
 
 #define STB_RECT_PACK_IMPLEMENTATION
 #include <stb/stb_rect_pack.h>

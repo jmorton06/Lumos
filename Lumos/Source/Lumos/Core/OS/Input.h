@@ -94,7 +94,24 @@ namespace Lumos
         void SetMouseOnScreen(bool onScreen) { m_MouseOnScreen = onScreen; }
         bool GetMouseOnScreen() const { return m_MouseOnScreen; }
 
-        void StoreMousePosition(float xpos, float ypos) { m_MousePosition = Vec2(float(xpos), float(ypos)); }
+        void StoreMousePosition(float xpos, float ypos)
+        {
+            const Vec2 position(xpos, ypos);
+            // the first report has nothing to be relative to
+            if(m_HasMousePosition)
+                m_MouseDelta += position - m_MousePosition;
+            m_HasMousePosition = true;
+            m_MousePosition    = position;
+        }
+        // How far the mouse moved this frame, in the same pixels as GetMousePosition.
+        const Vec2& GetMouseDelta() const { return m_MouseDelta; }
+        // Forget the last position, so the next report is not counted as movement
+        // (after the cursor is captured / released, which can teleport it).
+        void ResetMouseDelta()
+        {
+            m_MouseDelta       = Vec2(0.0f, 0.0f);
+            m_HasMousePosition = false;
+        }
         const Vec2& GetMousePosition() const { return m_MousePosition; }
 
         void SetScrollOffset(float offset) { m_ScrollOffset = offset; }
@@ -122,6 +139,23 @@ namespace Lumos
 
         uint32_t GetTouchCount() const { return m_TouchCount; }
         void SetTouchCount(uint32_t count) { m_TouchCount = count; }
+
+        // Every finger currently down, in the same pixel space as GetMousePosition.
+        // The mouse path only follows the first finger; on-screen controls need all of them.
+        static constexpr uint32_t MaxTouchPoints = 10;
+        struct TouchPoint
+        {
+            uint64_t Id;
+            Vec2 Position;
+        };
+        uint32_t GetTouchPointCount() const { return m_TouchPointCount; }
+        const TouchPoint& GetTouchPoint(uint32_t i) const { return m_TouchPoints[i]; }
+        void SetTouchPoints(const TouchPoint* points, uint32_t count)
+        {
+            m_TouchPointCount = count < MaxTouchPoints ? count : MaxTouchPoints;
+            for(uint32_t i = 0; i < m_TouchPointCount; i++)
+                m_TouchPoints[i] = points[i];
+        }
 
         void Reset();
         void ResetPressed();
@@ -186,6 +220,8 @@ namespace Lumos
         MouseMode m_MouseMode;
 
         Vec2 m_MousePosition;
+        Vec2 m_MouseDelta       = Vec2(0.0f, 0.0f);
+        bool m_HasMousePosition = false;
 
         // Gesture state
         bool m_GesturePinchActive = false;
@@ -200,6 +236,8 @@ namespace Lumos
         bool m_GestureLongPressActive = false;
         Vec2 m_GestureLongPressLocation;
         uint32_t m_TouchCount = 0;
+        TouchPoint m_TouchPoints[MaxTouchPoints] = {};
+        uint32_t m_TouchPointCount = 0;
 
         Controller m_Controllers[MAX_CONTROLLER_COUNT];
         float m_GamepadDeadZone = 0.18f; // sticks drift; applied radially per stick

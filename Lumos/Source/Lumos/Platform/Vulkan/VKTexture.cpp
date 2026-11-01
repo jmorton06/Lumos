@@ -208,7 +208,10 @@ namespace Lumos
             m_VKFormat    = VKUtilities::FormatToVK(parameters.format, parameters.srgb);
             m_Flags       = m_Parameters.flags;
             m_Samples     = parameters.samples;
+            // one non-blocking submit for transition + copy + mips instead of a wait per step
+            VKUtilities::BeginBatchCommands();
             Load();
+            VKUtilities::EndBatchCommands(false);
 
             if(!loadOptions.storePixelData && m_Data)
             {
@@ -557,10 +560,7 @@ namespace Lumos
                 GenerateMipmaps(nullptr, m_TextureImage, m_VKFormat, m_Width, m_Height, m_MipLevels);
                 m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             }
-            else
-            {
-                m_ImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            }
+            // else still TRANSFER_DST from the copy: a transition from UNDEFINED lets the driver drop the pixels
 
             m_UUID = {};
 
@@ -643,7 +643,10 @@ namespace Lumos
             m_VKFormat    = VKUtilities::FormatToVK(parameters.format, parameters.srgb);
             m_Flags       = m_Parameters.flags;
 
+            // transition + copy + mips + transition in one submit instead of a GPU round trip each
+            VKUtilities::BeginBatchCommands();
             Load();
+            VKUtilities::EndBatchCommands(false);
 
             if(!loadOptions.storePixelData && m_Data)
             {
@@ -663,7 +666,8 @@ namespace Lumos
 
         void VKTexture2D::SetData(const void* pixels)
         {
-            VkDeviceSize imageSize = VkDeviceSize(m_Width * m_Height * m_BitsPerChannel / 8 * m_ChannelCount);
+            // m_BitsPerChannel holds bits per *pixel* for textures made from source data - size from the format instead
+            VkDeviceSize imageSize = VkDeviceSize(m_Width * m_Height * (GetBitsFromFormat(m_Parameters.format) / 8));
 
             if(!pixels)
             {
@@ -1458,6 +1462,7 @@ namespace Lumos
 
             m_TextureImage = VkImage();
 
+            m_IndividualImageViews.Clear(); // queued for deletion above; Init makes new ones
             Init();
         }
 

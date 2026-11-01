@@ -130,6 +130,18 @@ namespace Lumos
         archive(cereal::make_nvp("SSREnabled", scene.m_Settings.RenderSettings.SSREnabled), cereal::make_nvp("SSRMaxDistance", scene.m_Settings.RenderSettings.SSRMaxDistance), cereal::make_nvp("SSRMaxSteps", scene.m_Settings.RenderSettings.SSRMaxSteps), cereal::make_nvp("SSRBinarySteps", scene.m_Settings.RenderSettings.SSRBinarySteps), cereal::make_nvp("SSRThickness", scene.m_Settings.RenderSettings.SSRThickness), cereal::make_nvp("SSRStrength", scene.m_Settings.RenderSettings.SSRStrength), cereal::make_nvp("SSRMaxRoughness", scene.m_Settings.RenderSettings.SSRMaxRoughness), cereal::make_nvp("SSREnvIntensity", scene.m_Settings.RenderSettings.SSREnvIntensity));
 
         archive(cereal::make_nvp("SMAAEnabled", scene.m_Settings.RenderSettings.SMAAEnabled));
+
+        const auto& rs = scene.m_Settings.RenderSettings;
+        archive(cereal::make_nvp("AdaptiveExposure", rs.AdaptiveExposure), cereal::make_nvp("AdaptiveTargetLuminance", rs.AdaptiveTargetLuminance), cereal::make_nvp("AdaptiveMinLogLum", rs.AdaptiveMinLogLum), cereal::make_nvp("AdaptiveMaxLogLum", rs.AdaptiveMaxLogLum),
+                cereal::make_nvp("AdaptiveSpeedUp", rs.AdaptiveSpeedUp), cereal::make_nvp("AdaptiveSpeedDown", rs.AdaptiveSpeedDown));
+
+        archive(cereal::make_nvp("TAAEnabled", rs.TAAEnabled), cereal::make_nvp("TAAHistoryWeight", rs.TAAHistoryWeight), cereal::make_nvp("TAAMotionWeight", rs.TAAMotionWeight), cereal::make_nvp("TAAClipGamma", rs.TAAClipGamma),
+                cereal::make_nvp("ContactShadowsEnabled", rs.ContactShadowsEnabled), cereal::make_nvp("ContactShadowLength", rs.ContactShadowLength), cereal::make_nvp("ContactShadowThickness", rs.ContactShadowThickness), cereal::make_nvp("ContactShadowSteps", rs.ContactShadowSteps),
+                cereal::make_nvp("VolumetricFogEnabled", rs.VolumetricFogEnabled), cereal::make_nvp("VolumetricFogDensity", rs.VolumetricFogDensity), cereal::make_nvp("VolumetricFogFalloff", rs.VolumetricFogFalloff), cereal::make_nvp("VolumetricFogBaseHeight", rs.VolumetricFogBaseHeight),
+                cereal::make_nvp("VolumetricFogColour", rs.VolumetricFogColour), cereal::make_nvp("VolumetricFogAnisotropy", rs.VolumetricFogAnisotropy), cereal::make_nvp("VolumetricFogSun", rs.VolumetricFogSun), cereal::make_nvp("VolumetricFogAmbient", rs.VolumetricFogAmbient),
+                cereal::make_nvp("VolumetricFogDistance", rs.VolumetricFogDistance), cereal::make_nvp("VolumetricFogSteps", rs.VolumetricFogSteps),
+                cereal::make_nvp("GIEnabled", rs.GIEnabled), cereal::make_nvp("GIProbeSpacing", rs.GIProbeSpacing), cereal::make_nvp("GIIntensity", rs.GIIntensity), cereal::make_nvp("GIBounce", rs.GIBounce), cereal::make_nvp("GIHysteresis", rs.GIHysteresis), cereal::make_nvp("GIUpdateStride", rs.GIUpdateStride));
+        archive(cereal::make_nvp("MaxSpotShadows", rs.MaxSpotShadows), cereal::make_nvp("SpotShadowMaxResolution", rs.SpotShadowMaxResolution), cereal::make_nvp("SpotShadowDistance", rs.SpotShadowDistance));
     }
 
     template <typename Archive>
@@ -176,6 +188,30 @@ namespace Lumos
 
         if(Serialisation::CurrentSceneVersion > 34)
             archive(cereal::make_nvp("SMAAEnabled", scene.m_Settings.RenderSettings.SMAAEnabled));
+
+        if(Serialisation::CurrentSceneVersion > 37)
+        {
+            auto& rs = scene.m_Settings.RenderSettings;
+            archive(cereal::make_nvp("AdaptiveExposure", rs.AdaptiveExposure), cereal::make_nvp("AdaptiveTargetLuminance", rs.AdaptiveTargetLuminance), cereal::make_nvp("AdaptiveMinLogLum", rs.AdaptiveMinLogLum), cereal::make_nvp("AdaptiveMaxLogLum", rs.AdaptiveMaxLogLum),
+                    cereal::make_nvp("AdaptiveSpeedUp", rs.AdaptiveSpeedUp), cereal::make_nvp("AdaptiveSpeedDown", rs.AdaptiveSpeedDown));
+        }
+
+        if(Serialisation::CurrentSceneVersion > 39)
+        {
+            auto& rs = scene.m_Settings.RenderSettings;
+            archive(cereal::make_nvp("TAAEnabled", rs.TAAEnabled), cereal::make_nvp("TAAHistoryWeight", rs.TAAHistoryWeight), cereal::make_nvp("TAAMotionWeight", rs.TAAMotionWeight), cereal::make_nvp("TAAClipGamma", rs.TAAClipGamma),
+                cereal::make_nvp("ContactShadowsEnabled", rs.ContactShadowsEnabled), cereal::make_nvp("ContactShadowLength", rs.ContactShadowLength), cereal::make_nvp("ContactShadowThickness", rs.ContactShadowThickness), cereal::make_nvp("ContactShadowSteps", rs.ContactShadowSteps),
+                cereal::make_nvp("VolumetricFogEnabled", rs.VolumetricFogEnabled), cereal::make_nvp("VolumetricFogDensity", rs.VolumetricFogDensity), cereal::make_nvp("VolumetricFogFalloff", rs.VolumetricFogFalloff), cereal::make_nvp("VolumetricFogBaseHeight", rs.VolumetricFogBaseHeight),
+                cereal::make_nvp("VolumetricFogColour", rs.VolumetricFogColour), cereal::make_nvp("VolumetricFogAnisotropy", rs.VolumetricFogAnisotropy), cereal::make_nvp("VolumetricFogSun", rs.VolumetricFogSun), cereal::make_nvp("VolumetricFogAmbient", rs.VolumetricFogAmbient),
+                cereal::make_nvp("VolumetricFogDistance", rs.VolumetricFogDistance), cereal::make_nvp("VolumetricFogSteps", rs.VolumetricFogSteps),
+                cereal::make_nvp("GIEnabled", rs.GIEnabled), cereal::make_nvp("GIProbeSpacing", rs.GIProbeSpacing), cereal::make_nvp("GIIntensity", rs.GIIntensity), cereal::make_nvp("GIBounce", rs.GIBounce), cereal::make_nvp("GIHysteresis", rs.GIHysteresis), cereal::make_nvp("GIUpdateStride", rs.GIUpdateStride));
+        }
+
+        if(Serialisation::CurrentSceneVersion > 40)
+        {
+            auto& rs = scene.m_Settings.RenderSettings;
+            archive(cereal::make_nvp("MaxSpotShadows", rs.MaxSpotShadows), cereal::make_nvp("SpotShadowMaxResolution", rs.SpotShadowMaxResolution), cereal::make_nvp("SpotShadowDistance", rs.SpotShadowDistance));
+        }
     }
 
     template <typename Archive>
@@ -621,6 +657,7 @@ namespace Lumos
                     cereal::make_nvp("shader", shaderPath));
 
             archive(cereal::make_nvp("Reflectance", material.m_MaterialProperties->reflectance));
+            archive(cereal::make_nvp("Name", material.m_Name), cereal::make_nvp("Flags", material.m_Flags));
             ScratchEnd(temp);
         }
 
@@ -701,6 +738,8 @@ namespace Lumos
 
                 if(Serialisation::CurrentSceneVersion > 19)
                     archive(cereal::make_nvp("Reflectance", material.m_MaterialProperties->reflectance));
+                if(Serialisation::CurrentSceneVersion > 38)
+                    archive(cereal::make_nvp("Name", material.m_Name), cereal::make_nvp("Flags", material.m_Flags));
             }
 
             // if(!shaderFilePath.empty())

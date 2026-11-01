@@ -1,30 +1,16 @@
 #include "Editor.h"
+#include <Lumos/Core/OS/Bookmarks.h>
+#include <Lumos/Core/OS/FileDialogs.h>
 #include "SceneViewPanel.h"
 #include "GameViewPanel.h"
-#include "ConsolePanel.h"
-#include "HierarchyPanel.h"
-#include "InspectorPanel.h"
-#include "ApplicationInfoPanel.h"
-#include "AssetManagerPanel.h"
-#include "GraphicsInfoPanel.h"
-#include "TextEditPanel.h"
-#include "ResourcePanel.h"
-#include "ImGUIConsoleSink.h"
-#include "SceneSettingsPanel.h"
-#include "EditorSettingsPanel.h"
-#include "ProjectSettingsPanel.h"
-#include "FileBrowserPanel.h"
-#include "ScriptConsolePanel.h"
-#include "LuaDebugPanel.h"
-#include "AboutSupportPanel.h"
+#include "ExportPanel.h"
+#include <Lumos/Export/ExportProject.h>
+#include <chrono>
+#include <unordered_map>
 #include "PreviewDraw.h"
 #include "ImportPanel.h"
 #include "EditorPanel.h"
-#include "PhysicsDebugPanel.h"
-#include "SpriteSlicerPanel.h"
-#include "ParticleEditorPanel.h"
-#include "TerrainEditorPanel.h"
-#include "imgui.h"
+#include "TerrainSculpt.h"
 #include <Lumos/Core/Asset/AssetImporter.h>
 #include <Lumos/Core/Asset/AssetPacker.h>
 #include <Lumos/Core/Asset/AssetManager.h>
@@ -51,6 +37,7 @@
 #include <Lumos/Scene/Component/RigidBody2DComponent.h>
 #include <Lumos/Scene/Component/RigidBody3DComponent.h>
 #include <Lumos/Scripting/Lua/LuaScriptComponent.h>
+#include <sol/sol.hpp>
 #include <Lumos/Physics/LumosPhysicsEngine/LumosPhysicsEngine.h>
 #include <Lumos/Physics/B2PhysicsEngine/B2PhysicsEngine.h>
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h>
@@ -65,23 +52,23 @@
 #include <Lumos/Graphics/Renderers/DebugRenderer.h>
 #include <Lumos/Graphics/Mesh.h>
 #include <Lumos/Graphics/Model.h>
-#include <Lumos/Graphics/ModelLoader/GLTFSceneImport.h>
+#include <Lumos/Scene/EntityFactory.h>
 #include <Lumos/Graphics/Environment.h>
 #include <Lumos/Graphics/Animation/AnimationController.h>
 #include <Lumos/Graphics/ShaderCompiler.h>
 
 #include <fstream>
 #include <filesystem>
+#include <thread>
+#include <atomic>
+#include <Lumos/Core/BusyOverlay.h>
 #ifdef LUMOS_PLATFORM_IOS
 #include <Lumos/Platform/iOS/iOSOS.h>
 #endif
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
-#include <Lumos/ImGui/ImGuiManager.h>
-#include <Lumos/Graphics/RHI/IMGUIRenderer.h>
 #include <Lumos/Embedded/EmbedAsset.h>
 #include <Lumos/Embedded/lumosLogo.inl>
 #include <Lumos/Scene/Component/ModelComponent.h>
-#include <imgui/Plugins/imcmd_command_palette.h>
 #include <Lumos/Maths/BoundingBox.h>
 #include <Lumos/Maths/BoundingSphere.h>
 #include <Lumos/Maths/Rect.h>
@@ -95,10 +82,216 @@
 #include <Lumos/Core/Thread.h>
 #include <Lumos/Graphics/UI.h>
 #include <Lumos/Core/Undo.h>
+#include "EditorUI.h"
 
-#include <imgui/imgui_internal.h>
-#include <imgui/Plugins/ImGuizmo.h>
+#include <Lumos/Graphics/Gizmo.h>
 #include <cereal/version.hpp>
+#ifdef LUMOS_PLATFORM_IOS
+#include <cereal/external/rapidjson/document.h>
+#include <cereal/external/rapidjson/prettywriter.h>
+#include <cereal/external/rapidjson/stringbuffer.h>
+#include <fstream>
+#include <sstream>
+#include <unordered_map>
+#endif
+
+#ifdef LUMOS_PLATFORM_IOS
+namespace
+{
+    // The project built into the app (ExampleProject unless the build named another): its folder and .lmproj.
+    void FindBundledProject(std::string& folder, std::string& file)
+    {
+        folder = "ExampleProject";
+        file   = "Example.lmproj";
+        std::error_code error;
+        for(const auto& dir : std::filesystem::directory_iterator(Lumos::OS::Get().GetAssetPath(), error))
+        {
+            if(!dir.is_directory(error))
+                continue;
+            for(const auto& entry : std::filesystem::directory_iterator(dir.path(), error))
+            {
+                if(entry.path().extension() == ".lmproj")
+                {
+                    folder = dir.path().filename().string();
+                    file   = entry.path().filename().string();
+                    return;
+                }
+            }
+        }
+    }
+
+#ifdef LUMOS_PLATFORM_IOS
+    // The project inside the app is read-only, so the first run copies it to Documents. It can
+    // be gigabytes: on the launch thread that ran past iOS's launch limit and the app was killed
+    // half way through (leaving half a project). It is copied on a worker into "<name>.partial"
+    // and renamed when it is all there; the editor starts with no project and opens it then.
+    std::atomic<int> s_BundleCopy { 0 }; // 0 nothing to do, 1 copying, 2 done, 3 failed
+    std::string s_BundleCopyTo;
+
+    namespace fs = std::filesystem;
+
+    // The bundle's scenes that the copy's .lmproj does not list are added to it; its own edits stay.
+    void MergeProjectScenes(const fs::path& bundled, const fs::path& copy)
+    {
+        auto read = [](const fs::path& path, CEREAL_RAPIDJSON_NAMESPACE::Document& doc)
+        {
+            std::ifstream in(path);
+            std::stringstream text;
+            text << in.rdbuf();
+            doc.Parse(text.str().c_str());
+            return !doc.HasParseError() && doc.HasMember("value0") && doc["value0"].HasMember("Scenes") && doc["value0"]["Scenes"].IsArray();
+        };
+        CEREAL_RAPIDJSON_NAMESPACE::Document from, to;
+        if(!read(bundled, from) || !read(copy, to))
+            return;
+        auto& have = to["value0"]["Scenes"];
+        bool changed = false;
+        for(auto& scene : from["value0"]["Scenes"].GetArray())
+        {
+            bool found = false;
+            for(auto& existing : have.GetArray())
+                found |= existing.IsString() && scene.IsString() && strcmp(existing.GetString(), scene.GetString()) == 0;
+            if(!found && scene.IsString())
+            {
+                have.PushBack(CEREAL_RAPIDJSON_NAMESPACE::Value(scene.GetString(), to.GetAllocator()), to.GetAllocator());
+                changed = true;
+            }
+        }
+        if(!changed)
+            return;
+        CEREAL_RAPIDJSON_NAMESPACE::StringBuffer buffer;
+        CEREAL_RAPIDJSON_NAMESPACE::PrettyWriter<CEREAL_RAPIDJSON_NAMESPACE::StringBuffer> writer(buffer);
+        writer.SetIndent(' ', 4);
+        to.Accept(writer);
+        std::ofstream(copy) << buffer.GetString();
+        LINFO("Bundled project: new scenes added to %s", copy.string().c_str());
+    }
+
+    // A newer build of the app brings the copy in Documents up to date: files it does not have
+    // are added, and files the bundle changed are replaced unless they were edited since the last
+    // sync (that edit is kept). BundleManifest.txt remembers each file as the bundle had it.
+    void SyncBundledProject(const std::string& bundlePath, const std::string& docsDir)
+    {
+        std::error_code ec;
+        const fs::path bundle(bundlePath), docs(docsDir);
+        const fs::path manifestPath = docs / ".lumos" / "BundleManifest.txt";
+
+        struct Entry
+        {
+            long long Size = 0, Time = 0;
+        };
+        std::unordered_map<std::string, Entry> manifest;
+        long long syncTime = 0;
+        bool haveManifest  = false;
+        {
+            std::ifstream in(manifestPath);
+            std::string line;
+            if(in && std::getline(in, line) && sscanf(line.c_str(), "sync %lld", &syncTime) == 1)
+            {
+                haveManifest = true;
+                Entry e;
+                char rel[1024];
+                while(std::getline(in, line))
+                    if(sscanf(line.c_str(), "%lld %lld %1023[^\n]", &e.Size, &e.Time, rel) == 3)
+                        manifest[rel] = e;
+            }
+        }
+
+        std::string out;
+        int added = 0, updated = 0, kept = 0;
+        for(auto it = fs::recursive_directory_iterator(bundle, ec); !ec && it != fs::recursive_directory_iterator(); it.increment(ec))
+        {
+            if(!it->is_regular_file(ec))
+                continue;
+            const std::string rel = fs::relative(it->path(), bundle, ec).generic_string();
+            if(rel.rfind(".lumos", 0) == 0)
+                continue;
+            Entry now;
+            now.Size = (long long)it->file_size(ec);
+            now.Time = (long long)it->last_write_time(ec).time_since_epoch().count();
+            out += std::to_string(now.Size) + " " + std::to_string(now.Time) + " " + rel + "\n";
+
+            const fs::path dst = docs / rel;
+            if(!fs::exists(dst, ec))
+            {
+                fs::create_directories(dst.parent_path(), ec);
+                fs::copy_file(it->path(), dst, ec);
+                added++;
+                continue;
+            }
+            auto known = manifest.find(rel);
+            if(haveManifest && known != manifest.end() && known->second.Size == now.Size && known->second.Time == now.Time)
+                continue; // the bundle has not changed it
+            if(it->path().extension() == ".lmproj")
+            {
+                MergeProjectScenes(it->path(), dst);
+                continue;
+            }
+            const long long edited = (long long)fs::last_write_time(dst, ec).time_since_epoch().count();
+            if(haveManifest && edited <= syncTime)
+            {
+                fs::copy_file(it->path(), dst, fs::copy_options::overwrite_existing, ec);
+                updated++;
+            }
+            else
+                kept++;
+        }
+
+        fs::create_directories(manifestPath.parent_path(), ec);
+        std::ofstream(manifestPath) << "sync " << (long long)fs::file_time_type::clock::now().time_since_epoch().count() << "\n" << out;
+        LINFO("Bundled project synced: %d added, %d updated, %d kept as edited", added, updated, kept);
+    }
+
+    void StartBundleCopy(const std::string& bundlePath, const std::string& docsDir)
+    {
+        if(s_BundleCopy.load() != 0)
+            return;
+        std::error_code ec;
+        const std::string partial = docsDir + ".partial";
+        // a copy that was cut short last time is thrown away
+        if(std::filesystem::exists(partial, ec))
+            std::filesystem::remove_all(partial, ec);
+        if(std::filesystem::exists(docsDir, ec))
+        {
+            // already copied: bring it up to date with this build (only stats, plus the few changed files)
+            static bool s_Synced = false;
+            if(!s_Synced)
+            {
+                s_Synced = true;
+                SyncBundledProject(bundlePath, docsDir);
+            }
+            return;
+        }
+        s_BundleCopyTo = docsDir;
+        s_BundleCopy   = 1;
+        std::thread([bundlePath, docsDir, partial]()
+                    {
+                        bool ok = Lumos::iOSOS::CopyBundleFolder(bundlePath, partial);
+                        std::error_code error;
+                        if(ok)
+                            std::filesystem::rename(partial, docsDir, error);
+                        s_BundleCopy = (ok && !error) ? 2 : 3; })
+            .detach();
+    }
+#endif
+
+    const std::string& BundledProjectFolder()
+    {
+        static std::string folder, file;
+        if(folder.empty())
+            FindBundledProject(folder, file);
+        return folder;
+    }
+
+    const std::string& BundledProjectFile()
+    {
+        static std::string folder, file;
+        if(file.empty())
+            FindBundledProject(folder, file);
+        return file;
+    }
+}
+#endif
 
 namespace Lumos
 {
@@ -106,11 +299,9 @@ namespace Lumos
         : Application()
         , m_IniFile("")
     {
-        Debug::Log::SetLoggerFunction(ConsoleLoggerFunction);
         Application::SetInstance(this);
 
-        m_AppType          = AppType::Editor;
-        m_ImGuiClearScreen = true;
+        m_AppType = AppType::Editor;
     }
 
     Editor::~Editor()
@@ -128,102 +319,30 @@ namespace Lumos
         // Application::Release(), when the deletion queues are already gone.
         m_LogoTexture.reset();
 
+        if(m_EditorUI)
+        {
+            m_EditorUI->Shutdown();
+            delete m_EditorUI;
+            m_EditorUI = nullptr;
+        }
+
         m_GridRenderer.reset();
         m_Panels.clear();
         m_PreviewDraw->ReleaseResources();
         delete m_PreviewDraw;
         delete m_ImportPanel;
-        delete m_FileBrowserPanel;
+        delete m_TerrainSculpt;
+        m_TerrainSculpt = nullptr;
 
         Application::OnQuit();
     }
 
-    bool show_demo_window     = true;
-    bool show_command_palette = false;
-    ImVec4 clear_color        = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-    ImCmd::Command toggle_demo_cmd;
 
     void Editor::Init()
     {
         LUMOS_PROFILE_FUNCTION();
         m_ProjectSettings.AutoImportMeshes = true;
         Lumos::InitialiseUndo();
-        ImCmd::CreateContext();
-        toggle_demo_cmd.Name            = "Toggle ImGui demo window";
-        toggle_demo_cmd.InitialCallback = [&]()
-        {
-            show_demo_window = !show_demo_window;
-        };
-
-        ImCmd::Command select_theme_cmd;
-        select_theme_cmd.Name            = "Select theme";
-        select_theme_cmd.InitialCallback = [&]()
-        {
-            ImCmd::Prompt(std::vector<std::string> {
-                "Black",
-                "Dark",
-                "Dracula",
-                "Grey",
-                "Light",
-                "Blue",
-                "ClassicLight",
-                "ClassicDark",
-                "Classic",
-                "Cherry",
-                "Cinder",
-                "Cosy",
-                "AppleLight",
-                "GraphiteDark",
-                "Pastel" });
-        };
-        select_theme_cmd.SubsequentCallback = [&](int selected_option)
-        {
-            ImGuiUtilities::SetTheme(ImGuiUtilities::Theme(selected_option));
-        };
-        ImCmd::AddCommand(std::move(select_theme_cmd));
-
-        ImCmd::Command example_cmd;
-        example_cmd.Name            = "Open Project";
-        example_cmd.InitialCallback = [&]()
-        {
-            ImGui::OpenPopup("Open Project");
-        };
-
-        ImCmd::Command add_example_cmd_cmd;
-        add_example_cmd_cmd.Name            = "Add 'Example command'";
-        add_example_cmd_cmd.InitialCallback = [&]()
-        {
-            ImCmd::AddCommand(example_cmd);
-        };
-
-        ImCmd::Command remove_example_cmd_cmd;
-        remove_example_cmd_cmd.Name            = "Remove 'Example command'";
-        remove_example_cmd_cmd.InitialCallback = [&]()
-        {
-            ImCmd::RemoveCommand(example_cmd.Name.c_str());
-        },
-
-        ImCmd::AddCommand(example_cmd); // Copy intentionally
-        ImCmd::AddCommand(std::move(add_example_cmd_cmd));
-        ImCmd::AddCommand(std::move(remove_example_cmd_cmd));
-
-        ImCmd::Command search_assets_cmd;
-        search_assets_cmd.Name = "Search Assets";
-        search_assets_cmd.InitialCallback = [this]()
-        {
-            m_CachedAssetPaths.clear();
-            if(m_ResourcePanel)
-                m_ResourcePanel->GetAllAssets(m_CachedAssetPaths);
-            if(!m_CachedAssetPaths.empty())
-                ImCmd::Prompt(m_CachedAssetPaths);
-        };
-        search_assets_cmd.SubsequentCallback = [this](int selected)
-        {
-            if(selected >= 0 && selected < (int)m_CachedAssetPaths.size())
-                FileOpenCallback(m_CachedAssetPaths[selected]);
-        };
-        ImCmd::AddCommand(std::move(search_assets_cmd));
 
 #ifdef LUMOS_PLATFORM_LINUX
         m_TempSceneSaveFilePath = std::filesystem::current_path().string();
@@ -314,13 +433,14 @@ namespace Lumos
         }
 
 #ifdef LUMOS_PLATFORM_IOS
-        std::string bundlePath  = OS::Get().GetAssetPath() + "ExampleProject";
-        std::string docsDir     = OS::Get().GetCurrentWorkingDirectory() + "/LumosEditor/ExampleProject";
+        std::string bundlePath  = OS::Get().GetAssetPath() + BundledProjectFolder();
+        std::string docsDir     = OS::Get().GetCurrentWorkingDirectory() + "/LumosEditor/" + BundledProjectFolder();
 
-        if(!FileSystem::FolderExists(Str8StdS(docsDir)))
-            iOSOS::CopyBundleFolder(bundlePath, docsDir);
+        StartBundleCopy(bundlePath, docsDir);
 #endif
 
+        // everything the editor draws is on the engine UI: no ImGui context at all
+        Application::SetImGuiEnabled(false);
         Application::Init();
         Application::SetEditorState(EditorState::Preview);
         Application::Get().GetWindow()->SetEventCallback(BIND_EVENT_FN(Editor::OnEvent));
@@ -376,45 +496,27 @@ namespace Lumos
         m_ComponentIconMap[typeid(Editor).hash_code()]                   = ICON_MDI_SQUARE;
         m_ComponentIconMap[typeid(TextComponent).hash_code()]            = ICON_MDI_TEXT;
 
-        m_Panels.emplace_back(CreateSharedPtr<ConsolePanel>());
+        // what the editor UI shows the Scene / Game views from, and the Export panel's state
         m_Panels.emplace_back(CreateSharedPtr<GameViewPanel>());
         m_Panels.emplace_back(CreateSharedPtr<SceneViewPanel>());
-        m_Panels.emplace_back(CreateSharedPtr<InspectorPanel>());
-        m_Panels.emplace_back(CreateSharedPtr<ApplicationInfoPanel>());
-        m_Panels.emplace_back(CreateSharedPtr<AssetManagerPanel>());
-        m_Panels.back()->SetActive(false);
-        m_Panels.emplace_back(CreateSharedPtr<SceneSettingsPanel>());
-        m_Panels.emplace_back(CreateSharedPtr<HierarchyPanel>());
-        m_Panels.emplace_back(CreateSharedPtr<EditorSettingsPanel>());
-        m_Panels.back()->SetActive(false);
-        m_Panels.emplace_back(CreateSharedPtr<ProjectSettingsPanel>());
-        m_Panels.back()->SetActive(false);
-        m_Panels.emplace_back(CreateSharedPtr<GraphicsInfoPanel>());
-        m_Panels.back()->SetActive(false);
-        {
-            auto resourcePanel = CreateSharedPtr<ResourcePanel>();
-            m_ResourcePanel = resourcePanel.get();
-            m_Panels.emplace_back(resourcePanel);
-        }
-        m_Panels.emplace_back(CreateSharedPtr<ScriptConsolePanel>());
-        m_Panels.back()->SetActive(false);
-        m_Panels.emplace_back(CreateSharedPtr<LuaDebugPanel>());
-        m_Panels.back()->SetActive(false);
-        m_Panels.emplace_back(CreateSharedPtr<AboutSupportPanel>());
-        m_Panels.back()->SetActive(false);
-        m_Panels.emplace_back(CreateSharedPtr<PhysicsDebugPanel>());
-        m_Panels.back()->SetActive(false);
-        m_Panels.emplace_back(CreateSharedPtr<SpriteSlicerPanel>());
-        m_Panels.back()->SetActive(false);
-        m_Panels.emplace_back(CreateSharedPtr<ParticleEditorPanel>());
-        m_Panels.back()->SetActive(false);
-        m_Panels.emplace_back(CreateSharedPtr<TerrainEditorPanel>());
-        m_Panels.back()->SetActive(false);
+        m_Panels.emplace_back(CreateSharedPtr<ExportPanel>());
+        m_TerrainSculpt = new TerrainSculpt();
 
         for(auto& panel : m_Panels)
             panel->SetEditor(this);
 
-        m_FileBrowserPanel = new FileBrowserPanel();
+        m_EditorUI = new EditorUI();
+        m_EditorUI->Init(this);
+        // the editor is built on the screen UI; EditorFrame turns the dock on from there
+        EnableScreenUI(true);
+
+        // --panel=<name>: open a panel at startup (screenshots, tests); case and spaces ignored
+        {
+            String8 open = Internal::CoreSystem::GetCmdLine()->OptionString(Str8Lit("panel"));
+            if(open.size > 0)
+                m_EditorUI->FocusPanelByKey(std::string((const char*)open.str, open.size).c_str());
+        }
+
         m_ImportPanel      = new ImportPanel();
         m_PreviewDraw      = new PreviewDraw();
 
@@ -431,7 +533,6 @@ namespace Lumos
             m_LogoTexture   = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromSource(lumosLogoWidth, lumosLogoHeight, (void*)lumosLogo, ldesc, lopts));
         }
 
-        m_Settings.m_ShowImGuiDemo = false;
 
         m_SelectedEntities.clear();
         // m_SelectedEntity = entt::null;
@@ -442,25 +543,8 @@ namespace Lumos
         if(auto& am = Application::Get().GetAssetManager())
             am->SetTextureHotReloadEnabled(true);
 
-        ImGuiUtilities::SetTheme(m_Settings.m_Theme);
-        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
         OS::Get().SetWindowDecorations(false);
         Application::Get().GetWindow()->SetWindowTitle("Lumos Editor");
-
-        ImGuizmo::SetGizmoSizeClipSpace(m_Settings.m_ImGuizmoScale);
-
-        {
-            const float dpiScale                    = Maths::Max(Application::Get().GetWindowDPI(), 1.0f);
-            auto& gs                                = ImGuizmo::GetStyle();
-            gs.TranslationLineThickness             = 5.0f * dpiScale;
-            gs.TranslationLineArrowSize             = 9.0f * dpiScale;
-            gs.RotationLineThickness                = 3.0f * dpiScale;
-            gs.RotationOuterLineThickness           = 5.0f * dpiScale;
-            gs.ScaleLineThickness                   = 5.0f * dpiScale;
-            gs.ScaleLineCircleSize                  = 9.0f * dpiScale;
-            gs.CenterCircleSize                     = 9.0f * dpiScale;
-            gs.HatchedAxisLineThickness             = -1.0f;
-        }
 
         m_PreviewDraw->CreateDefaultScene();
     }
@@ -470,9 +554,12 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         std::string extension = StringUtilities::GetFilePathExtension(filePath);
 
-        if(extension == "txt" || extension == "glsl" || extension == "shader" || extension == "vert"
-           || extension == "frag" || extension == "lua" || extension == "Lua")
-            return true;
+        static const char* const kText[] = { "txt", "md", "log", "csv", "lua", "Lua",
+                                             "glsl", "glslh", "shader", "vert", "frag", "comp",
+                                             "json", "ini", "cfg", "conf", "toml", "yaml", "yml", "xml", "plist", "lmproj", "meta" };
+        for(const char* text : kText)
+            if(extension == text)
+                return true;
 
         return false;
     }
@@ -565,156 +652,11 @@ namespace Lumos
         return false;
     }
 
-    void Editor::OnImGui()
-    {
-        LUMOS_PROFILE_FUNCTION();
-
-#if defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
-        // Borderless-window edge resize hit-test. macOS handles resize natively
-        // via NSWindowStyleMaskFullSizeContentView — no manual hit-test needed.
-        if(!OS::Get().IsWindowMaximised() && !OS::Get().IsWindowFullscreen())
-        {
-            static bool isResizing = false;
-            static int  startEdge  = 0;
-
-            ImGuiIO& io = ImGui::GetIO();
-            const ImGuiViewport* vp = ImGui::GetMainViewport();
-            const float edge = 6.0f;
-            int hitMask      = 0;
-            const ImVec2 mp  = io.MousePos;
-            if(mp.x >= vp->Pos.x && mp.x <= vp->Pos.x + vp->Size.x
-               && mp.y >= vp->Pos.y && mp.y <= vp->Pos.y + vp->Size.y)
-            {
-                if(mp.x <= vp->Pos.x + edge)               hitMask |= 4;
-                if(mp.x >= vp->Pos.x + vp->Size.x - edge)  hitMask |= 8;
-                if(mp.y <= vp->Pos.y + edge)               hitMask |= 1;
-                if(mp.y >= vp->Pos.y + vp->Size.y - edge)  hitMask |= 2;
-            }
-
-            const int mask = isResizing ? startEdge : hitMask;
-            if(mask)
-            {
-                ImGuiMouseCursor c = ImGuiMouseCursor_Arrow;
-                if(mask == 1 || mask == 2)              c = ImGuiMouseCursor_ResizeNS;
-                else if(mask == 4 || mask == 8)         c = ImGuiMouseCursor_ResizeEW;
-                else if(mask == (1|4) || mask == (2|8)) c = ImGuiMouseCursor_ResizeNWSE;
-                else if(mask == (1|8) || mask == (2|4)) c = ImGuiMouseCursor_ResizeNESW;
-                ImGui::SetMouseCursor(c);
-            }
-
-            if(!isResizing && hitMask && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-            {
-                // A window manager that takes the resize over drives it itself;
-                // tracking it here as well would fight it.
-                if(!OS::Get().BeginWindowResize(hitMask))
-                {
-                    isResizing = true;
-                    startEdge  = hitMask;
-                }
-            }
-            if(isResizing)
-            {
-                OS::Get().UpdateWindowResize();
-                if(!ImGui::IsMouseDown(ImGuiMouseButton_Left))
-                {
-                    isResizing = false;
-                    startEdge  = 0;
-                }
-            }
-        }
-#endif
-
-        if(!m_ProjectLoaded)
-        {
-            DrawWelcomeScreen();
-            m_FileBrowserPanel->OnImGui();
-            Application::OnImGui();
-            return;
-        }
-
-        DrawMenuBar();
-        DrawStatusBar();
-
-        BeginDockSpace(m_Settings.m_FullScreenOnPlay && Application::Get().GetEditorState() == EditorState::Play);
-
-        for(auto& panel : m_Panels)
-        {
-            if(panel->Active())
-                panel->OnImGui();
-        }
-
-        if(m_Settings.m_ShowImGuiDemo)
-            ImGui::ShowDemoWindow(&m_Settings.m_ShowImGuiDemo);
-
-        m_Settings.m_View2D = m_CurrentCamera->IsOrthographic();
-
-        m_FileBrowserPanel->OnImGui();
-        m_ImportPanel->OnImGui();
-
-        bool ctrlPressed  = Input::Get().GetKeyHeld(Lumos::InputCode::Key::LeftControl) || Input::Get().GetKeyHeld(Lumos::InputCode::Key::RightControl);
-        bool shiftPressed = Input::Get().GetKeyHeld(Lumos::InputCode::Key::LeftShift) || Input::Get().GetKeyHeld(Lumos::InputCode::Key::RightShift);
-        bool zPressed     = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Z);
-        bool yPressed     = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Y);
-
-        if(ctrlPressed && zPressed && !shiftPressed)
-            Lumos::Undo();
-        else if(ctrlPressed && (yPressed || (zPressed && shiftPressed)))
-            Lumos::Redo();
-
-        auto& io  = ImGui::GetIO();
-        auto ctrl = io.ConfigMacOSXBehaviors ? io.KeySuper : io.KeyCtrl;
-        if(ctrl && Input::Get().GetKeyPressed(Lumos::InputCode::Key::P))
-        {
-            show_command_palette = !show_command_palette;
-        }
-        if(show_command_palette)
-        {
-            ImCmd::CommandPaletteWindow("CommandPalette", &show_command_palette);
-        }
-
-        if(Application::Get().GetEditorState() == EditorState::Preview)
-            Application::Get().GetSceneManager()->GetCurrentScene()->UpdateSceneGraph();
-
-        EndDockSpace();
-
-        ImGuiDockContext* dc = &ImGui::GetCurrentContext()->DockContext;
-        for(int n = 0; n < dc->Nodes.Data.Size; n++)
-            if(ImGuiDockNode* node = (ImGuiDockNode*)dc->Nodes.Data[n].val_p)
-            {
-                if(node->TabBar)
-                    for(int n = 0; n < node->TabBar->Tabs.Size; n++)
-                    {
-                        const bool tab_visible     = node->TabBar->VisibleTabId == node->TabBar->Tabs[n].ID;
-                        const bool tab_bar_focused = (node->TabBar->Flags & ImGuiTabBarFlags_IsFocused) != 0;
-                        if(tab_visible)
-                        {
-                            auto tab = node->TabBar->Tabs[n];
-
-                            ImVec2 pos = tab.Window->Pos;
-                            pos.x      = pos.x + tab.Offset + ImGui::GetStyle().FramePadding.x;
-                            pos.y      = pos.y + (ImGui::GetStyle().ItemSpacing.y * 0.5f);
-                            ImRect bb(pos, { pos.x + tab.Width, pos.y });
-                            const float dpiScale = Maths::Max(Application::Get().GetWindowDPI(), 1.0f);
-
-                            ImU32 lineCol = tab_bar_focused ? ImGui::GetColorU32(ImGuiCol_SliderGrabActive)
-                                                            : ImGui::GetColorU32(ImGuiCol_TextDisabled);
-                            tab.Window->DrawList->AddLine(bb.Min, bb.Max, lineCol, 2.0f * dpiScale);
-                        }
-                    }
-            }
-
-        Application::OnImGui();
-    }
-
     Graphics::RenderAPI StringToRenderAPI(const std::string& name)
     {
 #ifdef LUMOS_RENDER_API_VULKAN
         if(name == "Vulkan")
             return Graphics::RenderAPI::VULKAN;
-#endif
-#ifdef LUMOS_RENDER_API_OPENGL
-        if(name == "OpenGL")
-            return Graphics::RenderAPI::OPENGL;
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
         if(name == "Direct3D11")
@@ -723,1902 +665,216 @@ namespace Lumos
 
         LERROR("Unsupported Graphics API");
 
-        return Graphics::RenderAPI::OPENGL;
-    }
-
-    void Editor::OpenFile()
-    {
-        LUMOS_PROFILE_FUNCTION();
-
-        // Set filePath to working directory
-        auto path = OS::Get().GetExecutablePath();
-        std::filesystem::current_path(path);
-        m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
-        m_FileBrowserPanel->Open();
-    }
-
-    void Editor::EmbedFile()
-    {
-        m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(Editor::FileEmbedCallback));
-        m_FileBrowserPanel->Open();
+        return Graphics::RenderAPI::VULKAN;
     }
 
     static std::string projectLocation = "../";
-    static bool locationPopupOpened    = false;
-
-    void Editor::NewProjectLocationCallback(const std::string& path)
-    {
-        projectLocation     = path;
-        locationPopupOpened = false;
-    }
-
-    void Editor::DrawMenuBar()
-    {
-        LUMOS_PROFILE_FUNCTION();
-
-        bool openSaveScenePopup   = false;
-        bool openNewScenePopup    = false;
-        bool openReloadScenePopup = false;
-
-        // Taller title bar — extra vertical padding on menu items.
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(ImGui::GetStyle().FramePadding.x, 13.0f));
-        if(ImGui::BeginMainMenuBar())
-        {
-            // ---- Left chrome: macOS traffic-light gutter, logo, breadcrumb ----
-            const float barH    = ImGui::GetFrameHeight();
-            const float barTopY = ImGui::GetCursorPosY();
-#ifdef LUMOS_PLATFORM_MACOS
-            // Native traffic lights span roughly x=8..78. Reserve until ~110px.
-            // In fullscreen the lights are hidden — drop the gutter entirely.
-            if(!OS::Get().IsWindowFullscreen())
-                ImGui::SetCursorPosX(130.0f);
-#endif
-            if(m_LogoTexture)
-            {
-                ImTextureID tid = (ImTextureID)Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(m_LogoTexture.get());
-                ImGui::Image(tid, ImVec2(barH, barH));
-            }
-            else
-            {
-                ImGui::Dummy(ImVec2(barH, barH));
-            }
-            ImGui::SameLine(0.0f, 10.0f);
-            {
-                // Centre the breadcrumb against the tall bar — plain text and
-                // SmallButtons would otherwise sit at the very top of the line,
-                // out of line with the menus and window controls.
-                ImGui::AlignTextToFramePadding();
-
-                // Breadcrumb: LUMOS / <project> / <scene>
-                ImGui::TextDisabled("LUMOS");
-                ImGui::SameLine(0.0f, 6.0f);
-                ImGui::TextDisabled("/");
-                ImGui::SameLine(0.0f, 6.0f);
-                const std::string projectName = m_ProjectLoaded ? m_ProjectSettings.m_ProjectName : std::string("");
-                if(m_ProjectLoaded)
-                {
-                    if(ImGui::SmallButton(projectName.c_str()))
-                        ImGui::OpenPopup("##breadcrumb_projects");
-                    ImGuiUtilities::Tooltip("Switch project");
-                }
-                else
-                {
-                    ImGui::TextDisabled("no project");
-                }
-                ImGui::SameLine(0.0f, 6.0f);
-                ImGui::TextDisabled("/");
-                ImGui::SameLine(0.0f, 6.0f);
-                if(m_ProjectLoaded)
-                {
-                    const std::string sceneName = GetCurrentScene()->GetSceneName();
-                    if(ImGui::SmallButton(sceneName.c_str()))
-                        ImGui::OpenPopup("##breadcrumb_scenes");
-                    ImGuiUtilities::Tooltip("Switch scene");
-                }
-                else
-                {
-                    ImGui::TextDisabled("no scene");
-                }
-#ifdef LUMOS_DEBUG
-                ImGui::SameLine(0.0f, 10.0f);
-                ImGui::TextColored(ImVec4(0.85f, 0.25f, 0.25f, 1.0f), "DEBUG");
-#endif
-                if(ImGui::BeginPopup("##breadcrumb_projects"))
-                {
-                    for(auto& recent : m_Settings.m_RecentProjects)
-                    {
-                        if(ImGui::MenuItem(recent.c_str()))
-                        {
-                            m_ProjectLoadError.clear();
-                            Application::Get().OpenProject(recent);
-                            for(int i = 0; i < int(m_Panels.size()); i++)
-                                m_Panels[i]->OnNewProject();
-                        }
-                    }
-                    ImGui::EndPopup();
-                }
-                if(ImGui::BeginPopup("##breadcrumb_scenes"))
-                {
-                    auto sm = Application::Get().GetSceneManager();
-                    uint32_t currentIdx = sm->GetCurrentSceneIndex();
-                    TDArray<String8> sceneNames = sm->GetSceneNames(m_FrameArena);
-                    for(int i = 0; i < (int)sceneNames.Size(); ++i)
-                    {
-                        if(ImGui::MenuItem((const char*)sceneNames[i].str, nullptr, (uint32_t)i == currentIdx))
-                            sm->SwitchScene(i);
-                    }
-                    ImGui::EndPopup();
-                }
-            }
-            ImGui::SameLine(0.0f, 14.0f);
-
-            // Calculate available width for menus
-            // Play buttons are centered, so available space is roughly half the window minus some padding
-            float windowWidth = ImGui::GetWindowWidth();
-            float playButtonsWidth = 3.0f * (ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x);
-            float playButtonsStart = (windowWidth * 0.5f) - (playButtonsWidth * 0.5f);
-
-            // Estimate widths for menus (approximate)
-            float menuPadding = ImGui::GetStyle().ItemSpacing.x * 2 + ImGui::GetStyle().FramePadding.x * 2;
-            float fileMenuWidth = ImGui::CalcTextSize("File").x + menuPadding;
-            float editMenuWidth = ImGui::CalcTextSize("Edit").x + menuPadding;
-            float viewMenuWidth = ImGui::CalcTextSize("View").x + menuPadding;
-            float scenesMenuWidth = ImGui::CalcTextSize("Scenes").x + menuPadding;
-            float graphicsMenuWidth = ImGui::CalcTextSize("Graphics").x + menuPadding;
-            float aboutMenuWidth = ImGui::CalcTextSize("About").x + menuPadding;
-            float moreMenuWidth = ImGui::CalcTextSize(ICON_MDI_DOTS_HORIZONTAL).x + menuPadding;
-
-            float totalSecondaryWidth = editMenuWidth + viewMenuWidth + scenesMenuWidth + graphicsMenuWidth + aboutMenuWidth;
-            float availableForMenus = playButtonsStart - fileMenuWidth - 20.0f;
-
-            bool collapseMenus = availableForMenus < totalSecondaryWidth;
-
-            // Calculate if project/scene names can fit (only relevant when menus aren't collapsed)
-            float projectNameWidth = m_ProjectLoaded ? ImGui::CalcTextSize(m_ProjectSettings.m_ProjectName.c_str()).x + 80.0f : 0;
-            float sceneNameWidth = m_ProjectLoaded ? ImGui::CalcTextSize(GetCurrentScene()->GetSceneName().c_str()).x + 80.0f : 0;
-            float debugWidth = 0;
-#ifdef LUMOS_DEBUG
-            debugWidth = ImGui::CalcTextSize("DEBUG").x + 60.0f;
-#endif
-            float totalProjectInfoWidth = projectNameWidth + sceneNameWidth + debugWidth;
-
-            // When collapsed, check if there's room for project info after the "..." menu
-            float spaceAfterMenus = collapseMenus
-                ? (playButtonsStart - fileMenuWidth - moreMenuWidth - 20.0f)
-                : (playButtonsStart - fileMenuWidth - totalSecondaryWidth - 20.0f);
-
-            bool showProjectInfo = spaceAfterMenus >= totalProjectInfoWidth;
-
-            // Left-side drag region — empty space between breadcrumb and centered menus.
-            // Place BEFORE the menu group centering SameLine so the gap is filled.
-            {
-                const float totalMenuW = collapseMenus
-                    ? (fileMenuWidth + moreMenuWidth)
-                    : (fileMenuWidth + totalSecondaryWidth);
-                const float centerX    = (windowWidth - totalMenuW) * 0.5f;
-                const float cursorX    = ImGui::GetCursorPosX();
-                const float leftDragW  = centerX - cursorX - 4.0f;
-                if(leftDragW > 4.0f)
-                {
-                    const float h = ImGui::GetFrameHeight();
-                    ImGui::InvisibleButton("##title_drag_left", ImVec2(leftDragW, h));
-                    if(ImGui::IsItemActivated())
-                        OS::Get().BeginWindowDrag();
-                    if(ImGui::IsItemActive())
-                        OS::Get().UpdateWindowDrag();
-                    if(ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-                    {
-                        if(OS::Get().IsWindowMaximised()) OS::Get().RestoreWindow();
-                        else                              OS::Get().MaximiseWindow();
-                    }
-                    ImGui::SameLine(0.0f, 0.0f);
-                }
-                if(centerX > ImGui::GetCursorPosX())
-                    ImGui::SameLine(centerX);
-            }
-
-            if(ImGui::BeginMenu("File"))
-            {
-                if(ImGui::MenuItem("Open Project"))
-                {
-                    locationPopupOpened = true;
-#ifdef LUMOS_PLATFORM_IOS
-                    std::string docsProject = OS::Get().GetCurrentWorkingDirectory() + "/LumosEditor/ExampleProject/Example.lmproj";
-                    if(FileSystem::FileExists(Str8StdS(docsProject)))
-                    {
-                        ProjectOpenCallback(docsProject);
-                    }
-                    else
-                    {
-                        std::string docsDir = OS::Get().GetCurrentWorkingDirectory();
-                        auto& browserPath   = m_FileBrowserPanel->GetPath();
-                        browserPath         = std::filesystem::path(docsDir);
-                        m_FileBrowserPanel->SetCurrentPath(docsDir);
-                        m_FileBrowserPanel->SetFileTypeFilters({ ".lmproj" });
-                        m_FileBrowserPanel->SetOpenDirectory(false);
-                        m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
-                        m_FileBrowserPanel->Open();
-                    }
-#else
-#ifdef LUMOS_PLATFORM_LINUX
-                    std::string path  = OS::Get().GetExecutablePath() + "/../../../";
-                    String8 pathCopy  = PushStr8Copy(m_FrameArena, path.c_str());
-                    pathCopy          = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
-                    path = (const char*)pathCopy.str;
-#else
-                    const auto& path  = OS::Get().GetExecutablePath();
-#endif
-                    auto& browserPath = m_FileBrowserPanel->GetPath();
-                    browserPath       = std::filesystem::path(path);
-                    m_FileBrowserPanel->SetFileTypeFilters({ ".lmproj" });
-                    m_FileBrowserPanel->SetOpenDirectory(false);
-                    m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
-                    m_FileBrowserPanel->Open();
-#endif
-                }
-
-                if(ImGui::BeginMenu("Open Recent Project", !m_Settings.m_RecentProjects.empty()))
-                {
-                    for(auto& recentProject : m_Settings.m_RecentProjects)
-                    {
-                        if(ImGui::MenuItem(recentProject.c_str()))
-                        {
-                            m_ProjectLoadError.clear();
-                            Application::Get().OpenProject(recentProject);
-
-                            if(!m_ProjectLoaded)
-                                m_ProjectLoadError = "Failed to load: " + recentProject;
-
-                            for(int i = 0; i < int(m_Panels.size()); i++)
-                            {
-                                m_Panels[i]->OnNewProject();
-                            }
-                        }
-                    }
-                    ImGui::EndMenu();
-                }
-
-                if(ImGui::MenuItem("Close Project"))
-                {
-                    m_ProjectLoaded = false;
-                    m_ProjectLoadError.clear();
-                }
-
-                ImGui::Separator();
-
-                if(ImGui::MenuItem("Open File"))
-                {
-                    m_FileBrowserPanel->SetCurrentPath(m_ProjectSettings.m_ProjectRoot);
-                    m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
-                    m_FileBrowserPanel->Open();
-                }
-
-                ImGui::Separator();
-
-                if(ImGui::MenuItem("New Scene", "CTRL+N"))
-                {
-                    openNewScenePopup = true;
-                }
-
-                if(ImGui::MenuItem("Save Scene", "CTRL+S"))
-                {
-                    openSaveScenePopup = true;
-                }
-
-                if(ImGui::MenuItem("Reload Scene", "CTRL+R"))
-                {
-                    openReloadScenePopup = true;
-                }
-
-                ImGui::Separator();
-
-                if(ImGui::MenuItem("Build Asset Pack", nullptr, false, !System::JobSystem::IsBusy(m_AssetPackContext)))
-                {
-                    std::string assetsDir  = m_ProjectSettings.m_ProjectRoot + "Assets/";
-                    std::string outputPath = m_ProjectSettings.m_ProjectRoot + "Assets.lpak";
-                    System::JobSystem::Execute(m_AssetPackContext, [this, assetsDir, outputPath](JobDispatchArgs)
-                    {
-                        PackSettings settings;
-                        settings.ExcludePaths.PushBack(Str8Lit("Cache/"));
-                        settings.ExcludePaths.PushBack(Str8Lit("Imported/"));
-                        m_AssetPackResult = AssetPacker::Pack(Str8StdS(outputPath), Str8StdS(assetsDir), settings);
-                    });
-                }
-
-                ImGui::Separator();
-
-                if(ImGui::BeginMenu("Style"))
-                {
-                    if(ImGui::MenuItem("Lumos", "", m_Settings.m_Theme == ImGuiUtilities::Lumos))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::Lumos;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::Lumos);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    if(ImGui::MenuItem("Dark", "", m_Settings.m_Theme == ImGuiUtilities::Dark))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::Dark;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::Dark);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    if(ImGui::MenuItem("Dracula", "", m_Settings.m_Theme == ImGuiUtilities::Dracula))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::Dracula;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::Dracula);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    if(ImGui::MenuItem("Black", "", m_Settings.m_Theme == ImGuiUtilities::Black))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::Black;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::Black);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    if(ImGui::MenuItem("Grey", "", m_Settings.m_Theme == ImGuiUtilities::Grey))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::Grey;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::Grey);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    if(ImGui::MenuItem("Light", "", m_Settings.m_Theme == ImGuiUtilities::Light))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::Light;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::Light);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    if(ImGui::MenuItem("Cherry", "", m_Settings.m_Theme == ImGuiUtilities::Cherry))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::Cherry;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::Cherry);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    if(ImGui::MenuItem("Blue", "", m_Settings.m_Theme == ImGuiUtilities::Blue))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::Blue;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::Blue);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    if(ImGui::MenuItem("Cinder", "", m_Settings.m_Theme == ImGuiUtilities::Cinder))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::Cinder;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::Cinder);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    if(ImGui::MenuItem("Classic", "", m_Settings.m_Theme == ImGuiUtilities::Classic))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::Classic;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::Classic);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    if(ImGui::MenuItem("ClassicDark", "", m_Settings.m_Theme == ImGuiUtilities::ClassicDark))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::ClassicDark;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::ClassicDark);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    if(ImGui::MenuItem("ClassicLight", "", m_Settings.m_Theme == ImGuiUtilities::ClassicLight))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::ClassicLight;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::ClassicLight);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    if(ImGui::MenuItem("Cosy", "", m_Settings.m_Theme == ImGuiUtilities::Cosy))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::Cosy;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::Cosy);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    if(ImGui::MenuItem("Apple Light", "", m_Settings.m_Theme == ImGuiUtilities::AppleLight))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::AppleLight;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::AppleLight);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    if(ImGui::MenuItem("Graphite Dark", "", m_Settings.m_Theme == ImGuiUtilities::GraphiteDark))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::GraphiteDark;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::GraphiteDark);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    if(ImGui::MenuItem("Pastel", "", m_Settings.m_Theme == ImGuiUtilities::Pastel))
-                    {
-                        m_Settings.m_Theme = ImGuiUtilities::Pastel;
-                        ImGuiUtilities::SetTheme(ImGuiUtilities::Pastel);
-                        OS::Get().SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
-                    }
-                    ImGui::EndMenu();
-                }
-
-                ImGui::Separator();
-
-                if(ImGui::MenuItem("Exit"))
-                {
-                    Application::Get().SetAppState(AppState::Closing);
-                }
-
-                ImGui::EndMenu();
-            }
-
-            // Lambda to draw secondary menus (Edit, View, Scenes, Graphics, About)
-            // includeProjectInfo: when true, adds project/scene info to the menu (for overflow)
-            auto DrawSecondaryMenus = [&](bool includeProjectInfo)
-            {
-                if(ImGui::BeginMenu("Edit"))
-                {
-                    if(ImGui::MenuItem("Undo", "CTRL+Z"))
-                    {
-                        Lumos::Undo();
-                    }
-                    if(ImGui::MenuItem("Redo", "CTRL+Y", false, true))
-                    {
-                        Lumos::Redo();
-                    }
-                    ImGui::Separator();
-
-                    bool enabled = !m_SelectedEntities.empty();
-
-                    if(ImGui::MenuItem("Cut", "CTRL+X", false, enabled))
-                    {
-                        for(auto entity : m_SelectedEntities)
-                            SetCopiedEntity(entity, true);
-                    }
-
-                    if(ImGui::MenuItem("Copy", "CTRL+C", false, enabled))
-                    {
-                        for(auto entity : m_SelectedEntities)
-                            SetCopiedEntity(entity, false);
-                    }
-
-                    enabled = !m_CopiedEntities.empty();
-
-                    if(ImGui::MenuItem("Paste", "CTRL+V", false, enabled))
-                    {
-                        for(auto entity : m_CopiedEntities)
-                        {
-                            Application::Get().GetCurrentScene()->DuplicateEntity({ entity, Application::Get().GetCurrentScene() });
-                            if(entity.Valid())
-                            {
-                                Entity(entity, Application::Get().GetCurrentScene()).Destroy();
-                            }
-                        }
-                    }
-
-                    ImGui::EndMenu();
-                }
-                if(ImGui::BeginMenu("View"))
-                {
-                    for(auto& panel : m_Panels)
-                    {
-                        if(ImGui::MenuItem(panel->GetName().c_str(), "", &panel->Active(), true))
-                        {
-                            panel->SetActive(true);
-                        }
-                    }
-
-                    if(ImGui::MenuItem("ImGui Demo", "", &m_Settings.m_ShowImGuiDemo, true))
-                    {
-                        m_Settings.m_ShowImGuiDemo = true;
-                    }
-
-                    ImGui::EndMenu();
-                }
-
-                if(ImGui::BeginMenu("Scenes"))
-                {
-                    ArenaTemp scratch = ScratchBegin(0, 0);
-                    auto scenes       = Application::Get().GetSceneManager()->GetSceneNames(scratch.arena);
-
-                    for(size_t i = 0; i < scenes.Size(); i++)
-                    {
-                        auto name = scenes[i];
-                        if(ImGui::MenuItem((const char*)name.str))
-                        {
-                            Application::Get().GetSceneManager()->SwitchScene((const char*)name.str);
-                        }
-                    }
-                    ScratchEnd(scratch);
-
-                    if(!m_Settings.m_RecentScenes.empty())
-                    {
-                        ImGui::Separator();
-                        if(ImGui::BeginMenu("Recent Scenes"))
-                        {
-                            for(auto& sceneName : m_Settings.m_RecentScenes)
-                            {
-                                if(ImGui::MenuItem(sceneName.c_str()))
-                                {
-                                    Application::Get().GetSceneManager()->SwitchScene(sceneName.c_str());
-                                }
-                            }
-                            ImGui::EndMenu();
-                        }
-                    }
-
-                    ImGui::EndMenu();
-                }
-
-                if(ImGui::BeginMenu("Graphics"))
-                {
-                    if(ImGui::MenuItem("Compile Shaders"))
-                    {
-                        RecompileShaders();
-                    }
-                    if(ImGui::MenuItem("Embed Shaders"))
-                    {
-                        EmbedEngineShaders();
-                    }
-                    if(ImGui::MenuItem("Embed File"))
-                    {
-                        EmbedFile();
-                    }
-
-                    if(ImGui::BeginMenu("GPU Index"))
-                    {
-                        uint32_t gpuCount = Graphics::Renderer::GetRenderer()->GetGPUCount();
-
-                        if(gpuCount == 1)
-                        {
-                            ImGui::TextUnformatted("Default");
-                            ImGuiUtilities::Tooltip("Only default GPU selectable");
-                        }
-                        else
-                        {
-                            int8_t currentDesiredIndex = Application::Get().GetProjectSettings().DesiredGPUIndex;
-                            int8_t newIndex            = currentDesiredIndex;
-
-                            if(ImGui::Selectable("Default", currentDesiredIndex == -1))
-                            {
-                                newIndex = -1;
-                            }
-
-                            for(uint32_t index = 0; index < gpuCount; index++)
-                            {
-                                if(ImGui::Selectable(std::to_string(index).c_str(), index == uint32_t(currentDesiredIndex)))
-                                {
-                                    newIndex = index;
-                                }
-                            }
-
-                            Application::Get().GetProjectSettings().DesiredGPUIndex = newIndex;
-                        }
-                        ImGui::EndMenu();
-                    }
-                    ImGui::EndMenu();
-                }
-
-                if(ImGui::BeginMenu("About"))
-                {
-                    auto& version = Lumos::LumosVersion;
-                    ImGui::Text("Version : %d.%d.%d", version.major, version.minor, version.patch);
-                    {
-                        const auto& s = Engine::Get().Statistics();
-                        int fps       = int(Maths::Round(1000.0 / s.FrameTime));
-                        ImGui::Text("Performance : %.2f ms (%i FPS)", s.FrameTime, fps);
-                    }
-                    ImGui::Separator();
-
-                    std::string githubMenuText = std::string(ICON_MDI_GITHUB_BOX) + std::string(" Github");
-                    if(ImGui::MenuItem(githubMenuText.c_str()))
-                    {
-                        Lumos::OS::Get().OpenURL("https://www.github.com/jmorton06/Lumos");
-                    }
-                    ImGui::Separator();
-
-                    ImGui::TextUnformatted("Third-Party");
-
-                    ArenaTemp scratch = ScratchBegin(nullptr, 0);
-
-                    if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "ImGui - Version : %s, Revision - %i", IMGUI_VERSION, IMGUI_VERSION_NUM).str))
-                        Lumos::OS::Get().OpenURL("https://github.com/ocornut/imgui");
-                    if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Entt - Version  : %s", ENTT_VERSION).str))
-                        Lumos::OS::Get().OpenURL("https://github.com/skypjack/entt");
-                    if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Cereal - Version : %i.%i.%i", CEREAL_VERSION_MAJOR, CEREAL_VERSION_MINOR, CEREAL_VERSION_PATCH).str))
-                        Lumos::OS::Get().OpenURL("https://github.com/USCiLab/cereal");
-                    if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Box2D - Version : %i.%i", 3, 0).str))
-                        Lumos::OS::Get().OpenURL("https://github.com/erincatto/box2d");
-                    ScratchEnd(scratch);
-
-                    if(ImGui::BeginMenu("Contributers"))
-                    {
-                        if(ImGui::MenuItem("Joe Morton"))
-                            Lumos::OS::Get().OpenURL("https://github.com/jmorton06");
-
-                        if(ImGui::MenuItem("RuanLucasGD"))
-                            Lumos::OS::Get().OpenURL("https://github.com/RuanLucasGD");
-
-                        if(ImGui::MenuItem("adriengivry"))
-                            Lumos::OS::Get().OpenURL("https://github.com/adriengivry");
-
-                        ImGui::EndMenu(); // Contributer Menu
-                    }
-
-                    ImGui::Separator();
-                    if(ImGui::MenuItem(ICON_MDI_HEART " About & Support"))
-                    {
-                        for(auto& panel : m_Panels)
-                        {
-                            if(panel->GetSimpleName() == "About & Support")
-                            {
-                                panel->SetActive(true);
-                                break;
-                            }
-                        }
-                    }
-
-                    ImGui::EndMenu(); // About Menu
-                }
-
-                // Show project info in overflow menu when it doesn't fit in menu bar
-                if(includeProjectInfo && m_ProjectLoaded)
-                {
-                    ImGui::Separator();
-                    ImGui::TextDisabled("Project: %s", m_ProjectSettings.m_ProjectName.c_str());
-                    ImGui::TextDisabled("Scene: %s", GetCurrentScene()->GetSceneName().c_str());
-#ifdef LUMOS_DEBUG
-                    ImGui::TextColored(ImVec4(0.8f, 0.15f, 0.15f, 1.0f), "DEBUG");
-#endif
-                }
-            };
-
-            // Show secondary menus either directly or collapsed under "..."
-            if(collapseMenus)
-            {
-                if(ImGui::BeginMenu(ICON_MDI_DOTS_HORIZONTAL))
-                {
-                    DrawSecondaryMenus(!showProjectInfo);  // Include project info if it won't fit in bar
-                    ImGui::EndMenu();
-                }
-            }
-            else
-            {
-                DrawSecondaryMenus(false);  // Never include project info when menus are expanded
-            }
-
-            if(Application::Get().GetEditorState() == EditorState::Next)
-                Application::Get().SetEditorState(EditorState::Paused);
-
-            static Engine::Stats stats = {};
-            static double timer        = 1.1;
-            timer += Engine::GetTimeStep().GetSeconds();
-
-            if(timer > 1.0)
-            {
-                timer = 0.0;
-                stats = Engine::Get().Statistics();
-            }
-#if 0
-            auto size                  = ImGui::CalcTextSize("%.2f ms (%.i FPS)");
-            float sizeOfGfxAPIDropDown = ImGui::GetFontSize() * 8;
-            ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - size.x - ImGui::GetStyle().ItemSpacing.x * 2.0f - sizeOfGfxAPIDropDown);
-
-            int fps = int(Maths::Round(1000.0 / stats.FrameTime));
-            ImGui::Text("%.2f ms (%.i FPS)", stats.FrameTime, fps);
-
-            ImGui::SameLine();
-
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_TitleBg));
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(7, 2));
-
-            bool setNewValue             = false;
-            static std::string RenderAPI = "";
-
-            auto renderAPI = (Graphics::RenderAPI)m_ProjectSettings.RenderAPI;
-
-            bool needsRestart = false;
-            if(renderAPI != Graphics::GraphicsContext::GetRenderAPI())
-            {
-                needsRestart = true;
-            }
-
-            switch(renderAPI)
-            {
-#ifdef LUMOS_RENDER_API_OPENGL
-            case Graphics::RenderAPI::OPENGL:
-                RenderAPI = "OpenGL";
-                break;
-#endif
-
-#ifdef LUMOS_RENDER_API_VULKAN
-            case Graphics::RenderAPI::VULKAN:
-                RenderAPI = "Vulkan";
-                break;
-#endif
-
-#ifdef LUMOS_RENDER_API_DIRECT3D
-            case DIRECT3D:
-                RenderAPI = "Direct3D";
-                break;
-#endif
-            default:
-                break;
-            }
-
-            int numSupported = 0;
-#ifdef LUMOS_RENDER_API_OPENGL
-            numSupported++;
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-            numSupported++;
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D11
-            numSupported++;
-#endif
-            const char* api[]       = { "OpenGL", "Vulkan", "Direct3D11" };
-            const char* current_api = RenderAPI.c_str();
-            if(needsRestart)
-                RenderAPI = "*" + RenderAPI;
-
-            ImGui::PushItemWidth(-1.0f);
-            if(ImGui::BeginCombo(
-                   "", current_api, 0)) // The second parameter is the label previewed before opening the combo.
-            {
-                for(int n = 0; n < numSupported; n++)
-                {
-                    bool is_selected = (current_api == api[n]);
-                    if(ImGui::Selectable(api[n], current_api))
-                    {
-                        setNewValue = true;
-                        current_api = api[n];
-                    }
-                    if(is_selected)
-                        ImGui::SetItemDefaultFocus();
-                }
-                ImGui::EndCombo();
-            }
-
-            if(needsRestart)
-                ImGuiUtilities::Tooltip("Restart needed to switch Render API");
-
-            if(setNewValue)
-            {
-                m_ProjectSettings.RenderAPI = int(StringToRenderAPI(current_api));
-            }
-
-            ImGui::PopStyleColor();
-            ImGui::PopStyleVar();
-#else
-            {
-                ImGuiUtilities::ScopedStyle rounding(ImGuiStyleVar_FrameRounding, 6.0f);
-                ImGuiUtilities::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 6.0f));
-                ImGuiUtilities::ScopedStyle btnSpacing(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, ImGui::GetStyle().ItemSpacing.y));
-
-                const float btn      = ImGui::GetFrameHeight();
-                const int   count    = 5;
-                const float total    = count * btn;
-                const float rightPad = 32.0f;
-
-#if defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
-                const float winControlsW = 3.0f * btn + 8.0f;
-#else
-                const float winControlsW = 0.0f;
-#endif
-                const float blockStart = ImGui::GetWindowContentRegionMax().x - total - rightPad - winControlsW;
-
-                // Drag region — fills empty space between menus and right cluster.
-                {
-                    const float cursorX     = ImGui::GetCursorPosX();
-                    const float dragRegionW = blockStart - cursorX - 8.0f;
-                    if(dragRegionW > 4.0f)
-                    {
-                        // Full bar height so the whole empty strip is draggable.
-                        const float h = barH;
-                        // Only start dragging once the mouse has actually moved,
-                        // so a double click still reaches the maximise handler
-                        // below rather than being swallowed by the drag.
-                        static bool dragStarted = false;
-                        static bool systemDrag  = false;
-                        ImGui::InvisibleButton("##title_drag", ImVec2(dragRegionW, h));
-                        if(ImGui::IsItemActive())
-                        {
-                            if(!dragStarted && ImGui::IsMouseDragging(ImGuiMouseButton_Left, 4.0f))
-                            {
-                                dragStarted = true;
-                                // A window manager that takes the drag over
-                                // drives it itself from here on.
-                                systemDrag = OS::Get().BeginWindowDrag();
-                            }
-                            if(dragStarted && !systemDrag)
-                                OS::Get().UpdateWindowDrag();
-                        }
-                        else
-                        {
-                            dragStarted = false;
-                            systemDrag  = false;
-                        }
-                        if(ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-                        {
-                            if(OS::Get().IsWindowMaximised())
-                                OS::Get().RestoreWindow();
-                            else
-                                OS::Get().MaximiseWindow();
-                        }
-                    }
-                }
-
-                ImGui::SameLine(blockStart);
-                // These buttons are shorter than the bar; centre them so they
-                // line up with the menu text and the window controls.
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (barH - btn) * 0.5f);
-
-                const Vec4 sel       = ImGuiUtilities::GetSelectedColour();
-                const ImVec4 accent  = ImVec4(sel.x, sel.y, sel.z, sel.w);
-                const ImVec4 amber   = ImVec4(0.95f, 0.65f, 0.20f, 1.0f);
-
-                auto pushActive = [](const ImVec4& c)
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Button, c);
-                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(c.x + 0.08f, c.y + 0.08f, c.z + 0.08f, c.w));
-                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(c.x + 0.12f, c.y + 0.12f, c.z + 0.12f, c.w));
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
-                };
-
-                bool isEdit   = Application::Get().GetEditorState() == EditorState::Preview;
-                bool isPlay   = Application::Get().GetEditorState() == EditorState::Play;
-                bool isPaused = Application::Get().GetEditorState() == EditorState::Paused;
-                bool isNext   = Application::Get().GetEditorState() == EditorState::Next;
-
-                ImGuiUtilities::ScopedStyle btnRounding(ImGuiStyleVar_FrameRounding, 0.0f);
-
-                if(isEdit) pushActive(accent);
-                if(ImGui::Button(ICON_MDI_BRUSH, ImVec2(btn, btn)))
-                {
-                    Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(!isEdit);
-                    Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(!isEdit);
-                    Application::Get().GetSystem<AudioManager>()->UpdateListener(Application::Get().GetCurrentScene());
-                    Application::Get().GetSystem<AudioManager>()->SetPaused(!isEdit);
-                    Application::Get().SetEditorState(!isEdit ? EditorState::Preview : EditorState::Play);
-
-                    if(isEdit)
-                    {
-                        ImGui::SetWindowFocus(ICON_MDI_GAMEPAD_VARIANT " Game###game");
-                        CacheScene();
-                        Application::Get().GetCurrentScene()->OnInit();
-                    }
-                    else
-                    {
-                        ImGui::SetWindowFocus("###scene");
-                        LoadCachedScene();
-                    }
-                }
-                if(ImGui::IsItemHovered()) ImGui::SetTooltip("Edit");
-                if(isEdit) ImGui::PopStyleColor(4);
-
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (barH - btn) * 0.5f);
-
-                if(isPlay) pushActive(accent);
-                if(ImGui::Button(ICON_MDI_PLAY, ImVec2(btn, btn)))
-                {
-                    Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(isPlay);
-                    Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(isPlay);
-                    Application::Get().GetSystem<AudioManager>()->UpdateListener(Application::Get().GetCurrentScene());
-                    Application::Get().GetSystem<AudioManager>()->SetPaused(isPlay);
-                    Application::Get().SetEditorState(isPlay ? EditorState::Preview : EditorState::Play);
-                    ImGui::SetWindowFocus(ICON_MDI_GAMEPAD_VARIANT " Game###game");
-                    if(isPlay)
-                    {
-                        ImGui::SetWindowFocus("###scene");
-                        LoadCachedScene();
-                    }
-                    else
-                    {
-                        ImGui::SetWindowFocus("###game");
-                        CacheScene();
-                        Application::Get().GetCurrentScene()->OnInit();
-                    }
-                }
-                if(ImGui::IsItemHovered()) ImGui::SetTooltip("Play");
-                if(isPlay) ImGui::PopStyleColor(4);
-
-                ImGui::SameLine();
-
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (barH - btn) * 0.5f);
-                if(isPaused) pushActive(amber);
-                if(ImGui::Button(ICON_MDI_PAUSE, ImVec2(btn, btn)))
-                    Application::Get().SetEditorState(isPaused ? EditorState::Play : EditorState::Paused);
-                if(ImGui::IsItemHovered()) ImGui::SetTooltip("Pause");
-                if(isPaused) ImGui::PopStyleColor(4);
-
-                ImGui::SameLine();
-
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (barH - btn) * 0.5f);
-                if(isNext) pushActive(accent);
-                if(ImGui::Button(ICON_MDI_STEP_FORWARD, ImVec2(btn, btn)))
-                    Application::Get().SetEditorState(EditorState::Next);
-                if(ImGui::IsItemHovered()) ImGui::SetTooltip("Next");
-                if(isNext) ImGui::PopStyleColor(4);
-
-                ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (barH - btn) * 0.5f);
-                if(ImGui::Button(ICON_MDI_SETTINGS, ImVec2(btn, btn)))
-                    ImGui::OpenPopup("SettingsMenu");
-                if(ImGui::IsItemHovered()) ImGui::SetTooltip("Settings");
-
-                if(ImGui::BeginPopup("SettingsMenu"))
-                {
-                    if(ImGui::MenuItem(ICON_MDI_PENCIL " Editor Settings"))
-                    {
-                        for(auto& panel : m_Panels)
-                        {
-                            if(panel->GetSimpleName() == "Editor Settings")
-                                panel->SetActive(true);
-                        }
-                    }
-                    if(ImGui::MenuItem(ICON_MDI_FOLDER " Project Settings"))
-                    {
-                        for(auto& panel : m_Panels)
-                        {
-                            if(panel->GetSimpleName() == "Project Settings")
-                                panel->SetActive(true);
-                        }
-                    }
-                    if(ImGui::MenuItem(ICON_MDI_PALETTE " Scene Settings"))
-                    {
-                        for(auto& panel : m_Panels)
-                        {
-                            if(panel->GetSimpleName() == "Scene Settings")
-                                panel->SetActive(true);
-                        }
-                    }
-                    if(ImGui::MenuItem(ICON_MDI_INFORMATION " Application Settings"))
-                    {
-                        for(auto& panel : m_Panels)
-                        {
-                            if(panel->GetSimpleName() == "Application Info")
-                                panel->SetActive(true);
-                        }
-                    }
-                    ImGui::EndPopup();
-                }
-            }
-#endif
-
-#if defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
-            // Custom window controls (rightmost): minimise · max/restore · close.
-            {
-                const float btn = ImGui::GetFrameHeight();
-                ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 3.0f * btn);
-                // SameLine inherits the toolbar's centring offset; these buttons
-                // are full bar height, so put them back on the bar's top edge.
-                ImGui::SetCursorPosY(barTopY);
-                ImGuiUtilities::ScopedStyle btnSpacing(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, ImGui::GetStyle().ItemSpacing.y));
-                ImGuiUtilities::ScopedStyle btnRounding(ImGuiStyleVar_FrameRounding, 0.0f);
-
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-                if(ImGui::Button(ICON_MDI_MINUS, ImVec2(btn, btn)))
-                    OS::Get().IconifyWindow();
-                ImGuiUtilities::Tooltip("Minimise");
-
-                ImGui::SameLine();
-                const bool isMax = OS::Get().IsWindowMaximised();
-                if(ImGui::Button(isMax ? ICON_MDI_WINDOW_RESTORE : ICON_MDI_WINDOW_MAXIMIZE, ImVec2(btn, btn)))
-                {
-                    if(isMax) OS::Get().RestoreWindow();
-                    else      OS::Get().MaximiseWindow();
-                }
-                ImGuiUtilities::Tooltip(isMax ? "Restore" : "Maximise");
-
-                ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.78f, 0.20f, 0.18f, 1.0f));
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.62f, 0.16f, 0.14f, 1.0f));
-                if(ImGui::Button(ICON_MDI_CLOSE, ImVec2(btn, btn)))
-                    Application::Get().SetAppState(AppState::Closing);
-                ImGui::PopStyleColor(2);
-                ImGuiUtilities::Tooltip("Close");
-
-                ImGui::PopStyleColor(); // Button
-            }
-#endif
-
-            ImGui::EndMainMenuBar();
-        }
-        ImGui::PopStyleVar(); // FramePadding
-
-        if(openSaveScenePopup)
-            ImGui::OpenPopup("Save Scene");
-
-        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-
-        if(ImGui::BeginPopupModal("Save Scene", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-        {
-            ImGui::Text("Save Current Scene Changes?\n\n");
-            ImGui::Separator();
-
-            if(ImGui::Button("OK", ImVec2(120, 0)))
-            {
-                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/", false);
-                Graphics::Renderer::GetRenderer()->SaveScreenshot(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/Cache/" + Application::Get().GetSceneManager()->GetCurrentScene()->GetSceneName() + ".png", m_SceneRenderer->GetForwardData().m_RenderTexture);
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::SetItemDefaultFocus();
-            ImGui::SameLine();
-            if(ImGui::Button("Cancel", ImVec2(120, 0)))
-            {
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::EndPopup();
-        }
-
-        if(locationPopupOpened)
-        {
-            if(!m_FileBrowserPanel->IsOpen())
-            {
-                locationPopupOpened = false;
-            }
-        }
-        if(openNewScenePopup)
-            ImGui::OpenPopup("New Scene");
-
-        if(ImGui::BeginPopupModal("New Scene", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-        {
-            if(ImGui::Button("Save Current Scene Changes"))
-            {
-                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/", false);
-            }
-
-            ImGui::Text("Create New Scene?\n\n");
-            ImGui::Separator();
-
-            static bool defaultSetup = false;
-
-            static std::string newSceneName = "NewScene";
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Name : ");
-            ImGui::SameLine();
-            ImGuiUtilities::InputText(newSceneName, "##SceneNameChange");
-
-            ImGui::Checkbox("Default Setup", &defaultSetup);
-
-            ImGui::Separator();
-
-            if(ImGui::Button("OK", ImVec2(120, 0)))
-            {
-                String8 sceneName = Str8StdS(newSceneName);
-                ArenaTemp scratch = ScratchBegin(0, 0);
-                int sameNameCount = 0;
-
-                String8 Path = PushStr8F(scratch.arena, "//Assets/Scenes/%s.lsn", (char*)sceneName.str);
-                while(FileSystem::FileExists(Path) || m_SceneManager->ContainsScene((const char*)sceneName.str))
-                {
-                    sameNameCount++;
-                    sceneName = PushStr8F(scratch.arena, "%s%i", (char*)newSceneName.c_str(), sameNameCount);
-                    Path      = PushStr8F(scratch.arena, "//Assets/Scenes/%s.lsn", (char*)sceneName.str);
-                }
-                auto scene = new Scene(std::string((const char*)sceneName.str));
-
-                ScratchEnd(scratch);
-                if(defaultSetup)
-                {
-                    auto cube = scene->GetEntityManager()->Create("Cube");
-                    cube.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
-
-                    auto light      = scene->GetEntityManager()->Create("Light");
-                    auto& lightComp = light.AddComponent<Graphics::Light>();
-                    Mat4 lightView  = Mat4::LookAt(Vec3(30.0f, 9.0f, 50.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
-                    light.GetTransform().SetLocalTransform(lightView);
-                    light.GetTransform().SetWorldMatrix(Mat4(1.0f));
-
-                    auto camera = scene->GetEntityManager()->Create("Camera");
-                    camera.AddComponent<Camera>();
-                    camera.GetComponent<Camera>().SetFar(10000);
-                    Mat4 viewMat = Mat4::LookAt(Vec3(-1.0f, 0.5f, 1.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
-                    camera.GetTransform().SetLocalTransform(viewMat);
-                    camera.GetTransform().SetWorldMatrix(Mat4(1.0f));
-
-                    auto bb = cube.GetComponent<Graphics::ModelComponent>().ModelRef->GetMeshes().Front()->GetBoundingBox();
-                    camera.GetTransform().SetLocalPosition(-(camera.GetTransform().GetForwardDirection()) * Maths::Distance(bb.Max(), bb.Min()));
-                    camera.GetTransform().SetWorldMatrix(Mat4(1.0f));
-
-                    auto environment = scene->GetEntityManager()->Create("Environment");
-                    environment.AddComponent<Graphics::Environment>();
-                    environment.GetComponent<Graphics::Environment>().Load();
-
-                    scene->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/");
-                }
-                Application::Get().GetSceneManager()->EnqueueScene(scene);
-                Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().Size()) - 1);
-
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::SetItemDefaultFocus();
-            ImGui::SameLine();
-            if(ImGui::Button("Cancel", ImVec2(120, 0)))
-            {
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::EndPopup();
-        }
-
-        if(openReloadScenePopup)
-            ImGui::OpenPopup("Reload Scene");
-
-        if(ImGui::BeginPopupModal("Reload Scene", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-        {
-            ImGui::Text("Reload Scene?\n\n");
-            ImGui::Separator();
-
-            if(ImGui::Button("OK", ImVec2(120, 0)))
-            {
-                Application::Get().GetSceneManager()->SwitchScene(Application::Get().GetSceneManager()->GetCurrentSceneIndex());
-
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::SetItemDefaultFocus();
-            ImGui::SameLine();
-            if(ImGui::Button("Cancel", ImVec2(120, 0)))
-            {
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::EndPopup();
-        }
-
-        // Asset pack notification overlay
-        if(System::JobSystem::IsBusy(m_AssetPackContext))
-        {
-            ImGuiIO& io = ImGui::GetIO();
-            ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 10, io.DisplaySize.y - 10), ImGuiCond_Always, ImVec2(1, 1));
-            ImGui::SetNextWindowBgAlpha(0.75f);
-            ImGui::Begin("##packnotify", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
-            ImGui::Text("Building asset pack...");
-            ImGui::End();
-        }
-        else if(m_AssetPackResult)
-        {
-            static float s_PackNotifyTimer = 3.0f;
-            s_PackNotifyTimer -= ImGui::GetIO().DeltaTime;
-            if(s_PackNotifyTimer > 0.0f)
-            {
-                ImGuiIO& io = ImGui::GetIO();
-                ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 10, io.DisplaySize.y - 10), ImGuiCond_Always, ImVec2(1, 1));
-                ImGui::SetNextWindowBgAlpha(0.75f);
-                ImGui::Begin("##packnotify", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
-                ImGui::Text("Asset pack built: Assets.lpak");
-                ImGui::End();
-            }
-            else
-            {
-                s_PackNotifyTimer = 3.0f;
-                m_AssetPackResult = false;
-            }
-        }
-    }
-
-    void Editor::DrawStatusBar()
-    {
-        LUMOS_PROFILE_FUNCTION();
-
-        const float height = ImGui::GetFrameHeight();
-
-        ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
-        if(ImGui::BeginViewportSideBar("##statusbar", ImGui::GetMainViewport(), ImGuiDir_Down, height, flags))
-        {
-            if(ImGui::BeginMenuBar())
-            {
-                ImGuiUtilities::ScopedFont smallFont(ImGui::GetIO().Fonts->Fonts[2]);
-                const ImVec4 dim(0.55f, 0.55f, 0.55f, 1.0f);
-                const ImVec4 sep(0.30f, 0.30f, 0.30f, 1.0f);
-                auto Sep = [&]() { ImGui::SameLine(0, 10); ImGui::TextColored(sep, "."); ImGui::SameLine(0, 10); };
-
-                const Engine::Stats& s = Engine::Get().Statistics();
-
-                bool isPlay = Application::Get().GetEditorState() == EditorState::Play;
-                ImGui::TextColored(isPlay ? ImVec4(0.3f, 0.85f, 0.4f, 1.0f) : ImVec4(0.55f, 0.85f, 0.45f, 1.0f), isPlay ? "PLAYING" : "READY");
-
-                Sep();
-                ImGui::TextColored(dim, "frame"); ImGui::SameLine(0, 4);
-                ImGui::Text("%u fps", s.FramesPerSecond);
-
-                Sep();
-                ImGui::TextColored(dim, "cpu"); ImGui::SameLine(0, 4);
-                ImGui::Text("%.1f ms", s.FrameTime);
-
-                Sep();
-                ImGui::TextColored(dim, "draws"); ImGui::SameLine(0, 4);
-                ImGui::Text("%u", s.NumDrawCalls);
-
-                Sep();
-                ImGui::TextColored(dim, "tris"); ImGui::SameLine(0, 4);
-                if(s.TriangleCount >= 1000)
-                    ImGui::Text("%.0f k", s.TriangleCount / 1000.0);
-                else
-                    ImGui::Text("%u", s.TriangleCount);
-
-                if(s.TotalGPUMemory > 0.0f)
-                {
-                    Sep();
-                    ImGui::TextColored(dim, "vram"); ImGui::SameLine(0, 4);
-                    ImGui::Text("%.0f / %.0f MB", s.UsedGPUMemory / (1024.0f * 1024.0f), s.TotalGPUMemory / (1024.0f * 1024.0f));
-                }
-
-                Sep();
-                ImGui::TextColored(dim, "ent"); ImGui::SameLine(0, 4);
-                size_t entCount = 0;
-                if(auto scene = Application::Get().GetCurrentScene())
-                    entCount = scene->GetEntityManager()->GetRegistry().storage<entt::entity>().in_use();
-                ImGui::Text("%zu", entCount);
-
-                // Right cluster — scene path · version
-                {
-                    char scenePath[128] = "";
-                    if(m_ProjectLoaded)
-                        snprintf(scenePath, sizeof(scenePath), "scene/%s.lsn", GetCurrentScene()->GetSceneName().c_str());
-                    char versionBuf[32];
-                    snprintf(versionBuf, sizeof(versionBuf), "%d.%d.%d", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
-
-                    const float scenePathW = ImGui::CalcTextSize(scenePath).x;
-                    const float versionW   = ImGui::CalcTextSize(versionBuf).x;
-                    const float dotW       = ImGui::CalcTextSize(".").x;
-                    const float totalW     = (scenePath[0] ? scenePathW + 20 + dotW + 20 : 0) + versionW + 12.0f;
-                    const float right      = ImGui::GetWindowContentRegionMax().x - totalW;
-                    if(right > ImGui::GetCursorPosX() + 10)
-                        ImGui::SameLine(right);
-                    if(scenePath[0])
-                    {
-                        ImGui::TextColored(dim, "%s", scenePath);
-                        ImGui::SameLine(0, 10); ImGui::TextColored(sep, "."); ImGui::SameLine(0, 10);
-                    }
-                    ImGui::TextColored(dim, "%s", versionBuf);
-                }
-
-                ImGui::EndMenuBar();
-            }
-        }
-        ImGui::End();
-    }
-
-    void Editor::DrawWelcomeScreen()
-    {
-#ifdef LUMOS_PLATFORM_IOS
-        static bool projectLocationInit = false;
-        if(!projectLocationInit)
-        {
-            projectLocation     = OS::Get().GetCurrentWorkingDirectory() + "/";
-            projectLocationInit = true;
-        }
-#endif
-        auto& version = Lumos::LumosVersion;
-
-        ImGuiViewport* viewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(viewport->WorkPos);
-        ImGui::SetNextWindowSize(viewport->WorkSize);
-
-        ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar;
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        ImGui::Begin("##WelcomeScreen", nullptr, flags);
-        ImGui::PopStyleVar(3);
-
-        float contentWidth = 420.0f;
-        float windowWidth  = ImGui::GetWindowWidth();
-        float windowHeight = ImGui::GetWindowHeight();
-        float offsetX      = (windowWidth - contentWidth) * 0.5f;
-        if(offsetX < 0.0f)
-            offsetX = 0.0f;
-
-        const float ButtonHeight = ImGui::GetTextLineHeightWithSpacing() * 1.2f;
-        // Estimate content height for vertical centering
-        float contentHeight = 380.0f;
-        if(!m_Settings.m_RecentProjects.empty())
-            contentHeight += m_Settings.m_RecentProjects.size() * 28.0f + 60.0f;
-        if(!m_ProjectLoadError.empty())
-            contentHeight += 40.0f;
-
-        float offsetY = (windowHeight - contentHeight) * 0.5f;
-        if(offsetY < 40.0f)
-            offsetY = 40.0f;
-
-        ImGui::SetCursorPos(ImVec2(offsetX, offsetY));
-        ImGui::BeginGroup();
-
-        // Title
-        {
-            ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
-            ImGui::SetCursorPosX(offsetX + (contentWidth - ImGui::CalcTextSize("Lumos Engine").x) * 0.5f);
-            ImGui::TextUnformatted("Lumos Engine");
-        }
-        {
-            ArenaTemp scratch = ScratchBegin(nullptr, 0);
-            String8 versionStr = PushStr8F(scratch.arena, "v%d.%d.%d", version.major, version.minor, version.patch);
-            float vw = ImGui::CalcTextSize((const char*)versionStr.str).x;
-            ImGui::SetCursorPosX(offsetX + (contentWidth - vw) * 0.5f);
-            ImGui::TextDisabled("%s", (const char*)versionStr.str);
-            ScratchEnd(scratch);
-        }
-
-        ImGui::Dummy(ImVec2(0, 20));
-
-        // Error message
-        if(!m_ProjectLoadError.empty())
-        {
-            ImGui::SetCursorPosX(offsetX);
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
-            ImGui::PushTextWrapPos(offsetX + contentWidth);
-            ImGui::Text(ICON_MDI_ALERT_CIRCLE " %s", m_ProjectLoadError.c_str());
-            ImGui::PopTextWrapPos();
-            ImGui::PopStyleColor();
-            ImGui::Dummy(ImVec2(0, 8));
-        }
-
-        // Recent projects
-        if(!m_Settings.m_RecentProjects.empty())
-        {
-            ImGui::SetCursorPosX(offsetX);
-            ImGui::TextDisabled("RECENT PROJECTS");
-            ImGui::Dummy(ImVec2(0, 4));
-
-            for(int i = 0; i < (int)m_Settings.m_RecentProjects.size(); i++)
-            {
-                auto& project       = m_Settings.m_RecentProjects[i];
-                std::string name    = StringUtilities::GetFileName(project);
-                std::string nameNoExt = StringUtilities::RemoveFilePathExtension(name);
-                std::string dirPath = StringUtilities::GetFileLocation(project);
-
-                ImGui::PushID(i);
-                ImGui::SetCursorPosX(offsetX);
-
-                ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.0f, 0.5f));
-                if(ImGui::Selectable(("  " ICON_MDI_FOLDER "  " + nameNoExt).c_str(), false, 0, ImVec2(contentWidth, 28)))
-                {
-                    m_ProjectLoadError.clear();
-                    Application::Get().OpenProject(project);
-
-                    if(!m_ProjectLoaded)
-                        m_ProjectLoadError = "Failed to load: " + project;
-                    else
-                    {
-                        for(int j = 0; j < int(m_Panels.size()); j++)
-                            m_Panels[j]->OnNewProject();
-                    }
-                }
-                ImGui::PopStyleVar();
-
-                if(ImGui::IsItemHovered())
-                    ImGui::SetTooltip("%s", project.c_str());
-                ImGui::PopID();
-            }
-
-            ImGui::Dummy(ImVec2(0, 16));
-        }
-
-        // Open project button
-        ImGui::SetCursorPosX(offsetX);
-        if(ImGui::Button(ICON_MDI_FOLDER_OPEN "  Open Project", ImVec2(contentWidth, ButtonHeight)))
-        {
-            locationPopupOpened = true;
-#ifdef LUMOS_PLATFORM_IOS
-            // On iOS, directly open the bundled example project from Documents
-            std::string docsProject = OS::Get().GetCurrentWorkingDirectory() + "/LumosEditor/ExampleProject/Example.lmproj";
-            if(FileSystem::FileExists(Str8StdS(docsProject)))
-            {
-                ProjectOpenCallback(docsProject);
-            }
-            else
-            {
-                // Fallback to native file picker rooted at Documents
-                std::string docsDir = OS::Get().GetCurrentWorkingDirectory();
-                auto& browserPath   = m_FileBrowserPanel->GetPath();
-                browserPath         = std::filesystem::path(docsDir);
-                m_FileBrowserPanel->SetCurrentPath(docsDir);
-                m_FileBrowserPanel->SetFileTypeFilters({ ".lmproj" });
-                m_FileBrowserPanel->SetOpenDirectory(false);
-                m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
-                m_FileBrowserPanel->Open();
-            }
-#else
-#ifdef LUMOS_PLATFORM_LINUX
-            std::string path  = OS::Get().GetExecutablePath() + "/../../../";
-            String8 pathCopy  = PushStr8Copy(m_FrameArena, path.c_str());
-            pathCopy          = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
-            path = (const char*)pathCopy.str;
-#else
-            const auto& path  = OS::Get().GetExecutablePath();
-#endif
-            auto& browserPath = m_FileBrowserPanel->GetPath();
-            browserPath       = std::filesystem::path(path);
-            m_FileBrowserPanel->SetFileTypeFilters({ ".lmproj" });
-            m_FileBrowserPanel->SetOpenDirectory(false);
-            m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
-            m_FileBrowserPanel->Open();
-#endif
-        }
-
-        ImGui::Dummy(ImVec2(0, 24));
-
-        // New project section
-        ImGui::SetCursorPosX(offsetX);
-        ImGui::TextDisabled("NEW PROJECT");
-        ImGui::Dummy(ImVec2(0, 6));
-
-        ImGui::SetCursorPosX(offsetX);
-        static std::string newProjectName = "NewProject";
-        ImGui::SetNextItemWidth(contentWidth);
-        ImGuiUtilities::InputText(newProjectName, "##WelcomeProjectName");
-
-        ImGui::Dummy(ImVec2(0, 6));
-
-        // Location row
-        ImGui::SetCursorPosX(offsetX);
-        if(ImGui::Button(ICON_MDI_FOLDER "  Choose Location", ImVec2(contentWidth, ButtonHeight)))
-        {
-            locationPopupOpened = true;
-            const auto& path    = OS::Get().GetExecutablePath();
-            auto& browserPath   = m_FileBrowserPanel->GetPath();
-            browserPath         = std::filesystem::path(path);
-            m_FileBrowserPanel->ClearFileTypeFilters();
-            m_FileBrowserPanel->SetOpenDirectory(true);
-            m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(NewProjectLocationCallback));
-            m_FileBrowserPanel->Open();
-        }
-        ImGui::SetCursorPosX(offsetX);
-        ImGui::PushTextWrapPos(offsetX + contentWidth);
-        ImGui::TextDisabled("%s", projectLocation.c_str());
-        ImGui::PopTextWrapPos();
-
-        ImGui::Dummy(ImVec2(0, 8));
-
-        ImGui::SetCursorPosX(offsetX);
-        if(ImGui::Button(ICON_MDI_PLUS "  Create Project", ImVec2(contentWidth, ButtonHeight)))
-        {
-            m_ProjectLoadError.clear();
-            Application::Get().OpenNewProject(projectLocation, newProjectName);
-            m_FileBrowserPanel->SetOpenDirectory(false);
-
-            for(int i = 0; i < int(m_Panels.size()); i++)
-                m_Panels[i]->OnNewProject();
-        }
-
-        ImGui::Dummy(ImVec2(0, 24));
-
-        // Exit
-        ImGui::SetCursorPosX(offsetX);
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
-        if(ImGui::Button(ICON_MDI_EXIT_TO_APP "  Exit", ImVec2(contentWidth, ButtonHeight)))
-        {
-            SetAppState(AppState::Closing);
-        }
-        ImGui::PopStyleColor(2);
-
-        ImGui::EndGroup();
-        ImGui::End();
-    }
 
     static const float identityMatrix[16] = { 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f };
 
-    void Editor::OnImGuizmo()
+    // What the editor does each frame before its UI is built.
+    void Editor::EditorFrame()
     {
         LUMOS_PROFILE_FUNCTION();
-        Mat4 view = m_EditorCameraTransform.GetWorldMatrix().Inverse();
-        Mat4 proj = m_CurrentCamera->GetProjectionMatrix();
 
-#ifdef USE_IMGUIZMO_GRID
-        if(m_Settings.m_ShowGrid && !m_CurrentCamera->IsOrthographic())
-            ImGuizmo::DrawGrid(Maths::ValuePtr(view),
-                               Maths::ValuePtr(proj), identityMatrix, 120.f);
+        // --play: start the project playing once the editor is up (tests, screenshots)
+        {
+            static int s_PlayIn = Internal::CoreSystem::GetCmdLine()->OptionBool(Str8Lit("play")) ? 3 : -1;
+            if(s_PlayIn > 0 && m_ProjectLoaded && --s_PlayIn == 0 && Application::Get().GetEditorState() == EditorState::Preview)
+                TogglePlay();
+        }
+
+#if defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
+        // The window is borderless: its edges resize it. (macOS keeps a native frame.)
+        if(!OS::Get().IsWindowMaximised() && !OS::Get().IsWindowFullscreen() && m_Window)
+        {
+            static bool s_Resizing = false;
+            static int s_Edge      = 0;
+            const Vec2 mouse       = Input::Get().GetMousePosition();
+            const float w = (float)m_Window->GetWidth(), h = (float)m_Window->GetHeight();
+            const float edge = 6.0f;
+            int hit = 0;
+            if(mouse.x >= 0.0f && mouse.y >= 0.0f && mouse.x <= w && mouse.y <= h)
+            {
+                if(mouse.x <= edge)     hit |= 4;
+                if(mouse.x >= w - edge) hit |= 8;
+                if(mouse.y <= edge)     hit |= 1;
+                if(mouse.y >= h - edge) hit |= 2;
+            }
+            const int mask = s_Resizing ? s_Edge : hit;
+            if(mask == 1 || mask == 2)
+                UISetCursor(UICursor_ResizeNS);
+            else if(mask == 4 || mask == 8)
+                UISetCursor(UICursor_ResizeEW);
+            else if(mask == (1 | 4) || mask == (2 | 8))
+                UISetCursor(UICursor_ResizeNWSE);
+            else if(mask == (1 | 8) || mask == (2 | 4))
+                UISetCursor(UICursor_ResizeNESW);
+
+            // a window manager that takes the resize over drives it itself
+            if(!s_Resizing && hit && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft) && !OS::Get().BeginWindowResize(hit))
+            {
+                s_Resizing = true;
+                s_Edge     = hit;
+            }
+            if(s_Resizing)
+            {
+                OS::Get().UpdateWindowResize();
+                if(!Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonLeft))
+                    s_Resizing = false;
+            }
+        }
 #endif
 
-        if(!m_Settings.m_ShowGizmos || m_SelectedEntities.empty() || m_ImGuizmoOperation == 4)
+        if(m_EditorUI && m_Window)
+        {
+            if(!m_EditorUI->IsEnabled())
+                m_EditorUI->SetEnabled(true);
+            // the whole window: the editor UI keeps its own controls clear of a notch
+            m_EditorUI->SetRect(Vec4(0.0f, 0.0f, (float)m_Window->GetWidth(), (float)m_Window->GetHeight()));
+        }
+
+        if(!m_ProjectLoaded)
             return;
 
-        auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
+        const bool ctrl  = Input::Get().GetKeyHeld(InputCode::Key::LeftControl) || Input::Get().GetKeyHeld(InputCode::Key::RightControl)
+            || Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || Input::Get().GetKeyHeld(InputCode::Key::RightSuper);
+        const bool shift = Input::Get().GetKeyHeld(InputCode::Key::LeftShift) || Input::Get().GetKeyHeld(InputCode::Key::RightShift);
+        const bool z     = Input::Get().GetKeyPressed(InputCode::Key::Z);
+        const bool y     = Input::Get().GetKeyPressed(InputCode::Key::Y);
+        if(ctrl && z && !shift)
+            Lumos::Undo();
+        else if(ctrl && (y || (z && shift)))
+            Lumos::Redo();
 
-        if(m_SelectedEntities.size() == 1)
+        m_Settings.m_View2D = m_CurrentCamera->IsOrthographic();
+
+        if(Application::Get().GetEditorState() == EditorState::Preview)
+            Application::Get().GetSceneManager()->GetCurrentScene()->UpdateSceneGraph();
+    }
+
+    // ---- scenes / developer actions (the editor UI's menus call these) ----
+
+    void Editor::NewScene(const char* name, bool defaultSetup)
+    {
+        ArenaTemp scratch = ScratchBegin(0, 0);
+        String8 sceneName = Str8C((char*)(name && name[0] ? name : "NewScene"));
+        String8 base      = sceneName;
+        int sameNameCount = 0;
+        String8 path      = PushStr8F(scratch.arena, "//Assets/Scenes/%.*s.lsn", (int)sceneName.size, (char*)sceneName.str);
+        while(FileSystem::FileExists(path) || m_SceneManager->ContainsScene((const char*)PushStr8Copy(scratch.arena, sceneName).str))
         {
-            Entity m_SelectedEntity = {};
+            sameNameCount++;
+            sceneName = PushStr8F(scratch.arena, "%.*s%i", (int)base.size, (char*)base.str, sameNameCount);
+            path      = PushStr8F(scratch.arena, "//Assets/Scenes/%.*s.lsn", (int)sceneName.size, (char*)sceneName.str);
+        }
+        auto scene = new Scene(std::string((const char*)sceneName.str, sceneName.size));
+        ScratchEnd(scratch);
 
-            m_SelectedEntity = m_SelectedEntities.front();
-            if(m_SelectedEntity.Valid())
-            {
-                // Skip locked entities from gizmo manipulation
-                if(m_SelectedEntity.HasComponent<EditorLockComponent>())
-                    return;
+        if(defaultSetup)
+        {
+            auto cube = scene->GetEntityManager()->Create("Cube");
+            cube.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
 
-                ImGuizmo::SetDrawlist();
-                ImGuizmo::SetOrthographic(m_CurrentCamera->IsOrthographic());
+            auto light     = scene->GetEntityManager()->Create("Light");
+            light.AddComponent<Graphics::Light>();
+            Mat4 lightView = Mat4::LookAt(Vec3(30.0f, 9.0f, 50.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
+            light.GetTransform().SetLocalTransform(lightView);
+            light.GetTransform().SetWorldMatrix(Mat4(1.0f));
 
-                auto transform = m_SelectedEntity.TryGetComponent<Maths::Transform>();
-                if(transform != nullptr)
-            {
-                if(ImGuizmo::IsUsing() && !m_GizmoUsing)
-                {
-                    Lumos::UndoPush(transform, sizeof(Maths::Transform));
-                    m_GizmoUsing = true;
-                }
-                else if(!ImGuizmo::IsUsing() && m_GizmoUsing)
-                {
-                    Lumos::UndoCommit();
-                    m_GizmoUsing = false;
-                }
+            auto camera = scene->GetEntityManager()->Create("Camera");
+            camera.AddComponent<Camera>();
+            camera.GetComponent<Camera>().SetFar(10000);
+            Mat4 viewMat = Mat4::LookAt(Vec3(-1.0f, 0.5f, 1.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f)).Inverse();
+            camera.GetTransform().SetLocalTransform(viewMat);
+            camera.GetTransform().SetWorldMatrix(Mat4(1.0f));
 
-                Mat4 model = transform->GetWorldMatrix();
+            auto bb = cube.GetComponent<Graphics::ModelComponent>().ModelRef->GetMeshes().Front()->GetBoundingBox();
+            camera.GetTransform().SetLocalPosition(-(camera.GetTransform().GetForwardDirection()) * Maths::Distance(bb.Max(), bb.Min()));
+            camera.GetTransform().SetWorldMatrix(Mat4(1.0f));
 
-                    float snapAmount[3] = { m_Settings.m_SnapAmount, m_Settings.m_SnapAmount, m_Settings.m_SnapAmount };
-                    float delta[16];
+            auto environment = scene->GetEntityManager()->Create("Environment");
+            environment.AddComponent<Graphics::Environment>();
+            environment.GetComponent<Graphics::Environment>().Load();
 
-                    if(ImGuizmo::Manipulate(Maths::ValuePtr(view),
-                                            Maths::ValuePtr(proj),
-                                            static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation),
-                                            ImGuizmo::LOCAL,
-                                            Maths::ValuePtr(model),
-                                            delta,
-                                            m_Settings.m_SnapQuizmo ? snapAmount : nullptr))
-                    {
-                        Entity parent = m_SelectedEntity.GetParent(); // m_CurrentScene->TryGetEntityWithUUID(entity.GetParentUUID());
-                        if(parent && parent.HasComponent<Maths::Transform>())
-                        {
-                            Mat4 parentTransform = parent.GetTransform().GetWorldMatrix();
-                            model                = parentTransform.Inverse() * model;
-                        }
+            scene->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/");
+        }
+        m_SceneManager->EnqueueScene(scene);
+        m_SceneManager->SwitchScene((int)(m_SceneManager->GetScenes().Size()) - 1);
+    }
 
-                        Vec3 translation;
-                        Quat rotation;
-                        Vec3 scale;
-                        model.Decompose(translation, rotation, scale);
+    void Editor::ReloadScene()
+    {
+        m_SceneManager->SwitchScene(m_SceneManager->GetCurrentSceneIndex());
+    }
 
-                        if(ImGuizmo::IsScaleType())
-                        {
-                            transform->SetLocalScale(scale);
-                        }
-                        else if(ImGuizmo::IsTranslateType())
-                        {
-                            transform->SetLocalPosition(translation);
-                        }
-                        else // Rotation
-                        {
-                            transform->SetLocalOrientation(rotation);
-                        }
+    bool Editor::IsAssetPackBusy()
+    {
+        return System::JobSystem::IsBusy(m_AssetPackContext);
+    }
 
-                        RigidBody2DComponent* rigidBody2DComponent = m_SelectedEntity.TryGetComponent<Lumos::RigidBody2DComponent>();
+    void Editor::BuildAssetPack()
+    {
+        if(IsAssetPackBusy())
+            return;
+        std::string assetsDir  = m_ProjectSettings.m_ProjectRoot + "Assets/";
+        std::string outputPath = m_ProjectSettings.m_ProjectRoot + "Assets.lpak";
+        System::JobSystem::Execute(m_AssetPackContext, [this, assetsDir, outputPath](JobDispatchArgs)
+                                   {
+                                       PackSettings settings;
+                                       settings.ExcludePaths.PushBack(Str8Lit("Cache/"));
+                                       settings.ExcludePaths.PushBack(Str8Lit("Imported/"));
+                                       m_AssetPackResult = AssetPacker::Pack(Str8StdS(outputPath), Str8StdS(assetsDir), settings); });
+    }
 
-                        if(rigidBody2DComponent)
-                        {
-                            rigidBody2DComponent->GetRigidBody()->SetPosition(
-                                { translation.x, translation.y });
-                        }
-                        else
-                        {
-                            Lumos::RigidBody3DComponent* rigidBody3DComponent = m_SelectedEntity.TryGetComponent<Lumos::RigidBody3DComponent>();
-                            if(rigidBody3DComponent)
-                            {
-                                rigidBody3DComponent->GetRigidBody()->SetPosition(translation);
-                                rigidBody3DComponent->GetRigidBody()->SetOrientation(rotation);
-                            }
-                        }
-                    }
-                }
-            }
+    void Editor::OnScreenUI()
+    {
+        EditorFrame();
+        if(!m_EditorUI)
+            return;
+        if(m_ProjectLoaded)
+            m_EditorUI->OnScreenUI();
+        else
+            m_EditorUI->OnScreenUINoProject();
+    }
+
+    void Editor::TogglePlay()
+    {
+        const bool isPlay = Application::Get().GetEditorState() != EditorState::Preview;
+        Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(isPlay);
+        Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(isPlay);
+        Application::Get().GetSystem<AudioManager>()->UpdateListener(Application::Get().GetCurrentScene());
+        Application::Get().GetSystem<AudioManager>()->SetPaused(isPlay);
+        Application::Get().SetEditorState(isPlay ? EditorState::Preview : EditorState::Play);
+        if(isPlay)
+        {
+            m_SelectedEntities.clear();
+            LoadCachedScene();
         }
         else
         {
-            Vec3 medianPointLocation = Vec3(0.0f);
-            Vec3 medianPointScale    = Vec3(0.0f);
-            int validcount           = 0;
-            for(auto entityID : m_SelectedEntities)
-            {
-                if(!registry.valid(entityID))
-                    continue;
-
-                Entity entity = { entityID, m_SceneManager->GetCurrentScene() };
-
-                // Skip locked entities from multi-entity transform
-                if(entity.HasComponent<EditorLockComponent>())
-                    continue;
-
-                if(!entity.HasComponent<Maths::Transform>())
-                    continue;
-
-                medianPointLocation += entity.GetTransform().GetWorldPosition();
-                medianPointScale += entity.GetTransform().GetLocalScale();
-                validcount++;
-            }
-
-            // No valid unlocked entities to transform
-            if(validcount == 0)
-                return;
-
-            medianPointLocation /= (float)validcount;
-            medianPointScale /= (float)validcount;
-
-            Mat4 medianPointMatrix = Mat4::Translation(medianPointLocation) * Mat4::Scale(medianPointScale);
-
-            ImGuizmo::SetDrawlist();
-            ImGuizmo::SetOrthographic(m_CurrentCamera->IsOrthographic());
-
-            float snapAmount[3] = { m_Settings.m_SnapAmount, m_Settings.m_SnapAmount, m_Settings.m_SnapAmount };
-            Mat4 deltaMatrix    = Mat4(1.0f);
-
-            ImGuizmo::Manipulate(Maths::ValuePtr(view),
-                                 Maths::ValuePtr(proj),
-                                 static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation),
-                                 ImGuizmo::LOCAL,
-                                 Maths::ValuePtr(medianPointMatrix),
-                                 Maths::ValuePtr(deltaMatrix),
-                                 m_Settings.m_SnapQuizmo ? snapAmount : nullptr);
-
-            if(ImGuizmo::IsUsing())
-            {
-                Vec3 deltaTranslation, deltaScale;
-                Quat deltaRotation;
-                deltaMatrix.Decompose(deltaTranslation, deltaRotation, deltaScale);
-
-                //                    if (parent && parent.HasComponent<Maths::Transform>())
-                //                    {
-                //                        Mat4 parentTransform = parent.GetTransform().GetWorldMatrix();
-                //                        model = inverse(parentTransform) * model;
-                //                    }
-                //
-
-                static const bool MedianPointOrigin = false;
-
-                if(MedianPointOrigin)
-                {
-                    for(auto entityID : m_SelectedEntities)
-                    {
-                        if(!registry.valid(entityID))
-                            continue;
-
-                        // Skip locked entities
-                        if(registry.any_of<EditorLockComponent>(entityID))
-                            continue;
-
-                        auto transform = registry.try_get<Maths::Transform>(entityID);
-
-                        if(!transform)
-                            continue;
-                        if(ImGuizmo::IsScaleType()) // static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) == ImGuizmo::OPERATION::SCALE)
-                        {
-                            transform->SetLocalScale(transform->GetLocalScale() * deltaScale);
-                            // transform->SetLocalTransform(deltaMatrix * transform->GetLocalMatrix());
-                        }
-                        else
-                        {
-                            transform->SetLocalTransform(deltaMatrix * transform->GetLocalMatrix());
-
-                            // World matrix wont have updated yet so need to multiply by delta
-                            // TODO: refactor
-                            auto worldMatrix = deltaMatrix * transform->GetWorldMatrix();
-
-                            RigidBody2DComponent* rigidBody2DComponent = registry.try_get<Lumos::RigidBody2DComponent>(entityID);
-
-                            if(rigidBody2DComponent)
-                            {
-                                rigidBody2DComponent->GetRigidBody()->SetPosition(worldMatrix.Translation().ToVector2());
-                            }
-                            else
-                            {
-                                Lumos::RigidBody3DComponent* rigidBody3DComponent = registry.try_get<Lumos::RigidBody3DComponent>(entityID);
-                                if(rigidBody3DComponent)
-                                {
-                                    rigidBody3DComponent->GetRigidBody()->SetPosition(worldMatrix.Translation());
-                                    rigidBody3DComponent->GetRigidBody()->SetOrientation(Quat(Maths::GetRotation(worldMatrix)));
-                                }
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    for(auto entityID : m_SelectedEntities)
-                    {
-                        if(!registry.valid(entityID))
-                            continue;
-
-                        // Skip locked entities
-                        if(registry.any_of<EditorLockComponent>(entityID))
-                            continue;
-
-                        auto transform = registry.try_get<Maths::Transform>(entityID);
-
-                        if(!transform)
-                            continue;
-                        if(ImGuizmo::IsScaleType()) // static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) & ImGuizmo::OPERATION::SCALE)
-                        {
-                            transform->SetLocalScale(transform->GetLocalScale() * deltaScale);
-                            // transform->SetLocalTransform(deltaMatrix * transform->GetLocalMatrix());
-                        }
-                        else if(ImGuizmo::IsRotateType()) // static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) & ImGuizmo::OPERATION::ROTATE)
-                        {
-                            transform->SetLocalOrientation(deltaRotation * transform->GetLocalOrientation());
-                        }
-                        else
-                        {
-                            transform->SetLocalTransform(deltaMatrix * transform->GetLocalMatrix());
-
-                            // World matrix wont have updated yet so need to multiply by delta
-                            // TODO: refactor
-                            auto worldMatrix = deltaMatrix * transform->GetWorldMatrix();
-
-                            RigidBody2DComponent* rigidBody2DComponent = registry.try_get<Lumos::RigidBody2DComponent>(entityID);
-
-                            if(rigidBody2DComponent)
-                            {
-                                rigidBody2DComponent->GetRigidBody()->SetPosition(worldMatrix.Translation().ToVector2());
-                            }
-                            else
-                            {
-                                Lumos::RigidBody3DComponent* rigidBody3DComponent = registry.try_get<Lumos::RigidBody3DComponent>(entityID);
-                                if(rigidBody3DComponent)
-                                {
-                                    rigidBody3DComponent->GetRigidBody()->SetPosition(worldMatrix.Translation());
-                                    rigidBody3DComponent->GetRigidBody()->SetOrientation(Quat(Maths::GetRotation(worldMatrix)));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            CacheScene();
+            AddAppScriptEntity();
+            Application::Get().GetCurrentScene()->OnInit();
         }
     }
 
-    void Editor::BeginDockSpace(bool gameFullScreen)
+    void Editor::TogglePause()
     {
-        LUMOS_PROFILE_FUNCTION();
-        static bool p_open                    = true;
-        static bool opt_fullscreen_persistant = true;
-        static ImGuiDockNodeFlags opt_flags   = ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoCloseButton;
-        bool opt_fullscreen                   = opt_fullscreen_persistant;
-
-        // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-        // because it would be confusing to have two docking targets within each others.
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
-        if(opt_fullscreen)
-        {
-            ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-            ImGui::SetNextWindowPos(viewport->WorkPos);
-            ImGui::SetNextWindowSize(viewport->WorkSize);
-            ImGui::SetNextWindowViewport(viewport->ID);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
-                | ImGuiWindowFlags_NoMove;
-            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-        }
-
-        // When using ImGuiDockNodeFlags_PassthruDockspace, DockSpace() will render our background and handle the
-        // pass-thru hole, so we ask Begin() to not render a background.
-        if(opt_flags & ImGuiDockNodeFlags_DockSpace)
-            window_flags |= ImGuiWindowFlags_NoBackground;
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin("MyDockspace", &p_open, window_flags);
-        ImGui::PopStyleVar();
-
-        if(opt_fullscreen)
-            ImGui::PopStyleVar(2);
-
-        ImGuiID DockspaceID = ImGui::GetID("MyDockspace");
-
-        static std::vector<SharedPtr<EditorPanel>> hiddenPanels;
-        if(m_Settings.m_FullScreenSceneView != gameFullScreen)
-        {
-            m_Settings.m_FullScreenSceneView = gameFullScreen;
-
-            if(m_Settings.m_FullScreenSceneView)
-            {
-                for(auto panel : m_Panels)
-                {
-                    if(panel->GetSimpleName() != "Game" && panel->Active())
-                    {
-                        panel->SetActive(false);
-                        hiddenPanels.push_back(panel);
-                    }
-                }
-            }
-            else
-            {
-                for(auto panel : hiddenPanels)
-                {
-                    panel->SetActive(true);
-                }
-
-                hiddenPanels.clear();
-            }
-        }
-
-        if(!ImGui::DockBuilderGetNode(DockspaceID))
-        {
-            ImGui::DockBuilderRemoveNode(DockspaceID); // Clear out existing layout
-            ImGui::DockBuilderAddNode(DockspaceID);    // Add empty node
-            ImGui::DockBuilderSetNodeSize(DockspaceID, ImGui::GetIO().DisplaySize * ImGui::GetIO().DisplayFramebufferScale);
-
-            static bool newLayout = true;
-
-            if(newLayout)
-            {
-                ImGuiID dock_main_id = DockspaceID;
-                ImGuiID DockLeft     = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.75f, nullptr, &dock_main_id);
-                ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.25f, nullptr, &dock_main_id);
-                ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.3f, nullptr, &DockLeft);
-
-                ImGuiID DockLeftSplitLeft  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Left, 0.5f, nullptr, &DockLeft);
-                ImGuiID DockLeftSplitRight = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Right, 0.5f, nullptr, &DockLeft);
-
-                /*ImGuiID DockRightSplitLeft  = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Left, 0.5f, nullptr, &DockRight);
-                ImGuiID DockRightSplitRight = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Right, 0.5f, nullptr, &DockRight);
-*/
-
-                ImGuiID DockBottomChild         = ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Down, 0.2f, nullptr, &DockBottom);
-                ImGuiID DockingBottomLeftChild  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.4f, nullptr, &DockLeft);
-                ImGuiID DockingBottomRightChild = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.4f, nullptr, &DockRight);
-
-                ImGuiID DockMiddle       = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
-                ImGuiID DockBottomMiddle = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Down, 0.3f, nullptr, &DockMiddle);
-                ImGuiID DockMiddleLeft   = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Left, 0.5f, nullptr, &DockMiddle);
-                ImGuiID DockMiddleRight  = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Right, 0.5f, nullptr, &DockMiddle);
-
-                ImGuiID DockingBottomRight           = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.5f, nullptr, &DockRight);
-                ImGuiID DockingBottomRightSplitLeft  = ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Left, 0.5f, nullptr, &DockingBottomRight);
-                ImGuiID DockingBottomRightSplitRight = ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Right, 0.5f, nullptr, &DockingBottomRight);
-
-                ImGui::DockBuilderDockWindow("###game", DockLeft);
-                ImGui::DockBuilderDockWindow("###scene", DockLeft);
-                ImGui::DockBuilderDockWindow("###inspector", DockRight);
-                ImGui::DockBuilderDockWindow("###console", DockBottom);
-
-                ImGui::DockBuilderDockWindow("###profiler", DockingBottomRight);
-                ImGui::DockBuilderDockWindow("###resources", DockBottom);
-                ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockRight);
-                ImGui::DockBuilderDockWindow("###GraphicsInfo", DockingBottomRight);
-                ImGui::DockBuilderDockWindow("###appinfo", DockingBottomRight);
-                ImGui::DockBuilderDockWindow("###AssetManagerPanel", DockRight);
-                ImGui::DockBuilderDockWindow("###hierarchy", DockingBottomRight);
-                ImGui::DockBuilderDockWindow("###textEdit", DockLeft);
-                ImGui::DockBuilderDockWindow("###scenesettings", DockingBottomRight);
-                ImGui::DockBuilderDockWindow("###editorsettings", DockingBottomRight);
-                ImGui::DockBuilderDockWindow("###projectsettings", DockingBottomRight);
-            }
-            else
-            {
-                ImGuiID dock_main_id = DockspaceID;
-                ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.3f, nullptr, &dock_main_id);
-                ImGuiID DockLeft     = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
-                ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.20f, nullptr, &dock_main_id);
-
-                ImGuiID DockLeftChild         = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.875f, nullptr, &DockLeft);
-                ImGuiID DockRightChild        = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.875f, nullptr, &DockRight);
-                ImGuiID DockingLeftDownChild  = ImGui::DockBuilderSplitNode(DockLeftChild, ImGuiDir_Down, 0.06f, nullptr, &DockLeftChild);
-                ImGuiID DockingRightDownChild = ImGui::DockBuilderSplitNode(DockRightChild, ImGuiDir_Down, 0.06f, nullptr, &DockRightChild);
-
-                ImGuiID DockBottomChild         = ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Down, 0.2f, nullptr, &DockBottom);
-                ImGuiID DockingBottomLeftChild  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.4f, nullptr, &DockLeft);
-                ImGuiID DockingBottomRightChild = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.4f, nullptr, &DockRight);
-
-                ImGuiID DockMiddle       = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
-                ImGuiID DockBottomMiddle = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Down, 0.3f, nullptr, &DockMiddle);
-                ImGuiID DockMiddleLeft   = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Left, 0.5f, nullptr, &DockMiddle);
-                ImGuiID DockMiddleRight  = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Right, 0.5f, nullptr, &DockMiddle);
-
-                ImGui::DockBuilderDockWindow("###game", DockMiddleRight);
-                ImGui::DockBuilderDockWindow("###scene", DockMiddleLeft);
-                ImGui::DockBuilderDockWindow("###inspector", DockRight);
-                ImGui::DockBuilderDockWindow("###console", DockBottomMiddle);
-                ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
-                ImGui::DockBuilderDockWindow("###resources", DockingBottomLeftChild);
-                ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockLeft);
-                ImGui::DockBuilderDockWindow("###GraphicsInfo", DockLeft);
-                ImGui::DockBuilderDockWindow("###appinfo", DockLeft);
-                ImGui::DockBuilderDockWindow("###AssetManagerPanel", DockLeft);
-                ImGui::DockBuilderDockWindow("###hierarchy", DockLeft);
-                ImGui::DockBuilderDockWindow("###textEdit", DockMiddleLeft);
-                ImGui::DockBuilderDockWindow("###scenesettings", DockLeft);
-                ImGui::DockBuilderDockWindow("###editorsettings", DockLeft);
-                ImGui::DockBuilderDockWindow("###projectsettings", DockLeft);
-            }
-            ImGui::DockBuilderFinish(DockspaceID);
-        }
-
-        // Dockspace
-        ImGuiIO& io = ImGui::GetIO();
-        if(io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-        {
-            ImGui::DockSpace(DockspaceID, ImVec2(0.0f, 0.0f), opt_flags);
-        }
+        const EditorState state = Application::Get().GetEditorState();
+        if(state == EditorState::Play)
+            Application::Get().SetEditorState(EditorState::Paused);
+        else if(state == EditorState::Paused)
+            Application::Get().SetEditorState(EditorState::Play);
     }
 
-    void Editor::EndDockSpace()
+    void Editor::SaveCurrentScene()
     {
-        ImGui::End();
+        if(Application::Get().GetEditorState() != EditorState::Preview)
+            return; // the scene on screen is the played copy
+        Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/", false);
+        if(m_EditorUI)
+            m_EditorUI->NoteSceneSaved();
     }
 
     void Editor::OnNewScene(Scene* scene)
@@ -2701,6 +957,8 @@ namespace Lumos
         {
             panel->OnNewScene(scene);
         }
+        if(m_TerrainSculpt)
+            m_TerrainSculpt->OnNewScene(scene);
 
         std::string Configuration;
         std::string Platform;
@@ -2726,11 +984,6 @@ namespace Lumos
 
         switch(Graphics::GraphicsContext::GetRenderAPI())
         {
-#ifdef LUMOS_RENDER_API_OPENGL
-        case Graphics::RenderAPI::OPENGL:
-            RenderAPI = "OpenGL";
-            break;
-#endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
@@ -2772,72 +1025,10 @@ namespace Lumos
         DebugRenderer::DrawHairLine(Vec3(0.0f, -5000.0f, 0.0f), Vec3(0.0f, 5000.0f, 0.0f), true, Vec4(0.0f, 1.0f, 0.0f, 1.0f));
         DebugRenderer::DrawHairLine(Vec3(0.0f, 0.0f, -5000.0f), Vec3(0.0f, 0.0f, 5000.0f), true, Vec4(0.0f, 0.0f, 1.0f, 1.0f));
 
-        m_GridRenderer->OnImGui();
-
         m_GridRenderer->SetDepthTarget(m_SceneRenderer->GetForwardData().m_DepthTexture);
         m_GridRenderer->BeginScene(Application::Get().GetSceneManager()->GetCurrentScene(), m_EditorCamera.get(), &m_EditorCameraTransform);
         m_GridRenderer->RenderScene();
 #endif
-    }
-
-    void Editor::Draw2DGrid(ImDrawList* drawList,
-                            const ImVec2& cameraPos,
-                            const ImVec2& windowPos,
-                            const ImVec2& canvasSize,
-                            const float factor,
-                            const float thickness)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        static const auto graduation = 10;
-        float GRID_SZ                = canvasSize.y * 0.5f / factor;
-        const ImVec2& offset         = {
-            canvasSize.x * 0.5f - cameraPos.x * GRID_SZ, canvasSize.y * 0.5f + cameraPos.y * GRID_SZ
-        };
-
-        ImU32 GRID_COLOR    = IM_COL32(200, 200, 200, 40);
-        float gridThickness = 1.0f;
-
-        const auto& gridColor      = GRID_COLOR;
-        auto smallGraduation       = GRID_SZ / graduation;
-        const auto& smallGridColor = IM_COL32(100, 100, 100, smallGraduation);
-
-        for(float x = -GRID_SZ; x < canvasSize.x + GRID_SZ; x += GRID_SZ)
-        {
-            auto localX = floorf(x + fmodf(offset.x, GRID_SZ));
-            drawList->AddLine(
-                ImVec2 { localX, 0.0f } + windowPos, ImVec2 { localX, canvasSize.y } + windowPos, gridColor, gridThickness);
-
-            if(smallGraduation > 5.0f)
-            {
-                for(int i = 1; i < graduation; ++i)
-                {
-                    const auto graduation = floorf(localX + smallGraduation * i);
-                    drawList->AddLine(ImVec2 { graduation, 0.0f } + windowPos,
-                                      ImVec2 { graduation, canvasSize.y } + windowPos,
-                                      smallGridColor,
-                                      1.0f);
-                }
-            }
-        }
-
-        for(float y = -GRID_SZ; y < canvasSize.y + GRID_SZ; y += GRID_SZ)
-        {
-            auto localY = floorf(y + fmodf(offset.y, GRID_SZ));
-            drawList->AddLine(
-                ImVec2 { 0.0f, localY } + windowPos, ImVec2 { canvasSize.x, localY } + windowPos, gridColor, gridThickness);
-
-            if(smallGraduation > 5.0f)
-            {
-                for(int i = 1; i < graduation; ++i)
-                {
-                    const auto graduation = floorf(localY + smallGraduation * i);
-                    drawList->AddLine(ImVec2 { 0.0f, graduation } + windowPos,
-                                      ImVec2 { canvasSize.x, graduation } + windowPos,
-                                      smallGridColor,
-                                      1.0f);
-                }
-            }
-        }
     }
 
     bool Editor::OnFileDrop(WindowFileEvent& e)
@@ -2872,7 +1063,12 @@ namespace Lumos
             return false;
         });
 
-        // Block events here
+        // closing the window with work not saved asks first (the engine UI draws the question)
+        if(e.GetEventType() == EventType::WindowClose && m_EditorUI && m_EditorUI->IsEnabled() && m_EditorUI->HasUnsavedWork())
+        {
+            m_EditorUI->RequestQuit();
+            return;
+        }
 
         Application::OnEvent(e);
     }
@@ -2888,16 +1084,35 @@ namespace Lumos
 
         bool flipY = true;
 
-#ifdef LUMOS_RENDER_API_OPENGL
-        if(Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::OPENGL)
-            flipY = true;
-#endif
         return camera->GetScreenRay(screenX, screenY, m_EditorCameraTransform.GetWorldMatrix().Inverse(), flipY);
     }
 
     void Editor::OnUpdate(const TimeStep& ts)
     {
         LUMOS_PROFILE_FUNCTION();
+
+#ifdef LUMOS_PLATFORM_IOS
+        // the first run's copy of the bundled project: the overlay while it goes, then open it
+        {
+            static bool s_Shown = false;
+            const int copy      = s_BundleCopy.load();
+            if(copy == 1 && !s_Shown)
+            {
+                s_Shown = true;
+                Busy::Begin("Preparing the example project");
+                Busy::SetStep("Copying it out of the app - the first run only");
+            }
+            else if(copy >= 2 && s_Shown)
+            {
+                s_Shown = false;
+                Busy::End();
+                if(copy == 2 && !m_ProjectLoaded)
+                    ProjectOpenCallback(s_BundleCopyTo + "/" + BundledProjectFile());
+                else if(copy == 3)
+                    LERROR("Could not copy the bundled project to %s", s_BundleCopyTo.c_str());
+            }
+        }
+#endif
 
         using namespace Lumos;
 
@@ -2917,6 +1132,26 @@ namespace Lumos
                                                 { return !registry.valid(entity); }),
                                  m_SelectedEntities.end());
 
+        // the scene view exposes like the game's camera, so both views look the same;
+        // with no camera in the scene, sunny 16 (f/16, 1/125 s, ISO 100)
+        if(m_EditorCamera)
+        {
+            auto cameras = registry.view<Camera>();
+            if(!cameras.empty())
+            {
+                const Camera& game = cameras.get<Camera>(cameras.front());
+                m_EditorCamera->SetAperture(game.GetAperture());
+                m_EditorCamera->SetShutterSpeed(game.GetShutterSpeed());
+                m_EditorCamera->SetSensitivity(game.GetSensitivity());
+            }
+            else
+            {
+                m_EditorCamera->SetAperture(16.0f);
+                m_EditorCamera->SetShutterSpeed(1.0f / 125.0f);
+                m_EditorCamera->SetSensitivity(100.0f);
+            }
+        }
+
         if(m_EditorState == EditorState::Play)
             autoSaveTimer = 0.0f;
 
@@ -2930,7 +1165,6 @@ namespace Lumos
             Application::Get().SetEditorState(EditorState::Preview);
 
             m_SelectedEntities.clear();
-            ImGui::SetWindowFocus("###scene");
             LoadCachedScene();
             SetEditorState(EditorState::Preview);
             m_QueuedScenePreviewEnd = false;
@@ -3044,31 +1278,31 @@ namespace Lumos
                 m_TransitioningCamera = distanceToDestination > kTransitionCompletionDistanceTolerance;
             }
 
-            if(!Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight) && !ImGuizmo::IsUsing())
+            if(!Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight) && !TransformGizmo::IsUsing())
             {
                 if(Input::Get().GetKeyPressed(InputCode::Key::Q))
                 {
-                    SetImGuizmoOperation(ImGuizmo::OPERATION::BOUNDS);
+                    SetGizmoOperation(GizmoOperation_None);
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::W))
                 {
-                    SetImGuizmoOperation(ImGuizmo::OPERATION::TRANSLATE);
+                    SetGizmoOperation(GizmoOperation_Translate);
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::E))
                 {
-                    SetImGuizmoOperation(ImGuizmo::OPERATION::ROTATE);
+                    SetGizmoOperation(GizmoOperation_Rotate);
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::R))
                 {
-                    SetImGuizmoOperation(ImGuizmo::OPERATION::SCALE);
+                    SetGizmoOperation(GizmoOperation_Scale);
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::T))
                 {
-                    SetImGuizmoOperation(ImGuizmo::OPERATION::UNIVERSAL);
+                    SetGizmoOperation(GizmoOperation_Universal);
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::Y))
@@ -3078,47 +1312,6 @@ namespace Lumos
             }
 
             static float m_SceneSavePopupTimer = -1.0f;
-            static bool popupopen              = false;
-
-            if(m_SceneSavePopupTimer > 0.0f)
-            {
-                {
-                    ImGui::OpenPopup("Scene Save");
-                    ImVec2 size = ImGui::GetMainViewport()->Size;
-                    ImGui::SetNextWindowSize({ size.x * 0.65f, size.y * 0.25f });
-                    ImGui::SetNextWindowPos({ size.x / 2.0f, size.y / 2.5f }, 0, { 0.5, 0.5 });
-                    popupopen = true;
-                }
-            }
-
-            if(ImGui::BeginPopupModal("Scene Save", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar))
-            {
-                ArenaTemp scratch = ScratchBegin(nullptr, 0);
-                String8 savedText = PushStr8F(scratch.arena, "Scene Saved - %s/Assets/Scenes", m_ProjectSettings.m_ProjectRoot.c_str());
-                ImVec2 textSize   = ImGui::CalcTextSize((const char*)savedText.str);
-
-                // Calculate the position to center the text horizontally
-                ImVec2 windowSize = ImGui::GetWindowSize();
-                float posX        = (windowSize.x - textSize.x) * 0.5f;
-                float posY        = (windowSize.y - textSize.y) * 0.5f;
-
-                // Set the cursor position to the calculated position
-                ImGui::SetCursorPosX(posX);
-                ImGui::SetCursorPosY(posY);
-
-                // Display the centered text
-                ImGui::TextUnformatted((const char*)savedText.str);
-
-                if(m_SceneSavePopupTimer < 0.0f)
-                {
-                    popupopen = false;
-                    ImGui::CloseCurrentPopup();
-                }
-
-                ScratchEnd(scratch);
-                ImGui::EndPopup();
-            }
-
             if(m_SceneSavePopupTimer > 0.0f)
                 m_SceneSavePopupTimer -= (float)Engine::GetTimeStep().GetSeconds();
 
@@ -3591,7 +1784,6 @@ namespace Lumos
 
                 timeSinceLastSelect = timer.GetElapsedS();
 
-                auto& io  = ImGui::GetIO();
                 auto ctrl = Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || (Input::Get().GetKeyHeld(InputCode::Key::LeftControl));
 
                 if(!ctrl)
@@ -3670,84 +1862,18 @@ namespace Lumos
             SetSelected(currentClosestEntity);
     }
 
-    void Editor::OpenTextFile(const std::string& filePath, const std::function<void()>& callback)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        String8 physicalPath;
-        if(!FileSystem::Get().ResolvePhysicalPath(m_FrameArena, Str8StdS(filePath), &physicalPath))
-        {
-            LERROR("Failed to Load Lua script %s", filePath.c_str());
-            return;
-        }
-
-        for(int i = 0; i < int(m_Panels.size()); i++)
-        {
-            EditorPanel* w = m_Panels[i].get();
-            if(w->GetSimpleName() == "TextEdit")
-            {
-                m_Panels.erase(m_Panels.begin() + i);
-                break;
-            }
-        }
-
-        m_Panels.emplace_back(CreateSharedPtr<TextEditPanel>(ToStdString(physicalPath)));
-        m_Panels.back().As<TextEditPanel>()->SetOnSaveCallback(callback);
-        m_Panels.back()->SetEditor(this);
-
-        ImGui::SetWindowFocus(m_Panels.back()->GetName().c_str());
-    }
-
-    EditorPanel* Editor::GetTextEditPanel()
-    {
-        for(int i = 0; i < int(m_Panels.size()); i++)
-        {
-            EditorPanel* w = m_Panels[i].get();
-            if(w->GetSimpleName() == "TextEdit")
-            {
-                return w;
-            }
-        }
-
-        return nullptr;
-    }
-
-    TerrainEditorPanel* Editor::GetTerrainEditorPanel()
-    {
-        for(int i = 0; i < int(m_Panels.size()); i++)
-        {
-            EditorPanel* w = m_Panels[i].get();
-            if(w->GetSimpleName() == "Terrain")
-                return static_cast<TerrainEditorPanel*>(w);
-        }
-
-        return nullptr;
-    }
-
-    void Editor::RemovePanel(EditorPanel* panel)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        for(int i = 0; i < int(m_Panels.size()); i++)
-        {
-            EditorPanel* w = m_Panels[i].get();
-            if(w == panel)
-            {
-                m_Panels.erase(m_Panels.begin() + i);
-                return;
-            }
-        }
-    }
-
-    void Editor::ShowPreview()
-    {
-        LUMOS_PROFILE_FUNCTION();
-        ImGui::Begin("Preview");
-        if(GetPreviewTexture())
-            ImGuiUtilities::Image(GetPreviewTexture().get(), { 256, 256 });
-        ImGui::End();
-    }
 
     void Editor::OnDebugDraw()
     {
+        // Scene view hidden: its overlays have nowhere to show. The Game view only draws debug lines when the
+        // scene turns them on, so the systems' drawing (physics shapes...) is skipped too unless it does.
+        if(Application::Get().GetDisableMainSceneRenderer())
+        {
+            Scene* scene = Application::Get().GetCurrentScene();
+            if(scene && scene->GetSettings().RenderSettings.DebugRenderEnabled)
+                Application::OnDebugDraw();
+            return;
+        }
         Application::OnDebugDraw();
         DebugDraw();
     }
@@ -3764,7 +1890,38 @@ namespace Lumos
         if(!isProfiling && m_Settings.m_SleepOutofFocus && !Application::Get().GetWindow()->GetWindowFocus() && m_EditorState != EditorState::Play && !firstFrame)
             OS::Get().Delay(1000000);
 
+        // The scene view can leave features out. Its renderer is the one drawn here, and it reads the scene's
+        // settings as it goes: they are changed for the length of this call and put back, so nothing else
+        // (the game view, the Scene Settings panel, a save) ever sees the difference.
+        Scene* liveScene     = Application::Get().GetCurrentScene();
+        const uint32_t off   = (liveScene) ? m_Settings.m_SceneViewOff : 0;
+        Scene::SceneRenderSettings keptSettings;
+        if(off)
+        {
+            Scene::SceneRenderSettings& live = liveScene->GetSettings().RenderSettings;
+            keptSettings                     = live;
+            if(off & SceneViewOff_Shadows)
+                live.ShadowsEnabled = live.ContactShadowsEnabled = false;
+            if(off & SceneViewOff_Bloom)
+                live.BloomEnabled = false;
+            if(off & SceneViewOff_SSAO)
+                live.SSAOEnabled = false;
+            if(off & SceneViewOff_SSR)
+                live.SSREnabled = false;
+            if(off & SceneViewOff_AntiAliasing)
+                live.FXAAEnabled = live.SMAAEnabled = live.TAAEnabled = false;
+            if(off & SceneViewOff_DepthOfField)
+                live.DepthOfFieldEnabled = false;
+            if(off & SceneViewOff_PostEffects)
+                live.DebandingEnabled = live.FilmicGrainEnabled = live.VignetteEnabled = live.ChromaticAberationEnabled = live.SharpenEnabled = live.MotionBlurEnabled = live.VolumetricFogEnabled = false;
+            if(off & SceneViewOff_Skybox)
+                live.SkyboxRenderEnabled = false;
+        }
+
         Application::OnRender();
+
+        if(off)
+            liveScene->GetSettings().RenderSettings = keptSettings;
 
         if(m_DrawPreview)
         {
@@ -3855,8 +2012,12 @@ namespace Lumos
                 path = ToStdString(vfsPath);
         }
 
-        if(IsTextFile(path))
-            OpenTextFile(path, NULL);
+        if(IsTextFile(path) && m_EditorUI)
+        {
+            String8 physicalPath;
+            if(FileSystem::Get().ResolvePhysicalPath(m_FrameArena, Str8StdS(path), &physicalPath))
+                m_EditorUI->OpenScript((const char*)physicalPath.str);
+        }
         else if(IsModelFile(path))
         {
             // Check if already imported (has up-to-date .meta)
@@ -3871,6 +2032,8 @@ namespace Lumos
             {
                 // Show import panel for new/stale models
                 m_ImportPanel->Show(path);
+                if(m_EditorUI)
+                    UIDockFocusPanel(m_EditorUI->GetDockSpace(), "Import");
             }
         }
         else if(IsAudioFile(path))
@@ -3914,111 +2077,203 @@ namespace Lumos
         }
     }
 
-    // Walk one import node into an entity, then recurse. Returns the entity so
-    // the caller can parent it; SetParent only reparents, it doesn't rebase the
-    // transform, so the node's LOCAL glTF transform is already the right value.
-    static Entity CreateEntityFromImportNode(Scene* scene, const Graphics::GLTFImportNode& node)
-    {
-        Entity entity = scene->GetEntityManager()->Create(node.name.empty() ? "Node" : node.name);
-
-        auto& transform = entity.GetOrAddComponent<Maths::Transform>();
-        if(node.hasMatrix)
-            transform.SetLocalTransform(node.matrix);
-        else
-        {
-            transform.SetLocalPosition(node.translation);
-            transform.SetLocalOrientation(node.rotation);
-            transform.SetLocalScale(node.scale);
-        }
-
-        if(node.model)
-            entity.AddComponent<Graphics::ModelComponent>(node.model);
-
-        if(node.hasLight)
-            entity.AddComponent<Graphics::Light>(node.light);
-
-        // Aspect is a viewport property, not an asset one - the camera system
-        // fixes it up on resize.
-        if(node.hasCamera)
-            entity.AddComponent<Camera>(node.cameraFovDegrees, node.cameraNear, node.cameraFar, 1.0f);
-
-        for(size_t i = 0; i < node.children.Size(); i++)
-        {
-            Entity child = CreateEntityFromImportNode(scene, node.children[i]);
-            child.SetParent(entity);
-        }
-
-        return entity;
-    }
-
     void Editor::ImportModelAsScene(const std::string& filePath)
     {
         LUMOS_PROFILE_FUNCTION();
-
-        Scene* scene = Application::Get().GetSceneManager()->GetCurrentScene();
-        if(!scene)
+        Entity parent = EntityFactory::ImportGLTFScene(Application::Get().GetSceneManager()->GetCurrentScene(), filePath);
+        if(!parent)
             return;
-
-        // tinygltf reads straight off disk, so the VFS path the resource panel
-        // hands us has to be resolved first.
-        std::string physical = filePath;
-        if(filePath.find("//") == 0)
-        {
-            String8 physicalPath;
-            if(!FileSystem::Get().ResolvePhysicalPath(m_FrameArena, Str8StdS(filePath), &physicalPath))
-            {
-                LERROR("Import as Scene: could not resolve %s", filePath.c_str());
-                return;
-            }
-            physical = ToStdString(physicalPath);
-        }
-
-        Graphics::GLTFImportNode root;
-        if(!Graphics::LoadGLTFSceneTree(physical, root))
-        {
-            LERROR("Import as Scene failed: %s", filePath.c_str());
-            return;
-        }
-
-        // The loader's root is a container for the glTF scene's roots, not a
-        // node in its own right - give it one entity so the whole import can be
-        // moved or deleted as a unit.
-        Entity parent = scene->GetEntityManager()->Create(root.name.empty() ? "Import" : root.name);
-        parent.GetOrAddComponent<Maths::Transform>();
-
-        for(size_t i = 0; i < root.children.Size(); i++)
-        {
-            Entity child = CreateEntityFromImportNode(scene, root.children[i]);
-            child.SetParent(parent);
-        }
-
-        LINFO("Imported %s as %u root node(s)", filePath.c_str(), (u32)root.children.Size());
-
         m_SelectedEntities.clear();
         SetSelected(parent);
     }
 
-    void Editor::FileEmbedCallback(const std::string& filePath)
+    void Editor::ShowNewProjectDialog()
     {
-        if(IsTextureFile(filePath))
-        {
-            std::string fileName = StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(filePath));
-            std::string outPath  = StringUtilities::GetFileLocation(filePath) + fileName + ".inl";
+        if(m_EditorUI)
+            m_EditorUI->ShowProjectHub(true);
+        else
+            m_NewProjectPopupOpen = true;
+    }
 
-            LINFO("Embed texture from %s to %s", filePath.c_str(), outPath.c_str());
-            EmbedTexture(filePath, outPath, fileName);
-        }
-        else if(IsShaderFile(filePath))
+    const Editor::RecentProject& Editor::GetRecentProject(const std::string& lmproj)
+    {
+        static std::unordered_map<std::string, RecentProject> s_Info;
+        auto found = s_Info.find(lmproj);
+        if(found != s_Info.end())
+            return found->second;
+
+        RecentProject info;
+        Export::ProjectInfo project;
+        info.Missing = !project.Load(lmproj);
+        info.Title   = info.Missing ? StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(lmproj)) : project.Title;
+        info.Folder  = StringUtilities::GetFileLocation(lmproj);
+        if(const char* home = getenv("HOME"); home && info.Folder.rfind(home, 0) == 0)
+            info.Folder = "~" + info.Folder.substr(strlen(home));
+
+        // newest thing under Builds/
+        std::error_code ec;
+        std::filesystem::file_time_type newest {};
+        std::string newestName;
+        for(auto it = std::filesystem::directory_iterator(project.Root + "Builds", ec); !ec && it != std::filesystem::directory_iterator(); it.increment(ec))
+            for(auto jt = std::filesystem::directory_iterator(it->path(), ec); !ec && jt != std::filesystem::directory_iterator(); jt.increment(ec))
+            {
+                auto t = std::filesystem::last_write_time(jt->path(), ec);
+                if(newestName.empty() || t > newest)
+                    newest = t, newestName = it->path().filename().string();
+            }
+        if(!newestName.empty())
         {
-            EmbedShader(filePath);
+            auto age    = std::chrono::duration_cast<std::chrono::minutes>(std::filesystem::file_time_type::clock::now() - newest).count();
+            info.Export = "Exported for " + newestName + ", " + (age < 60 ? std::to_string(age) + " min ago" : age < 60 * 48 ? std::to_string(age / 60) + " h ago" : std::to_string(age / (60 * 24)) + " days ago");
+        }
+        return s_Info.emplace(lmproj, info).first->second;
+    }
+
+    void Editor::RemoveRecentProject(size_t index)
+    {
+        if(index < m_Settings.m_RecentProjects.size())
+            m_Settings.m_RecentProjects.erase(m_Settings.m_RecentProjects.begin() + (std::ptrdiff_t)index);
+    }
+
+    void Editor::CreateProject(const std::string& location, const std::string& name)
+    {
+        if(name.empty() || location.empty())
+            return;
+        m_ProjectLoadError.clear();
+        std::string folder = location;
+        if(folder.back() != '/')
+            folder += '/';
+        Application::Get().OpenNewProject(folder, name);
+
+        if(!m_ProjectLoaded)
+        {
+            m_ProjectLoadError = "Could not create " + folder + name;
+            return;
+        }
+        const std::string lmproj = folder + name + "/" + name + ".lmproj";
+        if(FileSystem::FileExists(Str8StdS(lmproj)) && std::find(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end(), lmproj) == m_Settings.m_RecentProjects.end())
+            m_Settings.m_RecentProjects.push_back(lmproj);
+        for(int i = 0; i < int(m_Panels.size()); i++)
+            m_Panels[i]->OnNewProject();
+    }
+
+    std::string Editor::DefaultProjectLocation() const
+    {
+        // beside the project that is open, else the user's Documents
+        const auto& settings = Application::Get().GetProjectSettings();
+        if(m_ProjectLoaded && !settings.m_ProjectRoot.empty())
+        {
+            std::string root = settings.m_ProjectRoot;
+            while(root.size() > 1 && root.back() == '/')
+                root.pop_back();
+            const size_t slash = root.find_last_of('/');
+            if(slash != std::string::npos && slash > 0)
+                return root.substr(0, slash);
+        }
+        if(const char* home = getenv("HOME"))
+            return std::string(home) + "/Documents";
+        return OS::Get().GetExecutablePath();
+    }
+
+#ifdef LUMOS_PLATFORM_IOS
+    namespace
+    {
+        // Folders picked in Files (iCloud Drive, On My iPhone...) are only reachable through a bookmark after a relaunch.
+        std::string BookmarkFile()
+        {
+            return FileSystem::UserDataPath("LumosEditor") + "/ProjectBookmarks.txt";
+        }
+
+        void SaveProjectBookmark(const std::string& folder)
+        {
+            const std::string bookmark = Bookmarks::Create(folder);
+            if(bookmark.empty())
+                return;
+            if(FILE* file = fopen(BookmarkFile().c_str(), "a"))
+            {
+                fprintf(file, "%s\t%s\n", folder.c_str(), bookmark.c_str());
+                fclose(file);
+            }
+        }
+
+        // Start access again to the picked folder this project sits in. Newest entry wins.
+        void RestoreProjectAccess(const std::string& projectPath)
+        {
+            FILE* file = fopen(BookmarkFile().c_str(), "r");
+            if(!file)
+                return;
+            std::string found;
+            static char line[8192];
+            while(fgets(line, sizeof(line), file))
+            {
+                char* tab = strchr(line, '\t');
+                if(!tab)
+                    continue;
+                *tab = 0;
+                if(projectPath.compare(0, strlen(line), line) == 0)
+                {
+                    found = tab + 1;
+                    while(!found.empty() && (found.back() == '\n' || found.back() == '\r'))
+                        found.pop_back();
+                }
+            }
+            fclose(file);
+            if(!found.empty())
+                Bookmarks::Resolve(found);
+        }
+    }
+#endif
+
+    void Editor::BrowseForProject()
+    {
+#ifdef LUMOS_PLATFORM_IOS
+        // the system picker: iCloud Drive, On My iPhone, anything Files can see. Pick the project's folder.
+        {
+            const std::string folder = FileDialogs::PickFolder();
+            if(folder.empty())
+                return;
+            std::string project;
+            std::error_code error;
+            for(const auto& entry : std::filesystem::directory_iterator(folder, error))
+                if(entry.path().extension() == ".lmproj")
+                    project = entry.path().string();
+            if(project.empty())
+            {
+                m_ProjectLoadError = "No .lmproj in that folder (still downloading from iCloud?)";
+                return;
+            }
+            SaveProjectBookmark(folder);
+            ProjectOpenCallback(project);
+            return;
+        }
+#endif
+#ifdef LUMOS_PLATFORM_LINUX
+        std::string path = OS::Get().GetExecutablePath() + "/../../../";
+        String8 pathCopy = PushStr8Copy(m_FrameArena, path.c_str());
+        pathCopy         = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
+        path             = (const char*)pathCopy.str;
+#else
+        // start beside the project that is open, when there is one
+        const auto& settings = Application::Get().GetProjectSettings();
+        std::string path     = settings.m_ProjectRoot.empty() ? OS::Get().GetExecutablePath() : settings.m_ProjectRoot;
+#endif
+        {
+            UIFileDialogDesc dialog;
+            dialog.Title       = "Open Project";
+            dialog.StartFolder = path.c_str();
+            dialog.Extension   = ".lmproj";
+            dialog.OnPicked    = [](const char* picked, void* user) { ((Editor*)user)->ProjectOpenCallback(picked); };
+            dialog.User        = this;
+            UIOpenFileDialog(dialog);
         }
     }
 
     void Editor::ProjectOpenCallback(const std::string& filePath)
     {
-        locationPopupOpened = false;
-        m_FileBrowserPanel->ClearFileTypeFilters();
         m_ProjectLoadError.clear();
+#ifdef LUMOS_PLATFORM_IOS
+        RestoreProjectAccess(filePath);
+#endif
 
         if(FileSystem::FileExists(Str8StdS(filePath)))
         {
@@ -4041,17 +2296,6 @@ namespace Lumos
         }
     }
 
-    void Editor::NewProjectOpenCallback(const std::string& filePath)
-    {
-        Application::Get().OpenNewProject(filePath);
-        m_FileBrowserPanel->SetOpenDirectory(false);
-
-        for(int i = 0; i < int(m_Panels.size()); i++)
-        {
-            m_Panels[i]->OnNewProject();
-        }
-    }
-
     void Editor::SaveEditorSettings()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -4059,16 +2303,29 @@ namespace Lumos
         m_IniFile.SetOrAdd("ShowGrid", m_Settings.m_ShowGrid);
         m_IniFile.SetOrAdd("ShowGizmos", m_Settings.m_ShowGizmos);
         m_IniFile.SetOrAdd("ShowViewSelected", m_Settings.m_ShowViewSelected);
-        m_IniFile.SetOrAdd("ShowImGuiDemo", m_Settings.m_ShowImGuiDemo);
         m_IniFile.SetOrAdd("SnapAmount", m_Settings.m_SnapAmount);
         m_IniFile.SetOrAdd("SnapQuizmo", m_Settings.m_SnapQuizmo);
         m_IniFile.SetOrAdd("DebugDrawFlags", m_Settings.m_DebugDrawFlags);
         m_IniFile.SetOrAdd("PhysicsDebugDrawFlags", Application::Get().GetSystem<LumosPhysicsEngine>()->GetDebugDrawFlags());
         m_IniFile.SetOrAdd("PhysicsDebugDrawFlags2D", Application::Get().GetSystem<B2PhysicsEngine>()->GetDebugDrawFlags());
-        m_IniFile.SetOrAdd("Theme", (int)m_Settings.m_Theme);
         m_IniFile.SetOrAdd("ProjectRoot", m_ProjectSettings.m_ProjectRoot);
         m_IniFile.SetOrAdd("ProjectName", m_ProjectSettings.m_ProjectName);
         m_IniFile.SetOrAdd("SleepOutofFocus", m_Settings.m_SleepOutofFocus);
+        m_IniFile.SetOrAdd("UIMinimal", m_Settings.m_UIMinimal);
+        m_IniFile.SetOrAdd("MaximiseOnPlay", m_Settings.m_FullScreenOnPlay);
+        m_IniFile.SetOrAdd("SceneViewOff", (int)m_Settings.m_SceneViewOff);
+        m_IniFile.SetOrAdd("GameFreeAspect", m_Settings.m_FreeAspect);
+        m_IniFile.SetOrAdd("GameFixedAspect", m_Settings.m_FixedAspect);
+        m_IniFile.SetOrAdd("SceneViewScale", m_Settings.m_SceneViewScale);
+        m_IniFile.SetOrAdd("GameViewScale", m_Settings.m_GameViewScale);
+        m_IniFile.SetOrAdd("GameFixedRes", m_Settings.m_GameFixedRes);
+        m_IniFile.SetOrAdd("GameResW", m_Settings.m_GameResW);
+        m_IniFile.SetOrAdd("GameResH", m_Settings.m_GameResH);
+        m_IniFile.SetOrAdd("UISceneBarHidden", m_Settings.m_UISceneBarHidden);
+        m_IniFile.SetOrAdd("UIPlayWorkspace", m_Settings.m_UIPlayWorkspace);
+        m_IniFile.SetOrAdd("UIGameBarHidden", m_Settings.m_UIGameBarHidden);
+        m_IniFile.SetOrAdd("UIAssetTileScale", m_Settings.m_UIAssetTileScale);
+        m_IniFile.SetOrAdd("InspectorFollows", m_Settings.m_InspectorFollows);
         m_IniFile.SetOrAdd("CameraSpeed", m_Settings.m_CameraSpeed);
         m_IniFile.SetOrAdd("CameraNear", m_Settings.m_CameraNear);
         m_IniFile.SetOrAdd("CameraFar", m_Settings.m_CameraFar);
@@ -4187,12 +2444,11 @@ namespace Lumos
 #elif defined(LUMOS_PLATFORM_IOS)
         {
             // Bundle is read-only on iOS — copy ExampleProject to Documents on first run
-            std::string bundlePath  = OS::Get().GetAssetPath() + "ExampleProject";
-            std::string docsDir     = OS::Get().GetCurrentWorkingDirectory() + "/LumosEditor/ExampleProject";
-            std::string projectFile = docsDir + "/Example.lmproj";
+            std::string bundlePath  = OS::Get().GetAssetPath() + BundledProjectFolder();
+            std::string docsDir     = OS::Get().GetCurrentWorkingDirectory() + "/LumosEditor/" + BundledProjectFolder();
+            std::string projectFile = docsDir + "/" + BundledProjectFile();
 
-            if(!FileSystem::FolderExists(Str8StdS(docsDir)))
-                iOSOS::CopyBundleFolder(bundlePath, docsDir);
+            StartBundleCopy(bundlePath, docsDir);
 
             m_ProjectSettings.m_ProjectRoot = docsDir + "/";
         }
@@ -4206,16 +2462,15 @@ namespace Lumos
         m_IniFile.Add("ShowGizmos", m_Settings.m_ShowGizmos);
         m_IniFile.Add("ShowViewSelected", m_Settings.m_ShowViewSelected);
         m_IniFile.Add("TransitioningCamera", m_TransitioningCamera);
-        m_IniFile.Add("ShowImGuiDemo", m_Settings.m_ShowImGuiDemo);
         m_IniFile.Add("SnapAmount", m_Settings.m_SnapAmount);
         m_IniFile.Add("SnapQuizmo", m_Settings.m_SnapQuizmo);
         m_IniFile.Add("DebugDrawFlags", m_Settings.m_DebugDrawFlags);
         m_IniFile.Add("PhysicsDebugDrawFlags", 0);
         m_IniFile.Add("PhysicsDebugDrawFlags2D", 0);
-        m_IniFile.Add("Theme", (int)m_Settings.m_Theme);
         m_IniFile.Add("ProjectRoot", m_ProjectSettings.m_ProjectRoot);
         m_IniFile.Add("ProjectName", m_ProjectSettings.m_ProjectName);
         m_IniFile.Add("SleepOutofFocus", m_Settings.m_SleepOutofFocus);
+        m_IniFile.Add("InspectorFollows", m_Settings.m_InspectorFollows);
         m_IniFile.Add("RecentProjectCount", 0);
         m_IniFile.Add("CameraSpeed", m_Settings.m_CameraSpeed);
         m_IniFile.Add("CameraNear", m_Settings.m_CameraNear);
@@ -4232,15 +2487,24 @@ namespace Lumos
         m_Settings.m_ShowGrid         = m_IniFile.GetOrDefault("ShowGrid", m_Settings.m_ShowGrid);
         m_Settings.m_ShowGizmos       = m_IniFile.GetOrDefault("ShowGizmos", m_Settings.m_ShowGizmos);
         m_Settings.m_ShowViewSelected = m_IniFile.GetOrDefault("ShowViewSelected", m_Settings.m_ShowViewSelected);
-        m_TransitioningCamera         = m_IniFile.GetOrDefault("TransitioningCamera", m_TransitioningCamera);
-        m_Settings.m_ShowImGuiDemo    = m_IniFile.GetOrDefault("ShowImGuiDemo", m_Settings.m_ShowImGuiDemo);
+        // a fly-to that was under way when the settings were saved must not lock the camera on the next start
+        m_TransitioningCamera         = false;
         m_Settings.m_SnapAmount       = m_IniFile.GetOrDefault("SnapAmount", m_Settings.m_SnapAmount);
         m_Settings.m_SnapQuizmo       = m_IniFile.GetOrDefault("SnapQuizmo", m_Settings.m_SnapQuizmo);
         m_Settings.m_DebugDrawFlags   = m_IniFile.GetOrDefault("DebugDrawFlags", m_Settings.m_DebugDrawFlags);
-        m_Settings.m_Theme            = ImGuiUtilities::Theme(m_IniFile.GetOrDefault("Theme", (int)m_Settings.m_Theme));
 
         m_ProjectSettings.m_ProjectRoot = m_IniFile.GetOrDefault("ProjectRoot", std::string("../../ExampleProject/"));
         m_ProjectSettings.m_ProjectName = m_IniFile.GetOrDefault("ProjectName", std::string("Example"));
+        // --project=<folder or .lmproj> opens that instead of the last one
+        {
+            String8 opt = Internal::CoreSystem::GetCmdLine()->OptionString(Str8Lit("project"));
+            Export::ProjectInfo project;
+            if(opt.size > 0 && project.Load(std::string((const char*)opt.str, opt.size)))
+            {
+                m_ProjectSettings.m_ProjectRoot = project.Root;
+                m_ProjectSettings.m_ProjectName = project.Name;
+            }
+        }
 
         ArenaTemp arena                 = ScratchBegin(nullptr, 0);
         String8 pathCopy                = PushStr8Copy(arena.arena, m_ProjectSettings.m_ProjectRoot.c_str());
@@ -4251,6 +2515,24 @@ namespace Lumos
         m_Settings.m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
         m_Settings.m_Physics3DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0);
         m_Settings.m_SleepOutofFocus     = m_IniFile.GetOrDefault("SleepOutofFocus", true);
+#if defined(LUMOS_PLATFORM_IOS)
+        // the touch layout only exists on the engine UI
+#endif
+        m_Settings.m_UIMinimal           = m_IniFile.GetOrDefault("UIMinimal", false);
+        m_Settings.m_FullScreenOnPlay    = m_IniFile.GetOrDefault("MaximiseOnPlay", false);
+        m_Settings.m_SceneViewOff        = (uint32_t)m_IniFile.GetOrDefault("SceneViewOff", 0) & SceneViewOff_All;
+        m_Settings.m_FreeAspect          = m_IniFile.GetOrDefault("GameFreeAspect", true);
+        m_Settings.m_FixedAspect         = m_IniFile.GetOrDefault("GameFixedAspect", 16.0f / 9.0f);
+        m_Settings.m_SceneViewScale      = Maths::Clamp((float)m_IniFile.GetOrDefault("SceneViewScale", 1.0f), 0.25f, 2.0f);
+        m_Settings.m_GameViewScale       = Maths::Clamp((float)m_IniFile.GetOrDefault("GameViewScale", 1.0f), 0.25f, 2.0f);
+        m_Settings.m_GameFixedRes        = m_IniFile.GetOrDefault("GameFixedRes", false);
+        m_Settings.m_GameResW            = Maths::Clamp((int)m_IniFile.GetOrDefault("GameResW", 1920), 64, 8192);
+        m_Settings.m_GameResH            = Maths::Clamp((int)m_IniFile.GetOrDefault("GameResH", 1080), 64, 8192);
+        m_Settings.m_UISceneBarHidden    = m_IniFile.GetOrDefault("UISceneBarHidden", false);
+        m_Settings.m_UIPlayWorkspace     = m_IniFile.GetOrDefault("UIPlayWorkspace", false);
+        m_Settings.m_UIGameBarHidden     = m_IniFile.GetOrDefault("UIGameBarHidden", false);
+        m_Settings.m_UIAssetTileScale    = m_IniFile.GetOrDefault("UIAssetTileScale", 1.0f);
+        m_Settings.m_InspectorFollows    = m_IniFile.GetOrDefault("InspectorFollows", true);
         m_Settings.m_CameraSpeed         = m_IniFile.GetOrDefault("CameraSpeed", 1000.0f);
         m_Settings.m_CameraNear          = m_IniFile.GetOrDefault("CameraNear", 0.01f);
         m_Settings.m_CameraFar           = m_IniFile.GetOrDefault("CameraFar", 1000.0f);
@@ -4361,6 +2643,21 @@ namespace Lumos
         if(!m_GridRenderer)
             m_GridRenderer = CreateSharedPtr<Graphics::GridRenderer>(uint32_t(Application::Get().m_SceneViewWidth), uint32_t(Application::Get().m_SceneViewHeight));
         return m_GridRenderer;
+    }
+
+    // Like the Runtime: a project's App Script (tools / apps such as LumosTunes) runs on an entity of
+    // its own. Added to the play copy only - stopping reloads the cached scene, which drops it again.
+    void Editor::AddAppScriptEntity()
+    {
+        auto& settings = Application::Get().GetProjectSettings();
+        Scene* scene   = Application::Get().GetCurrentScene();
+        if(settings.AppScript.empty() || !scene)
+            return;
+        for(auto entity : scene->GetRegistry().view<LuaScriptComponent>())
+            if(scene->GetRegistry().get<LuaScriptComponent>(entity).GetFilePath() == settings.AppScript)
+                return; // the scene already carries it
+        Entity e = scene->CreateEntity(settings.Title.empty() ? std::string("App Script") : settings.Title);
+        e.AddComponent<LuaScriptComponent>(std::string(settings.AppScript), scene);
     }
 
     void Editor::CacheScene()

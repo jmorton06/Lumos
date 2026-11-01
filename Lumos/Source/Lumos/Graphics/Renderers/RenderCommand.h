@@ -21,6 +21,7 @@ namespace Lumos
             u32 instanceCount                    = 1;
             u32 firstInstance                    = 0;
             bool instanced                       = false;
+            float sortDistance                   = 0.0f; // squared, camera to the world box centre
         };
     }
 }

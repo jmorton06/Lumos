@@ -2,6 +2,11 @@
 #include "SerialisationImplementation.h"
 #include <cereal/archives/json.hpp>
 
+namespace Serialisation
+{
+    int CurrentSceneVersion = 0;
+}
+
 namespace Lumos
 {
     void SerialiseAssetRegistry(const String8& path, const AssetRegistry& registry)

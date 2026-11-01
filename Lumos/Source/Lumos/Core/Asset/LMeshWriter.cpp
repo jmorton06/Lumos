@@ -7,6 +7,7 @@
 #include "Graphics/Animation/Skeleton.h"
 #include "Graphics/Animation/Animation.h"
 #include "Maths/MathsUtilities.h"
+#include "Core/JobSystem.h"
 
 #include <ModelLoaders/meshoptimizer/src/meshoptimizer.h>
 
@@ -121,7 +122,7 @@ namespace Lumos
         float resultError = 0.0f;
         size_t finalCount = meshopt_simplify(simplified.Data(), outIndices.Data(), outIndices.Size(),
                                               &outVerts[0].x, outVerts.Size(), sizeof(Vec3),
-                                              targetIndexCount, 0.01f, &resultError);
+                                              targetIndexCount, 0.01f, 0, &resultError);
 
         simplified.Resize((u32)finalCount);
         outIndices = std::move(simplified);
@@ -129,8 +130,13 @@ namespace Lumos
 
     bool LMeshWriter::Write(const String8& outputPath, LMeshWriteData& data, const ImportSettings& settings)
     {
-        for(int i = 0; i < data.Meshes.Size(); i++)
-            OptimizeMesh(data.Meshes[i], settings);
+        // each mesh on its own job: meshoptimizer's passes are the slow part of a big import
+        {
+            System::JobSystem::Context ctx;
+            System::JobSystem::Dispatch(ctx, (u32)data.Meshes.Size(), 1, [&data, &settings](JobDispatchArgs args)
+                                        { OptimizeMesh(data.Meshes[args.jobIndex], settings); });
+            System::JobSystem::Wait(ctx);
+        }
 
         // Log post-optimization counts
         for(int i = 0; i < data.Meshes.Size(); i++)
@@ -177,6 +183,10 @@ namespace Lumos
         }
 
         offset += materialBlockSize;
+
+        // mesh names, same order as the descriptors
+        for(int i = 0; i < data.Meshes.Size(); i++)
+            offset += 4 + (u32)data.Meshes[i].Name.size() + 1;
 
         // Vertex/index data offsets per mesh
         TDArray<LMeshDescriptor> descriptors;
@@ -307,6 +317,14 @@ namespace Lumos
                     memcpy(ptr, mat.TexturePaths[s].c_str(), pathLen + 1); ptr += pathLen + 1;
                 }
             }
+        }
+
+        for(int i = 0; i < data.Meshes.Size(); i++)
+        {
+            const std::string& name = data.Meshes[i].Name;
+            u32 nameLen             = (u32)name.size();
+            memcpy(ptr, &nameLen, 4); ptr += 4;
+            memcpy(ptr, name.c_str(), nameLen + 1); ptr += nameLen + 1;
         }
 
         // Vertex/index data

@@ -23,6 +23,7 @@ namespace Lumos
         void OnInit();
         void OnInit(Scene* scene);
         void OnUpdate(Scene* scene);
+        void OnBackgroundUpdate(Scene* scene, float dt);
 
         void CollectGarbage();
 

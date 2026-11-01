@@ -126,6 +126,14 @@ project "LumosEditor"
 		filter {"system:macosx", "configurations:Release or Production"}
 		xcodebuildsettings
 		{
+			['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym',
+			['GCC_GENERATE_DEBUGGING_SYMBOLS'] = 'YES'
+		}
+
+		-- only the App Store build is sandboxed: a sandbox can't run the export tools (xcrun, codesign, xcodebuild)
+		filter {"system:macosx", "configurations:Production"}
+		xcodebuildsettings
+		{
 			['ENABLE_HARDENED_RUNTIME'] = 'YES',
 			['CODE_SIGN_ENTITLEMENTS'] = '../Editor/LumosEditor.entitlements',
 			['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym',
@@ -169,6 +177,12 @@ project "LumosEditor"
 			"-framework IOKit",
 			"-framework CoreVideo",
 			"-framework OpenAL",
+			"-framework AudioToolbox",
+			"-framework CoreAudio",
+			"-framework MediaPlayer",
+			"-framework AVKit",
+			"-framework CoreServices",
+			"-framework CoreMIDI",
 			"-framework QuartzCore",
 			"-framework Metal",
 			"-framework IOSurface",
@@ -223,6 +237,8 @@ project "LumosEditor"
 			"OpenAL.framework",
 			"AudioToolbox.framework",
 			"AVFoundation.framework",
+			"MediaPlayer.framework",
+			"AVKit.framework",
 			"Foundation.framework",
 			"SystemConfiguration.framework",
 			"IOSurface.framework",
@@ -238,17 +254,24 @@ project "LumosEditor"
 			"../Lumos/External/vulkan/libs/iOS/libMoltenVK.a"
 		}
 
-		local ios_project_dir = game_project and ("../" .. game_project.rel_dir) or "../ExampleProject/"
-		local ios_project_folder = game_project and game_project.folder_name or "ExampleProject"
+		-- relative to this script (files are), not the current directory: premake runs includes from their own folder
+		local starter = _OPTIONS["starter-project"] and path.getrelative(_SCRIPT_DIR, path.getabsolute(_OPTIONS["starter-project"], _MAIN_SCRIPT_DIR))
+		local ios_project_dir = game_project and ("../" .. game_project.rel_dir) or (starter and (starter .. "/") or "../ExampleProject/")
+		local ios_project_folder = game_project and game_project.folder_name or (starter and path.getname(starter) or "ExampleProject")
+
+		-- GenerateLaunchScreen.sh makes one from a project's splash; fall back to the stock one
+		local ios_launch_files = os.isfile(path.join(_SCRIPT_DIR, "../bin-int/LaunchScreen/Launch Screen.storyboard"))
+			and { "../bin-int/LaunchScreen/Launch Screen.storyboard", "../bin-int/LaunchScreen/LaunchSplash.png" }
+			or { "../Lumos/Source/Lumos/Platform/iOS/Client/**" }
 
 		files
 		{
 			"../Resources/AppIcons/Assets.xcassets",
 			"../Lumos/Assets/Shaders",
-			"../Lumos/Source/Lumos/Platform/iOS/Client/**",
 			ios_project_dir,
 			"Source/**.mm"
 		}
+		files(ios_launch_files)
 
 		xcodebuildsettings
 		{

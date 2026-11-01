@@ -215,3 +215,7 @@ Tools/LumosShader
 Tools/LumosMesh
 Tools/LumosIconGen
 ExampleProject/Assets/Scenes/Archery.lsn
+Editor/LumosEditor-Distribution.entitlements
+ExampleProject/Tests
+ExampleProject/Builds/iOS/Archery.app
+ExampleProject/Assets/Sounds/Archery

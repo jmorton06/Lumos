@@ -14,6 +14,7 @@ namespace Lumos
 {
     class Timer;
     class Window;
+    struct UI_State;
     struct WindowDesc;
     class AudioManager;
     class SystemManager;
@@ -29,6 +30,7 @@ namespace Lumos
     namespace Graphics
     {
         class SceneRenderer;
+        class Texture2D;
         enum class RenderAPI : uint32_t;
     }
 
@@ -76,6 +78,10 @@ namespace Lumos
 
         void OnExitScene();
         void OnSceneViewSizeUpdated(uint32_t width, uint32_t height);
+
+        // level 0..2 forces it, -1 picks from the GPU. Scale follows the level's pixel budget.
+        void SetQualityLevel(int level);
+        void UpdateDynamicResolution(float frameMs);
         void OpenProject(const std::string& filePath);
         void OpenNewProject(const std::string& path, const std::string& name = "New Project");
 
@@ -83,8 +89,24 @@ namespace Lumos
         virtual void OnNewScene(Scene* scene);
         virtual void OnRender();
         virtual void OnUpdate(const TimeStep& dt);
+        // no frames while backgrounded (iOS): scripts still get OnBackgroundUpdate from a timer
+        void OnBackgroundUpdate(float dt);
         virtual void OnImGui();
         virtual void OnDebugDraw();
+
+        // A second UI the size of the whole window, drawn over the scene (tools,
+        // editor panels). Built in OnScreenUI with that UI as the current context.
+        void EnableScreenUI(bool enable);
+        bool IsScreenUIEnabled() const { return m_ScreenUIEnabled; }
+        UI_State* GetScreenUI() const { return m_ScreenUI; }
+        // The picture shown at startup, kept until the first scene is in so loading frames can carry on from it. Null after.
+        Graphics::Texture2D* GetSplashTexture() const { return m_SplashTexture; }
+        virtual void OnScreenUI() { }
+
+        // Draws one frame holding only the busy overlay (Core/BusyOverlay.h). No-op
+        // inside a normal frame or off the main thread; force skips the rate limit.
+        void PumpBusyFrame(bool force = false);
+        bool IsInFrame() const { return m_InFrame; }
 
         virtual void ExitApp();
 
@@ -97,14 +119,21 @@ namespace Lumos
         SystemManager* GetSystemManager() const { return m_SystemManager.get(); }
         Scene* GetCurrentScene() const;
         ImGuiManager* GetImGuiManager() const { return m_ImGuiManager.get(); }
+        // Before Init: false = no ImGui at all (no context, nothing drawn). The editor runs without it.
+        static void SetImGuiEnabled(bool enabled);
+        static bool IsImGuiEnabled();
 
         void SetAppState(AppState state) { m_CurrentState = state; }
         void SetEditorState(EditorState state) { m_EditorState = state; }
         void SetSceneActive(bool active) { m_SceneActive = active; }
         void SetDisableMainSceneRenderer(bool disable) { m_DisableMainSceneRenderer = disable; }
+        bool GetDisableMainSceneRenderer() const { return m_DisableMainSceneRenderer; }
         bool GetSceneActive() const { return m_SceneActive; }
 
         Vec2 GetWindowSize() const;
+        // the area the game draws into: the window, or the editor's Game tab (same units as the window)
+        Vec2 GetGameViewSize() const;
+        Vec2 GetGameViewPosition() const { return m_SceneViewPosition; }
         float GetWindowDPI() const;
 
         SharedPtr<AssetManager>& GetAssetManager();
@@ -149,6 +178,11 @@ namespace Lumos
         // before anything renders.
         void ApplyPendingWindowResize();
 
+        // See-through window: desktop shows wherever nothing was drawn (premultiplied alpha).
+        // The swapchain is rebuilt at the top of the next frame.
+        void SetWindowTransparent(bool transparent);
+        bool IsWindowTransparent() const { return m_WindowTransparent; }
+
         void SetSceneViewDimensions(uint32_t width, uint32_t height)
         {
             if(width != m_SceneViewWidth)
@@ -167,6 +201,8 @@ namespace Lumos
         void TestUI();
 
         virtual void Serialise();
+        void SaveWindowState();
+        void RestoreWindowState();
         virtual void Deserialise();
 
         void MountFileSystemPaths();
@@ -236,7 +272,15 @@ namespace Lumos
             std::string LocationUsage;
 
             int SafeAreaMode = (int)SafeAreaLayout::FullscreenSafeUI;
+
+            // an exported app (set by the Runtime, not saved): the project sits in a read-only / signed
+            // bundle, so everything the engine writes goes under WritableRoot() instead
+            bool Packaged = false;
         };
+
+        // where the engine may write project-side files (pipeline cache, imgui.ini, //Assets/ saves):
+        // the project root, or a per-user folder for an exported app. Ends in a slash.
+        std::string WritableRoot() const;
 
         ProjectSettings& GetProjectSettings() { return m_ProjectSettings; }
 
@@ -275,6 +319,8 @@ namespace Lumos
         float m_PendingWindowDPIScale    = 1.0f;
         uint32_t m_AppliedWindowWidth    = 0;
         uint32_t m_AppliedWindowHeight   = 0;
+        bool m_ForceWindowResize         = false;
+        bool m_WindowTransparent         = false;
 
         bool m_SceneViewSizeUpdated = false;
         bool m_RenderDocEnabled     = false;
@@ -302,6 +348,15 @@ namespace Lumos
         Arena* m_Arena;
         Arena* m_UIArena;
 
+        void EnsureScreenUI();
+        void BuildScreenUI(float dt);
+        UI_State* m_ScreenUI     = nullptr;
+        Graphics::Texture2D* m_SplashTexture = nullptr;
+        Arena* m_ScreenUIArena   = nullptr;
+        bool m_ScreenUIEnabled   = false;
+        bool m_InFrame           = false; // between the start of a frame's update and its present
+        bool m_SceneDrawnThisFrame = false;
+
         QualitySettings m_QualitySettings;
         StringPool* m_StringPool;
 
@@ -319,6 +374,7 @@ namespace Lumos
         bool m_ForceEmbeddedShaders   = false; // Default: auto-detect
         bool m_ShowTestUI             = false; // Default: hidden
         bool m_HeadlessMode           = false; // Default: normal rendering
+        bool m_RememberWindow         = true;  // restore size / position / maximised / fullscreen (off for tests, benchmarks)
         bool m_BenchmarkMode          = false; // Default: no benchmark
         int m_BenchmarkFrameCount     = 0;
         int m_BenchmarkCurrentFrame   = 0;

@@ -1,0 +1,347 @@
+#ifndef SKY_GLSLH
+#define SKY_GLSLH
+
+// The procedural sky: one function for the picture (Skybox.frag) and for the cube map the
+// scene is lit from (CreateEnvironmentMap.frag), so the two cannot drift apart.
+// Needs PI (Common.glslh).
+//
+// Units: radiance comes out in "sky units" = cd/m2 / 120000, the same scale the HDR
+// environment maps are stored in. SunE is the sun's illuminance (lux / 120000).
+
+struct SkyParams
+{
+	vec3 SunDir;      // towards the sun
+	vec3 SunE;        // illuminance above the atmosphere, rgb
+	vec3 HorizonTint; // multiplies the sky near the horizon (1 = untouched)
+	vec3 ZenithTint;  // and overhead
+	vec4 CloudColour; // rgb tint, a shadow strength
+	vec4 CloudParams; // x coverage, y density, z speed, w style (-1 off, 0 toon, 1 lit)
+	vec4 CloudWindDir;
+	float Time;
+};
+
+// ---- atmosphere ----------------------------------------------------------
+// Single scattering through an Earth-like atmosphere (Rayleigh, Mie, ozone): a short march
+// along the view ray, sunlight to each step in closed form, and a flat term standing in for
+// the light that has bounced more than once.
+// Distances in km.
+
+const float SKY_PLANET_R = 6360.0;
+const float SKY_ATMOS_R  = 6460.0;
+const float SKY_EYE      = 0.2;
+
+const vec3 SKY_RAYLEIGH    = vec3(5.802e-3, 13.558e-3, 33.1e-3);
+const float SKY_MIE_SCAT   = 3.996e-3;
+const float SKY_MIE_EXT    = 8.396e-3;
+const vec3 SKY_OZONE       = vec3(0.650e-3, 1.881e-3, 0.085e-3);
+const vec3 SKY_GROUND      = vec3(0.22, 0.21, 0.19);
+
+// x Rayleigh, y Mie, z ozone
+vec3 SkyDensity(float h)
+{
+	h = max(h, 0.0);
+	return vec3(exp(-h / 8.0), exp(-h / 1.2), max(0.0, 1.0 - abs(h - 25.0) / 15.0));
+}
+
+vec3 SkyExtinction(vec3 d)
+{
+	return SKY_RAYLEIGH * d.x + vec3(SKY_MIE_EXT * d.y) + SKY_OZONE * d.z;
+}
+
+// Far hit of a ray starting inside the sphere, near hit from outside; -1 = none.
+float SkySphere(vec3 o, vec3 d, float r, bool nearHit)
+{
+	float b = dot(o, d);
+	float c = dot(o, o) - r * r;
+	float h = b * b - c;
+	if(h < 0.0)
+		return -1.0;
+	h = sqrt(h);
+	return nearHit ? (-b - h) : (-b + h);
+}
+
+// Optical depth of an exponential atmosphere (scale height 1) from height h along a ray
+// whose cosine to the zenith is c. X = planet radius in scale heights. Closed form
+// (Schuler's fit to the Chapman function): within ~15% of a march, for none of the cost.
+float SkyChapman(float X, float h, float c)
+{
+	float k = sqrt((X + h) * 1.5707963);
+	if(c >= 0.0)
+		return k / (k * c + 1.0) * exp(-h);
+	float x0 = sqrt(1.0 - c * c) * (X + h);
+	float k0 = sqrt(x0 * 1.5707963);
+	return 2.0 * k0 * exp(X - x0) - k / (1.0 - k * c) * exp(-h);
+}
+
+// How much sunlight gets to p.
+vec3 SkySunTransmittance(vec3 p, vec3 sunDir)
+{
+	if(SkySphere(p, sunDir, SKY_PLANET_R, true) > 0.0)
+		return vec3(0.0);
+	float r = length(p);
+	float h = max(r - SKY_PLANET_R, 0.0);
+	float c = dot(p, sunDir) / r;
+
+	float rayleigh = 8.0 * SkyChapman(SKY_PLANET_R / 8.0, h / 8.0, c);
+	float mie      = 1.2 * SkyChapman(SKY_PLANET_R / 1.2, h / 1.2, c);
+	// the ozone layer as a shell 15 km thick, 25 km up
+	float s2    = (1.0 - c * c) * r * r / ((SKY_PLANET_R + 25.0) * (SKY_PLANET_R + 25.0));
+	float ozone = h < 25.0 ? 15.0 / sqrt(max(1.0 - s2, 0.007)) : 0.0;
+
+	return exp(-(SKY_RAYLEIGH * rayleigh + vec3(SKY_MIE_EXT * mie) + SKY_OZONE * ozone));
+}
+
+// Sunlight at the viewer.
+vec3 SkySunAtGround(SkyParams s)
+{
+	return s.SunE * SkySunTransmittance(vec3(0.0, SKY_PLANET_R + SKY_EYE, 0.0), s.SunDir);
+}
+
+// Radiance along dir. transmittance = what is left of anything behind the air (0 below the horizon).
+vec3 SkyAtmosphere(vec3 dir, SkyParams s, int viewSteps, out vec3 transmittance)
+{
+	vec3 o       = vec3(0.0, SKY_PLANET_R + SKY_EYE, 0.0);
+	float tGround = SkySphere(o, dir, SKY_PLANET_R, true);
+	bool hitGround = tGround > 0.0;
+	float tMax    = hitGround ? tGround : SkySphere(o, dir, SKY_ATMOS_R, false);
+
+	float mu      = dot(dir, s.SunDir);
+	float phaseR  = 3.0 / (16.0 * PI) * (1.0 + mu * mu);
+	const float g = 0.8;
+	float phaseM  = 3.0 / (8.0 * PI) * ((1.0 - g * g) * (1.0 + mu * mu)) / ((2.0 + g * g) * pow(1.0 + g * g - 2.0 * g * mu, 1.5));
+	const float phaseIso = 1.0 / (4.0 * PI);
+
+	vec3 T = vec3(1.0);
+	vec3 L = vec3(0.0);
+	float tPrev = 0.0;
+	for(int i = 0; i < viewSteps; i++)
+	{
+		// short steps near the eye, where the air is thick
+		float f  = float(i + 1) / float(viewSteps);
+		float t1 = tMax * f * f;
+		float ds = t1 - tPrev;
+		vec3 p   = o + dir * (tPrev + ds * 0.5);
+		tPrev    = t1;
+
+		vec3 d      = SkyDensity(length(p) - SKY_PLANET_R);
+		vec3 ext    = SkyExtinction(d);
+		vec3 scatR  = SKY_RAYLEIGH * d.x;
+		float scatM = SKY_MIE_SCAT * d.y;
+		vec3 sunT   = SkySunTransmittance(p, s.SunDir);
+
+		vec3 inscatter = (scatR * phaseR + vec3(scatM * phaseM)) * sunT;
+		// light scattered more than once: roughly even in every direction, and about as much
+		// again as the first bounce on a clear day
+		inscatter += (scatR + vec3(scatM)) * sunT * phaseIso * 1.3;
+
+		vec3 stepT = exp(-ext * ds);
+		L += T * inscatter * (vec3(1.0) - stepT) / max(ext, vec3(1e-7));
+		T *= stepT;
+	}
+
+	if(hitGround)
+	{
+		vec3 p    = o + dir * tGround;
+		vec3 n    = normalize(p);
+		vec3 sunT = SkySunTransmittance(p + n * 0.01, s.SunDir);
+		L += T * SKY_GROUND / PI * sunT * max(dot(n, s.SunDir), 0.0);
+		T = vec3(0.0);
+	}
+
+	float h   = clamp(dir.y, 0.0, 1.0);
+	vec3 tint = mix(s.ZenithTint, s.HorizonTint, pow(1.0 - h, 2.5));
+	transmittance = T;
+	// Clean air and one modelled bounce come out near half the luminance measured under a
+	// real clear sky (haze does the rest).
+	const float SKY_HAZE_GAIN = 2.0;
+	// never quite black: starlight and airglow
+	return L * SKY_HAZE_GAIN * s.SunE * tint + vec3(0.00035, 0.0005, 0.0009) * (hitGround ? 0.3 : 1.0);
+}
+
+// ---- noise ---------------------------------------------------------------
+
+vec2 SkyHash22(vec2 p)
+{
+	vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+	p3 += dot(p3, p3.yzx + 33.33);
+	return -1.0 + 2.0 * fract((p3.xx + p3.yz) * p3.zy);
+}
+
+// 0..1
+float SkyNoise(vec2 p)
+{
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+	float a = dot(SkyHash22(i + vec2(0.0, 0.0)), f - vec2(0.0, 0.0));
+	float b = dot(SkyHash22(i + vec2(1.0, 0.0)), f - vec2(1.0, 0.0));
+	float c = dot(SkyHash22(i + vec2(0.0, 1.0)), f - vec2(0.0, 1.0));
+	float d = dot(SkyHash22(i + vec2(1.0, 1.0)), f - vec2(1.0, 1.0));
+	return mix(mix(a, b, u.x), mix(c, d, u.x), u.y) * 0.5 + 0.5;
+}
+
+float SkyFBM(vec2 p, int octaves)
+{
+	float total = 0.0;
+	float amp   = 0.5;
+	float norm  = 0.0;
+	for(int i = 0; i < octaves; i++)
+	{
+		total += amp * SkyNoise(p);
+		norm  += amp;
+		p     *= 2.0;
+		amp   *= 0.5;
+	}
+	// same range whatever the octave count, so a cheap sample lines up with a full one
+	return total / norm * 0.96875;
+}
+
+// ---- clouds --------------------------------------------------------------
+// Only where the includer names the noise texture: #define SKY_NOISE <sampler2D> first.
+// It tiles every 8 units of cloud uv: r base shape, g b slow warp, a fine detail
+// (made once on the CPU - SceneRenderer.cpp, GetSkyNoiseTexture).
+#ifdef SKY_NOISE
+
+// Onto a flat layer overhead, so clouds shrink and bunch up towards the horizon. The
+// offset stands in for the planet's curve and keeps the horizon finite.
+vec2 SkyCloudUV(vec3 dir, SkyParams s)
+{
+	const float SKY_SCALE = 1.15;
+	vec2 uv   = dir.xz / (max(dir.y, 0.0) + 0.14) * SKY_SCALE;
+	vec2 wind = vec2(s.CloudWindDir.x, s.CloudWindDir.z) * s.CloudParams.z * s.Time;
+	return uv + wind;
+}
+
+// Base shape at uv, 0..1 (what a 5 octave fbm gives).
+float SkyCloudShape(vec2 uv)
+{
+	return texture(SKY_NOISE, uv * 0.125).r;
+}
+
+// Thickness of the cloud layer at uv, 0..1. warp = the texture's g b somewhere near uv.
+float SkyCloudDensity(vec2 uv, vec2 warp, float coverage, float bias)
+{
+	float n   = texture(SKY_NOISE, (uv + warp * 0.6) * 0.125, bias).r;
+	float cut = mix(0.70, 0.20, coverage);
+	return smoothstep(cut, cut + 0.30, n);
+}
+
+float SkyHG(float mu, float g)
+{
+	return (1.0 - g * g) / pow(1.0 + g * g - 2.0 * g * mu, 1.5);
+}
+
+// Flat cartoon clouds: hard edge, drawn outline, three tones.
+vec4 SkyCloudsToon(vec3 dir, SkyParams s, vec3 sunLight, vec3 ambient)
+{
+	vec2 uv      = SkyCloudUV(dir, s);
+	float baseN  = SkyCloudShape(uv);
+	float detail = SkyCloudShape(uv * 2.3 + 11.0);
+	float n      = baseN * 0.78 + detail * 0.22;
+
+	float cut     = mix(0.62, 0.20, s.CloudParams.x);
+	float core    = smoothstep(cut, cut + 0.05, n);
+	float outline = smoothstep(cut - 0.07, cut, n) * (1.0 - core);
+	float alpha   = clamp(core + outline, 0.0, 1.0) * s.CloudParams.y;
+
+	float form     = smoothstep(cut, 0.95, n);
+	float lightDot = clamp(dot(dir, s.SunDir) * 0.5 + 0.5, 0.0, 1.0);
+	float lit      = mix(0.55, 1.0, form) * mix(0.78, 1.0, lightDot);
+	lit            = floor(lit * 3.0 + 0.5) / 3.0;
+
+	// as bright as a white wall in the same light
+	vec3 white = sunLight / PI + ambient;
+	vec3 body  = s.CloudColour.rgb * lit * white;
+	vec3 rim   = s.CloudColour.rgb * (1.0 - s.CloudColour.a) * white;
+
+	alpha *= smoothstep(0.015, 0.16, dir.y);
+	return vec4(mix(rim, body, core), alpha);
+}
+
+// A layer with thickness: each point is shaded by how much cloud lies between it and the
+// sun (a few taps across the layer), so tops and sunward edges are bright, bases and the
+// far side are dark, and thin edges glow when the sun is behind them.
+vec4 SkyCloudsLit(vec3 dir, SkyParams s, vec3 sunLight, vec3 ambient, vec3 skyBehind)
+{
+	vec2 uv        = SkyCloudUV(dir, s);
+	float coverage = s.CloudParams.x;
+
+	// one fetch: the warp (slow, so the taps towards the sun reuse it) and the detail
+	vec4 noise = texture(SKY_NOISE, uv * 0.125);
+	vec2 warp  = noise.gb;
+	float d    = SkyCloudDensity(uv, warp, coverage, 0.0);
+	// wisps: detail eats the thin rims
+	d = clamp(d - (1.0 - d) * noise.a * 0.5, 0.0, 1.0);
+
+	vec4 result = vec4(0.0);
+	float mu    = dot(dir, s.SunDir);
+	// forward lobe for the silver lining, a weak backward one so the far side is not flat
+	float phase = min(mix(SkyHG(mu, 0.75), SkyHG(mu, -0.25), 0.4), 6.0);
+
+	if(d > 0.001)
+	{
+		// across the layer towards the sun: the lower the sun, the more cloud in the way
+		vec2 toSun      = s.SunDir.xz / max(s.SunDir.y, 0.18);
+		const int TAPS  = 3;
+		const float REACH = 0.3;
+		float sigma     = 9.0 * (0.4 + s.CloudColour.a);
+		float tau       = d * sigma * 0.12; // down through its own thickness to the base we see
+		for(int i = 0; i < TAPS; i++)
+		{
+			float f = (float(i) + 0.6) / float(TAPS);
+			// a mip down: the coarse shape is what shadows
+			tau += SkyCloudDensity(uv + toSun * REACH * f, warp, coverage, 1.5) * sigma * REACH / float(TAPS);
+		}
+		// light that scattered several times gets further in than Beer's law says
+		float light = (exp(-tau) + 0.35 * exp(-tau * 0.3) + 0.12 * exp(-tau * 0.08)) / 1.47;
+
+		vec3 direct = sunLight / PI * light * (0.9 + phase);
+		vec3 sky    = ambient * 2.0 * mix(1.0, 0.6, d);
+		vec3 colour = (direct + sky) * s.CloudColour.rgb;
+
+		float alpha = 1.0 - exp(-d * 5.0 * s.CloudParams.y);
+		result      = vec4(colour, alpha);
+	}
+
+	// thin high cloud above the rest, stretched along the wind
+	vec2 high     = vec2(uv.x * 0.35 + uv.y * 0.12, uv.y * 1.3) * 0.55 + 40.0;
+	float cirrus  = smoothstep(0.52, 0.86, SkyCloudShape(high)) * coverage * 0.55 * s.CloudParams.y;
+	vec3 cirrusColour = (sunLight / PI * (0.6 + phase * 0.35) + ambient) * s.CloudColour.rgb;
+	float a       = result.a + cirrus * (1.0 - result.a);
+	result.rgb    = a > 0.0001 ? (result.rgb * result.a + cirrusColour * cirrus * (1.0 - result.a)) / a : vec3(0.0);
+	result.a      = a;
+
+	// distance: far clouds take the colour of the air in front of them, then go
+	float aerial = exp(-0.035 / max(dir.y, 0.01));
+	result.rgb   = mix(skyBehind, result.rgb, aerial);
+	result.a    *= smoothstep(0.0, 0.10, dir.y);
+	return result;
+}
+
+// Lays the clouds over sky. sunLight = SkySunAtGround, ambient = the sky straight up.
+vec3 SkyClouds(vec3 dir, SkyParams s, vec3 sky, vec3 sunLight, vec3 ambient, inout vec3 transmittance)
+{
+	if(s.CloudParams.w < 0.0 || dir.y <= 0.0)
+		return sky;
+	vec4 cloud = s.CloudParams.w < 0.5 ? SkyCloudsToon(dir, s, sunLight, ambient)
+	                                   : SkyCloudsLit(dir, s, sunLight, ambient, sky);
+	transmittance *= 1.0 - cloud.a;
+	return mix(sky, cloud.rgb, cloud.a);
+}
+
+// Sky with clouds, no sun disc. The cube map the scene is lit from uses exactly this.
+vec3 SkyColour(vec3 dir, SkyParams s, int viewSteps, out vec3 transmittance)
+{
+	vec3 sky = SkyAtmosphere(dir, s, viewSteps, transmittance);
+	if(s.CloudParams.w >= 0.0 && dir.y > 0.0)
+	{
+		vec3 unused;
+		vec3 ambient = SkyAtmosphere(vec3(0.0, 1.0, 0.0), s, 4, unused);
+		sky          = SkyClouds(dir, s, sky, SkySunAtGround(s), ambient, transmittance);
+	}
+	return sky;
+}
+
+#endif // SKY_NOISE
+
+#endif

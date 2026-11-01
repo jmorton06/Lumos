@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics/Renderers/IRenderer.h"
 #include "Graphics/Renderable2D.h"
+#include "Graphics/Renderers/RenderPassInfo.h"
 
 #define MAX_BOUND_TEXTURES 16
 
@@ -12,6 +13,7 @@ namespace Lumos
     class Event;
     struct SceneRenderSettings;
     struct UI_Widget;
+    struct UI_State;
 
     namespace Maths
     {
@@ -30,9 +32,11 @@ namespace Lumos
         class CommandBuffer;
         class Model;
         struct Light;
+        struct GPULight;
         class VertexBuffer;
         class IndexBuffer;
         class StorageBuffer;
+        class ProbeGI;
 
         struct LineVertexData
         {
@@ -74,6 +78,9 @@ namespace Lumos
             uint32_t NumDrawCalls        = 0;
             uint32_t NumInstanceBatches  = 0;
             uint32_t NumInstancedObjects = 0;
+            uint32_t NumOcclusionCulled  = 0;
+            uint32_t NumSmallCulled      = 0; // under RenderSettings::MinScreenSize
+            uint32_t NumLODMeshes        = 0; // meshes drawn below LOD 0
             static constexpr uint32_t MaxTrackedBatches = 16;
             InstanceBatchInfo InstanceBatches[MaxTrackedBatches];
         };
@@ -88,8 +95,14 @@ namespace Lumos
 
             void SetClearColour(const Vec4& colour) { m_ClearColour = colour; }
             const Vec4& GetClearColour() const { return m_ClearColour; }
+            // Clear to alpha 0 and carry alpha to the swapchain (needs a transparent swapchain + window)
+            void SetTransparentBackground(bool transparent) { m_TransparentBackground = transparent; }
+            bool GetTransparentBackground() const { return m_TransparentBackground; }
 
             void OnResize(uint32_t width, uint32_t height);
+            // Multiplies the quality render scale for this renderer only (editor views); callers resize after.
+            void SetViewScale(float scale) { m_ViewScale = scale; }
+            float GetViewScale() const { return m_ViewScale; }
             void BeginScene(Scene* scene);
             void OnNewScene(Scene* scene);
 
@@ -100,6 +113,8 @@ namespace Lumos
 
             void SetRenderTarget(Graphics::Texture* texture, bool onlyIfTargetsScreen = false, bool rebuildFramebuffer = true);
 
+            // Whatever the frame is drawn from (the editor's camera when it has taken over).
+            Maths::Transform* GetViewTransform() const { return m_OverrideCameraTransform ? m_OverrideCameraTransform : m_CameraTransform; }
             void SetOverrideCamera(Camera* camera, Maths::Transform* overrideCameraTransform)
             {
                 m_OverrideCamera          = camera;
@@ -111,12 +126,15 @@ namespace Lumos
             void GenerateBRDFLUTPass();
             void DepthPrePass();
             void SSAOPass();
+            void OcclusionGridPass();
             void SSAOBlurPass();
             void ForwardPass();
             void LightCullingPass();
             void ShadowPass();
+            void SpotShadowPass(bool* layerDrawn);
             void SkyboxPass();
             void CosmoPass();
+            void CosmoBake();
             void Renderer2DBeginBatch();
             void Render2DPass();
             void Render2DFlush();
@@ -141,8 +159,14 @@ namespace Lumos
 
             void Begin2DPass();
             void BeginTextPass();
-            void draw_ui(UI_Widget* widget);        // widget + subtree (tree order = z-order)
-            void draw_ui_widget(UI_Widget* widget); // single widget, no recursion (exit-fade pass)
+            void draw_ui(UI_Widget* widget);                       // widget + subtree (tree order = z-order)
+            void draw_ui_widget(UI_Widget* widget, int part = 0);  // single widget, no recursion; part = UIDrawPart
+            void FlushDeferredUIText();
+            void DrawUI(UI_State* ui);
+            // Draws a UI context straight onto the window, over whatever is there.
+            // Call after OnRender; for tools whose UI covers the whole window.
+            // standalone: no scene was rendered this frame (loading screens).
+            void ScreenUIPass(UI_State* ui, bool standalone = false);
 
             // Post Process
             void ToneMappingPass();
@@ -159,6 +183,10 @@ namespace Lumos
             void VignettePass();
             void MotionBlurPass();
             void SSRPass();
+            void TAAPass();
+            void ContactShadowPass();
+            void VolumetricFogPass();
+            void GIPass();
 
             void UIPass();
 
@@ -208,7 +236,6 @@ namespace Lumos
                 CommandQueue m_CascadeCommandQueue[SHADOWMAP_MAX];
 
                 TextureDepthArray* m_ShadowTex;
-                TextureDepth* m_CascadeTextures[SHADOWMAP_MAX] = { nullptr };
                 uint32_t m_ShadowMapNum;
                 uint32_t m_ShadowMapSize;
                 bool m_ShadowMapsInvalidated;
@@ -228,6 +255,42 @@ namespace Lumos
                 TDArray<SharedPtr<DescriptorSet>> m_InstanceDescriptorSet;
 
                 Maths::Frustum m_CascadeFrustums[SHADOWMAP_MAX];
+                float m_CascadeTexelWorld[SHADOWMAP_MAX] = {}; // world size of one shadow texel per cascade
+
+                // Spot light shadows: square tiles packed into the array layers after the cascades
+                struct SpotShadow
+                {
+                    Mat4 ProjView;
+                    Maths::Frustum Frustum;
+                    u64 LightID   = 0;  // entity handle, keys the redraw cache
+                    u64 Hash      = 0;  // what is in the tile: matrix + casters
+                    u32 Layer     = 0;  // atlas layer (array layer = m_ShadowMapNum + Layer)
+                    u32 X = 0, Y  = 0;  // tile corner, pixels
+                    u32 Size      = 0;  // tile size, pixels
+                    float Bias       = 1.0f;
+                    float NormalBias = 1.0f;
+                    float Fade       = 1.0f;
+                    float TexelWorld = 0.0f; // world size of one texel 1 m from the light
+                    float Score      = 0.0f;
+                    i32 LightIndex   = -1;   // into this frame's light list
+                    bool OnChange    = false;
+                    bool Draw        = true; // false = last frame's tile is still right
+                };
+                // a spot light asking for a shadow, before the cut to MaxSpotShadows
+                struct SpotCandidate
+                {
+                    const Light* Source = nullptr;
+                    u64 ID         = 0;
+                    u32 Index      = 0;
+                    float Distance = 0.0f;
+                    float Score    = 0.0f;
+                    float Far      = 0.0f;
+                    u32 Size       = 0;
+                };
+                SpotShadow m_Spots[SPOT_SHADOW_MAX];
+                CommandQueue m_SpotCommandQueue[SPOT_SHADOW_MAX];
+                u32 m_SpotCount  = 0;
+                u32 m_SpotLayers = 0; // atlas layers the array was made with
             };
 
             static constexpr uint32_t MAX_INSTANCE_COUNT = 4096;
@@ -266,7 +329,6 @@ namespace Lumos
                 TDArray<StorageBuffer*> m_InstanceTransformSSBO;
                 TDArray<SharedPtr<DescriptorSet>> m_InstanceDescriptorSet;
 
-                TDArray<Mat4> m_InstancePrepassTransforms;
             };
 
             struct Renderer2DData
@@ -331,12 +393,43 @@ namespace Lumos
             SceneRendererStats& GetSceneRendererStats() { return m_Stats; }
 
             void CreateCubeMap(const std::string& filePath, const Vec4& params, SharedPtr<TextureCube>& outEnv, SharedPtr<TextureCube>& outIrr);
+            // mips + GGX prefilter of env into filtered, cosine irradiance into irr (recorded, not submitted)
+            void FilterCubeMap(CommandBuffer* commandBuffer, TextureCube* env, TextureCube* filtered, TextureCube* irr);
+
+            // Environment probes: the scene seen from pos over the next six frames (one cube face each),
+            // filtered and used as the image based lighting in place of the Environment's sky - real
+            // reflections and a directional ambient from what is actually around. The probe nearest the
+            // camera lights the frame. index replaces an existing probe (-1 = add). Returns the index.
+            int CaptureEnvironmentProbe(const Vec3& pos, u32 size = 128, float gain = 1.0f, int index = -1);
+            void ClearEnvironmentProbes();
+            bool IsCapturingProbe() const { return m_Probe.Face >= 0 || m_Probe.PendingFilter; }
+            u32 GetEnvironmentProbeCount() const { return (u32)m_Probes.Size(); }
 
             void SetDisablePostProcess(bool disabled) { m_DisablePostProcess = disabled; }
+
+            // The renderer drawing the game the player sees: the application's own, or the
+            // editor's Game view once it has registered one. Debug tools act on this.
+            static SceneRenderer* GetGameRenderer();
+            static void SetGameRenderer(SceneRenderer* renderer);
+
+            // Stop the frame after this pass (-1 = render everything). UI and Final always run.
+            void SetPassCutoff(i32 pass) { m_PassCutoff = pass < (i32)RenderPass_Count ? pass : -1; }
+            i32 GetPassCutoff() const { return m_PassCutoff; }
+            // Tone map a frame cut before the tone mapping pass so it isn't shown as raw HDR
+            void SetPassPreviewTonemap(bool enabled) { m_PassPreviewTonemap = enabled; }
+            bool GetPassPreviewTonemap() const { return m_PassPreviewTonemap; }
+            const RenderPassRecord& GetPassRecord(RenderPassID id) const { return m_PassRecords[id]; }
 
         private:
             void InitDebugRenderData();
             bool m_DebugRenderDataInitialised = false;
+
+            bool BeginPass(RenderPassID id);
+            void EndPass(RenderPassID id);
+            i32 m_PassCutoff          = -1;
+            bool m_PassPreviewTonemap = true;
+            u32 m_PassStartDraws      = 0;
+            RenderPassRecord m_PassRecords[RenderPass_Count];
 
             void Init2DRenderData();
             bool m_2DRenderDataInitialised = false;
@@ -351,9 +444,34 @@ namespace Lumos
 
             Camera* m_OverrideCamera                    = nullptr;
             Maths::Transform* m_OverrideCameraTransform = nullptr;
+
+            struct ProbeData
+            {
+                int Face           = -1; // face being captured this frame, -1 = none
+                bool PendingFilter = false;
+                int Index          = 0;  // the stored probe the capture fills
+                Vec3 Position;
+                u32 Size   = 128;
+                float Gain = 1.0f; // scales what the faces saw: stands in for the bounces one capture misses
+                Mat4 ProjView;
+                Camera* Cam             = nullptr;
+                Maths::Transform* Trans = nullptr;
+                SharedPtr<TextureCube> Cube;
+                SharedPtr<DescriptorSet> Set;
+            } m_Probe;
+            struct StoredProbe
+            {
+                Vec3 Position;
+                SharedPtr<TextureCube> Filtered, Irradiance;
+            };
+            TDArray<StoredProbe> m_Probes;
+            int m_ActiveProbe = -1;
+            void ProbeFacePass();
+            void FinishProbe();
             Maths::Frustum* m_OverrideFrustum           = nullptr;
 
             ShadowData m_ShadowData;
+            void PlanSpotShadows(Scene* scene, ShadowData::SpotCandidate* candidates, u32 count, GPULight* lights);
             ForwardData m_ForwardData;
             Renderer2DData m_Renderer2DData;
             Renderer2DData m_TextRendererData;
@@ -414,9 +532,63 @@ namespace Lumos
             uint32_t m_TileCountX = 0;
             uint32_t m_TileCountY = 0;
             uint32_t m_NumLights  = 0;
+            bool m_HasLocalLights = false;    // any point / spot light this frame
+            uint32_t m_StaticGridLights = ~0u; // light count the CPU-written tile lists hold; ~0 = the compute pass wrote them
+            uint32_t m_StaticGridWrites = 0;   // frames left to rewrite them (a frame still in flight may run the compute)
 
             // Temp
             bool m_DisablePostProcess = false;
+            bool m_TransparentBackground = false;
+
+            // Targets only some scenes need start at 1x1 and grow the first time their pass runs,
+            // so a UI-only app doesn't carry shadow maps, G-buffers or bloom chains
+            void EnsureGBufferTargets();
+            void EnsureBloomTargets();
+            void EnsureSMAATargets();
+            void EnsureResolveTarget();
+            void EnsureShadowTargets();
+            bool m_GBufferAllocated = false;
+            bool m_BloomAllocated   = false;
+            bool m_SMAAAllocated    = false;
+            bool m_ResolveAllocated = false;
+            bool m_ShadowsAllocated = false;
+            bool m_LightIndexAllocated = false; // Forward+ per-tile light lists
+            bool m_Has3D            = false; // anything in the forward queue this frame
+
+            // Occlusion culling: a coarse max-depth grid of the depth pre-pass is read back two
+            // frames later (GPU never stalls) and meshes whose box sits behind it skip the forward queue.
+            struct OcclusionData
+            {
+                static constexpr u32 GridX     = 128;
+                static constexpr u32 GridY     = 72;
+                static constexpr u32 MaxLevels = 8;
+
+                SharedPtr<Graphics::Shader> Shader;
+                TDArray<StorageBuffer*> Buffers;                  // per frame slot, written by the GPU
+                TDArray<SharedPtr<Graphics::DescriptorSet>> Sets; // per frame slot
+                TDArray<Mat4> SlotViewProj;                       // view-proj the slot's depth was drawn with
+                TDArray<u8> SlotValid;
+                float Storage[GridX * GridY * 4 / 3 + 64];        // CPU copy: level 0 then max-reduced levels
+                float* Levels[MaxLevels] = {};
+                u32 LevelW[MaxLevels]    = {};
+                u32 LevelH[MaxLevels]    = {};
+                u32 LevelCount           = 0;
+                Mat4 TestViewProj;
+                Scene* LastScene = nullptr;
+                bool Active      = false;
+            } m_Occlusion;
+
+            // [0] full quality, [1] cheap (QualitySettings::LowForwardShader picks)
+            SharedPtr<Graphics::Shader> m_ForwardShaders[2];
+            SharedPtr<Graphics::Shader> m_InstancedShaders[2];
+            void ApplyForwardQuality();
+
+            void InitOcclusion();
+            void UpdateOcclusion(const Mat4& currentViewProj, bool enabled);
+            bool IsOccluded(const Maths::BoundingBox& box) const;
+            float m_ViewScale       = 1.0f;
+            uint32_t m_TargetWidth  = 1;
+            uint32_t m_TargetHeight = 1;
 
             Mesh* m_ScreenQuad;
             Texture* m_CubeMap;
@@ -427,6 +599,14 @@ namespace Lumos
             // Procedural nebula backdrop
             SharedPtr<Graphics::Shader> m_CosmoShader;
             SharedPtr<Graphics::DescriptorSet> m_CosmoDescriptorSet;
+            SharedPtr<Graphics::Shader> m_CosmoBakeShader;
+            SharedPtr<Graphics::DescriptorSet> m_CosmoBakeDescriptorSet;
+            Graphics::Texture2D* m_CosmoSky[2] = { nullptr, nullptr };
+            int m_CosmoSkyFront                = 0;
+            bool m_CosmoSkyBothBaked           = false;
+            uint32_t m_CosmoBakedVersion       = 0;
+            float m_CosmoFade                  = 1.0f;
+            float m_CosmoLastTime              = 0.0f;
 
             // PointCloud instanced-billboard pass
             SharedPtr<Graphics::Shader> m_PointCloudShader;
@@ -452,6 +632,8 @@ namespace Lumos
             bool m_PlanetInitialised               = false;
 
             SharedPtr<Graphics::Shader> m_FinalPassShader;
+            SharedPtr<Graphics::Shader> m_FinalPassAlphaShader;
+            SharedPtr<Graphics::DescriptorSet> m_FinalPassAlphaDescriptorSet;
             SharedPtr<Graphics::DescriptorSet> m_FinalPassDescriptorSet;
 
             Texture2D* m_BloomTexture               = nullptr;
@@ -488,6 +670,7 @@ namespace Lumos
             SharedPtr<Graphics::Shader> m_DepthPrePassShader;
             SharedPtr<Graphics::Shader> m_DepthPrePassAlphaShader;
             SharedPtr<Graphics::Shader> m_DepthPrePassAnimShader;
+            SharedPtr<Graphics::Shader> m_DepthPrePassInstancedShader;
             SharedPtr<Graphics::Shader> m_DepthPrePassAlphaAnimShader;
             Texture2D* m_SSAOTexture  = nullptr;
             Texture2D* m_SSAOTexture1 = nullptr;
@@ -538,6 +721,43 @@ namespace Lumos
             SharedPtr<Graphics::DescriptorSet> m_SharpenPassDescriptorSet;
             SharedPtr<Graphics::Shader> m_SharpenShader;
 
+            // Temporal AA: BeginScene jitters the 3D camera, TAAPass blends into a history pair
+            void EnsureTAATargets();
+            bool TAAWanted() const;
+            SharedPtr<Graphics::Shader> m_TAAShader;
+            SharedPtr<Graphics::DescriptorSet> m_TAADescriptorSet;
+            Texture2D* m_TAAHistory[2] = {};
+            u32 m_TAAHistoryIndex      = 0;
+            u32 m_TAAFrame             = 0;
+            bool m_TAAAllocated        = false;
+            bool m_TAAHistoryValid     = false;
+            bool m_TAAJittered         = false; // this frame's 3D camera carries the jitter
+            Vec2 m_TAAJitter;                   // in NDC
+            Mat4 m_TAAViewProj;                 // without the jitter
+            Mat4 m_TAAPrevViewProj;
+            Vec3 m_TAAPrevCameraPos;
+
+            SharedPtr<Graphics::Shader> m_ContactShadowShader;
+            SharedPtr<Graphics::DescriptorSet> m_ContactShadowDescriptorSet;
+            Texture2D* m_ContactShadowTexture = nullptr;
+            bool m_ContactShadowsAllocated    = false;
+            bool m_ContactShadowsValid        = false; // filled last frame: what this frame's forward pass may read
+
+            SharedPtr<Graphics::Shader> m_VolumetricFogShader;
+            SharedPtr<Graphics::Shader> m_VolumetricFogApplyShader;
+            SharedPtr<Graphics::DescriptorSet> m_VolumetricFogDescriptorSet;
+            SharedPtr<Graphics::DescriptorSet> m_VolumetricFogApplyDescriptorSet;
+            Texture2D* m_FogTexture      = nullptr; // half res
+            Texture2D* m_FogDepthTexture = nullptr;
+            bool m_FogAllocated          = false;
+
+            ProbeGI* m_GI = nullptr;
+
+            // the scene's first directional light this frame (lux, before exposure)
+            bool m_HasSun = false;
+            Vec3 m_SunDirection;
+            Vec3 m_SunIlluminance;
+
             SceneRendererStats m_Stats;
 
 #ifdef LUMOS_PLATFORM_WINDOWS
@@ -556,6 +776,8 @@ namespace Lumos
 
             bool m_CurrentUIText = false;
             Vec2 m_UIProjectionSize = Vec2(0.0f, 0.0f);
+            bool m_UISwapchainTarget = false;
+            TDArray<UI_Widget*>* m_UIDeferredText = nullptr;
         };
     }
 }

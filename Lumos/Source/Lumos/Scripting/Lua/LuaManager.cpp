@@ -7,8 +7,13 @@
 #include "Core/OS/FileSystem.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
+#include "Core/OS/OS.h"
 #include "Core/Engine.h"
 #include "Core/DebugMenu.h"
+#include "Core/ToolPanels.h"
+#include "Core/BusyOverlay.h"
+#include "Core/Undo.h"
+#include "Graphics/Gizmo.h"
 #include "Core/OS/Input.h"
 #include "Core/TestRunner.h"
 #include "Scene/SceneManager.h"
@@ -32,6 +37,7 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Model.h"
 #include "Scene/Component/ModelComponent.h"
+#include "Graphics/Animation/AnimationController.h"
 #include "Scene/Component/VoxelWorldComponent.h"
 #include "Graphics/Material.h"
 #include "Graphics/Environment.h"
@@ -44,10 +50,13 @@
 #include "Audio/Sound.h"
 #include "Audio/SoundNode.h"
 #include "Scene/Component/TextureMatrixComponent.h"
+#include "Scene/Component/DecalComponent.h"
 #include "Scene/Component/RigidBody2DComponent.h"
 #include "Scene/Component/RigidBody3DComponent.h"
 #include "Scene/Component/AIComponent.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/MeshCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 
 #include "ImGuiLua.h"
@@ -89,65 +98,11 @@
 #include <experimental/filesystem>
 #endif
 
-#ifdef CUSTOM_SMART_PTR
-namespace sol
-{
-    template <typename T>
-    struct unique_usertype_traits<Lumos::SharedPtr<T>>
-    {
-        typedef T type;
-        typedef Lumos::SharedPtr<T> actual_type;
-        static const bool value = true;
-
-        static bool is_null(const actual_type& ptr)
-        {
-            return ptr == nullptr;
-        }
-
-        static type* get(const actual_type& ptr)
-        {
-            return ptr.get();
-        }
-    };
-
-    template <typename T>
-    struct unique_usertype_traits<Lumos::UniquePtr<T>>
-    {
-        typedef T type;
-        typedef Lumos::UniquePtr<T> actual_type;
-        static const bool value = true;
-
-        static bool is_null(const actual_type& ptr)
-        {
-            return ptr == nullptr;
-        }
-
-        static type* get(const actual_type& ptr)
-        {
-            return ptr.get();
-        }
-    };
-
-    template <typename T>
-    struct unique_usertype_traits<Lumos::WeakPtr<T>>
-    {
-        typedef T type;
-        typedef Lumos::WeakPtr<T> actual_type;
-        static const bool value = true;
-
-        static bool is_null(const actual_type& ptr)
-        {
-            return ptr == nullptr;
-        }
-
-        static type* get(const actual_type& ptr)
-        {
-            return ptr.get();
-        }
-    };
-}
-
-#endif
+#include "LuaSmartPtrTraits.h"
+#include "MeshLua.h"
+#include "AudioLua.h"
+#include "SystemLua.h"
+#include "WidgetsLua.h"
 
 namespace Lumos
 {
@@ -272,7 +227,10 @@ namespace Lumos
         AddMethod("Input", "GetMouseHeld",             "bool",  "(b: MouseButton) -> bool");
         AddMethod("Input", "GetMousePosition",         "Vec2",  "() -> Vec2");
         AddMethod("Input", "GetScrollOffset",          "float", "() -> float");
+        AddMethod("Input", "GetScrollOffsetX",         "float", "() -> float");
         AddMethod("Input", "SetMouseCaptured",         "",      "(captured: bool) -> void");
+        AddMethod("Input", "GetMouseDelta",            "Vec2",  "() -> Vec2  -- movement this frame, pixels");
+        AddMethod("Input", "Haptic",                   "",      "(kind?: string) -> void");
         AddMethod("Input", "GetControllerAxis",        "float", "(id: int, axis: int) -> float");
         AddMethod("Input", "GetControllerName",        "string","(id: int) -> string");
         AddMethod("Input", "GetControllerHat",         "int",   "(id: int, hat: int) -> int");
@@ -303,8 +261,11 @@ namespace Lumos
         AddMethod("Input", "GetLongPressActive",       "bool",  "() -> bool");
         AddMethod("Input", "GetLongPressPosition",     "Vec2",  "() -> Vec2");
         AddMethod("Input", "GetTouchCount",            "int",   "() -> int");
+        AddMethod("Input", "GetTouches",               "table", "() -> { {x, y, id}, ... } every finger down");
+        AddMethod("Input", "SetTouches",               "void",  "(touches: table) -> fake fingers, for tests");
         AddMethod("Input", "GetScreenSize",            "Vec2",  "() -> Vec2");
         AddMethod("Input", "GetDPIScale",              "float", "() -> float");
+        AddMethod("Input", "GetContentScale",          "float", "() -> float");
         AddConstructor("Input");
 
         // Logging.
@@ -392,7 +353,7 @@ namespace Lumos
         AddField("RaycastHit", "distance", "float");
         AddMethod("RaycastHit", "Hit", "bool", "() -> bool");
 
-        AddGlobal("Raycast",         "RaycastHit", "(o: Vec3, d: Vec3, maxDist: float) -> RaycastHit");
+        AddGlobal("Raycast",         "RaycastHit", "(o: Vec3, d: Vec3, maxDist: float, ignore?: RigidBody3D) -> RaycastHit  -- ignore: skip this body (the one casting)");
         AddGlobal("RaycastAll",      "table",      "(o: Vec3, d: Vec3, maxDist: float) -> RaycastHit[]");
         AddGlobal("TerrainHeightAt", "float",      "(wx: float, wz: float) -> float|nil");
 
@@ -409,6 +370,7 @@ namespace Lumos
         AddMethod("PhysicsMaterial", "Concrete", "PhysicsMaterial", "() -> PhysicsMaterial");
 
         AddMethod("Physics", "SetGravity3D", "",     "(g: Vec3) -> void");
+        AddMethod("Physics", "SetContinuousCollision", "", "(enabled: bool) -> void  -- sweep fast 3D bodies so they cannot tunnel (default on)");
         AddMethod("Physics", "GetGravity3D", "Vec3", "() -> Vec3");
         AddConstructor("Physics");
 
@@ -430,11 +392,12 @@ namespace Lumos
         AddGlobal("SwitchSceneByIndex",  "",            "(i: int) -> void");
         AddGlobal("SwitchSceneByName",   "",            "(name: string) -> void");
         AddGlobal("SwitchScene",         "",            "() -> void");
+        AddGlobal("RemoveSceneFromProject", "",         "(index: int) -> bool");
         AddGlobal("ExitApp",             "",            "() -> void");
         AddGlobal("GetPlatformName",     "string",      "() -> string  -- iOS/Android/macOS/Windows/Linux");
         AddGlobal("SetPhysicsDebugFlags","",            "(flags: int) -> void");
         AddGlobal("SetSkyColour",        "",            "(rgb: Vec3) -> void");
-        AddGlobal("Debug",               "table",       "-- in-game debug overlay: RegisterCommand/RegisterToggle/RegisterFloat/Run/Open/ShowPanel");
+        AddGlobal("Debug",               "table",       "-- in-game debug overlay: RegisterCommand/RegisterToggle/RegisterFloat/Run/Open/ShowPanel, frame explorer: SetPassCutoff/GetPassCutoff/StepPass/GetPassCount/GetPassName/GetPassState, physics explorer: SetPhysicsStepping/IsPhysicsStepping/StepPhysicsStage/StepPhysicsSubstep/GetPhysicsStage");
         AddGlobal("DebugLine",           "",            "(a: Vec3, b: Vec3, thickness: float, col: Vec4) -> void");
         AddGlobal("DebugPoint",          "",            "(p: Vec3, r: float, col: Vec4) -> void");
         AddGlobal("DebugRect",           "",            "(min: Vec2, max: Vec2, col: Vec4, z?: float, thickness?: float) -> void");
@@ -442,6 +405,7 @@ namespace Lumos
         AddGlobal("DebugCircle",         "",            "(centre: Vec2, r: float, col: Vec4, z?: float, thickness?: float) -> void");
 
         AddGlobal("GetEntityByName",     "Entity",      "(scene: Scene, name: string) -> Entity");
+        AddGlobal("FindEntityByName",    "Entity",      "(scene: Scene, name: string) -> Entity");
         AddGlobal("GetAllEntities",      "table",       "() -> Entity[]");
         AddGlobal("EachEntity",          "",            "() -> iterator");
 
@@ -457,12 +421,29 @@ namespace Lumos
         AddGlobal("AddDecorSphere",      "Entity", "(scene: Scene, name?: string, pos: Vec3, radius: float, colour: Vec4) -> Entity");
         AddGlobal("AddDecorCube",        "Entity", "(scene: Scene, name?: string, pos: Vec3, scale: Vec3, colour: Vec4) -> Entity");
         AddGlobal("AddPhysicsSphere",    "Entity", "(scene: Scene, name: string, pos: Vec3, radius: float, inverseMass: float, colour: Vec4) -> Entity");
+        AddMethod("Scene", "Serialise",   "", "(folder: string) -> void  -- writes <folder><scene name>.lsn; physical path ending in /");
+        AddMethod("Scene", "Deserialise", "", "(folder: string) -> void  -- replaces the scene's entities with the saved ones");
+        AddGlobal("ImportGLTFScene",     "Entity", "(scene: Scene, path: string) -> Entity  -- a glTF as entities (nodes, models, lights, cameras) under one parent; invalid if it will not load");
+        AddGlobal("AddMeshCollider",     "bool",   "(entity: Entity, lcolPath?: string, rebake?: bool) -> bool  -- static triangle-mesh collision from the entity's model. With a path: loaded from that .lcol, or built and written there if it is missing (or rebake)");
+        AddGlobal("GetMeshColliderTriangles", "int", "(entity: Entity) -> int  -- 0 until the mesh collider has been built");
+        AddGlobal("AddPhysicsCapsule",   "Entity", "(scene: Scene, name: string, pos: Vec3, radius: float, segment: float, inverseMass: float, colour: Vec4) -> Entity  -- upright, radius*2 + segment tall");
         AddGlobal("SetEntityPulse",      "",       "(e: Entity, albedo: Vec4, emissive: float) -> void");
+        AddGlobal("SetEntityMaterial",   "",       "(e: Entity, albedo: Vec4, roughness: float, metallic: float) -> void");
+        AddGlobal("SetEntityVisible",    "",       "(e: Entity, visible: bool) -> void  -- hidden meshes keep their body and shadow");
+        AddGlobal("SphereCast",          "RaycastHit", "(o: Vec3, d: Vec3, radius: float, maxDist: float, ignore?: RigidBody3D) -> RaycastHit");
+        AddGlobal("UIRect",              "",       "(id: string, x: float, y: float, w: float, h: float, colour: Vec4, radius?: float) -> void  -- free-standing, screen px");
+        AddGlobal("UIRing",              "",       "(id: string, x: float, y: float, radius: float, colour: Vec4, thickness?: float) -> void");
         AddGlobal("SetModelEmissive",    "",       "(m: Model, colour: Vec4, intensity: float) -> void");
         AddGlobal("UISetClickOnRelease", "",       "(enable: bool) -> void  -- touch: clicks fire on release-inside w/ drag-slop cancel");
+        AddGlobal("UIPushMonoText", "",       "() -> void  -- widgets built until UIPopMonoText use the monospace font");
+        AddGlobal("UIPopMonoText", "",        "() -> void");
+        AddGlobal("UISetScrollbarFade", "",        "(enable: bool) -> void  -- scroll bars show only while scrolling");
+        AddGlobal("UISetLayeredBatching", "",      "(enable: bool) -> void  -- draw each panel's quads then its text (default on); off = strict tree order");
+        AddGlobal("UISetScrollPhysics", "",        "(enable: bool) -> void  -- momentum + rubber band scrolling");
         AddGlobal("UIBeginScrollArea", "",         "(id: string, height: float) -> void  -- scrollable clipped region; height in px (DPI-scale it yourself)");
         AddGlobal("UIEndScrollArea", "",           "() -> void");
         AddGlobal("UIFocusNextTextInput", "",      "() -> void  -- next text input built claims focus (opens iOS keyboard)");
+        AddGlobal("UIClickableRects", "table",     "() -> { {x, y, w, h}, ... }  -- clickable widgets on screen, in mouse coordinates");
 
         // Entity core methods (Has/Add/Get/etc per-component come from the macro).
         AddMethod("Entity", "Valid",       "bool",   "() -> bool");
@@ -522,6 +503,7 @@ namespace Lumos
         AddGlobal("GetAssetPath",           "string",    "() -> string");
         AddGlobal("ReadFile",               "string",    "(path: string) -> string");
         AddGlobal("WriteFile",              "bool",      "(path: string, content: string) -> bool");
+        AddGlobal("AppendFile",             "bool",      "(path: string, content: string) -> bool");
 
         AddField("Light", "Intensity", "float");
         AddField("Light", "Radius",    "float");
@@ -530,6 +512,12 @@ namespace Lumos
         AddField("Light", "Position",  "Vec3");
         AddField("Light", "Type",      "int");
         AddField("Light", "Angle",     "float");
+        AddField("Light", "CastShadows",      "bool");
+        AddField("Light", "ShadowResolution", "int");
+        AddField("Light", "ShadowUpdate",     "int");
+        AddField("Light", "ShadowBias",       "float");
+        AddField("Light", "ShadowNormalBias", "float");
+        AddField("Light", "ShadowNear",       "float");
 
         AddConstructor("Camera", "(fov: float, aspect: float, near?: float, far?: float) -> Camera");
         AddMethod("Camera", "SetIsOrthographic", "",     "(b: bool) -> void");
@@ -548,6 +536,23 @@ namespace Lumos
         AddConstructor("Model");
         AddMethod("ModelComponent", "GetModel",       "Model", "() -> Model");
         AddMethod("ModelComponent", "LoadPrimitive",  "",      "(p: PrimitiveType) -> void");
+        AddMethod("ModelComponent", "GetAnimationCount",    "int",    "() -> int");
+        AddMethod("ModelComponent", "GetAnimationName",     "string", "(i: int) -> string  -- 0-based");
+        AddMethod("ModelComponent", "HasAnimation",         "bool",   "(name: string) -> bool");
+        AddMethod("ModelComponent", "PlayAnimation",        "bool",   "(name: string, fade?: float, loop?: bool, speed?: float, restart?: bool) -> bool  -- fades every other clip out");
+        AddMethod("ModelComponent", "SetAnimationWeight",   "",       "(name: string, weight: float, loop?: bool) -> void  -- blend directly; 0 removes it");
+        AddMethod("ModelComponent", "FadeAnimation",        "",       "(name: string, weight: float, seconds: float) -> void");
+        AddMethod("ModelComponent", "SetAnimationSpeed",    "",       "(name: string, speed: float) -> void");
+        AddMethod("ModelComponent", "SetAnimationTime",     "",       "(name: string, seconds: float) -> void");
+        AddMethod("ModelComponent", "GetAnimationTime",     "float",  "(name: string) -> float  -- -1 when not playing");
+        AddMethod("ModelComponent", "GetAnimationWeight",   "float",  "(name: string) -> float");
+        AddMethod("ModelComponent", "GetAnimationDuration", "float",  "(name: string) -> float");
+        AddMethod("ModelComponent", "IsAnimationFinished",  "bool",   "(name: string) -> bool  -- a non-looping clip at its end");
+        AddMethod("ModelComponent", "SetRootMotionBone",    "bool",   "(bone: string, lockRotation?: bool) -> bool  -- that bone's horizontal travel (and turning) leaves the pose; read it with ConsumeRootMotion / ConsumeRootRotation");
+        AddMethod("ModelComponent", "ConsumeRootRotation",  "float",  "() -> float  -- degrees the root turned since the last call (lockRotation)");
+        AddMethod("ModelComponent", "ConsumeRootMotion",    "Vec3",   "() -> Vec3  -- root-motion travel since the last call, in the model's space");
+        AddGlobal("GetBoneWorldPosition", "Vec3|nil", "(entity: Entity, bone: string) -> Vec3|nil");
+        AddGlobal("GetBoneWorldRotation", "Quat|nil", "(entity: Entity, bone: string) -> Quat|nil");
 
         AddMethod("Mesh", "GetMaterial",   "Material",  "() -> Material");
         AddMethod("Mesh", "SetMaterial",   "",          "(m: Material) -> void");
@@ -634,8 +639,9 @@ namespace Lumos
         AddGlobal("UILabel",        "", "(name: string, text: string) -> void");
         AddGlobal("UILabelWrapped", "", "(name: string, text: string, maxWidth: float) -> void");
         AddGlobal("UILabelEllipsis","", "(name: string, text: string, maxWidth: float) -> void");
+        AddGlobal("UILabelLink",    "UI_Interaction", "(name: string, text: string, maxWidth: float) -> UI_Interaction  -- clickable label, looks like plain text");
         AddGlobal("UIButton",       "UI_Interaction", "(text: string) -> UI_Interaction");
-        AddGlobal("UIImage",        "", "(t: Texture2D) -> void");
+        AddGlobal("UIImage",        "UI_Interaction", "(name: string, t: Texture2D, size: Vec2) -> UI_Interaction");
         AddGlobal("UISeparator",    "", "(w?: float) -> void");
         AddGlobal("UISpacer",       "", "(h?: float) -> void");
         AddGlobal("UISlider",       "float", "(label: string, value: float, min?: float, max?: float) -> float");
@@ -655,12 +661,14 @@ namespace Lumos
         AddField("UI_Interaction", "widget",   "UI_Widget");
         AddField("UI_Interaction", "hovering", "bool");
         AddField("UI_Interaction", "clicked",  "bool");
+        AddField("UI_Interaction", "pressed",  "bool");
         AddField("UI_Interaction", "dragging", "bool");
 
         // FileDialog table.
         AddMethod("FileDialog", "OpenFile",   "string", "(filter?: string, defaultPath?: string) -> string");
         AddMethod("FileDialog", "SaveFile",   "string", "(filter?: string, defaultPath?: string, defaultName?: string) -> string");
         AddMethod("FileDialog", "PickFolder", "string", "(defaultPath?: string) -> string");
+        AddMethod("FileDialog", "ImportFiles", "table", "(extensions: string, destDir: string) -> table (iOS only)");
         AddConstructor("FileDialog");
 
         // ---- Enums ----
@@ -903,6 +911,7 @@ namespace Lumos
             "SetActive",
             "Active",
             "GetEntityByName",
+            "FindEntityByName",
             "GetAllEntities",
             "EachEntity",
             "AddPyramidEntity",
@@ -925,7 +934,9 @@ namespace Lumos
 
         BindInputLua(*m_State);
         BindMathsLua(*m_State);
-        BindImGuiLua(*m_State);
+        // no ImGui context in the editor: the bindings would crash, so they are not there (scripts see nil)
+        if(Application::IsImGuiEnabled())
+            BindImGuiLua(*m_State);
         BindECSLua(*m_State);
         BindLogLua(*m_State);
         BindSceneLua(*m_State);
@@ -934,6 +945,10 @@ namespace Lumos
         BindAppLua(*m_State);
         BindVoxelLua(*m_State);
         BindCSVLua(*m_State);
+        BindMeshLua(*m_State);
+        BindAudioLua(*m_State);
+        BindSystemLua(*m_State);
+        BindWidgetsLua(*m_State);
         TestRunner::Get().BindLua(*m_State);
 
         //GenerateLuaStubs(*m_State, "/Users/jmorton/Dev/Lumos-Dev/Lumos/Source/Lumos/Scripting/Lua/LuaStubs.lua");
@@ -979,6 +994,33 @@ namespace Lumos
             luaScript.SetThisComponent();
             luaScript.OnInit();
         }
+        m_State->set_function("ScriptEnv", [this, scene](sol::optional<int> index) -> sol::object
+        {
+            auto& reg   = scene->GetRegistry();
+            auto scripts = reg.view<LuaScriptComponent>();
+            int want    = index.value_or(0);
+            int i       = 0;
+            for(auto e : scripts)
+            {
+                auto& sc = reg.get<LuaScriptComponent>(e);
+                if(i++ != want)
+                    continue;
+                if(!sc.Loaded())
+                    break;
+                return sol::object(sc.GetSolEnvironment());
+            }
+            LWARN("ScriptEnv(%d): no loaded script at that index", want);
+            return sol::lua_nil;
+        });
+    }
+
+    void LuaManager::OnBackgroundUpdate(Scene* scene, float dt)
+    {
+        if(!scene)
+            return;
+        auto& registry = scene->GetRegistry();
+        for(auto entity : registry.view<LuaScriptComponent>())
+            registry.get<LuaScriptComponent>(entity).OnBackgroundUpdate(dt);
     }
 
     void LuaManager::OnUpdate(Scene* scene)
@@ -1068,6 +1110,7 @@ namespace Lumos
                         {
                             sol::error e = lr;
                             LERROR("require('%s') compile failed: %s", vfsPath.c_str(), e.what());
+                            TestRunner::ReportScriptError(vfsPath.c_str(), e.what());
                             return sol::make_object(l, sol::lua_nil);
                         }
                         sol::protected_function fn = lr;
@@ -1076,6 +1119,7 @@ namespace Lumos
                         {
                             sol::error e = r;
                             LERROR("require('%s') run failed: %s", vfsPath.c_str(), e.what());
+                            TestRunner::ReportScriptError(vfsPath.c_str(), e.what());
                             return sol::make_object(l, sol::lua_nil);
                         }
                         return r.get<sol::object>();
@@ -1094,9 +1138,22 @@ namespace Lumos
         searchers[searchers.size() + 1] = vfsSearcher;
     }
 
+    // No warning on a miss: for callers that are only asking whether it exists.
+    static Entity FindEntityByName(Scene* scene, const std::string& name)
+    {
+        entt::entity e = entt::null;
+        scene->GetRegistry().view<NameComponent>().each([&](const entt::entity& entity, const NameComponent& component)
+                                                        {
+                                                            if(name == component.name)
+                                                                e = entity; });
+        return { e, scene };
+    }
+
     Entity GetEntityByName(Scene* scene, const std::string& name)
     {
         LUMOS_PROFILE_FUNCTION();
+        if(!scene) // asked before a scene has loaded
+            return {};
         entt::entity e           = entt::null;
         entt::registry& registry = scene->GetRegistry();
         registry.view<NameComponent>().each([&](const entt::entity& entity, const NameComponent& component)
@@ -1322,6 +1379,7 @@ namespace Lumos
         {
             sol::error err = result;
             LERROR("[Lua] Script error in '%s': %s", vfsPath.c_str(), err.what());
+            TestRunner::ReportScriptError(vfsPath.c_str(), err.what());
         }
         ScratchEnd(scratch);
     }
@@ -1356,15 +1414,32 @@ namespace Lumos
             return wrap; });
 
         auto pc = state.create_table("PointCloud");
-        pc.set_function("FromCSV", [](LuaCSV& c, int xCol, int yCol, int zCol, double posScale, double baseSize, int magCol, int ciCol) -> int
+        // Star appearance, all in one place. Sizes are multiples of the caller's
+        // baseSize, which is the size of a magnitude 5 star; brightness is a
+        // compressed magnitude law (see below). Tuned against a naked-eye sky
+        // reference: a few big saturated discs over a field of small dim dots.
+        constexpr float SIZE_AT_MAG0   = 2.30f; // size multiplier at magnitude 0
+        constexpr float SIZE_PER_MAG   = 0.22f; // ...shrinking by this per magnitude
+        constexpr float SIZE_MIN_MULT  = 0.72f;
+        constexpr float SIZE_MAX_MULT  = 3.40f;
+        constexpr float BRIGHT_K       = 0.53f; // 1 = the true 10^(-0.4 mag) law
+        constexpr float BRIGHT_REF_MAG = 4.4f;  // magnitude that renders at peak 1.0
+        constexpr float COLOUR_SAT     = 3.6f;  // blackbody saturation boost
+        // magLimit (optional): skip rows fainter than this magnitude. A full
+        // star catalogue is mostly things too faint to be worth a quad, and at
+        // sky densities they pile into mush rather than reading as more stars.
+        pc.set_function("FromCSV", [](LuaCSV& c, int xCol, int yCol, int zCol, double posScale, double baseSize, int magCol, int ciCol, sol::optional<double> magLimit) -> int
                         {
             uint32_t rows = c.csv.rowCount;
             if(rows == 0 || xCol < 0 || yCol < 0 || zCol < 0)
                 return 0;
 
             // Dedicated arena - too big for scratch (rows * 32B).
-            Arena* arena = ArenaAlloc(rows * sizeof(Graphics::PointCloudVertex) + 1024);
+            Arena* arena = ArenaAlloc(rows * (sizeof(Graphics::PointCloudVertex) + sizeof(uint32_t)) + 1024);
             Graphics::PointCloudVertex* pts = PushArrayNoZero(arena, Graphics::PointCloudVertex, rows);
+            // magLimit skips rows, so the Nth point is NOT the Nth row. Keep the
+            // row each point came from or every pick would name the wrong star.
+            uint32_t* srcRows = PushArrayNoZero(arena, uint32_t, rows);
             uint32_t n = 0;
             for(uint32_t r = 0; r < rows; r++)
             {
@@ -1374,11 +1449,20 @@ namespace Lumos
 
                 float mag = magCol >= 0 ? (float)CSVF64(c.csv, r, (uint32_t)magCol) : 4.0f;
 
+                if(magCol >= 0 && magLimit && mag > (float)magLimit.value())
+                    continue;
+
+                // Size in pixels. baseSize is the size of a MAGNITUDE 5 star -
+                // the ordinary ones - and brighter stars grow from there. What
+                // sells a sky is the spread: a handful of big bright discs over a
+                // field of small dots, not one uniform dot size (the old law only
+                // spanned 1.8x once the shader's floor was applied, so every star
+                // came out the same).
                 float size = (float)baseSize;
                 if(magCol >= 0)
                 {
-                    float t = 1.0f + (2.0f - mag) * 0.20f;
-                    t       = t < 0.6f ? 0.6f : (t > 2.2f ? 2.2f : t);
+                    float t = SIZE_AT_MAG0 - SIZE_PER_MAG * mag;
+                    t       = t < SIZE_MIN_MULT ? SIZE_MIN_MULT : (t > SIZE_MAX_MULT ? SIZE_MAX_MULT : t);
                     size    = (float)baseSize * t;
                 }
 
@@ -1390,21 +1474,46 @@ namespace Lumos
                     bv       = bv < -0.4f ? -0.4f : (bv > 2.0f ? 2.0f : bv);
                     float kelvin = 4600.0f * (1.0f / (0.92f * bv + 1.7f) + 1.0f / (0.92f * bv + 0.62f));
                     colour       = Colour::BlackbodyColour(kelvin);
+
+                    // Push it away from grey, then normalise so the largest
+                    // channel is 1: the shader wants a pure HUE with brightness
+                    // as a separate scalar. Blackbody colours are nearly white to
+                    // begin with, and a star field that keeps brightness in the
+                    // rgb ends up saturating every channel and rendering white.
+                    float lum = 0.2126f * colour.x + 0.7152f * colour.y + 0.0722f * colour.z;
+                    colour.x  = lum + (colour.x - lum) * COLOUR_SAT;
+                    colour.y  = lum + (colour.y - lum) * COLOUR_SAT;
+                    colour.z  = lum + (colour.z - lum) * COLOUR_SAT;
+                    colour.x  = colour.x < 0.0f ? 0.0f : colour.x;
+                    colour.y  = colour.y < 0.0f ? 0.0f : colour.y;
+                    colour.z  = colour.z < 0.0f ? 0.0f : colour.z;
+                    float mx  = colour.x > colour.y ? colour.x : colour.y;
+                    mx        = mx > colour.z ? mx : colour.z;
+                    if(mx > 0.0001f)
+                    {
+                        colour.x /= mx;
+                        colour.y /= mx;
+                        colour.z /= mx;
+                    }
                 }
 
                 if(magCol >= 0)
                 {
-                    float b  = 1.85f - mag * 0.20f;
-                    colour.w = b < 0.15f ? 0.15f : (b > 2.2f ? 2.2f : b);
+                    // Peak brightness, linear. The real law is 10^(-0.4*mag),
+                    // which over the catalogue is 2500:1 and unrenderable; BRIGHT_K
+                    // compresses it to about 60:1, which fits between "clips to a
+                    // white core and blooms" and "still has visible colour".
+                    colour.w = std::pow(10.0f, -0.4f * BRIGHT_K * (mag - BRIGHT_REF_MAG));
                 }
 
                 pts[n].PosSize = Vec4(x, y, z, size);
                 pts[n].Colour  = colour;
+                srcRows[n]     = r;
                 n++;
             }
 
             auto cloud = CreateSharedPtr<Graphics::PointCloud>();
-            cloud->SetPoints(pts, n);
+            cloud->SetPoints(pts, n, srcRows);
             Graphics::RegisterPointCloud(cloud);
             ArenaRelease(arena);
             return (int)n; });
@@ -1418,6 +1527,16 @@ namespace Lumos
         pc.set_function("SetStreak", [](const Vec3& dir, float amount)
                         { Graphics::SetPointCloudStreak(dir, amount); });
 
+        pc.set_function("SetLook", [](float spike, float spikeLen, float sigmaFloor)
+                        { Graphics::SetPointCloudLook(spike, spikeLen, sigmaFloor); });
+
+        // Hide one star's sprite (source row as in FromCSV); -1 = none.
+        pc.set_function("SetHiddenRow", [](int row)
+                        { Graphics::SetPointCloudHiddenSource(row); });
+
+        // Returns the CSV ROW of the star under (nx, ny) in 0..1 screen space, or
+        // -1. Row, not point index: FromCSV filters, so the two differ (see
+        // PointCloud::SetPoints).
         pc.set_function("PickScreen", [](float nx, float ny) -> int
                         {
             Scene* scene = Application::Get().GetCurrentScene();
@@ -1526,6 +1645,7 @@ namespace Lumos
                         { Graphics::AddWorldLabel(pos, text.c_str(), (float)size, colour, local.value_or(false), background.value_or(Vec4(0.0f))); });
         wt.set_function("Clear", []()
                         { Graphics::ClearWorldLabels(); });
+        wt["MultiLine"] = true; // "\n" in the text is honoured
 
         auto pl = state.create_table("Planet");
         pl.set_function("Add", [](const Vec3& pos, double radius, const Vec3& starPos, int type,
@@ -1567,15 +1687,18 @@ namespace Lumos
         input.set_function("GetMouseHeld", [](Lumos::InputCode::MouseKey key) -> bool
                            { return Input::Get().GetMouseHeld(key); });
 
+        // game-view space: in the editor the game draws into the Game tab, not the whole window
         input.set_function("GetMousePosition", []() -> Vec2
                            {
                                Vec2 pos = Input::Get().GetMousePosition();
                                Window* w = Application::Get().GetWindow();
-                               return w ? pos * w->GetMousePosScale() : pos;
+                               return (w ? pos * w->GetMousePosScale() : pos) - Application::Get().GetGameViewPosition();
                            });
 
         input.set_function("GetScrollOffset", []() -> float
                            { return Input::Get().Get().GetScrollOffset(); });
+        input.set_function("GetScrollOffsetX", []() -> float
+                           { return Input::Get().GetScrollOffsetX(); });
 
         // Injected pointer state - what a gamepad's virtual cursor drives. The
         // UI hit-tests against Input's stored position, so setting it here (and
@@ -1587,7 +1710,8 @@ namespace Lumos
                                Window* w = Application::Get().GetWindow();
                                const float s = w ? w->GetMousePosScale() : 1.0f;
                                const float inv = (s != 0.0f) ? 1.0f / s : 1.0f;
-                               Input::Get().StoreMousePosition(x * inv, y * inv);
+                               Vec2 view       = Application::Get().GetGameViewPosition();
+                               Input::Get().StoreMousePosition((x + view.x) * inv, (y + view.y) * inv);
                            });
 
         input.set_function("SetMouseClicked", [](Lumos::InputCode::MouseKey key, bool down)
@@ -1614,12 +1738,25 @@ namespace Lumos
         input.set_function("SetMouseOnScreen", [](bool onScreen)
                            { Input::Get().SetMouseOnScreen(onScreen); });
 
+        // "selection" (default), "light", "medium", "heavy". Does nothing where there's no haptic engine.
+        input.set_function("Haptic", [](sol::optional<std::string> kind)
+                           {
+                               int k = 0;
+                               if(kind)
+                                   k = *kind == "light" ? 1 : (*kind == "medium" ? 2 : (*kind == "heavy" ? 3 : 0));
+                               Lumos::OS::Get().Haptic(k);
+                           });
+
         input.set_function("SetMouseCaptured", [](bool captured)
                            {
                                Window* w = Application::Get().GetWindow();
                                if(w) w->HideMouse(captured);
                                Input::Get().SetMouseMode(captured ? MouseMode::Captured : MouseMode::Visible);
+                               // capturing can move the cursor; that jump is not the player's hand
+                               Input::Get().ResetMouseDelta();
                            });
+        input.set_function("GetMouseDelta", []() -> Vec2
+                           { return Input::Get().GetMouseDelta(); });
 
         input.set_function("GetControllerAxis", [](int id, int axis) -> float
                            { return Input::Get().GetControllerAxis(id, axis); });
@@ -1678,12 +1815,52 @@ namespace Lumos
                            { return Input::Get().GetGestureLongPressLocation(); });
         input.set_function("GetTouchCount", []() -> uint32_t
                            { return Input::Get().GetTouchCount(); });
+        // Fake fingers for scripted tests on desktop: same shape as GetTouches
+        input.set_function("SetTouches", [](sol::table list)
+                           {
+            Input::TouchPoint pts[Input::MaxTouchPoints];
+            uint32_t n = 0;
+            for(auto& kv : list)
+            {
+                if(n >= Input::MaxTouchPoints || !kv.second.is<sol::table>())
+                    continue;
+                sol::table t   = kv.second.as<sol::table>();
+                pts[n].Position = Vec2(t.get_or("x", 0.0f), t.get_or("y", 0.0f));
+                pts[n].Id       = (uint64_t)t.get_or("id", (double)(n + 1));
+                n++;
+            }
+            Input::Get().SetTouchPoints(pts, n);
+            Input::Get().SetTouchCount(n); });
+        // { {x=, y=, id=}, ... } for every finger down, in GetMousePosition space
+        input.set_function("GetTouches", [](sol::this_state ts) -> sol::table
+                           {
+            sol::state_view lua(ts);
+            sol::table out = lua.create_table();
+            const Input& in = Input::Get();
+            for(uint32_t i = 0; i < in.GetTouchPointCount(); i++)
+            {
+                const auto& t = in.GetTouchPoint(i);
+                sol::table e  = lua.create_table();
+                Vec2 view     = Application::Get().GetGameViewPosition();
+                e["x"]  = t.Position.x - view.x;
+                e["y"]  = t.Position.y - view.y;
+                e["id"] = (double)(t.Id & 0xFFFFFFFFFFFFull);
+                out[i + 1] = e;
+            }
+            return out; });
 
         input.set_function("GetScreenSize", []() -> Vec2
-                           { Window* w = Application::Get().GetWindow(); return w ? Vec2((float)w->GetWidth(), (float)w->GetHeight()) : Vec2(0.0f, 0.0f); });
+                           { return Application::Get().GetGameViewSize(); });
 
         input.set_function("GetDPIScale", []() -> float
                            { Window* w = Application::Get().GetWindow(); return w ? w->GetDPIScale() : 1.0f; });
+
+        // What to SIZE the UI by. GetDPIScale is the coordinate conversion
+        // (framebuffer px per window unit) and is 1.0 on X11 whatever the panel;
+        // this is the desktop's own scaling factor, so a 200% 4K display reports 2
+        // here and 1 there. Identical on macOS/iOS.
+        input.set_function("GetContentScale", []() -> float
+                           { Window* w = Application::Get().GetWindow(); return w ? w->GetContentScale() : 1.0f; });
 
         std::initializer_list<std::pair<sol::string_view, Lumos::InputCode::Key>> keyItems = {
             { "A", Lumos::InputCode::Key::A },
@@ -1748,6 +1925,10 @@ namespace Lumos
             { "LeftControl", Lumos::InputCode::Key::LeftControl },
             { "LEFT_ALT", Lumos::InputCode::Key::LeftAlt },
             { "LEFT_SUPER", Lumos::InputCode::Key::LeftSuper },
+            { "LeftAlt", Lumos::InputCode::Key::LeftAlt },
+            { "LeftSuper", Lumos::InputCode::Key::LeftSuper },
+            { "RightAlt", Lumos::InputCode::Key::RightAlt },
+            { "RightSuper", Lumos::InputCode::Key::RightSuper },
             { "RightShift", Lumos::InputCode::Key::RightShift },
             { "RightControl", Lumos::InputCode::Key::RightControl },
             { "RIGHT_ALT", Lumos::InputCode::Key::RightAlt },
@@ -1780,7 +1961,9 @@ namespace Lumos
             { "Multiply", Lumos::InputCode::Key::KPMultiply },
             { "Subtract", Lumos::InputCode::Key::Minus },
             { "Add", Lumos::InputCode::Key::KPAdd },
-            { "KP_EQUAL", Lumos::InputCode::Key::KPEqual }
+            { "KP_EQUAL", Lumos::InputCode::Key::KPEqual },
+            { "Equal", Lumos::InputCode::Key::Equal },
+            { "Minus", Lumos::InputCode::Key::Minus }
         };
         state.new_enum<Lumos::InputCode::Key, false>("Key", keyItems); // false makes it read/write in Lua, but its faster
 
@@ -1855,11 +2038,20 @@ namespace Lumos
         entityType.set_function("SetParent", &Entity::SetParent);
         entityType.set_function("GetParent", &Entity::GetParent);
         entityType.set_function("IsParent", &Entity::IsParent);
-        entityType.set_function("GetChildren", &Entity::GetChildrenTemp);
+        entityType.set_function("GetChildren", [](Entity& e, sol::this_state ts) -> sol::table
+                                {
+            sol::state_view lua(ts);
+            sol::table out    = lua.create_table();
+            Entity* children  = e.GetChildrenTemp(); // counts them as it goes
+            const u32 count   = children ? e.GetChildCount() : 0;
+            for(u32 i = 0; i < count; i++)
+                out[i + 1] = children[i];
+            return out; });
         entityType.set_function("SetActive", &Entity::SetActive);
         entityType.set_function("Active", &Entity::Active);
 
         state.set_function("GetEntityByName", &GetEntityByName);
+        state.set_function("FindEntityByName", &FindEntityByName);
         state.set_function("GetAllEntities", &GetAllEntities);
         state.set_function("EachEntity", &EachEntity);
 
@@ -1942,6 +2134,78 @@ namespace Lumos
                 return EntityFactory::BuildSphereObject(scene, name, pos, radius, true, inverseMass, true, colour);
             });
 
+        // Upright capsule body: `radius` and `segment` (distance between the two cap centres),
+        // so it stands radius * 2 + segment tall. The usual shape for a character.
+        state.set_function("AddPhysicsCapsule",
+            [](Scene* scene, const std::string& name, const Vec3& pos, float radius, float segment,
+               float inverseMass, const Vec4& colour) -> Entity
+            {
+                auto e = scene->GetEntityManager()->Create(name);
+                // the capsule primitive is radius 0.5 with a 2 unit segment (3 tall)
+                const float total = radius * 2.0f + segment;
+                e.AddComponent<Maths::Transform>(Mat4::Translation(pos) * Mat4::Scale(Vec3(radius * 2.0f, total / 3.0f, radius * 2.0f)));
+                auto& mc = e.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Capsule);
+
+                auto mat = CreateSharedPtr<Graphics::Material>();
+                Graphics::MaterialProperties props;
+                props.albedoColour       = colour;
+                props.roughness          = 0.7f;
+                props.metallic           = 0.0f;
+                props.albedoMapFactor    = 0.0f;
+                props.roughnessMapFactor = 0.0f;
+                props.normalMapFactor    = 0.0f;
+                props.metallicMapFactor  = 0.0f;
+                props.emissiveMapFactor  = 0.0f;
+                props.occlusionMapFactor = 0.0f;
+                mat->SetMaterialProperites(props);
+                mc.InstanceMaterials[0] = mat;
+
+                RigidBody3D* body = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
+                body->SetPosition(pos);
+                body->SetInverseMass(inverseMass);
+                body->SetCollisionShape(CreateSharedPtr<CapsuleCollisionShape>(radius, segment));
+                body->SetInverseInertia(body->GetCollisionShape()->BuildInverseInertia(inverseMass));
+                e.AddComponent<RigidBody3DComponent>(body);
+                return e;
+            });
+
+        state.set_function("ImportGLTFScene", [](Scene* scene, const std::string& path) -> Entity
+                           { return EntityFactory::ImportGLTFScene(scene, path); });
+
+        state.set_function("AddMeshCollider", [](Entity e, sol::optional<std::string> lcolPath, sol::optional<bool> rebake) -> bool
+            {
+                if(!e.Valid() || !e.HasComponent<Graphics::ModelComponent>())
+                    return false;
+
+                auto shape = CreateSharedPtr<MeshCollisionShape>();
+                if(lcolPath)
+                {
+                    shape->SetFilePath(lcolPath->c_str());
+                    shape->SetShouldLoadFile(!rebake.value_or(false));
+                }
+
+                if(e.HasComponent<RigidBody3DComponent>())
+                {
+                    e.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetCollisionShape(shape);
+                    return true;
+                }
+                RigidBody3D* body = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
+                body->SetIsStatic(true);
+                body->SetCollisionShape(shape);
+                e.AddComponent<RigidBody3DComponent>(body);
+                return true;
+            });
+
+        state.set_function("GetMeshColliderTriangles", [](Entity e) -> int
+            {
+                if(!e.Valid() || !e.HasComponent<RigidBody3DComponent>())
+                    return 0;
+                auto shape = e.GetComponent<RigidBody3DComponent>().GetRigidBody()->GetCollisionShape();
+                if(!shape || shape->GetType() != CollisionShapeType::CollisionMesh)
+                    return 0;
+                return (int)static_cast<MeshCollisionShape*>(shape.get())->GetTriangleCount();
+            });
+
         state.set_function("AddPhysicsCube",
             [](Scene* scene, const std::string& name, const Vec3& pos, const Vec3& halfExtents,
                float inverseMass, const Vec4& colour) -> Entity
@@ -1989,6 +2253,31 @@ namespace Lumos
                 props->albedoColour = albedo;
                 props->emissiveColour = Vec4(albedo.x, albedo.y, albedo.z, emissive);
                 mat->UpdateMaterialPropertiesData();
+            });
+
+        // Surface response of a primitive entity: roughness / metallic 0..1.
+        state.set_function("SetEntityMaterial",
+            [](Entity entity, const Vec4& albedo, float roughness, float metallic)
+            {
+                if(!entity.Valid() || !entity.HasComponent<Graphics::ModelComponent>()) return;
+                auto& modelComp = entity.GetComponent<Graphics::ModelComponent>();
+                auto it         = modelComp.InstanceMaterials.find(0);
+                if(it == modelComp.InstanceMaterials.end() || !it->second) return;
+                auto* props = it->second->GetProperties();
+                if(!props) return;
+                props->albedoColour = albedo;
+                props->roughness    = roughness < 0.0f ? 0.0f : (roughness > 1.0f ? 1.0f : roughness);
+                props->metallic     = metallic < 0.0f ? 0.0f : (metallic > 1.0f ? 1.0f : metallic);
+                it->second->UpdateMaterialPropertiesData();
+            });
+
+        // Hide an entity's mesh without touching anything else: it keeps its physics body and
+        // still casts a shadow. For a first person character's own body.
+        state.set_function("SetEntityVisible",
+            [](Entity entity, bool visible)
+            {
+                if(entity.Valid() && entity.HasComponent<Graphics::ModelComponent>())
+                    entity.GetComponent<Graphics::ModelComponent>().Visible = visible;
             });
 
         state.set_function("SetModelEmissive",
@@ -2112,6 +2401,14 @@ namespace Lumos
         lightType["Position"]  = &Light::Position;
         lightType["Type"]      = &Light::Type;
         lightType["Angle"]     = &Light::Angle;
+        lightType["CastShadows"]      = &Light::CastShadows;
+        lightType["ShadowBias"]       = &Light::ShadowBias;
+        lightType["ShadowNormalBias"] = &Light::ShadowNormalBias;
+        lightType["ShadowNear"]       = &Light::ShadowNear;
+        // 0 = auto, 1..4 = 256 / 512 / 1024 / 2048
+        lightType["ShadowResolution"] = sol::property([](Light& l) { return (int)l.ShadowResolution; }, [](Light& l, int v) { l.ShadowResolution = (u8)(v < 0 ? 0 : (v > 4 ? 4 : v)); });
+        // 0 = every frame, 1 = only when the light or something it lights moves
+        lightType["ShadowUpdate"]     = sol::property([](Light& l) { return (int)l.ShadowUpdate; }, [](Light& l, int v) { l.ShadowUpdate = (u8)(v != 0 ? 1 : 0); });
 
         REGISTER_COMPONENT_WITH_ECS(state, Light, static_cast<Light& (Entity::*)()>(&Entity::AddComponent<Light>));
 
@@ -2128,6 +2425,18 @@ namespace Lumos
         light2DType["Direction"]  = &Light2D::Direction;
 
         REGISTER_COMPONENT_WITH_ECS(state, Light2D, static_cast<Light2D& (Entity::*)()>(&Entity::AddComponent<Light2D>));
+
+        // box decal: the entity's transform is the box (scale = half size), projected down its -Y
+        sol::usertype<DecalComponent> decalType = state.new_usertype<DecalComponent>("Decal");
+        decalType["Colour"]     = &DecalComponent::Colour;
+        decalType["AngleFade"]  = &DecalComponent::AngleFade;
+        decalType["Roughness"]  = &DecalComponent::Roughness;
+        decalType["Emissive"]   = &DecalComponent::Emissive;
+        decalType["Order"]      = &DecalComponent::Order;
+        decalType.set_function("SetTexture", &DecalComponent::SetTexture);
+        decalType.set_function("GetTexturePath", [](DecalComponent& d) { return d.TexturePath; });
+
+        REGISTER_COMPONENT_WITH_ECS(state, DecalComponent, static_cast<DecalComponent& (Entity::*)()>(&Entity::AddComponent<DecalComponent>));
 
         {
             std::initializer_list<std::pair<sol::string_view, ParticleEmitter::BlendType>> blendItems = {
@@ -2270,6 +2579,124 @@ namespace Lumos
         modelCompType["GetModel"] = [](ModelComponent& mc) -> Model* { return mc.ModelRef.get(); };
         modelCompType["ModelRef"]  = &ModelComponent::ModelRef;
         modelCompType["LoadPrimitive"] = &ModelComponent::LoadPrimitive;
+
+        // per-entity skeletal animation: clips are played, faded and blended by name
+        auto clipOf = [](ModelComponent& mc, const std::string& name) -> int
+        {
+            AnimationController* animator = mc.GetAnimator();
+            return animator ? animator->FindClip(name) : -1;
+        };
+        modelCompType["GetAnimationCount"] = [](ModelComponent& mc) -> int
+        { return mc.ModelRef ? (int)mc.ModelRef->GetAnimations().Size() : 0; };
+        modelCompType["GetAnimationName"] = [](ModelComponent& mc, int i) -> std::string
+        {
+            if(!mc.ModelRef || i < 0 || i >= (int)mc.ModelRef->GetAnimations().Size())
+                return "";
+            return mc.ModelRef->GetAnimations()[i]->GetName();
+        };
+        modelCompType["HasAnimation"] = [clipOf](ModelComponent& mc, const std::string& name) -> bool
+        { return clipOf(mc, name) >= 0; };
+        modelCompType["PlayAnimation"] = [clipOf](ModelComponent& mc, const std::string& name, sol::optional<float> fade, sol::optional<bool> loop, sol::optional<float> speed, sol::optional<bool> restart) -> bool
+        {
+            const int clip = clipOf(mc, name);
+            if(clip < 0)
+                return false;
+            mc.AnimatorScripted = true;
+            mc.GetAnimator()->Play(clip, fade.value_or(0.2f), loop.value_or(true), speed.value_or(1.0f), restart.value_or(false));
+            return true;
+        };
+        modelCompType["SetAnimationWeight"] = [clipOf](ModelComponent& mc, const std::string& name, float weight, sol::optional<bool> loop)
+        {
+            const int clip = clipOf(mc, name);
+            if(clip < 0)
+                return;
+            mc.AnimatorScripted = true;
+            mc.GetAnimator()->SetLayerWeight(clip, weight, loop.value_or(true));
+        };
+        modelCompType["FadeAnimation"] = [clipOf](ModelComponent& mc, const std::string& name, float weight, float seconds)
+        {
+            const int clip = clipOf(mc, name);
+            if(clip < 0)
+                return;
+            mc.AnimatorScripted = true;
+            mc.GetAnimator()->FadeLayer(clip, weight, seconds);
+        };
+        modelCompType["SetAnimationSpeed"] = [clipOf](ModelComponent& mc, const std::string& name, float speed)
+        {
+            const int clip = clipOf(mc, name);
+            if(clip >= 0)
+                mc.GetAnimator()->SetLayerSpeed(clip, speed);
+        };
+        modelCompType["SetAnimationTime"] = [clipOf](ModelComponent& mc, const std::string& name, float seconds)
+        {
+            const int clip = clipOf(mc, name);
+            if(clip >= 0)
+                mc.GetAnimator()->SetLayerTime(clip, seconds);
+        };
+        modelCompType["GetAnimationTime"] = [clipOf](ModelComponent& mc, const std::string& name) -> float
+        {
+            const int clip = clipOf(mc, name);
+            return clip >= 0 ? mc.GetAnimator()->GetLayerTime(clip) : -1.0f;
+        };
+        modelCompType["GetAnimationWeight"] = [clipOf](ModelComponent& mc, const std::string& name) -> float
+        {
+            const int clip = clipOf(mc, name);
+            return clip >= 0 ? mc.GetAnimator()->GetLayerWeight(clip) : 0.0f;
+        };
+        modelCompType["GetAnimationDuration"] = [clipOf](ModelComponent& mc, const std::string& name) -> float
+        {
+            const int clip = clipOf(mc, name);
+            return clip >= 0 ? mc.GetAnimator()->GetClipDuration(clip) : 0.0f;
+        };
+        modelCompType["IsAnimationFinished"] = [clipOf](ModelComponent& mc, const std::string& name) -> bool
+        {
+            const int clip = clipOf(mc, name);
+            return clip >= 0 && mc.GetAnimator()->IsLayerFinished(clip);
+        };
+
+        modelCompType["SetRootMotionBone"] = [](ModelComponent& mc, const std::string& bone, sol::optional<bool> lockRotation) -> bool
+        {
+            AnimationController* animator = mc.GetAnimator();
+            const int joint               = animator ? animator->FindJoint(bone) : -1;
+            if(joint >= 0)
+                animator->SetRootMotionJoint(joint, lockRotation.value_or(false));
+            return joint >= 0;
+        };
+        modelCompType["ConsumeRootRotation"] = [](ModelComponent& mc) -> float
+        {
+            AnimationController* animator = mc.GetAnimator();
+            return animator ? animator->ConsumeRootRotation() : 0.0f;
+        };
+        modelCompType["ConsumeRootMotion"] = [](ModelComponent& mc) -> Vec3
+        {
+            AnimationController* animator = mc.GetAnimator();
+            return animator ? animator->ConsumeRootMotion() : Vec3(0.0f);
+        };
+
+        // where a bone is this frame, for hanging effects and aiming off a skeleton
+        auto boneWorld = [](Entity entity, const std::string& bone, Mat4& out) -> bool
+        {
+            if(!entity.Valid() || !entity.HasComponent<ModelComponent>())
+                return false;
+            AnimationController* animator = entity.GetComponent<ModelComponent>().GetAnimator();
+            Mat4 local;
+            if(!animator || !animator->GetJointModelMatrix(animator->FindJoint(bone), local))
+                return false;
+            out = entity.GetTransform().GetWorldMatrix() * local;
+            return true;
+        };
+        state.set_function("GetBoneWorldPosition", [boneWorld](Entity entity, const std::string& bone, sol::this_state ts) -> sol::object
+                           {
+            Mat4 m;
+            if(!boneWorld(entity, bone, m))
+                return sol::make_object(ts, sol::lua_nil);
+            return sol::make_object(ts, m.Translation()); });
+        state.set_function("GetBoneWorldRotation", [boneWorld](Entity entity, const std::string& bone, sol::this_state ts) -> sol::object
+                           {
+            Mat4 m;
+            if(!boneWorld(entity, bone, m))
+                return sol::make_object(ts, sol::lua_nil);
+            return sol::make_object(ts, m.Rotation()); });
 
         REGISTER_COMPONENT_WITH_ECS(state, ModelComponent, sol::overload(
             static_cast<ModelComponent& (Entity::*)(const std::string&)>(&Entity::AddComponent<ModelComponent, const std::string&>),
@@ -2541,6 +2968,11 @@ namespace Lumos
         scene_type.set_function("GetEntityManager", &Scene::GetEntityManager);
         scene_type.set_function("GetSceneName", [](Scene& scene) -> std::string
                                 { return scene.GetSceneName(); });
+        // folder is a physical path ending in a slash; the file is <folder><scene name>.lsn
+        scene_type.set_function("Serialise", [](Scene& scene, const std::string& folder)
+                                { scene.Serialise(folder, false); });
+        scene_type.set_function("Deserialise", [](Scene& scene, const std::string& folder)
+                                { scene.Deserialise(folder, false); });
         scene_type.set_function("CreateEntity", sol::overload(
             static_cast<Entity (Scene::*)()>(&Scene::CreateEntity),
             static_cast<Entity (Scene::*)(const std::string&)>(&Scene::CreateEntity)));
@@ -2560,6 +2992,11 @@ namespace Lumos
     static void SwitchSceneByIndex(int index)
     {
         Application::Get().GetSceneManager()->SwitchScene(index);
+    }
+
+    static bool RemoveSceneFromProject(int index)
+    {
+        return index >= 0 && Application::Get().GetSceneManager()->RemoveScene((uint32_t)index);
     }
 
     static void SwitchScene()
@@ -2636,6 +3073,7 @@ namespace Lumos
     {
         sol::usertype<Application> app_type = state.new_usertype<Application>("Application");
         state.set_function("SwitchSceneByIndex", &SwitchSceneByIndex);
+        state.set_function("RemoveSceneFromProject", &RemoveSceneFromProject);
         state.set_function("SwitchSceneByName", &SwitchSceneByName);
         state.set_function("SwitchScene", &SwitchScene);
         state.set_function("SetPhysicsDebugFlags", &SetPhysicsDebugFlags);
@@ -2672,6 +3110,8 @@ namespace Lumos
                 if(name == "Tweaks")     return DebugPanel_Tweaks;
                 if(name == "Entities")   return DebugPanel_Entities;
                 if(name == "Inspector")  return DebugPanel_Inspector;
+                if(name == "FrameExplorer") return DebugPanel_FrameExplorer;
+                if(name == "PhysicsExplorer") return DebugPanel_PhysicsExplorer;
                 return DebugPanel_Count;
             };
 
@@ -2781,6 +3221,39 @@ namespace Lumos
                             });
             dt.set_function("SetFlyCamera", [](bool v) { DebugMenu::Get().SetFlyCamera(v); });
             dt.set_function("IsFlyCamera", []() { return DebugMenu::Get().IsFlyCamera(); });
+
+            // Docked tools (entity tree, inspector, console) around the game.
+            dt.set_function("SetWorkspace", [](bool v) { DebugWorkspace::SetVisible(v); });
+            dt.set_function("IsWorkspace", []() { return DebugWorkspace::IsVisible(); });
+
+            // "move" / "rotate" / "scale" / "universal"
+            dt.set_function("SetGizmo", [](const std::string& mode)
+                            {
+                                u32 operation = GizmoOperation_Translate;
+                                if(mode == "rotate")         operation = GizmoOperation_Rotate;
+                                else if(mode == "scale")     operation = GizmoOperation_Scale;
+                                else if(mode == "universal") operation = GizmoOperation_Universal;
+                                DebugMenu::Get().SetGizmoOperation(operation);
+                            });
+            dt.set_function("SetGizmoLocal", [](bool v) { DebugMenu::Get().SetGizmoLocal(v); });
+            dt.set_function("SetGizmoSnap", [](bool v) { DebugMenu::Get().SetGizmoSnap(v); });
+
+            // Undo stack shared by the overlay's gizmo and inspector.
+            sol::table undo = state.create_named_table("Undo");
+            undo.set_function("Undo", []() { Lumos::Undo(); });
+            undo.set_function("Redo", []() { Lumos::Redo(); });
+            undo.set_function("Clear", []() { Lumos::UndoClear(); });
+            undo.set_function("UndoCount", []() { return Lumos::UndoStepCount(); });
+            undo.set_function("RedoCount", []() { return Lumos::RedoStepCount(); });
+
+            // Loading overlay. Busy.Pump() draws a frame from inside a long script step.
+            sol::table busy = state.create_named_table("Busy");
+            busy.set_function("Begin", [](const std::string& label) { Busy::Begin(label.c_str()); });
+            busy.set_function("End", []() { Busy::End(); });
+            busy.set_function("IsBusy", []() { return Busy::IsBusy(); });
+            busy.set_function("SetStep", [](const std::string& step) { Busy::SetStep(step.c_str()); });
+            busy.set_function("SetProgress", [](float progress) { Busy::SetProgress(progress); });
+            busy.set_function("Pump", []() { Busy::Pump(); });
             dt.set_function("SetFlyMode", [](const std::string& mode)
                             {
                                 if(mode == "2d" || mode == "2D")      DebugMenu::Get().SetFlyMode(1);
@@ -2800,6 +3273,77 @@ namespace Lumos
                                 DebugPanel p = panelFromName(name);
                                 return p != DebugPanel_Count && DebugMenu::Get().IsPanelVisible(p);
                             });
+
+            // Frame explorer. Passes are 1-based here; 0 = the whole frame.
+            dt.set_function("GetPassCount", []() { return (int)Graphics::RenderPass_Count; });
+            dt.set_function("GetPassName", [](int pass) -> std::string
+                            {
+                                if(pass < 1 || pass > (int)Graphics::RenderPass_Count)
+                                    return "";
+                                return Graphics::GetRenderPassInfo((Graphics::RenderPassID)(pass - 1)).Name;
+                            });
+            dt.set_function("GetPassState", [](int pass) -> std::string
+                            {
+                                Graphics::SceneRenderer* renderer = Graphics::SceneRenderer::GetGameRenderer();
+                                if(!renderer || pass < 1 || pass > (int)Graphics::RenderPass_Count)
+                                    return "off";
+                                switch(renderer->GetPassRecord((Graphics::RenderPassID)(pass - 1)).State)
+                                {
+                                case Graphics::RenderPassState::Ran:    return "ran";
+                                case Graphics::RenderPassState::CutOff: return "cut";
+                                default:                                return "off";
+                                }
+                            });
+            dt.set_function("SetPassCutoff", sol::overload(
+                                                 [](int pass) { DebugMenu::Get().SetPassCutoff(pass - 1); },
+                                                 [](const std::string& name)
+                                                 {
+                                                     for(u32 i = 0; i < Graphics::RenderPass_Count; i++)
+                                                     {
+                                                         if(name == Graphics::GetRenderPassInfo((Graphics::RenderPassID)i).Name)
+                                                         {
+                                                             DebugMenu::Get().SetPassCutoff((i32)i);
+                                                             return;
+                                                         }
+                                                     }
+                                                 }));
+            dt.set_function("GetPassCutoff", []() { return DebugMenu::Get().GetPassCutoff() + 1; });
+            dt.set_function("StepPass", [](int direction) { DebugMenu::Get().StepPass(direction); });
+
+            // Physics explorer (3D): advance the simulation one stage / substep at a time.
+            dt.set_function("SetPhysicsStepping", [](bool manual)
+                            {
+                                if(LumosPhysicsEngine* p = Application::Get().GetSystem<LumosPhysicsEngine>())
+                                    p->SetManualStep(manual);
+                            });
+            dt.set_function("IsPhysicsStepping", []() -> bool
+                            {
+                                LumosPhysicsEngine* p = Application::Get().GetSystem<LumosPhysicsEngine>();
+                                return p && p->GetManualStep();
+                            });
+            dt.set_function("StepPhysicsStage", [](sol::optional<int> count)
+                            {
+                                if(LumosPhysicsEngine* p = Application::Get().GetSystem<LumosPhysicsEngine>())
+                                {
+                                    p->SetManualStep(true);
+                                    const int stages = count.value_or(1);
+                                    p->StepStages(stages > 0 ? (uint32_t)stages : 0);
+                                }
+                            });
+            dt.set_function("StepPhysicsSubstep", []()
+                            {
+                                if(LumosPhysicsEngine* p = Application::Get().GetSystem<LumosPhysicsEngine>())
+                                {
+                                    p->SetManualStep(true);
+                                    p->StepSubstep();
+                                }
+                            });
+            // 1-based index of the stage that runs next
+            dt.set_function("GetPhysicsStage", []() -> int
+                            {
+                                LumosPhysicsEngine* p = Application::Get().GetSystem<LumosPhysicsEngine>();
+                                return p ? (int)p->GetNextStage() + 1 : 1;
+                            });
         }
 
         {
@@ -2811,13 +3355,23 @@ namespace Lumos
             };
 
             rt.set_function("SetBool", [getRS](const std::string& name, bool v) {
+                if(name == "LowShader") // cheap forward shading
+                {
+                    Application::Get().GetQualitySettings().LowForwardShader = v;
+                    return;
+                }
+                if(name == "AutoQuality") // frame-time driven render scale
+                {
+                    Application::Get().GetQualitySettings().DynamicResolution = v;
+                    return;
+                }
                 auto* rs = getRS(); if(!rs) return;
                 if(name == "Shadows")            rs->ShadowsEnabled = v;
                 else if(name == "FXAA")          rs->FXAAEnabled = v;
                 else if(name == "SMAA")          rs->SMAAEnabled = v;
-                else if(name == "Bloom")         rs->BloomEnabled = v;
-                else if(name == "SSAO")          rs->SSAOEnabled = v;
-                else if(name == "SSR")           rs->SSREnabled = v;
+                else if(name == "Bloom")         { rs->BloomEnabled = v; Application::Get().GetQualitySettings().EnableBloom = v; } // a game's choice beats the quality level
+                else if(name == "SSAO")          { rs->SSAOEnabled = v; Application::Get().GetQualitySettings().EnableSSAO = v; }
+                else if(name == "SSR")           { rs->SSREnabled = v; Application::Get().GetQualitySettings().EnableSSR = v; }
                 else if(name == "Vignette")      rs->VignetteEnabled = v;
                 else if(name == "DepthOfField")  rs->DepthOfFieldEnabled = v;
                 else if(name == "MotionBlur")    rs->MotionBlurEnabled = v;
@@ -2827,9 +3381,20 @@ namespace Lumos
                 else if(name == "Debanding")     rs->DebandingEnabled = v;
                 else if(name == "Skybox")        rs->SkyboxRenderEnabled = v;
                 else if(name == "Debug")         rs->DebugRenderEnabled = v;
+                else if(name == "Wireframe")     rs->Wireframe = v;
+                else if(name == "OcclusionCulling") rs->OcclusionCulling = v;
+                else if(name == "LightRange")    rs->LightRange = v;
+                else if(name == "DepthPrePass")  rs->DepthPrePass = v;
+                else if(name == "TAA")           rs->TAAEnabled = v;
+                else if(name == "ContactShadows") rs->ContactShadowsEnabled = v;
+                else if(name == "VolumetricFog") rs->VolumetricFogEnabled = v;
+                else if(name == "GI")            rs->GIEnabled = v;
+                else if(name == "AdaptiveExposure") rs->AdaptiveExposure = v;
             });
 
             rt.set_function("GetBool", [getRS](const std::string& name) -> bool {
+                if(name == "AutoQuality")
+                    return Application::Get().GetQualitySettings().DynamicResolution;
                 auto* rs = getRS(); if(!rs) return false;
                 if(name == "Shadows")            return rs->ShadowsEnabled;
                 else if(name == "FXAA")          return rs->FXAAEnabled;
@@ -2846,10 +3411,65 @@ namespace Lumos
                 else if(name == "Debanding")     return rs->DebandingEnabled;
                 else if(name == "Skybox")        return rs->SkyboxRenderEnabled;
                 else if(name == "Debug")         return rs->DebugRenderEnabled;
+                else if(name == "Wireframe")     return rs->Wireframe;
+                else if(name == "OcclusionCulling") return rs->OcclusionCulling;
+                else if(name == "LightRange")    return rs->LightRange;
+                else if(name == "DepthPrePass")  return rs->DepthPrePass;
+                else if(name == "TAA")           return rs->TAAEnabled;
+                else if(name == "ContactShadows") return rs->ContactShadowsEnabled;
+                else if(name == "VolumetricFog") return rs->VolumetricFogEnabled;
+                else if(name == "GI")            return rs->GIEnabled;
+                else if(name == "AdaptiveExposure") return rs->AdaptiveExposure;
                 return false;
             });
 
             rt.set_function("SetFloat", [getRS](const std::string& name, float v) {
+                // Not a SceneRenderSettings field: the scene renders into targets
+                // sized by this and the result is upscaled to the window, so it
+                // needs the render targets rebuilt.
+                if(name == "Quality") // 0 low .. 2 high, -1 = pick from the GPU
+                {
+                    Application::Get().SetQualityLevel((int)v);
+                    Application::Get().GetQualitySettings().DynamicResolution = v < 0.0f;
+                    return;
+                }
+                if(name == "SSAOQuality") // 1 low (8 samples) .. 3 high (32)
+                {
+                    const int q = v < 1.0f ? 1 : (v > 3.0f ? 3 : (int)v);
+                    Application::Get().GetQualitySettings().SSAOQuality = (SSAOQualitySetting)q;
+                    return;
+                }
+                if(name == "RenderScale")
+                {
+                    Application& app = Application::Get();
+                    app.GetQualitySettings().DynamicResolution = false; // a set scale is a choice
+                    app.GetQualitySettings().RendererScale = v < 0.25f ? 0.25f : (v > 2.0f ? 2.0f : v);
+                    app.OnSceneViewSizeUpdated(app.GetWindow()->GetWidth(), app.GetWindow()->GetHeight());
+                    return;
+                }
+                // shadow fitting lives on the renderer, not the scene
+                // the editor's Game view draws with its own renderer, so set both
+                Graphics::SceneRenderer* renderers[2] = { Application::Get().GetSceneRenderer(), Graphics::SceneRenderer::GetGameRenderer() };
+                bool wasShadowSetting                 = false;
+                for(u32 i = 0; i < 2; i++)
+                {
+                    if(!renderers[i] || (i == 1 && renderers[1] == renderers[0]))
+                        continue;
+                    auto& shadows = renderers[i]->GetShadowData();
+                    if(name == "ShadowDistance")      { shadows.m_MaxShadowDistance = v > 1.0f ? v : 1.0f; wasShadowSetting = true; }
+                    else if(name == "ShadowSplit")    { shadows.m_CascadeSplitLambda = v; wasShadowSetting = true; }
+                    else if(name == "ShadowSoftness") { shadows.m_LightSize = v; wasShadowSetting = true; }
+                    else if(name == "ShadowBias")     { shadows.m_InitialBias = v; wasShadowSetting = true; }
+                }
+                if(wasShadowSetting)
+                    return;
+                if(name == "RenderMode") // forward shading view: 0 lit, 1 albedo .. 8 uv, 9 GI only
+                {
+                    for(Graphics::SceneRenderer* r : renderers)
+                        if(r)
+                            r->GetForwardData().m_RenderMode = (uint32_t)v;
+                    return;
+                }
                 auto* rs = getRS(); if(!rs) return;
                 if(name == "Exposure")           rs->m_Exposure = v;
                 else if(name == "BloomIntensity") rs->m_BloomIntensity = v;
@@ -2859,20 +3479,93 @@ namespace Lumos
                 else if(name == "Brightness")    rs->Brightness = v;
                 else if(name == "VignetteIntensity") rs->VignetteIntensity = v;
                 else if(name == "SSRStrength")   rs->SSRStrength = v;
+                else if(name == "SSRMaxRoughness") rs->SSRMaxRoughness = v;
+                else if(name == "SSAOStrength")  rs->SSAOStrength = v;
+                else if(name == "SSAORadius")    rs->SSAOSampleRadius = v;
                 else if(name == "DepthOfFieldDistance") rs->DepthOfFieldDistance = v;
                 else if(name == "DepthOfFieldStrength") rs->DepthOfFieldStrength = v;
+                else if(name == "MinScreenSize") rs->MinScreenSize = v;
+                else if(name == "MaxSpotShadows") rs->MaxSpotShadows = (int)v;
+                else if(name == "SpotShadowResolution") rs->SpotShadowMaxResolution = (int)v;
+                else if(name == "SpotShadowDistance") rs->SpotShadowDistance = v;
+                else if(name == "DebugMode")     rs->DebugMode = (int)v; // forward shader buffer view: 1 albedo .. 6 normal, 8 uv
+                else if(name == "FogDensity")    rs->VolumetricFogDensity = v;
+                else if(name == "FogAnisotropy") rs->VolumetricFogAnisotropy = v;
+                else if(name == "GIIntensity")   rs->GIIntensity = v;
+                else if(name == "GIProbeSpacing") rs->GIProbeSpacing = v;
+                else if(name == "ContactShadowLength") rs->ContactShadowLength = v;
+            });
+
+            // environment probe: the scene from a point lights it (reflections + ambient) in place of the sky
+            rt.set_function("CaptureProbe", [](float x, float y, float z, sol::optional<int> size, sol::optional<float> gain, sol::optional<int> index) -> int {
+                Graphics::SceneRenderer* r = Application::Get().GetSceneRenderer();
+                return r ? r->CaptureEnvironmentProbe(Vec3(x, y, z), (u32)size.value_or(128), gain.value_or(1.0f), index.value_or(-1)) : -1;
+            });
+            rt.set_function("GetProbeCount", []() -> int {
+                Graphics::SceneRenderer* r = Application::Get().GetSceneRenderer();
+                return r ? (int)r->GetEnvironmentProbeCount() : 0;
+            });
+            rt.set_function("ClearProbes", []() {
+                if(Graphics::SceneRenderer* r = Application::Get().GetSceneRenderer())
+                    r->ClearEnvironmentProbes();
+            });
+            rt.set_function("IsCapturingProbe", []() -> bool {
+                Graphics::SceneRenderer* r = Application::Get().GetSceneRenderer();
+                return r && r->IsCapturingProbe();
+            });
+
+            // meshes the occlusion grid dropped from the forward queue last frame
+            rt.set_function("GetOcclusionCulled", []() -> int {
+                Graphics::SceneRenderer* r = Application::Get().GetSceneRenderer();
+                return r ? (int)r->GetSceneRendererStats().NumOcclusionCulled : 0;
+            });
+
+            // last frame's renderer counters: "Objects", "Shadow", "Instanced", "Batches", "Occluded"
+            rt.set_function("GetStat", [](const std::string& name) -> int {
+                Graphics::SceneRenderer* r = Application::Get().GetSceneRenderer();
+                if(!r)
+                    return 0;
+                const auto& s = r->GetSceneRendererStats();
+                if(name == "Triangles") return (int)Engine::Get().Statistics().TriangleCount;
+                if(name == "Draws")     return (int)Engine::Get().Statistics().NumDrawCalls;
+                if(name == "Objects")   return (int)s.NumRenderedObjects;
+                if(name == "Shadow")    return (int)s.NumShadowObjects;
+                if(name == "Instanced") return (int)s.NumInstancedObjects;
+                if(name == "Batches")   return (int)s.NumInstanceBatches;
+                if(name == "Occluded")  return (int)s.NumOcclusionCulled;
+                if(name == "SmallCulled") return (int)s.NumSmallCulled;
+                if(name == "LODMeshes") return (int)s.NumLODMeshes;
+                return 0;
             });
 
             rt.set_function("GetFloat", [getRS](const std::string& name) -> float {
+                if(name == "RenderScale")
+                    return Application::Get().GetQualitySettings().RendererScale;
+                if(name == "Quality")
+                    return (float)Application::Get().GetQualitySettings().GeneralLevel;
+                if(Graphics::SceneRenderer* renderer = Application::Get().GetSceneRenderer())
+                {
+                    auto& shadows = renderer->GetShadowData();
+                    if(name == "ShadowDistance") return shadows.m_MaxShadowDistance;
+                    if(name == "ShadowSplit")    return shadows.m_CascadeSplitLambda;
+                    if(name == "ShadowSoftness") return shadows.m_LightSize;
+                    if(name == "ShadowBias")     return shadows.m_InitialBias;
+                }
                 auto* rs = getRS(); if(!rs) return 0.0f;
                 if(name == "Exposure")           return rs->m_Exposure;
                 else if(name == "BloomIntensity") return rs->m_BloomIntensity;
+                else if(name == "MinScreenSize") return rs->MinScreenSize;
+                else if(name == "MaxSpotShadows") return (float)rs->MaxSpotShadows;
+                else if(name == "SpotShadowResolution") return (float)rs->SpotShadowMaxResolution;
+                else if(name == "SpotShadowDistance") return rs->SpotShadowDistance;
                 else if(name == "BloomThreshold") return rs->BloomThreshold;
                 else if(name == "Saturation")    return rs->Saturation;
                 else if(name == "Contrast")      return rs->Contrast;
                 else if(name == "Brightness")    return rs->Brightness;
                 else if(name == "VignetteIntensity") return rs->VignetteIntensity;
                 else if(name == "SSRStrength")   return rs->SSRStrength;
+                else if(name == "SSAOStrength")  return rs->SSAOStrength;
+                else if(name == "SSAORadius")    return rs->SSAOSampleRadius;
                 return 0.0f;
             });
         }
@@ -2883,18 +3576,32 @@ namespace Lumos
                             { Graphics::CosmoBackdrop::Get().Enabled = e; });
             ct.set_function("GetEnabled", []() -> bool
                             { return Graphics::CosmoBackdrop::Get().Enabled; });
-            ct.set_function("SetIntensity", [](float nebula, float band)
+            ct.set_function("SetGain", [](float g)
+                            { Graphics::CosmoBackdrop::Get().Gain = g; });
+            // Any key left out keeps the value it had. fade = seconds to blend in the new sky.
+            ct.set_function("SetRegion", [](sol::table t)
                             {
                                 auto& c = Graphics::CosmoBackdrop::Get();
-                                c.NebulaIntensity = nebula;
-                                c.BandIntensity   = band;
+                                auto& r = c.Sky;
+                                r.Seed        = t.get_or("seed", r.Seed);
+                                r.Offset      = t.get_or("offset", r.Offset);
+                                r.Nebula      = t.get_or("nebula", r.Nebula);
+                                r.Band        = t.get_or("band", r.Band);
+                                r.Scale       = t.get_or("scale", r.Scale);
+                                r.Wander      = t.get_or("wander", r.Wander);
+                                r.Tightness   = t.get_or("tightness", r.Tightness);
+                                r.Bulge       = t.get_or("bulge", r.Bulge);
+                                r.Lanes       = t.get_or("lanes", r.Lanes);
+                                r.Density     = t.get_or("density", r.Density);
+                                r.Pole        = t.get_or("pole", r.Pole);
+                                r.Centre      = t.get_or("centre", r.Centre);
+                                r.ColourA     = t.get_or("colA", r.ColourA);
+                                r.ColourB     = t.get_or("colB", r.ColourB);
+                                r.ColourC     = t.get_or("colC", r.ColourC);
+                                r.Tint        = t.get_or("tint", r.Tint);
+                                r.FadeSeconds = t.get_or("fade", r.FadeSeconds);
+                                c.Version++;
                             });
-            ct.set_function("SetScale", [](float s)
-                            { Graphics::CosmoBackdrop::Get().Scale = s; });
-            ct.set_function("SetSeed", [](float s)
-                            { Graphics::CosmoBackdrop::Get().Seed = s; });
-            ct.set_function("SetCamPos", [](const Vec3& p)
-                            { Graphics::CosmoBackdrop::Get().CamPos = p; });
         }
 
         state.set_function("DebugLine", &DebugLine);
@@ -2936,6 +3643,16 @@ namespace Lumos
         fileDialog.set_function("PickFolder", [](sol::optional<std::string> defaultPath) -> std::string {
             return FileDialogs::PickFolder(defaultPath.value_or(""));
         });
+#ifdef LUMOS_PLATFORM_IOS
+        fileDialog.set_function("ImportFiles", [](const std::string& filter, const std::string& destDir, sol::this_state ts) -> sol::table {
+            sol::state_view lua(ts);
+            sol::table out = lua.create_table();
+            TDArray<std::string> files = FileDialogs::ImportFiles(filter, destDir);
+            for(u32 i = 0; i < files.Size(); i++)
+                out[i + 1] = files[i];
+            return out;
+        });
+#endif
 
         // Screenshot / Image export
         state.set_function("SaveScreenshot", [](const std::string& path) {
@@ -2960,7 +3677,7 @@ namespace Lumos
         imgui.set_function("image", sol::overload(
             [](Graphics::Texture2D* texture, float w, float h)
             {
-                if(!texture) return;
+                if(!texture || !Application::Get().GetImGuiManager()) return;
                 auto imguiRenderer = Application::Get().GetImGuiManager()->GetImGuiRenderer();
                 bool flip = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
                 ImGui::Image(
@@ -2974,6 +3691,7 @@ namespace Lumos
                 if(!texture) return;
                 float w = (float)texture->GetWidth();
                 float h = (float)texture->GetHeight();
+                if(!Application::Get().GetImGuiManager()) return;
                 auto imguiRenderer = Application::Get().GetImGuiManager()->GetImGuiRenderer();
                 bool flip = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
                 ImGui::Image(
@@ -3000,6 +3718,25 @@ namespace Lumos
             fwrite(content.c_str(), 1, content.size(), f);
             fclose(f);
             return true;
+        });
+
+        // Adds to the end of a file (creates it): logs / histories without rewriting the whole file
+        state.set_function("AppendFile", [](const std::string& path, const std::string& content) -> bool {
+            std::string physicalPath = path;
+            if(path.size() >= 2 && path[0] == '/' && path[1] == '/')
+            {
+                ArenaTemp scratch = ScratchBegin(0, 0);
+                String8 resolved = {};
+                FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8C((char*)path.c_str()), &resolved);
+                if(resolved.size > 0)
+                    physicalPath = std::string((const char*)resolved.str, resolved.size);
+                ScratchEnd(scratch);
+            }
+            FILE* f = fopen(physicalPath.c_str(), "ab");
+            if(!f) return false;
+            bool ok = fwrite(content.c_str(), 1, content.size(), f) == content.size();
+            fclose(f);
+            return ok;
         });
 
         // Read file to string (supports VFS paths like //Assets/...)
@@ -3092,8 +3829,26 @@ namespace Lumos
             "GetExportTexture", &Graphics::ShaderPreview::GetExportTexture,
             "GetError", &Graphics::ShaderPreview::GetError,
             "IsCompiled", &Graphics::ShaderPreview::IsCompiled,
-            "SetTexture", &Graphics::ShaderPreview::SetChannelTexture,
-            "ClearTexture", &Graphics::ShaderPreview::ClearChannelTexture);
+            "ClearTexture", &Graphics::ShaderPreview::ClearChannelTexture,
+            "SetMouse", &Graphics::ShaderPreview::SetMouse,
+            "SetFrame", &Graphics::ShaderPreview::SetFrame);
+        {
+            sol::usertype<Graphics::ShaderPreview> previewType = state["ShaderPreview"];
+            // textures from Lua are shared: keep a reference on the existing count (nil clears)
+            previewType["SetTexture"] = [](Graphics::ShaderPreview& p, uint32_t channel, sol::object tex)
+            {
+                if(tex.is<SharedPtr<Graphics::Texture2D>>())
+                    p.SetChannelTexture(channel, tex.as<SharedPtr<Graphics::Texture2D>>());
+                else if(tex.is<Graphics::Texture2D*>())
+                    p.SetChannelTexture(channel, tex.as<Graphics::Texture2D*>());
+                else
+                    p.ClearChannelTexture(channel);
+            };
+            previewType["ExportPNG"] = [](Graphics::ShaderPreview& p, const std::string& path, int w, int h, float time, sol::optional<int> ss) -> bool
+            { return p.ExportPNG(path, (uint32_t)std::max(1, w), (uint32_t)std::max(1, h), time, (uint32_t)std::max(1, ss.value_or(1))); };
+            previewType["GetPrefixLineCount"]  = []() -> int { return Graphics::ShaderPreview::GetPrefixLineCount(); };
+            previewType["IsCompilerAvailable"] = []() -> bool { return Graphics::ShaderCompiler::IsAvailable(); };
+        }
 
         // Get the project's asset directory as a physical path
         state.set_function("GetAssetPath", []() -> std::string {
@@ -3254,6 +4009,9 @@ namespace Lumos
                                                 "widget", &Lumos::UI_Interaction::widget,
                                                 "hovering", &Lumos::UI_Interaction::hovering,
                                                 "clicked", &Lumos::UI_Interaction::clicked,
+                                                "pressed", &Lumos::UI_Interaction::pressed,
+                                                "right_clicked", &Lumos::UI_Interaction::right_clicked,
+                                                "double_clicked", &Lumos::UI_Interaction::double_clicked,
                                                 "dragging", &Lumos::UI_Interaction::dragging);
 
         // Functions
@@ -3300,6 +4058,9 @@ namespace Lumos
         lua.set_function("UILabelWrapped", [](const char* name, const char* text, float maxWidth) {
             return Lumos::UILabelWrapped(name, Str8C((char*)text), maxWidth);
         });
+        lua.set_function("UILabelLink", [](const char* name, const char* text, float maxWidth) {
+            return Lumos::UILabelLink(name, Str8C((char*)text), maxWidth);
+        });
         lua.set_function("UILabelEllipsis", [](const char* name, const char* text, float maxWidth) {
             return Lumos::UILabelEllipsis(name, Str8C((char*)text), maxWidth);
         });
@@ -3307,7 +4068,26 @@ namespace Lumos
         lua["UIImage"]    = &Lumos::UIImage;
         lua.set_function("UISeparator", [](sol::optional<float> w) { Lumos::UISeparator(w.value_or(0.0f)); });
         lua.set_function("UISetTheme", [](Lumos::UITheme theme) { Lumos::UISetTheme(theme); });
+        lua.set_function("UISetAccentColour", [](const Vec4& colour) { Lumos::UISetAccentColour(colour); });
         lua.set_function("UISetClickOnRelease", [](bool enable) { Lumos::UISetClickOnRelease(enable); });
+        lua.set_function("UIPushMonoText", []() { Lumos::UIPushMonoText(); });
+        lua.set_function("UIPopMonoText", []() { Lumos::UIPopMonoText(); });
+        // on-screen keyboard (touch): show / hide, "code" adds the code key bar, cover = 0..1 of the screen height
+        lua.set_function("UIShowKeyboard", [](bool show) { Lumos::UIShowKeyboard(show); });
+        lua.set_function("UISetKeyboardStyle", [](const std::string& style) { Lumos::UISetKeyboardStyle(style == "code" ? Lumos::UIKeyboardStyle_Code : Lumos::UIKeyboardStyle_Plain); });
+        lua.set_function("UIKeyboardCover", []() { return Lumos::UIKeyboardCover(); });
+        lua.set_function("UISetLayeredBatching", [](bool enable) { Lumos::UISetLayeredBatching(enable); });
+        lua.set_function("UIClickableRects", [](sol::this_state ts)
+                         {
+            sol::state_view view(ts);
+            sol::table out = view.create_table();
+            Vec4 rects[256];
+            const u32 n = UIGetClickableRects(rects, 256);
+            for(u32 i = 0; i < n; i++)
+                out[i + 1] = view.create_table_with("x", rects[i].x, "y", rects[i].y, "w", rects[i].z, "h", rects[i].w);
+            return out; });
+        lua.set_function("UISetScrollbarFade", [](bool on) { Lumos::UISetScrollbarFade(on); });
+        lua.set_function("UISetScrollPhysics", [](bool on) { Lumos::UISetScrollPhysics(on); });
         // Scroll area (engine-held offset; wheel/thumb on desktop, finger-drag pan on touch)
         lua.set_function("UIBeginScrollArea", [](const char* id, float height) { Lumos::UIBeginScrollAreaAuto(id, height); });
         lua.set_function("UIEndScrollArea", []() { Lumos::UIEndScrollArea(); });
@@ -3324,6 +4104,12 @@ namespace Lumos
             cfg.ScaleLeft   = scaleLeft.value_or(cfg.ScaleLeft);
             cfg.ScaleRight  = scaleRight.value_or(cfg.ScaleRight);
             Lumos::UISetSafeAreaConfig(cfg);
+        });
+        // Resolved safe-area insets in pixels: Vec4(left, top, right, bottom). The UI root already sits inside them.
+        lua.set_function("UIGetSafeAreaInsets", []() {
+            const bool isEditor = Lumos::Application::Get().GetAppType() == Lumos::AppType::Editor;
+            Lumos::SafeAreaInsets sa = Lumos::UIResolveSafeAreaInsets(Lumos::OS::Get().GetSafeAreaInsets(), isEditor);
+            return Lumos::Vec4(sa.left, sa.top, sa.right, sa.bottom);
         });
         lua.set_function("UIIsMouseOverUI", []() { return Lumos::UIIsMouseOverUI(); });
         lua.set_function("UISpacer",    [](sol::optional<float> h) { Lumos::UISpacer(h.value_or(10.0f)); });
@@ -3356,6 +4142,11 @@ namespace Lumos
                                                 fmt ? fmt->c_str() : "%.2f");
                              return tmp;
                          });
+
+        lua.set_function("UIRect", [](const char* id, float x, float y, float w, float h, const Vec4& colour, sol::optional<float> radius)
+                         { Lumos::UIRect(id, x, y, w, h, colour, radius.value_or(0.0f)); });
+        lua.set_function("UIRing", [](const char* id, float x, float y, float radius, const Vec4& colour, sol::optional<float> thickness)
+                         { Lumos::UIRing(id, x, y, radius, colour, thickness.value_or(1.0f)); });
 
         lua.set_function("UIColouredBox", sol::overload(
                              [](const char* id, float size, const Vec4& colour)

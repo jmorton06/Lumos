@@ -39,6 +39,8 @@ namespace Lumos
         void Fail(const std::string& msg);
         void Finish(bool passed);
 
+        static void ReportScriptError(const char* context, const char* message);
+
         void SetUpdateGolden(bool v) { m_UpdateGolden = v; }
         void SetTimeoutFrames(int frames) { m_TimeoutFrames = frames; }
         void SetReportPath(const std::string& path) { m_ReportPath = path; }
@@ -53,7 +55,7 @@ namespace Lumos
         void SetScroll(float y, float x);
         // compare=false captures for human review without gating the run - use it
         // for frames whose world state can't be pinned (long sims, live traffic).
-        void RequestScreenshot(const std::string& name, bool compare);
+        void RequestScreenshot(const std::string& name, bool compare, float maxDiffPercent = -1.0f);
 
     private:
         void Resume();
@@ -85,8 +87,10 @@ namespace Lumos
         {
             std::string name;
             bool compare = true;
+            float maxFraction = -1.0f; // < 0: the default FAIL_FRACTION
         };
 
+        float m_ShotMaxFraction = -1.0f;
         TDArray<std::string> m_Failures;
         TDArray<PendingShot> m_PendingShots;
         int m_Checks = 0;

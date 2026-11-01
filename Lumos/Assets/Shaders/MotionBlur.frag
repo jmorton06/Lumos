@@ -22,7 +22,7 @@ void main()
 {
     vec4 here   = texture(u_Texture, outTexCoord);
     float depth = texture(u_Depth, outTexCoord).r;
-    depth = min(depth, 0.99999);
+    depth = max(depth, 1e-7); // reversed-Z: keep the sky (0) off the far plane's edge
 
     vec4 ndc      = vec4(outTexCoord * 2.0 - 1.0, depth, 1.0);
     vec4 prevClip = ubo.Reproj * ndc;

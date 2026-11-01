@@ -8,11 +8,8 @@
 #define GLFW_EXPOSE_NATIVE_X11
 #endif
 
-#ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/OpenGL/GL.h"
-#endif
-
 #include "GLFWWindow.h"
+#include "Graphics/UI.h"
 #include "Graphics/RHI/GraphicsContext.h"
 #include "Graphics/RHI/SwapChain.h"
 
@@ -23,6 +20,7 @@
 #include "Core/OS/OS.h"
 #include "Core/OS/Input.h"
 #include "Core/Application.h"
+#include "Core/OS/OpenFiles.h"
 
 #include "Events/ApplicationEvent.h"
 #include "Events/MouseEvent.h"
@@ -117,6 +115,21 @@ namespace Lumos
         }
     }
 
+    // The desktop's own scaling factor, independent of the framebuffer/window
+    // ratio. On X11 that ratio is always 1 (window coordinates are pixels), so
+    // this is the only thing that says a 4K panel is running at 200%.
+    static float MonitorContentScale()
+    {
+        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+        if(!monitor)
+            return 1.0f;
+        float xscale = 1.0f, yscale = 1.0f;
+        glfwGetMonitorContentScale(monitor, &xscale, &yscale);
+        return xscale > 0.0f ? xscale : 1.0f;
+    }
+
+    static float LargerScale(float a, float b) { return a > b ? a : b; }
+
     bool GLFWWindow::Init(const WindowDesc& properties)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -131,9 +144,14 @@ namespace Lumos
 
         if(!s_GLFWInitialized)
         {
-            int success = glfwInit();
+            int success;
+            {
+                LUMOS_PROFILE_SCOPE("glfwInit");
+                success = glfwInit();
+            }
             ASSERT(success, "Could not initialize GLFW!");
             glfwSetErrorCallback(GLFWErrorCallback);
+            OpenFiles::Install();
 
             s_GLFWInitialized = true;
         }
@@ -142,7 +160,8 @@ namespace Lumos
 
         float xscale = GetMonitorXScale();
 
-        m_Data.DPIScale = xscale;
+        m_Data.DPIScale     = xscale;
+        m_Data.ContentScale = xscale;
 
 #ifdef LUMOS_PLATFORM_MACOS
         if(m_Data.DPIScale > 1.0f)
@@ -157,31 +176,22 @@ namespace Lumos
         }
 #endif
 
-#ifdef LUMOS_RENDER_API_OPENGL
-        if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
-        {
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef LUMOS_PLATFORM_MACOS
-            glfwWindowHint(GLFW_SAMPLES, 1);
-            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-            glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_FALSE);
-            glfwWindowHint(GLFW_COCOA_GRAPHICS_SWITCHING, GL_TRUE);
-            glfwWindowHint(GLFW_STENCIL_BITS, 8); // Fixes 16 bit stencil bits in macOS.
-            glfwWindowHint(GLFW_STEREO, GLFW_FALSE);
-            glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
-#endif
-        }
-#endif
         SetBorderlessWindow(properties.Borderless);
+
+        // Having no monitor at all is a real state, not an error: every display
+        // asleep, a headless machine, the panel switched to another input. GLFW
+        // asserts and takes the process down if any of the monitor queries below
+        // is handed a null one, so ask once and treat "no monitor" as "there is
+        // nothing to go fullscreen onto" rather than crashing on startup.
         GLFWmonitor* monitor    = glfwGetPrimaryMonitor();
-        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        const GLFWvidmode* mode = monitor ? glfwGetVideoMode(monitor) : nullptr;
+        if(!mode)
+            LWARN("No monitor available - opening windowed at the requested size");
 
         uint32_t ScreenWidth  = 0;
         uint32_t ScreenHeight = 0;
 
-        if(properties.Fullscreen)
+        if(properties.Fullscreen && mode) // mode implies monitor
         {
             ScreenWidth  = mode->width;
             ScreenHeight = mode->height;
@@ -225,7 +235,10 @@ namespace Lumos
 #else
         GLFWmonitor* fullscreenMonitor = properties.Fullscreen ? monitor : nullptr;
 #endif
-        m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, (const char*)properties.Title.str, fullscreenMonitor, nullptr);
+        {
+            LUMOS_PROFILE_SCOPE("glfwCreateWindow");
+            m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, (const char*)properties.Title.str, fullscreenMonitor, nullptr);
+        }
 
         int w, h;
         glfwGetFramebufferSize(m_Handle, &w, &h);
@@ -237,17 +250,14 @@ namespace Lumos
         if(winW > 0 && winH > 0)
             m_Data.DPIScale = (float)w / (float)winW;
 
-#ifdef LUMOS_RENDER_API_OPENGL
-        if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
-        {
-            glfwMakeContextCurrent(m_Handle);
+        // Keep the monitor's scale rather than letting the framebuffer ratio
+        // overwrite it: on X11 that ratio is 1 even on a 200% 4K desktop, and
+        // laying the UI out at 1x there is what makes it physically tiny.
+        m_Data.ContentScale = LargerScale(m_Data.DPIScale, MonitorContentScale());
 
-            if(!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
-            {
-                LERROR("Failed to initialise OpenGL context");
-            }
-        }
-#endif
+        // Worth a line: when the UI comes out the wrong size these two numbers say
+        // immediately whether the window system reported the scaling at all.
+        LINFO("Window scale - framebuffer/window %.2f, desktop content %.2f", m_Data.DPIScale, m_Data.ContentScale);
 
         glfwSetWindowUserPointer(m_Handle, &m_Data);
 
@@ -255,7 +265,10 @@ namespace Lumos
             glfwSetInputMode(m_Handle, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
         // #ifndef LUMOS_PLATFORM_MACOS
-        SetIcon(properties);
+        {
+            LUMOS_PROFILE_SCOPE("SetIcon");
+            SetIcon(properties);
+        }
         // #endif
 
         // glfwSetWindowPos(m_Handle, mode->width / 2 - m_Data.Width / 2, mode->height / 2 - m_Data.Height / 2);
@@ -275,6 +288,7 @@ namespace Lumos
                                       glfwGetFramebufferSize(window, &w, &h);
 
                                       data.DPIScale = (float)w / (float)width;
+                                      data.ContentScale = LargerScale(data.DPIScale, MonitorContentScale());
 
                                       data.Width = uint32_t(width * data.DPIScale);
                                       data.Height = uint32_t(height * data.DPIScale);
@@ -390,6 +404,8 @@ namespace Lumos
                             {
                                 WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
+                                for(int i = 0; i < numDropped; i++)
+                                    data.DroppedFiles.PushBack(filenames[i]);
                                 std::string filePath = filenames[0];
                                 WindowFileEvent event(filePath);
                                 data.EventCallback(event); });
@@ -479,15 +495,20 @@ namespace Lumos
                     {
                         LWARN("Failed to load app icon %s", path.str);
                     }
-
-                    image.height = height;
-                    image.width  = width;
-                    image.pixels = static_cast<unsigned char*>(pixels);
-                    images.PushBack(image);
+                    else
+                    {
+                        image.height = height;
+                        image.width  = width;
+                        image.pixels = static_cast<unsigned char*>(pixels);
+                        images.PushBack(image);
+                    }
                 }
             }
 
-            glfwSetWindowIcon(m_Handle, int(images.Size()), images.Data());
+            if(!images.Empty())
+            {
+                glfwSetWindowIcon(m_Handle, int(images.Size()), images.Data());
+            }
 
             for(int i = 0; i < (int)images.Size(); i++)
             {
@@ -523,8 +544,6 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
 
         m_VSync = set;
-        if(Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::OPENGL)
-            glfwSwapInterval(set ? 1 : 0);
 
         LINFO("VSync : %s", m_VSync ? "True" : "False");
     }
@@ -532,13 +551,83 @@ namespace Lumos
     void GLFWWindow::OnUpdate()
     {
         LUMOS_PROFILE_FUNCTION();
-#ifdef LUMOS_RENDER_API_OPENGL
-        if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
-        {
-            LUMOS_PROFILE_SCOPE("GLFW SwapBuffers");
-            glfwSwapBuffers(m_Handle);
-        }
+    }
+
+#ifdef LUMOS_PLATFORM_MACOS
+    void MacOSSetWindowShape(GLFWwindow* window, float cornerRadius, bool shadow);
+    void MacOSSetWindowTransparent(GLFWwindow* window, bool transparent);
 #endif
+
+    void GLFWWindow::SetWindowSize(uint32_t width, uint32_t height)
+    {
+        glfwSetWindowSize(m_Handle, (int)width, (int)height);
+    }
+
+    Vec2 GLFWWindow::GetWindowSize() const
+    {
+        int w = 0, h = 0;
+        glfwGetWindowSize(m_Handle, &w, &h);
+        return Vec2((float)w, (float)h);
+    }
+
+    void GLFWWindow::SetWindowPosition(int x, int y)
+    {
+        glfwSetWindowPos(m_Handle, x, y);
+    }
+
+    Vec2 GLFWWindow::GetWindowPosition() const
+    {
+        int x = 0, y = 0;
+        glfwGetWindowPos(m_Handle, &x, &y);
+        return Vec2((float)x, (float)y);
+    }
+
+    Vec2 GLFWWindow::GetCursorScreenPosition() const
+    {
+        double cx = 0.0, cy = 0.0;
+        glfwGetCursorPos(m_Handle, &cx, &cy);
+        return GetWindowPosition() + Vec2((float)cx, (float)cy);
+    }
+
+    void GLFWWindow::SetDecorated(bool decorated)
+    {
+        glfwSetWindowAttrib(m_Handle, GLFW_DECORATED, decorated ? GLFW_TRUE : GLFW_FALSE);
+    }
+
+    void GLFWWindow::SetFloating(bool floating)
+    {
+        glfwSetWindowAttrib(m_Handle, GLFW_FLOATING, floating ? GLFW_TRUE : GLFW_FALSE);
+    }
+
+    void GLFWWindow::SetWindowShape(float cornerRadius, bool shadow)
+    {
+#ifdef LUMOS_PLATFORM_MACOS
+        MacOSSetWindowShape(m_Handle, cornerRadius, shadow);
+#else
+        (void)cornerRadius;
+        (void)shadow;
+#endif
+    }
+
+    void GLFWWindow::SetTransparent(bool transparent)
+    {
+#ifdef LUMOS_PLATFORM_MACOS
+        MacOSSetWindowTransparent(m_Handle, transparent);
+#else
+        (void)transparent;
+#endif
+    }
+
+    void GLFWWindow::Minimise()
+    {
+        glfwIconifyWindow(m_Handle);
+    }
+
+    TDArray<std::string> GLFWWindow::PopDroppedFiles()
+    {
+        TDArray<std::string> files = m_Data.DroppedFiles;
+        m_Data.DroppedFiles.Clear();
+        return files;
     }
 
     void GLFWWindow::SetBorderlessWindow(bool borderless)
@@ -587,13 +676,15 @@ namespace Lumos
     void GLFWWindow::UpdateCursorImGui()
     {
         LUMOS_PROFILE_FUNCTION();
-        ImGuiIO& io                   = ImGui::GetIO();
-        ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
+        // the engine UI's request wins; ImGui's (when there is one) otherwise
+        const int requested           = UITakeCursor();
+        const bool imgui              = ImGui::GetCurrentContext() != nullptr;
+        ImGuiMouseCursor imgui_cursor = requested >= 0 ? (ImGuiMouseCursor)requested : (imgui ? ImGui::GetMouseCursor() : ImGuiMouseCursor_Arrow);
 
-        if((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) || glfwGetInputMode(m_Handle, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+        if((imgui && (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)) || glfwGetInputMode(m_Handle, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
             return;
 
-        if(imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
+        if(imgui_cursor == ImGuiMouseCursor_None || (imgui && ImGui::GetIO().MouseDrawCursor))
         {
             // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
 
@@ -788,11 +879,7 @@ namespace Lumos
 
     float GLFWWindow::GetMonitorXScale()
     {
-        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-        float xscale, yscale;
-        glfwGetMonitorContentScale(monitor, &xscale, &yscale);
-
-        return xscale;
+        return MonitorContentScale();
     }
 
     void GLFWWindow::RefreshSize()
@@ -807,9 +894,10 @@ namespace Lumos
         uint32_t newHeight = uint32_t(winH * dpi);
         if(newWidth == m_Data.Width && newHeight == m_Data.Height)
             return;
-        m_Data.DPIScale = dpi;
-        m_Data.Width    = newWidth;
-        m_Data.Height   = newHeight;
+        m_Data.DPIScale     = dpi;
+        m_Data.ContentScale = LargerScale(dpi, MonitorContentScale());
+        m_Data.Width        = newWidth;
+        m_Data.Height       = newHeight;
         WindowResizeEvent event(m_Data.Width, m_Data.Height, m_Data.DPIScale);
         m_Data.EventCallback(event);
     }

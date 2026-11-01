@@ -50,6 +50,8 @@ namespace Lumos
         SharedPtr<Graphics::Texture2D> LoadTextureAsset(const String8& filePath, bool thread, const Graphics::TextureDesc& desc);
 
         SharedPtr<Graphics::Material> LoadMaterialAsset(const String8& lmatPath);
+        // drops cached .lmat materials whose path starts with prefix (after a reimport rewrote them)
+        void EvictMaterialAssets(const std::string& prefix);
 
         void RemoveAsset(const String8& name)
         {

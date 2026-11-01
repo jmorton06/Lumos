@@ -216,7 +216,10 @@ void main()
 
             vec4 clipS = ubo.projView * vec4(hitP, 1.0);
             gl_FragDepth = clipS.z / clipS.w;
-            outColour = vec4(scol * 1.25, 1.0);
+            // A star's disc is the brightest thing in the scene: the core
+            // clips to white and drives bloom, while limb darkening (0.42 at
+            // the edge) keeps the rim and the granulation readable.
+            outColour = vec4(scol * 1.8, 1.0);
             return;
         }
 
@@ -235,17 +238,17 @@ void main()
         float ay    = dot(off, a2) / radius;
 
         // Chromosphere: a thin warm rim hugging the limb, just above the surface.
-        float chromo = exp(-(dc - 1.0) * 24.0) * 0.85;
+        float chromo = exp(-(dc - 1.0) * 24.0) * 0.8;
 
         float streamers = 0.55 + 0.85 * smoothstep(0.35, 0.72, fbm(normalize(off) * 5.0 + seed * 3.0));
-        float corona = exp(-(dc - 1.0) * 2.2) * 0.5 * streamers;
-        corona += exp(-(dc - 1.0) * 0.55) * 0.07;
+        float corona = exp(-(dc - 1.0) * 2.2) * 0.55 * streamers;
+        corona += exp(-(dc - 1.0) * 0.7) * 0.05;
 
         float arms = exp(-abs(ay) * 6.0) * exp(-abs(ax) * 1.15)
                    + exp(-abs(ax) * 6.0) * exp(-abs(ay) * 1.15);
-        arms *= 0.32;
+        arms *= 0.28;
 
-        float edgeFade = 1.0 - smoothstep(2.9, 4.35, dc);
+        float edgeFade = 1.0 - smoothstep(2.6, 4.35, dc);
         corona *= edgeFade;
         arms   *= edgeFade;
 
@@ -253,7 +256,7 @@ void main()
         if(glow < 0.004)
             discard;
         // Warm chromosphere mixed into the (cooler) coronal tint by its share.
-        vec3 fcol = mix(vTint.rgb * 1.6, vec3(1.0, 0.42, 0.22) * 1.3,
+        vec3 fcol = mix(vTint.rgb * 1.5, vec3(1.0, 0.42, 0.22) * 1.25,
                         clamp(chromo / max(glow, 1e-4), 0.0, 1.0));
         vec4 clipF = ubo.projView * vec4(closeP, 1.0);
         gl_FragDepth = clipF.z / clipF.w;

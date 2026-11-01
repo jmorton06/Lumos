@@ -1,6 +1,7 @@
 #version 450
 #include "Buffers.glslh"
 #include "PBR.glslh"
+#include "GI.glslh"
 
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
@@ -17,6 +18,9 @@ struct VertexData
 layout(location = 0) in VertexData VertexOutput;
 
 float ShadowFade = 1.0;
+float ContactShadow = 1.0;
+// the surface's own normal: shadow offsets follow it, not the normal map (per-pixel bumps made speckled acne)
+vec3 GeometricNormal = vec3(0.0, 1.0, 0.0);
 float InvSqrtPCFSamples = 1.0;
 
 layout(location = 0) out vec4 outColour;
@@ -82,8 +86,9 @@ float GetAO()
 vec3 GetEmissive(vec3 albedo)
 {
 	vec3 emissive = u_MaterialData.EmissiveColour.rgb * u_MaterialData.EmissiveColour.w;
+	// an emissive map is its own colour (glTF: factor x map); a bare emissive colour glows in the albedo's tint
 	if(u_MaterialData.EmissiveMapFactor >= 0.05)
-		emissive *= DeGamma(texture(u_EmissiveMap, VertexOutput.TexCoord).rgb);
+		return emissive * DeGamma(texture(u_EmissiveMap, VertexOutput.TexCoord).rgb);
 	return emissive * albedo;
 }
 
@@ -125,12 +130,48 @@ float Random(vec3 seed, int i)
 	return Random(seed4);
 }
 
-float GetShadowBias(vec3 lightDirection, vec3 normal, int shadowIndex)
+// How far along the normal to push the shadow lookup, in shadow texels.
+#define NORMAL_OFFSET_TEXELS 2.0
+
+// Per-cascade world scale, recovered from the cascade matrix so this needs no
+// extra uniforms. ShadowTransform is an orthographic projection times a rigid
+// view transform, so each clip component's gradient with respect to world
+// position is constant over the cascade:
+//   |grad(clip.x)| = 1 / cascadeRadius   (clip x spans [-1,1] across 2*radius)
+//   |grad(clip.z)| = 1 / (far - near)    (clip z spans [0,1] on Vulkan)
+// Returns (world size of one shadow texel, depth units per world unit).
+vec2 GetCascadeScale(int cascadeIndex, float shadowMapSize)
 {
-	float minBias = u_SceneData.InitialBias;
-	float bias = max(minBias * (1.0 - dot(normal, lightDirection)), minBias);
-	bias *= float(shadowIndex + 1);
-	return bias;
+	mat4 m              = u_SceneData.ShadowTransform[cascadeIndex];
+	float invRadius     = length(vec3(m[0].x, m[1].x, m[2].x));
+	float depthPerWorld = length(vec3(m[0].z, m[1].z, m[2].z));
+	return vec2((2.0 / shadowMapSize) / max(invRadius, 1e-8), depthPerWorld);
+}
+
+// InitialBias is measured in shadow texels. Converting through cascadeScale ties
+// the offset to what a texel actually covers, so one value holds across every
+// cascade - previously the bias was in the cascade's normalised depth units and
+// was then scaled again by the cascade index, which stacked up to metres of
+// offset in the far cascades and slid shadows off their casters.
+float GetShadowBias(vec3 lightDirection, vec3 normal, vec2 cascadeScale)
+{
+	// A surface tilted away from the light spans more depth across one texel, so
+	// scale by tan(theta). Clamped so grazing angles don't run away.
+	float NoL   = clamp(dot(normal, lightDirection), 0.0, 1.0);
+	float slope = clamp(sqrt(1.0 - NoL * NoL) / max(NoL, 0.05), 0.0, 4.0);
+
+	float worldBias = cascadeScale.x * u_SceneData.InitialBias * (1.0 + slope);
+	return worldBias * cascadeScale.y;
+}
+
+// Normal-offset bias: move the lookup across the surface rather than pushing
+// depth along the light direction. This clears acne without sliding the shadow
+// out from under its caster, which is what shows up as peter panning.
+vec3 ApplyNormalOffset(vec3 wsPos, vec3 normal, vec3 lightDirection, float texelWorldSize)
+{
+	float NoL      = clamp(dot(normal, lightDirection), 0.0, 1.0);
+	float sinTheta = sqrt(clamp(1.0 - NoL * NoL, 0.0, 1.0));
+	return wsPos + normal * (texelWorldSize * NORMAL_OFFSET_TEXELS * sinTheta);
 }
 
 float InterleavedGradientNoise(vec2 screenPosition)
@@ -139,9 +180,21 @@ float InterleavedGradientNoise(vec2 screenPosition)
     return fract(magic.z * fract(dot(screenPosition, magic.xy)));
 }
 
-float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, float uvRadius, vec3 lightDirection, vec3 normal, vec3 wsPos, int cascadeIndex)
+// One shadow tap, filtered: compares the four texels around uv and blends the
+// results by where uv sits between them. A plain compare snaps to the nearest
+// texel, which is what turns a shadow edge into a staircase.
+float SampleShadowBilinear(sampler2DArray shadowMap, vec2 uv, int cascadeIndex, float compareZ, float bias)
 {
-	float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
+	vec2 size = vec2(textureSize(shadowMap, 0).xy);
+	vec2 f    = fract(uv * size - 0.5);
+	// gather order: (0,1) (1,1) (1,0) (0,0)
+	vec4 depths = textureGather(shadowMap, vec3(uv, cascadeIndex), 0) + bias;
+	vec4 lit    = step(vec4(compareZ), depths);
+	return mix(mix(lit.w, lit.z, f.x), mix(lit.x, lit.y, f.x), f.y);
+}
+
+float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, float uvRadius, float bias, vec3 wsPos, int cascadeIndex)
+{
 	float sum = 0.0;
 	float invSquareRootSamplesCount = InvSqrtPCFSamples;
 
@@ -164,8 +217,7 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 		}
 
 		vec2 sampleUV = clamp(shadowCoords.xy + offset, vec2(0.001), vec2(0.999));
-		float z = texture(shadowMap, vec3(sampleUV, cascadeIndex)).r + bias;
-		sum += step(shadowCoords.z, z);
+		sum += SampleShadowBilinear(shadowMap, sampleUV, cascadeIndex, shadowCoords.z, bias);
 	}
 
 	return sum / float(sampleCount);
@@ -196,7 +248,11 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 	ShadowFade /= transitionDistance;
 	ShadowFade = clamp(1.0 - ShadowFade, 0.0, 1.0);
 
-	vec4 shadowCoord = u_SceneData.BiasMatrix * u_SceneData.ShadowTransform[cascadeIndex] * vec4(wsPos, 1.0);
+	float shadowMapSize = float(textureSize(uShadowMap, 0).x);
+	vec2 cascadeScale   = GetCascadeScale(cascadeIndex, shadowMapSize);
+	vec3 samplePos      = ApplyNormalOffset(wsPos, normal, lightDirection, cascadeScale.x);
+
+	vec4 shadowCoord = u_SceneData.BiasMatrix * u_SceneData.ShadowTransform[cascadeIndex] * vec4(samplePos, 1.0);
 	shadowCoord = shadowCoord * (1.0 / shadowCoord.w);
 
 	if(shadowCoord.z > 0.999 || shadowCoord.z < 0.0)
@@ -216,18 +272,18 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 	float shadowAmount = 1.0;
 
 	float uvRadius = 0.002;
+	float bias     = GetShadowBias(lightDirection, normal, cascadeScale);
 
 	if (u_SceneData.FilterShadows  == 1)
 	{
-		float texelSize = 1.0 / float(textureSize(uShadowMap, 0).x);
+		float texelSize = 1.0 / shadowMapSize;
 		uvRadius = u_SceneData.LightSize * texelSize * 2.0;
 		uvRadius = clamp(uvRadius, texelSize, texelSize * 8.0);
 
-		shadowAmount = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeIndex);
+		shadowAmount = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, bias, wsPos, cascadeIndex);
 	}
 	else
 	{
-		float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
 		float z = texture(uShadowMap, vec3(shadowCoord.xy, cascadeIndex)).r;
 		shadowAmount = step(shadowCoord.z - bias, z);
 	}
@@ -240,17 +296,22 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 		int cascadeNext = cascadeIndex + 1;
 		if (cascadeFade > 0.0 && cascadeNext < u_SceneData.ShadowCount)
 		{
-			vec4 shadowCoordNext = u_SceneData.BiasMatrix * u_SceneData.ShadowTransform[cascadeNext] * vec4(wsPos, 1.0);
+			// The next cascade covers more world per texel, so it needs its own
+			// normal offset and bias - reusing this cascade's would under-bias it.
+			vec2 cascadeScaleNext = GetCascadeScale(cascadeNext, shadowMapSize);
+			vec3 samplePosNext    = ApplyNormalOffset(wsPos, normal, lightDirection, cascadeScaleNext.x);
+			float biasNext        = GetShadowBias(lightDirection, normal, cascadeScaleNext);
+
+			vec4 shadowCoordNext = u_SceneData.BiasMatrix * u_SceneData.ShadowTransform[cascadeNext] * vec4(samplePosNext, 1.0);
 			shadowCoordNext = shadowCoordNext * (1.0 / shadowCoordNext.w);
 
 			float shadowAmount1;
 			if (u_SceneData.FilterShadows == 1)
 			{
-				shadowAmount1 = PCFShadowDirectionalLight(uShadowMap, shadowCoordNext, uvRadius, lightDirection, normal, wsPos, cascadeNext);
+				shadowAmount1 = PCFShadowDirectionalLight(uShadowMap, shadowCoordNext, uvRadius, biasNext, wsPos, cascadeNext);
 			}
 			else
 			{
-				float biasNext = GetShadowBias(lightDirection, normal, cascadeNext);
 				float zNext = texture(uShadowMap, vec3(shadowCoordNext.xy, cascadeNext)).r;
 				shadowAmount1 = step(shadowCoordNext.z - biasNext, zNext);
 			}
@@ -262,6 +323,61 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 	return 1.0 - ((1.0 - shadowAmount) * ShadowFade * edgeFade);
 }
 
+
+// Spot light shadow: a perspective map in one tile of the atlas. Bias and normal offset are in
+// texels, and a texel grows with the distance from the light.
+float CalculateSpotShadow(int slot, vec3 wsPos, vec3 lightPos, vec3 toLight, vec3 normal)
+{
+	vec4 rect   = u_SceneData.SpotShadowRect[slot];
+	vec4 params = u_SceneData.SpotShadowParams[slot];
+
+	float dist       = length(lightPos - wsPos);
+	float texelWorld = params.z * dist;
+	float NoL        = clamp(dot(normal, toLight), 0.0, 1.0);
+	float sinTheta   = sqrt(clamp(1.0 - NoL * NoL, 0.0, 1.0));
+	vec3 samplePos   = wsPos + normal * (texelWorld * params.y * NORMAL_OFFSET_TEXELS * sinTheta);
+
+	vec4 coord = u_SceneData.SpotShadowMatrix[slot] * vec4(samplePos, 1.0);
+	if(coord.w <= 0.0)
+		return 1.0;
+	coord.xyz /= coord.w;
+	if(coord.z >= 1.0 || coord.z <= 0.0 || any(lessThan(coord.xy, vec2(0.0))) || any(greaterThan(coord.xy, vec2(1.0))))
+		return 1.0;
+
+	// depth is non-linear here: turn the world-space bias into a depth step through the slope of z
+	float slope   = clamp(sqrt(1.0 - NoL * NoL) / max(NoL, 0.05), 0.0, 4.0);
+	float biasW   = texelWorld * params.x * (1.0 + slope);
+	vec4 coordB   = u_SceneData.SpotShadowMatrix[slot] * vec4(samplePos + toLight * biasW, 1.0);
+	float bias    = max(coord.z - coordB.z / coordB.w, 0.0);
+
+	float layerSize = float(textureSize(uShadowMap, 0).x);
+	float tileTexel = 1.0 / (rect.z * layerSize); // one texel, in tile uv
+	vec2 lo = vec2(tileTexel * 1.5);
+	vec2 hi = vec2(1.0) - lo;
+	int layer = int(rect.w);
+
+	float lit = 0.0;
+	if(u_SceneData.FilterShadows == 1)
+	{
+		float uvRadius = clamp(u_SceneData.LightSize * tileTexel * 1.5, tileTexel, tileTexel * 6.0);
+		int sampleCount = min(u_SceneData.PCFSamples, 16);
+		float noise = InterleavedGradientNoise(gl_FragCoord.xy) * TwoPI;
+		for(int i = 0; i < sampleCount; i++)
+		{
+			vec2 offset = VogelDiskSample(i, InvSqrtPCFSamples, noise) * uvRadius;
+			vec2 uv     = rect.xy + clamp(coord.xy + offset, lo, hi) * rect.z;
+			lit += SampleShadowBilinear(uShadowMap, uv, layer, coord.z, bias);
+		}
+		lit /= float(sampleCount);
+	}
+	else
+	{
+		vec2 uv = rect.xy + clamp(coord.xy, lo, hi) * rect.z;
+		lit = step(coord.z - bias, texture(uShadowMap, vec3(uv, layer)).r);
+	}
+
+	return 1.0 - (1.0 - lit) * params.w;
+}
 
 vec3 IsotropicLobe(const Material material, const Light light, const vec3 h,
                    float NoV, float NoL, float NoH, float LoH) {
@@ -336,7 +452,19 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 			// Erase light if there is no need to compute it
 			//intensity *= step(theta, cutoffAngle);
 
+			// light range mode: Radius is a hard range, fade to nothing at it
+			if(u_SceneData.ScenePad0 > 0.5)
+			{
+				float q = dist / light.radius;
+				q *= q;
+				float w = clamp(1.0 - q * q, 0.0, 1.0);
+				attenuation *= w * w;
+			}
 			value = clamp(attenuation, 0.0, 1.0);
+
+			int shadowSlot = int(light.direction.w);
+			if(shadowSlot >= 0 && value > 0.0 && u_SceneData.ShadowEnabled > 0)
+				value *= CalculateSpotShadow(shadowSlot, wsPos, light.position.xyz, L, GeometricNormal);
 		}
 		else
 		{
@@ -345,16 +473,26 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 			if(u_SceneData.ShadowEnabled > 0 && nDotL > 0.0f)
 			{
 				int cascadeIndex = CalculateCascadeIndex(wsPos);
-				value = CalculateShadow(wsPos,cascadeIndex, light.direction.xyz, material.Normal);
+				value = CalculateShadow(wsPos,cascadeIndex, light.direction.xyz, GeometricNormal);
 			}
 			else
 				value = 1.0;
+			// screen-space contacts are for the sun (the first directional light) only
+			value *= ContactShadow;
 		}
 
 
-		vec3 Lradiance = light.colour.xyz * light.intensity;
 		vec3 Li = light.direction.xyz;
 		float lightNoL = saturate(dot(material.Normal, Li));
+		// out of range / outside the cone / facing away: nothing to add, skip the BRDF
+		if(value <= 0.0 || lightNoL <= 0.0)
+			continue;
+		vec3 Lradiance = light.colour.xyz * light.intensity;
+#if QUALITY_LOW
+		// below about 1/255 of the picture: not worth the BRDF
+		if(value * max3(Lradiance) < 0.004)
+			continue;
+#endif
 		vec3 h = normalize(material.View + Li);
 
 		float shading_NoV = clampNoV(dot(material.Normal, material.View));
@@ -366,7 +504,7 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
     	vec3 Fd = DiffuseLobe(material, NoV, NoL, LoH);
 		vec3 Fr = SpecularLobe(material, light, h, NoV, NoL, NoH, LoH);
 		// Clamp spec contribution to prevent fireflies from point-light sub-pixel alignment
-		Fr = min(Fr, vec3(20.0));
+		Fr = min(Fr * material.EnergyCompensation, vec3(20.0));
 
 		vec3 colour = Fd + Fr;
 
@@ -375,9 +513,38 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 	return result;
 }
 
-vec3 IBL(vec3 F0, vec3 Lr, Material material)
+vec4 GIIrradiance(vec3 wsPos, vec3 n)
+{
+	if(u_SceneData.GIOrigin.w < 0.5)
+		return vec4(0.0);
+	vec4 gi = GISampleGrid(wsPos, n, u_SceneData.GIOrigin.xyz, u_SceneData.GISpacing.xyz, u_SceneData.GICounts.xyz);
+	gi.rgb *= u_SceneData.GISpacing.w;
+	return gi;
+}
+
+vec3 IBL(vec3 F0, vec3 Lr, Material material, vec3 wsPos, float ssao)
 {
 	vec3 irradiance = texture(uIrrMap, material.Normal).rgb;
+
+	// the probes know what is around; the sky map alone lights a room as if it had no walls
+	float specularOcclusion = 1.0;
+	float giWeight          = 0.0;
+	vec4 gi = GIIrradiance(wsPos, material.Normal);
+	if(gi.w > 0.0)
+	{
+		float skyLum = max(dot(irradiance, vec3(0.2126, 0.7152, 0.0722)), 1e-6);
+		float giLum  = dot(gi.rgb, vec3(0.2126, 0.7152, 0.0722));
+		// the irradiance ratio says roughly how much sky the surface sees; reflections never go fully dark from it
+		specularOcclusion = mix(1.0, max(sqrt(clamp(giLum / skyLum, 0.0, 1.0)), 0.3), gi.w);
+		irradiance        = mix(irradiance, gi.rgb, gi.w);
+		giWeight          = gi.w;
+	}
+
+	// the probes already hold the large-scale occlusion: SSAO only adds the fine part on top
+	float diffuseAO = material.AO * mix(ssao, sqrt(ssao), giWeight);
+	// Lagarde & de Rousiers 2014: specular occlusion from AO, tighter for smooth surfaces
+	float ao     = material.AO * ssao;
+	float specAO = clamp(pow(material.NDotV + ao, exp2(-16.0 * material.Roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
 
 	vec3 E = F0 * material.dfg.x + material.dfg.y;
 	vec3 kd = (1.0 - E) * (1.0 - material.Metallic.x);
@@ -388,9 +555,59 @@ vec3 IBL(vec3 F0, vec3 Lr, Material material)
 	// Cap extreme HDR pixels (sun) to prevent fireflies on near-mirror surfaces
 	specularIrradiance = min(specularIrradiance, vec3(50.0));
 
-	vec3 specularIBL = specularIrradiance * E;
+	vec3 specularIBL = specularIrradiance * E * material.EnergyCompensation * specularOcclusion;
 
-	return (kd * diffuseIBL + specularIBL) * material.AO;
+	return (kd * diffuseIBL * diffuseAO + specularIBL * specAO) * u_SceneData.EnvExposure;
+}
+
+vec4 SampleDecalTexture(int slot, vec2 uv)
+{
+	// a sampler array can only be indexed with a constant on some drivers
+	switch(slot)
+	{
+		case 0: return texture(uDecalTextures[0], uv);
+		case 1: return texture(uDecalTextures[1], uv);
+		case 2: return texture(uDecalTextures[2], uv);
+		case 3: return texture(uDecalTextures[3], uv);
+	}
+	return vec4(1.0);
+}
+
+// Projected box decals, blended into the surface before lighting so they are lit and shadowed with it
+void ApplyDecals(vec3 wsPos, vec3 n, inout vec4 albedo, inout float roughness, inout vec3 emissive)
+{
+	int count = int(u_SceneData.SceneExtras.y);
+	for(int i = 0; i < count; i++)
+	{
+		vec3 local = (u_Decals.decals[i].WorldToDecal * vec4(wsPos, 1.0)).xyz;
+		if(any(greaterThan(abs(local), vec3(1.0))))
+			continue;
+
+		// faces turned away from the projection get none of it, steep ones fade
+		float facing = dot(n, u_Decals.decals[i].Axis.xyz);
+		float fadeStart = u_Decals.decals[i].Params.y;
+		float angleFade = clamp((facing - 0.05) / max(fadeStart - 0.05, 1e-3), 0.0, 1.0);
+		// and the top / bottom of the box fade too, so a decal never ends in a hard cut
+		float depthFade = 1.0 - smoothstep(0.8, 1.0, abs(local.y));
+		if(angleFade * depthFade <= 0.0)
+			continue;
+
+		vec2 uv = local.xz * 0.5 + 0.5;
+		uv.y    = 1.0 - uv.y;
+		vec4 c  = u_Decals.decals[i].Colour;
+		int slot = int(u_Decals.decals[i].Params.x);
+		if(slot >= 0)
+		{
+			vec4 t = SampleDecalTexture(slot, uv);
+			c *= vec4(DeGamma(t.rgb), t.a);
+		}
+
+		float a = c.a * angleFade * depthFade;
+		albedo.rgb = mix(albedo.rgb, c.rgb, a);
+		if(u_Decals.decals[i].Params.z >= 0.0)
+			roughness = mix(roughness, u_Decals.decals[i].Params.z, a);
+		emissive += c.rgb * u_Decals.decals[i].Params.w * a;
+	}
 }
 
 void main()
@@ -398,6 +615,7 @@ void main()
 	vec4 texColour = GetAlbedo();
 	if(texColour.w < u_MaterialData.AlphaCutOff)
 		discard;
+	vec3 decalEmissive = vec3(0.0);
 
 	float metallic  = 0.0;
 	float roughness = 0.0;
@@ -424,12 +642,15 @@ void main()
 		roughness = 1.0 - glossiness;
 	}
 
+	ApplyDecals(VertexOutput.Position.xyz, normalize(VertexOutput.Normal), texColour, roughness, decalEmissive);
+
 	Material material;
     material.Albedo    = texColour;
     material.Metallic  = metallic;
     material.PerceptualRoughness = roughness;
 	material.Reflectance = u_MaterialData.Reflectance;
 	material.Normal = normalize(VertexOutput.Normal);
+	GeometricNormal = material.Normal;
 
 	if (u_MaterialData.NormalMapFactor > 0.04)
 	{
@@ -438,10 +659,12 @@ void main()
 	}
 
 	material.AO		   = GetAO();
-	material.Emissive  = GetEmissive(material.Albedo.rgb);
+	material.Emissive  = GetEmissive(material.Albedo.rgb) + decalEmissive;
 
 	vec2 uv = gl_FragCoord.xy / vec2(u_SceneData.Width, u_SceneData.Height);
 	float ssao = texture(uSSAOMap, uv).r;
+	if(u_SceneData.SceneExtras.x > 0.5)
+		ContactShadow = texture(uContactShadowMap, uv).r;
 
     // Start from clamped perceptual
 	material.PerceptualRoughness = clamp(material.PerceptualRoughness, MIN_PERCEPTUAL_ROUGHNESS, 1.0);
@@ -478,12 +701,13 @@ void main()
 	float reflectance = computeDielectricF0(material.Reflectance);
 	vec3 F0 = computeF0(material.Albedo, material.Metallic.x, reflectance);
 	material.F0 = F0;
-    material.EnergyCompensation = 1.0 + material.F0 * (1.0 / max(0.1, material.dfg.y) - 1.0);
+    // multi-scatter: the LUT is (scale, bias), so x + y = what one bounce reflects at F0 = 1
+    material.EnergyCompensation = 1.0 + material.F0 * (1.0 / max(material.dfg.x + material.dfg.y, 0.05) - 1.0);
 	material.Albedo.xyz = computeDiffuseColour(material.Albedo, material.Metallic.x);
 
 	vec3 Lr = 2.0 * material.NDotV * material.Normal - material.View;
 	vec3 lightContribution = Lighting(material.F0, wsPos, material);
-	vec3 iblContribution   = IBL(material.F0, Lr, material) * ssao;
+	vec3 iblContribution   = IBL(material.F0, Lr, material, wsPos, ssao);
 
 	vec3 finalColour = lightContribution + iblContribution + material.Emissive;
 
@@ -558,6 +782,13 @@ void main()
 			case 8:
 			outColour = vec4(VertexOutput.TexCoord, 0.0, 1.0);
 			break;
+			case 9:
+			{
+				// what the GI probes light this surface with (bright = more bounce light)
+				vec4 gi = GIIrradiance(wsPos, material.Normal);
+				outColour = vec4(gi.rgb * gi.w * u_SceneData.EnvExposure, 1.0);
+				break;
+			}
 		}
 	}
 }

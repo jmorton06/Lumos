@@ -4,6 +4,7 @@
 
 namespace Lumos
 {
+    struct UIDockPanelContext;
     class Editor;
 
     class ImportPanel
@@ -12,10 +13,14 @@ namespace Lumos
         ImportPanel() = default;
 
         void Show(const std::string& sourcePath);
-        void OnImGui();
+        // The same form as a dock panel on the engine UI.
+        void OnEditorUI(const UIDockPanelContext& context);
         bool IsActive() const { return m_Active; }
+        void Close() { m_Active = false; }
 
     private:
+        void Import();
+
         bool m_Active = false;
         std::string m_SourcePath;
         ImportSettings m_Settings;

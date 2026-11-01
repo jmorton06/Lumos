@@ -75,7 +75,8 @@ namespace Lumos
             }
             else if(texture->GetType() == TextureType::DEPTH)
             {
-                VkClearDepthStencilValue clear_depth_stencil = { 1.0f, 1 };
+                // depth textures clear to clearColour.x (0 = far with reversed-Z)
+                VkClearDepthStencilValue clear_depth_stencil = { clearColour.x, 1 };
 
                 subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
                 VkImageLayout layout        = ((VKTextureDepth*)texture)->GetImageLayout();
@@ -130,20 +131,17 @@ namespace Lumos
                 range);
         }
 
-        void VKRenderer::CopyDepthToArraySlice(Graphics::Texture* srcDepth, Graphics::Texture* dstDepthArray, uint32_t sliceIndex, Graphics::CommandBuffer* commandBuffer)
+        void VKRenderer::CopyDepthToArraySlice(Graphics::Texture* srcDepth, Graphics::Texture* dstDepthArray, uint32_t slice, Graphics::CommandBuffer* commandBuffer)
         {
-            if(!srcDepth || !dstDepthArray
-               || srcDepth->GetType() != TextureType::DEPTH
-               || dstDepthArray->GetType() != TextureType::DEPTHARRAY)
+            if(!srcDepth || !dstDepthArray || srcDepth->GetType() != TextureType::DEPTH || dstDepthArray->GetType() != TextureType::DEPTHARRAY)
                 return;
 
             VKTextureDepth* src      = (VKTextureDepth*)srcDepth;
             VKTextureDepthArray* dst = (VKTextureDepthArray*)dstDepthArray;
             VKCommandBuffer* cmd     = (VKCommandBuffer*)commandBuffer;
 
-            VkImageLayout srcOriginalLayout = src->GetImageLayout();
-            VkImageLayout dstOriginalLayout = dst->GetImageLayout();
-
+            VkImageLayout srcLayout = src->GetImageLayout();
+            VkImageLayout dstLayout = dst->GetImageLayout();
             src->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, cmd);
             dst->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, cmd);
 
@@ -151,26 +149,19 @@ namespace Lumos
             if(Texture::IsStencilFormat(src->GetFormat()))
                 aspect |= VK_IMAGE_ASPECT_STENCIL_BIT;
 
-            VkImageCopy region {};
-            region.srcSubresource.aspectMask     = aspect;
-            region.srcSubresource.baseArrayLayer = 0;
-            region.srcSubresource.layerCount     = 1;
-            region.srcSubresource.mipLevel       = 0;
-            region.dstSubresource.aspectMask     = aspect;
-            region.dstSubresource.baseArrayLayer = sliceIndex;
-            region.dstSubresource.layerCount     = 1;
-            region.dstSubresource.mipLevel       = 0;
-            region.extent.width                  = src->GetWidth(0);
-            region.extent.height                 = src->GetHeight(0);
-            region.extent.depth                  = 1;
+            VkImageCopy region               = {};
+            region.srcSubresource.aspectMask = aspect;
+            region.srcSubresource.layerCount = 1;
+            region.dstSubresource.aspectMask = aspect;
+            region.dstSubresource.baseArrayLayer = slice;
+            region.dstSubresource.layerCount = 1;
+            region.extent.width              = src->GetWidth(0);
+            region.extent.height             = src->GetHeight(0);
+            region.extent.depth              = 1;
+            vkCmdCopyImage(cmd->GetHandle(), src->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-            vkCmdCopyImage(cmd->GetHandle(),
-                           src->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                           dst->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                           1, &region);
-
-            src->TransitionImage(srcOriginalLayout, cmd);
-            dst->TransitionImage(dstOriginalLayout, cmd);
+            src->TransitionImage(srcLayout, cmd);
+            dst->TransitionImage(dstLayout, cmd);
         }
 
         void VKRenderer::ClearSwapChainImage() const
@@ -218,6 +209,7 @@ namespace Lumos
             s_DeletionQueueIndex++;
             s_DeletionQueueIndex = s_DeletionQueueIndex % int(s_DeletionQueue.Size());
             s_DeletionQueue[s_DeletionQueueIndex].Flush();
+            VKUtilities::PollBatches();
 
             SharedPtr<VKSwapChain> swapChain = Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>();
             return swapChain->Begin();
@@ -228,12 +220,9 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION_LOW();
             SharedPtr<VKSwapChain> swapChain = Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>();
 
-            FrameData& frameData = swapChain->GetCurrentFrameData();
-
             swapChain->End();
             swapChain->QueueSubmit();
-            VkSemaphore semaphore = frameData.MainCommandBuffer->GetSemaphore();
-            swapChain->Present(semaphore);
+            swapChain->Present(swapChain->GetRenderFinishedSemaphore());
 
             // Swapchain was silently recreated
             if(swapChain->ConsumeWasRecreated())
@@ -425,15 +414,11 @@ namespace Lumos
             vkMapMemory(VKDevice::Get().GetDevice(), dstImageMemory, 0, VK_WHOLE_SIZE, 0, &mapped);
             uint8_t* data = static_cast<uint8_t*>(mapped) + subResourceLayout.offset;
 
-            // If source is BGR (destination is always RGB) and we can't use blit (which does automatic conversion), we'll have to manually swizzle color components
-            bool colorSwizzle = false;
-            // Check if source is BGR
-            // Note: Not complete, only contains most common and basic BGR surface formats for demonstration purposes
-            if(!supportsBlit)
-            {
-                TDArray<VkFormat> formatsBGR = { VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_SNORM };
-                colorSwizzle                 = (Algorithms::FindIf(formatsBGR.begin(), formatsBGR.end(), ((VKTexture2D*)texture)->GetVKFormat()) != formatsBGR.end());
-            }
+            TDArray<VkFormat> formatsBGR = { VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_SNORM };
+            const VkFormat srcFormat     = ((VKTexture2D*)texture)->GetVKFormat();
+            const bool srcIsBGR          = (Algorithms::FindIf(formatsBGR.begin(), formatsBGR.end(), srcFormat) != formatsBGR.end());
+            const bool colorSwizzle      = srcIsBGR && !supportsBlit;
+            LINFO("Screenshot: srcFormat=%d blit=%d bgr=%d swizzle=%d", (int)srcFormat, (int)supportsBlit, (int)srcIsBGR, (int)colorSwizzle);
 
             stbi_flip_vertically_on_write(0);
 
@@ -453,6 +438,20 @@ namespace Lumos
                 catch(const std::filesystem::filesystem_error& e)
                 {
                     LERROR("Error creating directory : %s", e.what());
+                }
+            }
+
+            if(colorSwizzle)
+            {
+                for(uint32_t y = 0; y < height; y++)
+                {
+                    uint8_t* row = data + y * subResourceLayout.rowPitch;
+                    for(uint32_t x = 0; x < width; x++)
+                    {
+                        const uint8_t r  = row[x * 4 + 0];
+                        row[x * 4 + 0]   = row[x * 4 + 2];
+                        row[x * 4 + 2]   = r;
+                    }
                 }
             }
 
@@ -485,7 +484,7 @@ namespace Lumos
             vkFreeMemory(VKDevice::Get().GetDevice(), dstImageMemory, nullptr);
         }
 
-        void VKRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount)
+        void VKRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount, uint32_t firstSet)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             uint32_t numDynamicDescriptorSets          = 0;
@@ -511,7 +510,7 @@ namespace Lumos
                     LERROR("Descriptor null %i", (int)i);
             }
 
-            vkCmdBindDescriptorSets(static_cast<Graphics::VKCommandBuffer*>(commandBuffer)->GetHandle(), static_cast<Graphics::VKPipeline*>(pipeline)->IsCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, numDescriptorSets, lCurrentDescriptorSets, numDynamicDescriptorSets, &dynamicOffset);
+            vkCmdBindDescriptorSets(static_cast<Graphics::VKCommandBuffer*>(commandBuffer)->GetHandle(), static_cast<Graphics::VKPipeline*>(pipeline)->IsCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), firstSet, numDescriptorSets, lCurrentDescriptorSets, numDynamicDescriptorSets, &dynamicOffset);
         }
 
         void VKRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const
@@ -631,7 +630,8 @@ namespace Lumos
             blit.srcSubresource.baseArrayLayer = 0;
             blit.srcSubresource.layerCount     = 1;
 
-            int32_t destSizex = width / 4;
+            // portrait screens (phones) would make it tiny; iOS launch storyboards use the same sizes
+            int32_t destSizex = height > width ? width / 2 : width / 4;
             int32_t destSizey = int32_t(destSizex * ratio);
             int32_t offsetx   = width / 2 - destSizex / 2;
             int32_t offsety   = height / 2 - destSizey / 2;
@@ -720,69 +720,73 @@ namespace Lumos
             }
         }
 
-        bool VKRenderer::AllocateDescriptorSet(VkDescriptorSet* set, VkDescriptorPool& pool, VkDescriptorSetLayout layout, uint32_t descriptorCount)
+        // what CreatePool(2048) holds. MoltenVK doesn't fail an allocation from a full pool (it logs and
+        // allocates on its own), so the rollover has to come from our own count.
+        static constexpr uint32_t kPoolSets     = 2048;
+        static constexpr uint32_t kPoolSamplers = kPoolSets * 4;
+        TDArray<VKRenderer::PoolUse> VKRenderer::s_PoolUse;
+
+        VkDescriptorPool VKRenderer::FindPoolWithRoom(uint32_t sets, uint32_t samplers)
         {
-            if(m_CurrentPool == VK_NULL_HANDLE)
-            {
-                m_CurrentPool = GetPool();
-                m_UsedDescriptorPools.PushBack(m_CurrentPool);
-            }
+            auto fits = [&](const PoolUse& u)
+            { return u.sets + sets <= kPoolSets && u.samplers + samplers <= kPoolSamplers; };
+            for(auto& u : s_PoolUse)
+                if(u.pool == m_CurrentPool && fits(u))
+                    return m_CurrentPool;
+            // an older pool that freed enough
+            for(auto& u : s_PoolUse)
+                if(fits(u))
+                    return u.pool;
+            VkDescriptorPool pool = GetPool();
+            m_UsedDescriptorPools.PushBack(pool);
+            s_PoolUse.PushBack({ pool, 0, 0 });
+            return pool;
+        }
+
+        bool VKRenderer::AllocateDescriptorSet(VkDescriptorSet* set, VkDescriptorPool& pool, VkDescriptorSetLayout layout, uint32_t descriptorCount, uint32_t samplers)
+        {
+            m_CurrentPool = FindPoolWithRoom(descriptorCount, samplers * descriptorCount);
 
             VkDescriptorSetAllocateInfo allocInfo = {};
             allocInfo.sType                       = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-            allocInfo.pNext                       = nullptr;
             allocInfo.pSetLayouts                 = &layout;
             allocInfo.descriptorPool              = m_CurrentPool;
             allocInfo.descriptorSetCount          = descriptorCount;
 
             VkResult allocResult = vkAllocateDescriptorSets(VKDevice::Get().GetDevice(), &allocInfo, set);
-            bool needReallocate  = false;
-            pool                 = m_CurrentPool;
-
-            switch(allocResult)
+            if(allocResult == VK_ERROR_FRAGMENTED_POOL || allocResult == VK_ERROR_OUT_OF_POOL_MEMORY)
             {
-            case VK_SUCCESS:
-                // all good, return
-                return true;
-
-                break;
-            case VK_ERROR_FRAGMENTED_POOL:
-            case VK_ERROR_OUT_OF_POOL_MEMORY:
-                // reallocate pool
-                needReallocate = true;
-                break;
-            default:
-                // unrecoverable error
+                // our count was off (other descriptor types ran out): a fresh pool
+                VkDescriptorPool fresh = GetPool();
+                m_UsedDescriptorPools.PushBack(fresh);
+                s_PoolUse.PushBack({ fresh, 0, 0 });
+                m_CurrentPool            = fresh;
+                allocInfo.descriptorPool = fresh;
+                allocResult              = vkAllocateDescriptorSets(VKDevice::Get().GetDevice(), &allocInfo, set);
+            }
+            if(allocResult != VK_SUCCESS)
                 return false;
-            }
 
-            if(needReallocate)
-            {
-                // allocate a new pool and retry
-                m_CurrentPool = GetPool();
-                m_UsedDescriptorPools.PushBack(m_CurrentPool);
-                allocInfo.descriptorPool = m_CurrentPool;
-
-                allocResult = vkAllocateDescriptorSets(VKDevice::Get().GetDevice(), &allocInfo, set);
-                pool        = m_CurrentPool;
-
-                // if it still fails then we have big issues
-                if(allocResult == VK_SUCCESS)
+            pool = m_CurrentPool;
+            for(auto& u : s_PoolUse)
+                if(u.pool == pool)
                 {
-                    return true;
+                    u.sets += descriptorCount;
+                    u.samplers += samplers * descriptorCount;
+                    break;
                 }
-            }
-
-            return false;
+            return true;
         }
 
-        bool VKRenderer::DeallocateDescriptorSet(VkDescriptorSet* set, VkDescriptorPool& pool)
+        void VKRenderer::ReleaseDescriptorUse(VkDescriptorPool pool, uint32_t sets, uint32_t samplers)
         {
-            // Find pool index
-            // Decrease Pool capcity by 1
-            // Check if capacity is 0
-            // Add to free list if empty
-            return false;
+            for(auto& u : s_PoolUse)
+                if(u.pool == pool)
+                {
+                    u.sets     = u.sets > sets ? u.sets - sets : 0;
+                    u.samplers = u.samplers > samplers ? u.samplers - samplers : 0;
+                    return;
+                }
         }
 
         void VKRenderer::ReleaseDescriptorPools()
@@ -795,6 +799,7 @@ namespace Lumos
             {
                 vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), p, nullptr);
             }
+            s_PoolUse.Clear();
         }
 
         RHIFormat VKRenderer::GetDepthFormat()

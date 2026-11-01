@@ -53,6 +53,10 @@ namespace Lumos
 
         Entity AddTerrain(Scene* scene, const Vec3& pos, int gridSize = 256, float scaleXZ = 1.0f, float heightScale = 60.0f);
 
+        // A glTF as entities: one per node, parented like the file, with its models, lights and cameras,
+        // under one entity named after the file. Null entity if it will not load.
+        Entity ImportGLTFScene(Scene* scene, const std::string& path);
+
         struct TerrainMaterial
         {
             Vec4 albedoColour = Vec4(0.35f, 0.55f, 0.25f, 1.0f);

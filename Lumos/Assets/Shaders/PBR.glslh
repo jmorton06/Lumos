@@ -159,7 +159,11 @@ vec3 f0ClearCoatToSurface(const vec3 f0) {
 
 float distribution(float roughness, float NoH, const vec3 h, const vec3 normal) 
 {
+#if QUALITY_LOW
+    return D_GGX(NoH, roughness); // no cross product
+#else
     return D_GGX(roughness, NoH, normal, h);
+#endif
 }
 
 float visibility(float roughness, float NoV, float NoL) {

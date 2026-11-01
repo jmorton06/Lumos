@@ -9,6 +9,7 @@
 #include "Core/DataStructures/TDArray.h"
 #include "Core/Function.h"
 #include "Core/String.h"
+#include <string>
 
 namespace Lumos
 {
@@ -85,10 +86,35 @@ namespace Lumos
         virtual uint32_t GetWidth() const    = 0;
         virtual uint32_t GetHeight() const   = 0;
         virtual float GetDPIScale() const { return 1.0f; }
+        // How much bigger the UI should be drawn, which is NOT the same number as
+        // GetDPIScale. DPIScale is framebuffer pixels per window coordinate - the
+        // one to convert positions with - and on X11 it is 1.0 whatever the panel,
+        // because window coordinates there ARE pixels. The desktop still reports a
+        // scaling factor (Xft.dpi), and that is what a 4K display needs the UI laid
+        // out at. They agree on macOS/iOS, where the framebuffer ratio IS the scale.
+        virtual float GetContentScale() const { return GetDPIScale(); }
         virtual float GetMousePosScale() const { return GetDPIScale(); }
         virtual bool GetVSync() const { return m_VSync; };
         virtual void UpdateControllers() { }
         virtual void RefreshSize() { }
+
+        // Desktop window management - no-ops where the platform can't. Sizes and positions
+        // are in screen units (points on macOS), not framebuffer pixels.
+        virtual void SetWindowSize(uint32_t width, uint32_t height) { }
+        virtual Vec2 GetWindowSize() const { return Vec2((float)GetWidth(), (float)GetHeight()); }
+        virtual void SetWindowPosition(int x, int y) { }
+        virtual Vec2 GetWindowPosition() const { return Vec2(0.0f); }
+        virtual Vec2 GetCursorScreenPosition() const { return Vec2(0.0f); }
+        virtual void SetDecorated(bool decorated) { }
+        virtual void SetFloating(bool floating) { }
+        // Rounded, optionally shadowed window with the desktop showing past the corners (macOS).
+        // Pair with SetDecorated(false). radius 0 restores a normal window.
+        virtual void SetWindowShape(float cornerRadius, bool shadow) { }
+        // Native side of a see-through window (clear, non-opaque backing). Use Application::SetWindowTransparent.
+        virtual void SetTransparent(bool transparent) { }
+        virtual void Minimise() { }
+        // Files dropped on the window since the last call
+        virtual TDArray<std::string> PopDroppedFiles() { return {}; }
 
         void SetWindowFocus(bool focus) { m_WindowFocus = focus; }
         bool GetWindowFocus() const { return m_WindowFocus; }

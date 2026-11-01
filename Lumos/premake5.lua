@@ -1,9 +1,3 @@
-newoption
-{
-	trigger = "time-trace",
-	description = "Build with -ftime-trace (clang only)"
-}
-
 project "Lumos"
 	kind "StaticLib"
 	language "C++"
@@ -85,10 +79,6 @@ project "Lumos"
 		"IMGUI_USER_CONFIG=\"Source/Lumos/ImGui/ImConfig.h\"",
 	}
 
-	filter "options:time-trace"
-		buildoptions {"-ftime-trace"}
-		linkoptions {"-ftime-trace"}
-
 	filter "system:windows"
 		cppdialect "C++17"
 		systemversion "latest"
@@ -162,6 +152,7 @@ project "Lumos"
 			"Source/Lumos/Platform/macOS/*.mm",
 			"Source/Lumos/Platform/macOS/*.h",
 			"Source/Lumos/Platform/macOS/*.cpp",
+			"Source/Lumos/Platform/Apple/*.swift",
 
 			"Source/Lumos/Platform/Unix/*.h",
 			"Source/Lumos/Platform/Unix/*.cpp",
@@ -201,7 +192,14 @@ project "Lumos"
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
 			"OpenAL.framework",
+			"AudioToolbox.framework",
+			"CoreAudio.framework",
+			"MediaPlayer.framework",
+			"AVKit.framework",
+			"CoreServices.framework",
+			"CoreMIDI.framework",
 			"SystemConfiguration.framework",
+			"StoreKit.framework",
 			"glfw"
 		}
 
@@ -241,6 +239,8 @@ project "Lumos"
 
 		defines
 		{
+			-- Tracy still listens, but its UDP "here I am" broadcast is what makes iOS ask for local network access
+			"TRACY_NO_BROADCAST",
 			"LUMOS_PLATFORM_IOS",
 			"LUMOS_PLATFORM_MOBILE",
 			"LUMOS_PLATFORM_UNIX",
@@ -259,6 +259,13 @@ project "Lumos"
 			"Source/Lumos/Platform/iOS/*.mm",
 			"Source/Lumos/Platform/iOS/*.h",
 			"Source/Lumos/Platform/iOS/*.cpp",
+			"Source/Lumos/Platform/MacOS/MacOSNowPlaying.mm", -- lock screen / Control Center (shared with macOS)
+			"Source/Lumos/Platform/MacOS/MacOSHttp.mm",       -- Foundation only, shared with macOS
+			"Source/Lumos/Platform/MacOS/MacOSHttpStream.mm",
+			"Source/Lumos/Platform/MacOS/MacOSBookmarks.mm",
+			"Source/Lumos/Platform/MacOS/MacOSRoutePicker.mm",
+			"Source/Lumos/Platform/MacOS/MacOSMusicStream.cpp", -- RemoteIO on iOS
+			"Source/Lumos/Platform/Apple/*.swift",
 
 			"Source/Lumos/Platform/OpenAL/*.h",
 			"Source/Lumos/Platform/OpenAL/*.cpp",
@@ -283,7 +290,11 @@ project "Lumos"
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
 			"OpenAL.framework",
-			"AVFoundation.framework"
+			"AudioToolbox.framework",
+			"AVFoundation.framework",
+			"MediaPlayer.framework",
+			"AVKit.framework",
+			"StoreKit.framework"
 		}
 
 		libdirs

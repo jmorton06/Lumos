@@ -2,7 +2,10 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 #include "Buffers.glslh"
+#include "PBR.glslh"
 #include "Octahedral.glslh"
+#define GBUFFER_MATERIAL
+#include "GBuffer.glslh"
 
 struct VertexData
 {
@@ -14,19 +17,15 @@ struct VertexData
 };
 
 layout(location = 0) in VertexData VertexOutput;
-// Packed G-buffer: rg = octahedral world normal, b = NDC depth, a = roughness.
+// Packed G-buffer, see GBuffer.glslh
 layout(location = 0) out vec4 OutGBuffer;
-
-float GetRoughness()
-{
-	if(u_MaterialData.RoughnessMapFactor < 0.05)
-		return u_MaterialData.Roughness;
-	return (1.0 - u_MaterialData.RoughnessMapFactor) * u_MaterialData.Roughness
-	     + u_MaterialData.RoughnessMapFactor * texture(u_RoughnessMap, VertexOutput.TexCoord).r;
-}
 
 void main(void)
 {
+	vec2 m    = GBufferMaterial(VertexOutput.TexCoord);
 	vec2 octN = OctEncodeNormal(normalize(VertexOutput.Normal));
-	OutGBuffer = vec4(octN, gl_FragCoord.z, GetRoughness());
+	// depth from the interpolated position, not the rasteriser's: on some GPUs a huge triangle clipped
+	// by the camera gets its depth set up with large error (a step along the diagonal of a big floor)
+	vec4 clip  = u_CameraData.projView * vec4(VertexOutput.Position.xyz, 1.0);
+	OutGBuffer = vec4(octN, clip.z / clip.w, GBufferPackMaterial(m.x, m.y));
 }

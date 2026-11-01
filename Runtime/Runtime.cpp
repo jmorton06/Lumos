@@ -64,6 +64,35 @@ static std::string FindLmproj(const std::string& dir)
     return "";
 }
 
+// Exported apps carry their project next to the binary: macOS Contents/Resources, iOS bundle root,
+// Windows / Linux <exe dir>/data. Returns the project root (with trailing slash) or "".
+static std::string FindPackagedProject()
+{
+    TDArray<std::string> candidates;
+#if defined(LUMOS_PLATFORM_IOS)
+    std::string assetPath = OS::Get().GetAssetPath();
+    if(!assetPath.empty() && assetPath.back() != '/')
+        assetPath += "/";
+    candidates.PushBack(assetPath);
+    candidates.PushBack(assetPath + "Game/"); // exporter's Xcode project ships the project as a folder
+#else
+    std::string exeDir = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath());
+    if(!exeDir.empty() && exeDir.back() != '/' && exeDir.back() != '\\')
+        exeDir += "/";
+#if defined(LUMOS_PLATFORM_MACOS)
+    candidates.PushBack(exeDir + "../Resources/");
+    candidates.PushBack(exeDir + "../Resources/Game/"); // Mac App Store build (exporter's Xcode project)
+#endif
+    candidates.PushBack(exeDir + "data/");
+#endif
+    for(auto& dir : candidates)
+    {
+        if(!FindLmproj(dir).empty())
+            return dir;
+    }
+    return "";
+}
+
 class Runtime : public Application
 {
     friend class Application;
@@ -136,6 +165,17 @@ public:
                 LERROR("No .lmproj found in project dir: %s", std::string((const char*)projectOpt.str, projectOpt.size).c_str());
             }
         }
+        else if(std::string packaged = FindPackagedProject(); !packaged.empty())
+        {
+            // exported app: one generic Runtime, the project travels beside it
+            m_ProjectSettings.m_ProjectRoot = packaged;
+            m_ProjectSettings.Packaged      = true;
+            std::string projFile = FindLmproj(packaged);
+            std::string filename = projFile.substr(projFile.find_last_of("/\\") + 1);
+            size_t dot           = filename.find_last_of('.');
+            m_ProjectSettings.m_ProjectName = (dot != std::string::npos) ? filename.substr(0, dot) : filename;
+            LINFO("Packaged project: %s at %s", m_ProjectSettings.m_ProjectName.c_str(), packaged.c_str());
+        }
 #ifdef LUMOS_BUNDLED_PROJECT_NAME
         else
         {
@@ -157,7 +197,10 @@ public:
             #else
             std::string exeDir = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath());
             m_ProjectSettings.m_ProjectRoot = exeDir + "../Resources/" + bundledName + "/";
-            if(!FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)))
+            // packaged builds put the .lmproj + Assets.lpak straight in Resources
+            if(!FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)) && !FindLmproj(exeDir + "../Resources/").empty())
+                m_ProjectSettings.m_ProjectRoot = exeDir + "../Resources/";
+            else if(!FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)))
                 m_ProjectSettings.m_ProjectRoot = exeDir + bundledName + "/";
             #endif
 
@@ -181,7 +224,6 @@ public:
             // Default: find ExampleProject
             TDArray<std::string> projectLocations = {
                 OS::Get().GetExecutablePath() + "../../../../../ExampleProject/",
-                "/Users/jmorton/Dev/Lumos/ExampleProject/Example.lmproj",
                 "ExampleProject/Example.lmproj",
                 "../ExampleProject/Example.lmproj",
                 OS::Get().GetExecutablePath() + "/ExampleProject/Example.lmproj",

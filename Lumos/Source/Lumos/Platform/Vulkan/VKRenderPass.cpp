@@ -26,6 +26,7 @@ namespace Lumos
         {
             m_ClearValue      = NULL;
             m_ClearDepth      = false;
+            m_ReverseDepth    = renderPassDesc.reverseDepth;
             m_SwapchainTarget = false;
 
             Init(renderPassDesc);
@@ -191,22 +192,24 @@ namespace Lumos
                         VkSubpassDependency& depedency = dependencies.EmplaceBack();
                         depedency.srcSubpass           = VK_SUBPASS_EXTERNAL;
                         depedency.dstSubpass           = 0;
-                        depedency.srcStageMask         = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-                        depedency.dstStageMask         = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-                        depedency.srcAccessMask        = VK_ACCESS_SHADER_READ_BIT;
-                        depedency.dstAccessMask        = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-                        depedency.dependencyFlags      = VK_DEPENDENCY_BY_REGION_BIT;
+                        // earlier passes may have sampled it or written it (another pass on the same target)
+                        depedency.srcStageMask         = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+                        depedency.dstStageMask         = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+                        depedency.srcAccessMask        = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+                        depedency.dstAccessMask        = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+                        depedency.dependencyFlags      = 0;
                     }
 
                     {
                         VkSubpassDependency& depedency = dependencies.EmplaceBack();
                         depedency.srcSubpass           = 0;
                         depedency.dstSubpass           = VK_SUBPASS_EXTERNAL;
-                        depedency.srcStageMask         = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-                        depedency.dstStageMask         = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                        // not by region: shadow maps are sampled anywhere, not at the same pixel
+                        depedency.srcStageMask         = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+                        depedency.dstStageMask         = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
                         depedency.srcAccessMask        = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-                        depedency.dstAccessMask        = VK_ACCESS_SHADER_READ_BIT;
-                        depedency.dependencyFlags      = VK_DEPENDENCY_BY_REGION_BIT;
+                        depedency.dstAccessMask        = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+                        depedency.dependencyFlags      = 0;
                     }
                 }
                 else
@@ -323,7 +326,7 @@ namespace Lumos
 
             if(m_ClearDepth)
             {
-                m_ClearValue[m_DepthAttachmentIndex].depthStencil = VkClearDepthStencilValue { 1.0f, 0 };
+                m_ClearValue[m_DepthAttachmentIndex].depthStencil = VkClearDepthStencilValue { m_ReverseDepth ? 0.0f : 1.0f, 0 };
             }
 
             u32 RenderPassWidth  = Maths::Max((u32)width, 1u);

@@ -171,7 +171,7 @@ namespace Lumos
     {
         Reserve(size);
         for(size_t i = 0; i < size; ++i)
-            new(&m_Data[i]) T(initial);
+            new((void*)&m_Data[i]) T(initial);
 
         m_Size = size;
     }
@@ -183,7 +183,7 @@ namespace Lumos
         Reserve(values.size());
         size_t index = 0;
         for(auto& value : values)
-            new(&m_Data[index++]) T(value);
+            new((void*)&m_Data[index++]) T(value);
         m_Size = values.size();
     }
 
@@ -296,7 +296,7 @@ namespace Lumos
         {
             for(size_t i = 0; i < m_Size; ++i)
             {
-                new(&newData[i]) T(Move(m_Data[i]));
+                new((void*)&newData[i]) T(Move(m_Data[i]));
                 m_Data[i].~T();
             }
 
@@ -320,7 +320,7 @@ namespace Lumos
         {
             Reserve(size);
             for(size_t i = m_Size; i < size; ++i)
-                new(&m_Data[i]) T(value);
+                new((void*)&m_Data[i]) T(value);
         }
         m_Size = size;
     }
@@ -339,7 +339,7 @@ namespace Lumos
     {
         if(m_Size == m_Capacity)
             Reserve(m_Capacity == 0 ? 1 : m_Capacity * 2);
-        new(&m_Data[m_Size]) T(value);
+        new((void*)&m_Data[m_Size]) T(value);
         ++m_Size;
     }
 
@@ -348,7 +348,7 @@ namespace Lumos
     {
         if(m_Size == m_Capacity)
             Reserve(m_Capacity == 0 ? 1 : m_Capacity * 2);
-        new(&m_Data[m_Size]) T(Move(value));
+        new((void*)&m_Data[m_Size]) T(Move(value));
         ++m_Size;
     }
 
@@ -359,7 +359,7 @@ namespace Lumos
         if(m_Size == m_Capacity)
             Reserve(m_Capacity == 0 ? 1 : m_Capacity * 2);
 
-        new(&m_Data[m_Size]) T(Forward<Args>(args)...);
+        new((void*)&m_Data[m_Size]) T(Forward<Args>(args)...);
         return m_Data[m_Size++];
     }
 
@@ -379,7 +379,7 @@ namespace Lumos
     {
         Reserve(other.m_Size);
         for(size_t i = 0; i < other.m_Size; ++i)
-            new(&m_Data[i]) T(other.m_Data[i]);
+            new((void*)&m_Data[i]) T(other.m_Data[i]);
         m_Size = other.m_Size;
     }
 

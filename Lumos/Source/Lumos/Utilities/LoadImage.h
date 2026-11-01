@@ -21,6 +21,14 @@ namespace Lumos
 
     LUMOS_EXPORT bool LoadImageFromFile(ImageLoadDesc& desc);
 
+    // Decodes an encoded image (png/jpg/...) held in memory to RGBA8, downscaled to fit maxSize
+    // (0 = no limit). Free the result with FreeImageMemory.
+    LUMOS_EXPORT uint8_t* LoadImageFromMemory(const uint8_t* data, size_t size, uint32_t* width, uint32_t* height, uint32_t maxSize = 0);
+    LUMOS_EXPORT void FreeImageMemory(uint8_t* pixels);
+
+    // Most prominent saturated colour of an encoded image (rgb 0-1). False for greyscale-ish images.
+    LUMOS_EXPORT bool ImageAccentColour(const uint8_t* data, size_t size, float outRGB[3]);
+
     LUMOS_EXPORT void SetMaxImageDimensions(uint32_t width, uint32_t height);
 
     LUMOS_EXPORT void GetMaxImageDimensions(uint32_t& width, uint32_t& height);

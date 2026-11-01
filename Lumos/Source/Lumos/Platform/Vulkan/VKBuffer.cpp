@@ -59,11 +59,20 @@ namespace Lumos
                 else
                 {
 #ifdef USE_VMA_ALLOCATOR
-                    vmaDestroyBuffer(VKDevice::Get().GetAllocator(), buffer, m_Allocation);
+                    auto alloc = m_Allocation;
+                    auto destroy = [buffer, alloc]
+                    { vmaDestroyBuffer(VKDevice::Get().GetAllocator(), buffer, alloc); };
 #else
-                    vkDestroyBuffer(VKDevice::Get().GetDevice(), buffer, nullptr);
-                    vkFreeMemory(VKDevice::Get().GetDevice(), m_Memory, nullptr);
+                    auto memory  = m_Memory;
+                    auto destroy = [buffer, memory]
+                    {
+                        vkDestroyBuffer(VKDevice::Get().GetDevice(), buffer, nullptr);
+                        vkFreeMemory(VKDevice::Get().GetDevice(), memory, nullptr);
+                    };
 #endif
+                    // a batched upload may still be reading it (staging buffers)
+                    if(!VKUtilities::DeferUntilBatchDone(destroy))
+                        destroy();
                 }
             }
 
@@ -88,13 +97,26 @@ namespace Lumos
 
             m_GPUOnlyMemory = !isMappable;
 
+            // A zero-size buffer is a legitimate starting state - the dynamic
+            // vertex/index buffers are constructed empty and sized on their first
+            // SetData. Vulkan has no such thing, and handing 0 to vmaCreateBuffer
+            // just returns VK_ERROR_INITIALIZATION_FAILED and logs it, once per
+            // buffer, for a buffer nothing was going to use yet. Stay unallocated
+            // instead; Resize() creates it for real once there is data.
+            if(size == 0)
+            {
+                m_Buffer = VK_NULL_HANDLE;
+                return;
+            }
+
 #ifdef USE_VMA_ALLOCATOR
 
             if(!data)
             {
                 VmaAllocationCreateInfo vmaAllocInfo = {};
                 vmaAllocInfo.usage                   = VMA_MEMORY_USAGE_AUTO;
-                vmaAllocInfo.flags                   = isMappable ? VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT : 0;
+                // HOST_CACHED = the CPU reads this back, so ask for random access
+                vmaAllocInfo.flags                   = !isMappable ? 0 : ((MemoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) ? VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT : VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
                 vmaAllocInfo.preferredFlags          = MemoryPropertyFlags;
 
 #if USE_SMALL_VMA_POOL
@@ -173,7 +195,11 @@ namespace Lumos
                 &copyRegion);
 
             VKUtilities::EndSingleTimeCommands(commandBuffer);
-            vmaDestroyBuffer(VKDevice::Get().GetAllocator(), stagingBuffer, stagingAlloc);
+
+            auto destroyStaging = [stagingBuffer, stagingAlloc]
+            { vmaDestroyBuffer(VKDevice::Get().GetAllocator(), stagingBuffer, stagingAlloc); };
+            if(!VKUtilities::DeferUntilBatchDone(destroyStaging))
+                destroyStaging();
 #else
 
             VmaAllocationCreateInfo vmaAllocInfo = {};

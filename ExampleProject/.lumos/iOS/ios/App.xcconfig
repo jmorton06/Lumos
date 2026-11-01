@@ -1,0 +1,13 @@
+PRODUCT_NAME = Archery
+PRODUCT_BUNDLE_IDENTIFIER = com.lumos.example
+MARKETING_VERSION = 1.0.0
+CURRENT_PROJECT_VERSION = 1
+DEVELOPMENT_TEAM = C5L4T5BF6L
+TARGETED_DEVICE_FAMILY = 1,2
+IPHONEOS_DEPLOYMENT_TARGET = 16.0
+LUMOS_TEMPLATE_LIB = /Users/jmorton/Dev/Lumos-Dev/Templates/0.4.0/ios/release/lib
+DEBUG_INFORMATION_FORMAT = dwarf
+INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown
+INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown
+INFOPLIST_KEY_UIStatusBarHidden = YES
+INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO

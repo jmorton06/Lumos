@@ -195,8 +195,8 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         ImageLoadDesc imageLoadDesc = {};
         imageLoadDesc.filePath      = (const char*)path.str;
-        imageLoadDesc.maxHeight     = 2048;
-        imageLoadDesc.maxWidth      = 2048;
+        imageLoadDesc.maxHeight     = Application::Get().GetQualitySettings().MaxTextureSize;
+        imageLoadDesc.maxWidth      = imageLoadDesc.maxHeight;
         Lumos::LoadImageFromFile(imageLoadDesc);
 
         desc.format    = imageLoadDesc.outBits / 4 == 8 ? Graphics::RHIFormat::R8G8B8A8_Unorm : Graphics::RHIFormat::R32G32B32A32_Float;
@@ -223,6 +223,8 @@ namespace Lumos
     bool AssetManager::LoadTexture(const String8& filePath, SharedPtr<Graphics::Texture2D>& texture, bool thread)
     {
         texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create({}, 1, 1));
+        // keep where it came from: the importer copies textures by path
+        texture->SetFilepath(std::string((const char*)filePath.str, filePath.size));
         if(thread)
             m_Futures.PushBack(std::async(std::launch::async, LoadTexture2D, texture.get(), filePath, true, Graphics::TextureDesc{}));
         else
@@ -236,6 +238,8 @@ namespace Lumos
     bool AssetManager::LoadTexture(const String8& filePath, SharedPtr<Graphics::Texture2D>& texture, bool thread, const Graphics::TextureDesc& desc)
     {
         texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create({}, 1, 1));
+        // keep where it came from: the importer copies textures by path
+        texture->SetFilepath(std::string((const char*)filePath.str, filePath.size));
         if(thread)
             m_Futures.PushBack(std::async(std::launch::async, LoadTexture2D, texture.get(), filePath, true, desc));
         else
@@ -274,6 +278,17 @@ namespace Lumos
         return texture;
     }
 
+    void AssetManager::EvictMaterialAssets(const std::string& prefix)
+    {
+        for(auto it = m_MaterialCache.begin(); it != m_MaterialCache.end();)
+        {
+            if(it->first.rfind(prefix, 0) == 0)
+                it = m_MaterialCache.erase(it);
+            else
+                ++it;
+        }
+    }
+
     SharedPtr<Graphics::Material> AssetManager::LoadMaterialAsset(const String8& lmatPath)
     {
         std::string key((const char*)lmatPath.str, lmatPath.size);
@@ -283,20 +298,13 @@ namespace Lumos
 
         ArenaTemp scratch = ScratchBegin(0, 0);
 
-        String8 physicalPath;
-        if(!FileSystem::Get().ResolvePhysicalPath(scratch.arena, lmatPath, &physicalPath))
+        // through the VFS: an exported game has its .lmat files in the pack
+        if(!FileSystem::Get().FileExistsVFS(lmatPath))
         {
             ScratchEnd(scratch);
             return nullptr;
         }
-
-        if(!FileSystem::FileExists(physicalPath))
-        {
-            ScratchEnd(scratch);
-            return nullptr;
-        }
-
-        int64_t fileSize = FileSystem::GetFileSize(physicalPath);
+        const int64_t fileSize = FileSystem::Get().GetFileSizeVFS(lmatPath);
         if(fileSize <= 0)
         {
             ScratchEnd(scratch);
@@ -304,7 +312,7 @@ namespace Lumos
         }
 
         Arena* fileArena = ArenaAlloc((u64)fileSize + Kilobytes(1));
-        String8 data = FileSystem::ReadTextFile(fileArena, physicalPath);
+        String8 data     = FileSystem::Get().ReadTextFileVFS(fileArena, lmatPath);
         if(data.size == 0)
         {
             ArenaRelease(fileArena);
@@ -323,6 +331,9 @@ namespace Lumos
         bool hasTexParams = false;
         Graphics::MaterialProperties props;
         std::string shaderName;
+        std::string matName;
+        u32 matFlags  = 0;
+        bool hasFlags = false;
 
         try
         {
@@ -359,6 +370,15 @@ namespace Lumos
                 hasTexParams = true;
             }
             catch(...) {}
+
+            // name + render flags (newer .lmat)
+            try
+            {
+                ar(cereal::make_nvp("Name", matName));
+                ar(cereal::make_nvp("Flags", matFlags));
+                hasFlags = true;
+            }
+            catch(...) {}
         }
         catch(...)
         {
@@ -370,11 +390,20 @@ namespace Lumos
 
         ArenaRelease(fileArena);
 
-        auto shaderAsset = GetAssetData(Str8Lit("ForwardPBR"));
+        auto shaderAsset = shaderName.empty() ? SharedPtr<Asset>() : GetAssetData(Str8StdS(shaderName));
+        if(!shaderAsset)
+            shaderAsset = GetAssetData(Str8Lit("ForwardPBR"));
         if(shaderAsset)
         {
             auto shaderPtr = shaderAsset.As<Graphics::Shader>();
             auto material  = CreateSharedPtr<Graphics::Material>(shaderPtr, props);
+            material->SetName(matName);
+            if(hasFlags)
+            {
+                material->SetFlag(Graphics::Material::RenderFlags::TWOSIDED, (matFlags & (u32)Graphics::Material::RenderFlags::TWOSIDED) != 0);
+                material->SetFlag(Graphics::Material::RenderFlags::ALPHABLEND, (matFlags & (u32)Graphics::Material::RenderFlags::ALPHABLEND) != 0);
+                material->SetFlag(Graphics::Material::RenderFlags::NOSHADOW, (matFlags & (u32)Graphics::Material::RenderFlags::NOSHADOW) != 0);
+            }
 
             Graphics::PBRMataterialTextures textures;
             for(u32 s = 0; s < 6; s++)

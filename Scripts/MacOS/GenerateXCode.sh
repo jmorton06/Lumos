@@ -2,7 +2,7 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR/../.."
 
-Tools/premake5 xcode4
+Tools/premake5 xcode4 "$@"
 
 # Fix SKIP_INSTALL for proper app archiving
 # Premake generates array values from multiple xcodebuildsettings calls;

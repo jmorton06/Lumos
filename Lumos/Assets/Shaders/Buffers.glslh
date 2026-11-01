@@ -1,6 +1,7 @@
 #define MAX_LIGHTS 256
 #define MAX_SHADOWMAPS 4
-#define MAX_BONES 100
+#define MAX_SPOT_SHADOWS 16 // SPOT_SHADOW_MAX in RHIDefinitions.h
+#define MAX_BONES 256 // 256 mat4 = 16 KB, the smallest uniform buffer Vulkan guarantees
 
 layout(set = 0,binding = 0) uniform UBO
 {
@@ -79,15 +80,55 @@ layout(std140, set = 2, binding = 5) uniform UniformSceneData
 	int FilterShadows;
 	int TileCountX;
 	int TileSize;
+	// camera exposure x sky unit: the environment maps are stored like the skybox's
+	float EnvExposure;
+	float ScenePad0;
 	// Scene fog. FogColour.rgb = tint, .a = global strength (0 disables).
 	// FogParams.x = exponential density (per world unit), .y = height falloff
 	// (smaller = thicker low). .z = linear start dist, .w = linear end dist
 	// (end <= start disables the linear term).
 	vec4 FogColour;
 	vec4 FogParams;
+	// Probe grid GI: GIOrigin.w = 1 when on, GISpacing.w = intensity, GICounts.w = probe count
+	vec4 GIOrigin;
+	vec4 GISpacing;
+	ivec4 GICounts;
+	// x = 1 when the contact shadow map is filled, y = decal count
+	vec4 SceneExtras;
+	// Spot light shadows: tiles of uShadowMap after the cascades. A spot light's direction.w is its slot (-1 = none).
+	mat4 SpotShadowMatrix[MAX_SPOT_SHADOWS]; // world -> tile uv + depth
+	vec4 SpotShadowRect[MAX_SPOT_SHADOWS];   // xy = tile corner, z = tile size (layer uv), w = array layer
+	vec4 SpotShadowParams[MAX_SPOT_SHADOWS]; // x = bias, y = normal bias (texels), z = texel world size 1 m out, w = strength
 } u_SceneData;
 
-#ifdef FORWARD_PLUS
+#define MAX_DECALS 32
+#define MAX_DECAL_TEXTURES 4 // iOS Metal: 16 samplers a stage, and the forward pass uses 12 more
+
+struct Decal
+{
+	mat4 WorldToDecal; // unit cube -1..1, projected along its -Y
+	vec4 Colour;       // rgb tint, a opacity
+	vec4 Params;       // x = texture slot (-1 = none), y = angle fade start (cos), z = roughness (< 0 keeps the surface's), w = emissive
+	vec4 Axis;         // world projection axis (the decal's up)
+};
+
+layout(std430, set = 2, binding = 9) readonly buffer GIProbes
+{
+	vec4 data[];
+} u_GIProbes;
+
+layout(set = 2, binding = 10) uniform sampler2D uContactShadowMap;
+
+layout(std140, set = 2, binding = 11) uniform DecalData
+{
+	Decal decals[MAX_DECALS];
+} u_Decals;
+
+layout(set = 2, binding = 12) uniform sampler2D uDecalTextures[MAX_DECAL_TEXTURES];
+
+// declared in every variant (only Forward+ reads them) so all forward pipelines share one set 2
+// layout: a variant without them shifted every later binding on MoltenVK (skinned meshes read
+// zeros for GI, decals)
 layout(std430, set = 2, binding = 6) readonly buffer LightBuffer {
 	Light lights[];
 } u_Lights;
@@ -99,7 +140,6 @@ layout(std430, set = 2, binding = 7) readonly buffer LightGrid {
 layout(std430, set = 2, binding = 8) readonly buffer LightIndices {
 	uint indices[];
 } u_LightIndices;
-#endif
 
 layout (std140, set = 3, binding = 0) uniform BoneTransforms
 {
