@@ -193,6 +193,7 @@ project "Runtime"
     		"-framework IOSurface",
     		"-framework Foundation",
     		"-framework UniformTypeIdentifiers",
+    		"-L$(TOOLCHAIN_DIR)/usr/lib/swift/macosx", -- libLumos has Swift, this target doesn't
     		"../Lumos/External/vulkan/libs/macOS/libMoltenVK.a"
 		}
 
