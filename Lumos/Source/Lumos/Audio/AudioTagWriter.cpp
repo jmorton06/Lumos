@@ -5,7 +5,9 @@
 #include <cstdio>
 #include <cstring>
 #include <sys/stat.h>
-#if !defined(_WIN32)
+#if defined(_WIN32)
+#include <io.h>
+#else
 #include <unistd.h>
 #endif
 
@@ -43,31 +45,54 @@ namespace Lumos
         void SetBE32(u8* p, u32 v) { p[0] = (u8)(v >> 24); p[1] = (u8)(v >> 16); p[2] = (u8)(v >> 8); p[3] = (u8)v; }
         void SetBE64(u8* p, u64 v) { SetBE32(p, (u32)(v >> 32)); SetBE32(p + 4, (u32)v); }
 
+        // off_t is 32 bit on Windows
+        bool Seek(FILE* f, u64 at)
+        {
+#if defined(_WIN32)
+            return _fseeki64(f, (long long)at, SEEK_SET) == 0;
+#else
+            return fseeko(f, (off_t)at, SEEK_SET) == 0;
+#endif
+        }
+
+        bool Truncate(FILE* f, u64 size)
+        {
+#if defined(_WIN32)
+            return _chsize_s(_fileno(f), (long long)size) == 0;
+#else
+            return ftruncate(fileno(f), (off_t)size) == 0;
+#endif
+        }
+
         u64 FileSize(FILE* f)
         {
             fseek(f, 0, SEEK_END);
+#if defined(_WIN32)
+            long long n = _ftelli64(f);
+#else
             long long n = ftello(f);
+#endif
             return n < 0 ? 0 : (u64)n;
         }
 
         bool ReadAt(FILE* f, u64 at, u64 n, Bytes& out)
         {
             out.Resize((size_t)n);
-            if(fseeko(f, (off_t)at, SEEK_SET) != 0)
+            if(!Seek(f, at))
                 return false;
             return n == 0 || fread(out.Data(), 1, (size_t)n, f) == n;
         }
 
         bool WriteAt(FILE* f, u64 at, const u8* data, size_t n)
         {
-            if(fseeko(f, (off_t)at, SEEK_SET) != 0)
+            if(!Seek(f, at))
                 return false;
             return n == 0 || fwrite(data, 1, n, f) == n;
         }
 
         bool CopyRange(FILE* src, u64 at, u64 n, FILE* dst)
         {
-            if(fseeko(src, (off_t)at, SEEK_SET) != 0)
+            if(!Seek(src, at))
                 return false;
             static const size_t Chunk = 1 << 20;
             Bytes buf;
@@ -751,7 +776,7 @@ namespace Lumos
             {
                 bool ok = WriteAt(f, moovA.off, moov.Data(), moov.Size());
                 if(ok && delta < 0)
-                    ok = ftruncate(fileno(f), (off_t)(moovA.off + moov.Size())) == 0;
+                    ok = Truncate(f, moovA.off + moov.Size());
                 fclose(f);
                 return ok || Fail(error, "writing failed");
             }
