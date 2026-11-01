@@ -3,6 +3,15 @@ set -euo pipefail
 
 export PATH="/usr/local/bin:$PATH"
 
+# The Xcode projects are shared with the iOS build: if the last thing generated
+# them was an iOS one (an iOS template / BuildIOS.sh), regenerate for macOS first.
+ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
+cd "$ROOT_DIR"
+if [ ! -f Runtime/Runtime.xcodeproj/project.pbxproj ] || grep -q "IPHONEOS_DEPLOYMENT_TARGET" Runtime/Runtime.xcodeproj/project.pbxproj; then
+    echo "Xcode projects missing or set up for iOS - regenerating for macOS"
+    ./Scripts/MacOS/GenerateXCode.sh >/dev/null
+fi
+
 PROJECT_PATH="Editor/LumosEditor.xcodeproj"
 SCHEME="LumosEditor"
 CONFIGURATION="Release"

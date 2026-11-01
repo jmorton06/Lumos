@@ -6,6 +6,8 @@
 #include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/TerrainCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/MeshCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/Hull.h"
 #include "Maths/MathsUtilities.h"
 
 namespace Lumos
@@ -37,6 +39,12 @@ namespace Lumos
         m_CollisionCheckFunctions[CollisionTerrain | CollisionCapsule] = &CollisionDetection::CheckTerrainCollision;
         m_CollisionCheckFunctions[CollisionTerrain | CollisionPyramid] = &CollisionDetection::CheckTerrainCollision;
         m_CollisionCheckFunctions[CollisionTerrain | CollisionHull]    = &CollisionDetection::CheckTerrainCollision;
+
+        m_CollisionCheckFunctions[CollisionMesh | CollisionSphere]  = &CollisionDetection::CheckMeshCollision;
+        m_CollisionCheckFunctions[CollisionMesh | CollisionCuboid]  = &CollisionDetection::CheckMeshCollision;
+        m_CollisionCheckFunctions[CollisionMesh | CollisionCapsule] = &CollisionDetection::CheckMeshCollision;
+        m_CollisionCheckFunctions[CollisionMesh | CollisionPyramid] = &CollisionDetection::CheckMeshCollision;
+        m_CollisionCheckFunctions[CollisionMesh | CollisionHull]    = &CollisionDetection::CheckMeshCollision;
     }
 
     bool CollisionDetection::CheckCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
@@ -892,6 +900,380 @@ namespace Lumos
         return true;
     }
 
+    // ---- triangle mesh ---------------------------------------------------------------
+    // All in the mesh's local space. Normals point from the mesh toward the other body.
+    struct MeshContact
+    {
+        Vec3 Point; // on the mesh surface
+        Vec3 Normal;
+        float Depth;
+        bool Face; // touching the inside of a triangle, not one of its edges
+    };
+
+    static constexpr uint32_t kMaxMeshContacts = 4;
+
+    // Narrowphase asks for the manifold straight after the check, on the same thread.
+    struct MeshContactCache
+    {
+        RigidBody3D* MeshBody  = nullptr;
+        RigidBody3D* OtherBody = nullptr;
+        Vec3 OtherPosition;
+        MeshContact Contacts[kMaxMeshContacts];
+        uint32_t Count = 0;
+    };
+    static thread_local MeshContactCache t_MeshContacts;
+
+    static Vec3 ClosestPointOnTriangle(const Vec3& p, const MeshTriangle& tri, bool& interior)
+    {
+        interior      = false;
+        const Vec3 ab = tri.v1 - tri.v0;
+        const Vec3 ac = tri.v2 - tri.v0;
+        const Vec3 ap = p - tri.v0;
+        const float d1 = Maths::Dot(ab, ap), d2 = Maths::Dot(ac, ap);
+        if(d1 <= 0.0f && d2 <= 0.0f)
+            return tri.v0;
+
+        const Vec3 bp  = p - tri.v1;
+        const float d3 = Maths::Dot(ab, bp), d4 = Maths::Dot(ac, bp);
+        if(d3 >= 0.0f && d4 <= d3)
+            return tri.v1;
+
+        const float vc = d1 * d4 - d3 * d2;
+        if(vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f)
+            return tri.v0 + ab * (d1 / (d1 - d3));
+
+        const Vec3 cp  = p - tri.v2;
+        const float d5 = Maths::Dot(ab, cp), d6 = Maths::Dot(ac, cp);
+        if(d6 >= 0.0f && d5 <= d6)
+            return tri.v2;
+
+        const float vb = d5 * d2 - d1 * d6;
+        if(vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f)
+            return tri.v0 + ac * (d2 / (d2 - d6));
+
+        const float va = d3 * d6 - d5 * d4;
+        if(va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f)
+            return tri.v1 + (tri.v2 - tri.v1) * ((d4 - d3) / ((d4 - d3) + (d5 - d6)));
+
+        interior          = true;
+        const float denom = 1.0f / (va + vb + vc);
+        return tri.v0 + ab * (vb * denom) + ac * (vc * denom);
+    }
+
+    static void ClosestPointsOnSegments(const Vec3& p1, const Vec3& q1, const Vec3& p2, const Vec3& q2, Vec3& c1, Vec3& c2)
+    {
+        const Vec3 d1 = q1 - p1, d2 = q2 - p2, r = p1 - p2;
+        const float a = Maths::Dot(d1, d1), e = Maths::Dot(d2, d2), f = Maths::Dot(d2, r);
+        float s = 0.0f, t = 0.0f;
+        if(a <= 1e-12f && e <= 1e-12f)
+        {
+        }
+        else if(a <= 1e-12f)
+            t = Maths::Clamp(f / e, 0.0f, 1.0f);
+        else
+        {
+            const float c = Maths::Dot(d1, r);
+            if(e <= 1e-12f)
+                s = Maths::Clamp(-c / a, 0.0f, 1.0f);
+            else
+            {
+                const float b     = Maths::Dot(d1, d2);
+                const float denom = a * e - b * b;
+                s                 = denom > 1e-12f ? Maths::Clamp((b * f - c * e) / denom, 0.0f, 1.0f) : 0.0f;
+                t                 = (b * s + f) / e;
+                if(t < 0.0f)
+                {
+                    t = 0.0f;
+                    s = Maths::Clamp(-c / a, 0.0f, 1.0f);
+                }
+                else if(t > 1.0f)
+                {
+                    t = 1.0f;
+                    s = Maths::Clamp((b - c) / a, 0.0f, 1.0f);
+                }
+            }
+        }
+        c1 = p1 + d1 * s;
+        c2 = p2 + d2 * t;
+    }
+
+    // Where the segment p -> q passes through the triangle, either side.
+    static bool SegmentThroughTriangle(const Vec3& p, const Vec3& q, const MeshTriangle& tri, Vec3& outPoint)
+    {
+        const float dp = Maths::Dot(tri.Normal, p - tri.v0);
+        const float dq = Maths::Dot(tri.Normal, q - tri.v0);
+        if((dp > 0.0f) == (dq > 0.0f) || dp == dq)
+            return false;
+
+        const Vec3 x = p + (q - p) * (dp / (dp - dq));
+        if(Maths::Dot(Maths::Cross(tri.v1 - tri.v0, x - tri.v0), tri.Normal) < 0.0f
+            || Maths::Dot(Maths::Cross(tri.v2 - tri.v1, x - tri.v1), tri.Normal) < 0.0f
+            || Maths::Dot(Maths::Cross(tri.v0 - tri.v2, x - tri.v2), tri.Normal) < 0.0f)
+            return false;
+        outPoint = x;
+        return true;
+    }
+
+    static bool SphereTriangleContact(const Vec3& centre, float radius, const Vec3& onTriangle, bool interior, const MeshTriangle& tri, MeshContact& out)
+    {
+        const Vec3 away   = centre - onTriangle;
+        const float dist2 = Maths::Length2(away);
+        if(dist2 >= radius * radius)
+            return false;
+
+        const float dist = Maths::Sqrt(dist2);
+        out.Point        = onTriangle;
+        out.Normal       = dist > 1e-5f ? away / dist : tri.Normal;
+        out.Depth        = radius - dist;
+        out.Face         = interior;
+        return true;
+    }
+
+    static bool CapsuleTriangleContact(const Vec3& a, const Vec3& b, float radius, const MeshTriangle& tri, MeshContact& out)
+    {
+        // the core segment goes right through: push back out the way the centre came from
+        Vec3 through;
+        if(SegmentThroughTriangle(a, b, tri, through))
+        {
+            Vec3 normal = tri.Normal;
+            if(Maths::Dot(normal, (a + b) * 0.5f - tri.v0) < 0.0f)
+                normal = normal * -1.0f;
+            const float behind = Maths::Max(-Maths::Dot(normal, a - tri.v0), -Maths::Dot(normal, b - tri.v0));
+            out.Point          = through;
+            out.Normal         = normal;
+            out.Depth          = radius + Maths::Max(behind, 0.0f);
+            out.Face           = true;
+            return true;
+        }
+
+        // otherwise the nearest pair of points between the segment and the triangle
+        bool interiorA, interiorB;
+        const Vec3 nearA = ClosestPointOnTriangle(a, tri, interiorA);
+        const Vec3 nearB = ClosestPointOnTriangle(b, tri, interiorB);
+
+        Vec3 onSegment  = a, onTriangle = nearA;
+        bool interior   = interiorA;
+        float bestDist2 = Maths::Length2(a - nearA);
+        const float dB  = Maths::Length2(b - nearB);
+        if(dB < bestDist2)
+        {
+            bestDist2  = dB;
+            onSegment  = b;
+            onTriangle = nearB;
+            interior   = interiorB;
+        }
+
+        const Vec3* corners[3] = { &tri.v0, &tri.v1, &tri.v2 };
+        for(int e = 0; e < 3; e++)
+        {
+            Vec3 c1, c2;
+            ClosestPointsOnSegments(a, b, *corners[e], *corners[(e + 1) % 3], c1, c2);
+            const float d = Maths::Length2(c1 - c2);
+            if(d < bestDist2 - 1e-8f)
+            {
+                bestDist2  = d;
+                onSegment  = c1;
+                onTriangle = c2;
+                interior   = false;
+            }
+        }
+        return SphereTriangleContact(onSegment, radius, onTriangle, interior, tri, out);
+    }
+
+    // Keeps the deepest few, one per place. An edge contact that lies in the plane of a face
+    // contact is the seam between two triangles of one flat surface, not a real edge.
+    static uint32_t SelectMeshContacts(MeshContact* all, uint32_t count, MeshContact* out)
+    {
+        for(uint32_t i = 0; i < count;)
+        {
+            bool seam = false;
+            if(!all[i].Face)
+            {
+                for(uint32_t j = 0; j < count && !seam; j++)
+                    seam = all[j].Face && Maths::Abs(Maths::Dot(all[j].Normal, all[i].Point - all[j].Point)) < 0.01f;
+            }
+            if(seam)
+                all[i] = all[--count];
+            else
+                i++;
+        }
+
+        uint32_t kept = 0;
+        while(kept < kMaxMeshContacts && count > 0)
+        {
+            uint32_t deepest = 0;
+            for(uint32_t i = 1; i < count; i++)
+                if(all[i].Depth > all[deepest].Depth)
+                    deepest = i;
+
+            const MeshContact c = all[deepest];
+            all[deepest]        = all[--count];
+
+            bool duplicate = false;
+            for(uint32_t k = 0; k < kept && !duplicate; k++)
+                duplicate = Maths::Dot(out[k].Normal, c.Normal) > 0.98f && Maths::Length2(out[k].Point - c.Point) < 0.05f * 0.05f;
+            if(!duplicate)
+                out[kept++] = c;
+        }
+        return kept;
+    }
+
+    static uint32_t CollectMeshContacts(RigidBody3D* meshObj, MeshCollisionShape* mesh, RigidBody3D* otherObj, CollisionShape* otherShape, const Mat4& toLocal, MeshContact* out)
+    {
+        static constexpr uint32_t kMaxTriangles = 256;
+        static constexpr uint32_t kMaxFound     = 64;
+        uint32_t triangles[kMaxTriangles];
+        MeshContact found[kMaxFound];
+        uint32_t foundCount = 0;
+
+        const Mat4 otherToLocal = toLocal * otherObj->GetWorldSpaceTransform();
+
+        switch(otherShape->GetType())
+        {
+        case CollisionShapeType::CollisionSphere:
+        {
+            const float radius = static_cast<SphereCollisionShape*>(otherShape)->GetRadius();
+            const Vec3 centre  = Vec3(otherToLocal * Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+            const uint32_t n   = mesh->QueryAABB(centre - Vec3(radius), centre + Vec3(radius), triangles, kMaxTriangles);
+            for(uint32_t i = 0; i < n && foundCount < kMaxFound; i++)
+            {
+                const MeshTriangle& tri = mesh->GetTriangle(triangles[i]);
+                bool interior;
+                const Vec3 nearest = ClosestPointOnTriangle(centre, tri, interior);
+                if(SphereTriangleContact(centre, radius, nearest, interior, tri, found[foundCount]))
+                    foundCount++;
+            }
+            break;
+        }
+        case CollisionShapeType::CollisionCapsule:
+        {
+            auto* capsule      = static_cast<CapsuleCollisionShape*>(otherShape);
+            const float radius = capsule->GetRadius();
+            const float halfH  = capsule->GetHeight() * 0.5f;
+            const Vec3 a       = Vec3(otherToLocal * Vec4(0.0f, -halfH, 0.0f, 1.0f));
+            const Vec3 b       = Vec3(otherToLocal * Vec4(0.0f, halfH, 0.0f, 1.0f));
+            const Vec3 lo      = Vec3(Maths::Min(a.x, b.x), Maths::Min(a.y, b.y), Maths::Min(a.z, b.z)) - Vec3(radius);
+            const Vec3 hi      = Vec3(Maths::Max(a.x, b.x), Maths::Max(a.y, b.y), Maths::Max(a.z, b.z)) + Vec3(radius);
+            const uint32_t n   = mesh->QueryAABB(lo, hi, triangles, kMaxTriangles);
+            for(uint32_t i = 0; i < n && foundCount < kMaxFound; i++)
+            {
+                if(CapsuleTriangleContact(a, b, radius, mesh->GetTriangle(triangles[i]), found[foundCount]))
+                    foundCount++;
+            }
+            break;
+        }
+        default:
+        {
+            // Boxes and hulls: a corner has gone in when it is behind a triangle's plane and over
+            // the triangle. Edges resting across a mesh edge are not caught.
+            static constexpr uint32_t kMaxCorners = 32;
+            Vec3 corners[kMaxCorners];
+            uint32_t cornerCount = 0;
+
+            if(otherShape->GetType() == CollisionShapeType::CollisionCuboid)
+            {
+                const Vec3 half = static_cast<CuboidCollisionShape*>(otherShape)->GetHalfDimensions();
+                for(int i = 0; i < 8; i++)
+                    corners[cornerCount++] = Vec3(otherToLocal * Vec4((i & 1) ? half.x : -half.x, (i & 2) ? half.y : -half.y, (i & 4) ? half.z : -half.z, 1.0f));
+            }
+            else if(Hull* hull = otherShape->GetHull())
+            {
+                const Mat4 hullToLocal = otherToLocal * otherShape->GetLocalTransform();
+                for(size_t i = 0; i < hull->GetNumVertices() && cornerCount < kMaxCorners; i++)
+                    corners[cornerCount++] = Vec3(hullToLocal * Vec4(hull->GetVertex((int)i).pos, 1.0f));
+            }
+            if(cornerCount == 0)
+                break;
+
+            const Vec3 centre = Vec3(otherToLocal * Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+            Vec3 lo = centre, hi = centre;
+            float reach = FLT_MAX;
+            for(uint32_t i = 0; i < cornerCount; i++)
+            {
+                lo    = Vec3(Maths::Min(lo.x, corners[i].x), Maths::Min(lo.y, corners[i].y), Maths::Min(lo.z, corners[i].z));
+                hi    = Vec3(Maths::Max(hi.x, corners[i].x), Maths::Max(hi.y, corners[i].y), Maths::Max(hi.z, corners[i].z));
+                reach = Maths::Min(reach, Maths::Length(corners[i] - centre));
+            }
+            // A centre this far behind a triangle is still a body that sank in from the front,
+            // further back and it is on the other side of a thin wall.
+            const float sunk = reach * 0.3f;
+
+            const uint32_t n = mesh->QueryAABB(lo, hi, triangles, kMaxTriangles);
+            for(uint32_t c = 0; c < cornerCount && foundCount < kMaxFound; c++)
+            {
+                MeshContact deepest;
+                deepest.Depth = 0.0f;
+                for(uint32_t i = 0; i < n; i++)
+                {
+                    const MeshTriangle& tri = mesh->GetTriangle(triangles[i]);
+                    Vec3 normal             = tri.Normal;
+                    if(Maths::Dot(normal, centre - tri.v0) < -sunk)
+                        normal = normal * -1.0f;
+
+                    const float depth = -Maths::Dot(normal, corners[c] - tri.v0);
+                    if(depth <= deepest.Depth || depth > reach * 2.0f)
+                        continue;
+
+                    const Vec3 onPlane = corners[c] + normal * depth;
+                    if(Maths::Dot(Maths::Cross(tri.v1 - tri.v0, onPlane - tri.v0), tri.Normal) < 0.0f
+                        || Maths::Dot(Maths::Cross(tri.v2 - tri.v1, onPlane - tri.v1), tri.Normal) < 0.0f
+                        || Maths::Dot(Maths::Cross(tri.v0 - tri.v2, onPlane - tri.v2), tri.Normal) < 0.0f)
+                        continue;
+
+                    deepest.Depth  = depth;
+                    deepest.Normal = normal;
+                    deepest.Point  = onPlane;
+                    deepest.Face   = true;
+                }
+                if(deepest.Depth > 0.0f)
+                    found[foundCount++] = deepest;
+            }
+            break;
+        }
+        }
+
+        return SelectMeshContacts(found, foundCount, out);
+    }
+
+    bool CollisionDetection::CheckMeshCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
+    {
+        LUMOS_PROFILE_FUNCTION_LOW();
+        const bool meshIsA      = shape1->GetType() == CollisionShapeType::CollisionMesh;
+        auto* mesh              = static_cast<MeshCollisionShape*>(meshIsA ? shape1 : shape2);
+        RigidBody3D* meshObj    = meshIsA ? obj1 : obj2;
+        RigidBody3D* otherObj   = meshIsA ? obj2 : obj1;
+        CollisionShape* other   = meshIsA ? shape2 : shape1;
+        MeshContactCache& cache = t_MeshContacts;
+
+        cache.MeshBody      = meshObj;
+        cache.OtherBody     = otherObj;
+        cache.OtherPosition = otherObj->GetPosition();
+        cache.Count         = 0;
+        if(!mesh->IsBuilt())
+            return false;
+
+        const Mat4 meshToWorld = meshObj->GetWorldSpaceTransform() * mesh->GetLocalTransform();
+        cache.Count            = CollectMeshContacts(meshObj, mesh, otherObj, other, Mat4::Inverse(meshToWorld), cache.Contacts);
+        if(cache.Count == 0)
+            return false;
+
+        // to world space
+        for(uint32_t i = 0; i < cache.Count; i++)
+        {
+            cache.Contacts[i].Point  = Vec3(meshToWorld * Vec4(cache.Contacts[i].Point, 1.0f));
+            cache.Contacts[i].Normal = Vec3(meshToWorld * Vec4(cache.Contacts[i].Normal, 0.0f));
+        }
+
+        if(out_coldata)
+        {
+            const MeshContact& deepest = cache.Contacts[0];
+            out_coldata->normal        = meshIsA ? deepest.Normal : deepest.Normal * -1.0f;
+            out_coldata->penetration   = -deepest.Depth; // negative = overlapping
+            out_coldata->pointOnPlane  = deepest.Point;
+        }
+        return true;
+    }
+
     bool CollisionDetection::CheckCollisionAxis(const Vec3& axis, RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
@@ -1028,6 +1410,32 @@ namespace Lumos
             Vec3 globalOnB = coldata.pointOnPlane;
             manifold->AddContact(globalOnA, globalOnB, coldata.normal, coldata.penetration);
             return true;
+        }
+
+        // Mesh: one contact per surface touched (floor and wall at once), found by the check just before
+        if(shape1->GetType() == CollisionShapeType::CollisionMesh || shape2->GetType() == CollisionShapeType::CollisionMesh)
+        {
+            const bool meshIsA      = shape1->GetType() == CollisionShapeType::CollisionMesh;
+            RigidBody3D* meshObj    = meshIsA ? obj1 : obj2;
+            RigidBody3D* otherObj   = meshIsA ? obj2 : obj1;
+            MeshContactCache& cache = t_MeshContacts;
+            if(cache.MeshBody != meshObj || cache.OtherBody != otherObj || cache.OtherPosition != otherObj->GetPosition())
+            {
+                CollisionData ignored;
+                if(!CheckMeshCollision(obj1, obj2, shape1, shape2, &ignored))
+                    return false;
+            }
+
+            for(uint32_t i = 0; i < cache.Count; i++)
+            {
+                const MeshContact& c = cache.Contacts[i];
+                const Vec3 onOther   = c.Point - c.Normal * c.Depth;
+                if(meshIsA)
+                    manifold->AddContact(c.Point, onOther, c.Normal, -c.Depth);
+                else
+                    manifold->AddContact(onOther, c.Point, c.Normal * -1.0f, -c.Depth);
+            }
+            return cache.Count > 0;
         }
 
         {

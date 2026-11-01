@@ -60,9 +60,12 @@ namespace Lumos
         s_Instance = nullptr;
     }
 
+    bool DebugRenderer::s_PassRequested = false;
+
     void DebugRenderer::Reset(float dt)
     {
         LUMOS_PROFILE_FUNCTION();
+        s_PassRequested = false;
         s_Instance->ClearDrawList(s_Instance->m_DrawList, dt);
         s_Instance->ClearDrawList(s_Instance->m_DrawListNDT, dt);
 

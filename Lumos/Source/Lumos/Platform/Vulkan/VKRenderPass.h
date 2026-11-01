@@ -33,6 +33,7 @@ namespace Lumos
             int m_DepthAttachmentIndex;
             bool m_DepthOnly;
             bool m_ClearDepth;
+            bool m_ReverseDepth = true;
             bool m_SwapchainTarget;
             std::string m_DebugName;
         };

@@ -119,8 +119,12 @@ do_macos() {
 
 do_ios() {
     echo "Generating iOS icons..."
-    # iOS uses same xcassets as macOS (single 1024x1024, Xcode handles sizes)
-    "$SCRIPT_DIR/MacOS/PrepareIcon.sh" "$SOURCE_PNG"
+    # iOS uses same xcassets as macOS (single 1024x1024, Xcode handles sizes).
+    # iOS wants an opaque full-bleed square (it rounds the corners itself): icon_ios.png beside the icon if there is one
+    local src="$SOURCE_PNG"
+    local ios_png="${SOURCE_PNG%.png}_ios.png"
+    [ -f "$ios_png" ] && src="$ios_png"
+    "$SCRIPT_DIR/MacOS/PrepareIcon.sh" "$src"
     echo "iOS icon prepared in xcassets"
 }
 

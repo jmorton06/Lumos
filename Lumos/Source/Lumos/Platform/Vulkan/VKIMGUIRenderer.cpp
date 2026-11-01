@@ -327,6 +327,8 @@ namespace Lumos
 
                 m_FontTexture   = new VKTexture2D(width, height, pixels, desc);
                 io.Fonts->TexID = (ImTextureID)AddTexture(m_FontTexture, TextureType::COLOUR, 0, 0);
+                // the GPU has it now; ImGui rebuilds the pixels from the fonts if it ever needs them again
+                io.Fonts->ClearTexData();
                 m_CurrentFrameTextures.PushBack(m_FontTexture);
             }
         }

@@ -7,6 +7,38 @@
 
 namespace Lumos
 {
+    bool LImgReader::ReadMemory(const u8* data, u64 size, LImgReadResult& outResult)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        if(!data || size < sizeof(LImgHeader))
+            return false;
+
+        LImgHeader header;
+        memcpy(&header, data, sizeof(LImgHeader));
+        if(memcmp(header.Magic, LIMG_MAGIC, 4) != 0 || header.Version != LIMG_VERSION)
+            return false;
+        if(sizeof(LImgHeader) + (u64)header.CompressedSize > size)
+            return false;
+
+        u8* pixels = new u8[header.UncompressedSize];
+        const int decompressed = LZ4_decompress_safe(
+            (const char*)data + sizeof(LImgHeader), (char*)pixels,
+            (int)header.CompressedSize, (int)header.UncompressedSize);
+        if(decompressed != (int)header.UncompressedSize)
+        {
+            LERROR("LImgReader: LZ4 decompression failed (memory)");
+            delete[] pixels;
+            return false;
+        }
+
+        outResult.Pixels = pixels;
+        outResult.Width  = header.Width;
+        outResult.Height = header.Height;
+        outResult.IsHDR  = (header.Flags & LImgFlag_HDR) != 0;
+        outResult.Bits   = outResult.IsHDR ? 128 : 32;
+        return true;
+    }
+
     bool LImgReader::Read(const char* physicalPath, LImgReadResult& outResult)
     {
         LUMOS_PROFILE_FUNCTION();

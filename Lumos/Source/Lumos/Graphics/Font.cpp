@@ -19,6 +19,7 @@
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoRegular.inl>
 #include <imgui/Plugins/ImGuiAl/fonts/MaterialDesign.inl>
 #include "Graphics/MDIIcons.h"
+#include "Embedded/CousineRegular.inl"
 #include <stb/deprecated/stb.h>
 #include <fstream>
 
@@ -127,7 +128,7 @@ namespace Lumos
             }
         }
 
-        static constexpr uint32_t FONT_ATLAS_VERSION = 2; // bumped: MDI icon glyphs merged in
+        static constexpr uint32_t FONT_ATLAS_VERSION = 11; // bumped: sprite editor icons
 
         struct AtlasHeader
         {
@@ -390,18 +391,20 @@ namespace Lumos
 
             // From ImGui
             static const uint32_t charsetRanges[] = {
-                0x0020,
-                0x00FF, // Basic Latin + Latin Supplement
-                0x0400,
-                0x052F, // Cyrillic + Cyrillic Supplement
-                0x2DE0,
-                0x2DFF, // Cyrillic Extended-A
-                0xA640,
-                0xA69F, // Cyrillic Extended-B
+                0x0020, 0x00FF, // Basic Latin + Latin Supplement (£ ¥ ¢, no-break space)
+                0x0100, 0x024F, // Latin Extended-A / B (zł, ő, ş, ě...)
+                0x0370, 0x03FF, // Greek
+                0x0400, 0x052F, // Cyrillic + Cyrillic Supplement
+                0x1E00, 0x1EFF, // Latin Extended Additional (Vietnamese)
+                0x2000, 0x206F, // General Punctuation: dashes, quotes, ellipsis, narrow no-break space
+                0x20A0, 0x20CF, // Currency Symbols (€ ₹ ₩ ₺ ₽ ₴ ₫ ₱ ₪ ...)
+                0x2100, 0x2122, // Letterlike (℃ № ™)
+                0x2DE0, 0x2DFF, // Cyrillic Extended-A
+                0xA640, 0xA69F, // Cyrillic Extended-B
                 0,
             };
 
-            for(int range = 0; range < 8; range += 2)
+            for(int range = 0; charsetRanges[range] != 0; range += 2)
             {
                 for(uint32_t c = charsetRanges[range]; c <= charsetRanges[range + 1]; c++)
                     charset.add(c);
@@ -490,30 +493,6 @@ namespace Lumos
             if(!fixedDimensions)
                 FONT_LOG("Font: Atlas dimensions: %i x %i", config.width, config.height);
 
-            // Edge coloring
-            if(config.imageType == ImageType::MSDF || config.imageType == ImageType::MTSDF)
-            {
-                if(config.expensiveColoring)
-                {
-                    Workload([&glyphs = m_MSDFData->Glyphs, &config](int i, int threadNo) -> bool
-                             {
-                    unsigned long long glyphSeed = (LCG_MULTIPLIER * (config.coloringSeed ^ i) + LCG_INCREMENT) * !!config.coloringSeed;
-                    glyphs[i].edgeColoring(config.edgeColoring, config.angleThreshold, glyphSeed);
-                    return true; },
-                             int(m_MSDFData->Glyphs.size()))
-                        .finish(THREADS);
-                }
-                else
-                {
-                    unsigned long long glyphSeed = config.coloringSeed;
-                    for(GlyphGeometry& glyph : m_MSDFData->Glyphs)
-                    {
-                        glyphSeed *= LCG_MULTIPLIER;
-                        glyph.edgeColoring(config.edgeColoring, config.angleThreshold, glyphSeed);
-                    }
-                }
-            }
-
             std::string fontName = m_FilePath;
 
             // Check cache here
@@ -527,6 +506,31 @@ namespace Lumos
             }
             else
             {
+                LUMOS_PROFILE_SCOPE("Font::GenerateAtlas");
+                // only the generator reads the edge colours: a cached atlas skips this
+                if(config.imageType == ImageType::MSDF || config.imageType == ImageType::MTSDF)
+                {
+                    if(config.expensiveColoring)
+                    {
+                        Workload([&glyphs = m_MSDFData->Glyphs, &config](int i, int threadNo) -> bool
+                                 {
+                        unsigned long long glyphSeed = (LCG_MULTIPLIER * (config.coloringSeed ^ i) + LCG_INCREMENT) * !!config.coloringSeed;
+                        glyphs[i].edgeColoring(config.edgeColoring, config.angleThreshold, glyphSeed);
+                        return true; },
+                                 int(m_MSDFData->Glyphs.size()))
+                            .finish(THREADS);
+                    }
+                    else
+                    {
+                        unsigned long long glyphSeed = config.coloringSeed;
+                        for(GlyphGeometry& glyph : m_MSDFData->Glyphs)
+                        {
+                            glyphSeed *= LCG_MULTIPLIER;
+                            glyph.edgeColoring(config.edgeColoring, config.angleThreshold, glyphSeed);
+                        }
+                    }
+                }
+
                 bool floatingPointFormat = true;
                 SharedPtr<Texture2D> texture;
                 switch(config.imageType)
@@ -549,7 +553,26 @@ namespace Lumos
             }
         }
 
+        bool Font::HasGlyphs(const std::string& text) const
+        {
+            const MSDFData* msdf = GetMSDFData();
+            if(!msdf)
+                return false;
+            for(size_t i = 0; i < text.size();)
+            {
+                UnicodeDecode dec = Utf8Decode((u8*)text.data() + i, text.size() - i);
+                i += dec.inc > 0 ? dec.inc : 1;
+                const char32_t c = dec.codepoint;
+                if(c == ' ' || c == '\n' || c == '\r' || c == '\t')
+                    continue;
+                if(!msdf->GetGlyph(c))
+                    return false;
+            }
+            return true;
+        }
+
         SharedPtr<Font> Font::s_DefaultFont;
+        SharedPtr<Font> Font::s_MonoFont;
 
         SharedPtr<Graphics::Texture2D> Font::GetFontAtlas() const
         {
@@ -568,7 +591,23 @@ namespace Lumos
 
         void Font::ShutdownDefaultFont()
         {
+            s_MonoFont.reset();
             s_DefaultFont.reset();
+        }
+
+        SharedPtr<Font> Font::GetMonoFont()
+        {
+            if(!s_MonoFont)
+            {
+                // embedded: shipped games and iOS have no engine asset folder
+                s_MonoFont = CreateSharedPtr<Font>((uint8_t*)CousineRegular, CousineRegularSize, "CousineRegular");
+                if(!s_MonoFont->GetFontAtlas())
+                {
+                    LWARN("Monospace font failed to load: using the default font");
+                    s_MonoFont = s_DefaultFont;
+                }
+            }
+            return s_MonoFont;
         }
 
         SharedPtr<Font> Font::GetDefaultFont()

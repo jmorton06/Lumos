@@ -286,7 +286,7 @@ namespace Lumos
                 for(uint32_t i : m_PendingIndices)
                     m_CPUIndices.PushBack(i);
 
-                m_VertexBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Vertex) * m_PendingVertices.Size()), m_PendingVertices.Data(), BufferUsage::STATIC));
+                m_VertexBuffer = SharedPtr<VertexBuffer>(CreatePackedVertexBuffer(m_PendingVertices.Data(), (uint32_t)m_PendingVertices.Size()));
                 m_IndexBuffer  = SharedPtr<IndexBuffer>(IndexBuffer::Create(m_PendingIndices.Data(), (uint32_t)m_PendingIndices.Size()));
             }
 

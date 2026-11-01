@@ -29,6 +29,8 @@ namespace Lumos
     {
     public:
         static std::string Import(const std::string& sourcePath, const ImportSettings& settings);
+        // with the settings in the source's .meta (defaults when there is none)
+        static std::string Import(const std::string& sourcePath);
 
         // Check if imported .lmesh is missing or has outdated format version
         static bool NeedsImport(const std::string& sourcePath);

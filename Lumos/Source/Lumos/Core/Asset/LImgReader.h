@@ -19,5 +19,7 @@ namespace Lumos
     {
     public:
         static bool Read(const char* physicalPath, LImgReadResult& outResult);
+        // same, from bytes already in memory (a packed build has no file to open)
+        static bool ReadMemory(const u8* data, u64 size, LImgReadResult& outResult);
     };
 }

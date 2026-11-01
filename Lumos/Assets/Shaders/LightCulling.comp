@@ -38,14 +38,15 @@ layout(std430, set = 0, binding = 4) buffer GlobalIndexCount {
 
 layout(push_constant) uniform PushConstants
 {
-	mat4 invProjection;
+	mat4 invViewProj; // NDC -> world, so the tile volumes are built where the lights live
 	uint screenWidth;
 	uint screenHeight;
 	uint tileCountX;
 	uint tileCountY;
 	uint lightCount;
-	float near;
-	float far;
+	float hasDepth;   // 1 = the depth buffer holds this frame (pre-pass ran); 0 = whole depth range
+	float pad0;
+	float rangeMode;
 } u_PushConstants;
 
 shared uint s_MinDepth;
@@ -54,22 +55,22 @@ shared uint s_LightCount;
 shared uint s_LightIndices[MAX_LIGHTS_PER_TILE];
 shared uint s_GlobalOffset;
 
-// Frustum planes for this tile
+// world-space tile volume, normals pointing inwards
 shared vec4 s_FrustumPlanes[6];
 
-vec4 ClipToView(vec4 clip)
+vec3 Unproject(vec2 pixel, float depth)
 {
-	vec4 view = u_PushConstants.invProjection * clip;
-	return view / view.w;
+	// offscreen targets are not flipped: pixel row 0 is NDC y = -1
+	vec2 ndc = pixel / vec2(u_PushConstants.screenWidth, u_PushConstants.screenHeight) * 2.0 - 1.0;
+	vec4 p   = u_PushConstants.invViewProj * vec4(ndc, depth, 1.0);
+	return p.xyz / p.w;
 }
 
-vec4 ScreenToView(vec2 screenCoord)
+vec4 PlaneFrom(vec3 a, vec3 b, vec3 c, vec3 inside)
 {
-	vec2 uv = screenCoord / vec2(u_PushConstants.screenWidth, u_PushConstants.screenHeight);
-	vec4 clip = vec4(uv * 2.0 - 1.0, 1.0, 1.0);
-	// Flip Y for Vulkan
-	clip.y = -clip.y;
-	return ClipToView(clip);
+	vec3 n  = normalize(cross(b - a, c - a));
+	vec4 pl = vec4(n, -dot(n, a));
+	return dot(pl, vec4(inside, 1.0)) < 0.0 ? -pl : pl;
 }
 
 bool SphereInsideFrustum(vec3 center, float radius)
@@ -88,7 +89,6 @@ void main()
 	uint tileIndex = tileID.y * u_PushConstants.tileCountX + tileID.x;
 	uint localIndex = gl_LocalInvocationIndex;
 
-	// Init shared memory
 	if(localIndex == 0)
 	{
 		s_MinDepth = 0xFFFFFFFF;
@@ -97,50 +97,56 @@ void main()
 	}
 	barrier();
 
-	// Sample depth at this pixel
 	ivec2 pixelCoord = ivec2(gl_GlobalInvocationID.xy);
-	if(pixelCoord.x < int(u_PushConstants.screenWidth) && pixelCoord.y < int(u_PushConstants.screenHeight))
+	if(u_PushConstants.hasDepth > 0.5 && pixelCoord.x < int(u_PushConstants.screenWidth) && pixelCoord.y < int(u_PushConstants.screenHeight))
 	{
+		// depth is 0..1 and positive, so its bits sort like the floats
 		float depth = texelFetch(u_DepthTexture, pixelCoord, 0).r;
-		// Linearize depth for min/max (Vulkan depth is 0..1)
 		uint depthInt = floatBitsToUint(depth);
 		atomicMin(s_MinDepth, depthInt);
 		atomicMax(s_MaxDepth, depthInt);
 	}
 	barrier();
 
-	// Build tile frustum planes (first thread only)
 	if(localIndex == 0)
 	{
-		float minDepth = uintBitsToFloat(s_MinDepth);
-		float maxDepth = uintBitsToFloat(s_MaxDepth);
+		// reversed-Z: the largest depth in the tile is the nearest surface
+		float nearDepth = 1.0;
+		float farDepth  = 0.0;
+		if(u_PushConstants.hasDepth > 0.5 && s_MinDepth <= s_MaxDepth)
+		{
+			nearDepth = uintBitsToFloat(s_MaxDepth);
+			farDepth  = uintBitsToFloat(s_MinDepth);
+		}
 
-		// Tile corners in screen space
 		vec2 tileMin = vec2(tileID) * float(TILE_SIZE);
-		vec2 tileMax = tileMin + vec2(TILE_SIZE);
+		vec2 tileMax = min(tileMin + vec2(TILE_SIZE), vec2(u_PushConstants.screenWidth, u_PushConstants.screenHeight));
+		vec2 tileMid = (tileMin + tileMax) * 0.5;
 
-		// Clamp to screen
-		tileMax = min(tileMax, vec2(u_PushConstants.screenWidth, u_PushConstants.screenHeight));
+		vec3 n00 = Unproject(tileMin, 1.0);
+		vec3 n10 = Unproject(vec2(tileMax.x, tileMin.y), 1.0);
+		vec3 n01 = Unproject(vec2(tileMin.x, tileMax.y), 1.0);
+		vec3 n11 = Unproject(tileMax, 1.0);
+		vec3 f00 = Unproject(tileMin, 0.0);
+		vec3 f10 = Unproject(vec2(tileMax.x, tileMin.y), 0.0);
+		vec3 f01 = Unproject(vec2(tileMin.x, tileMax.y), 0.0);
+		vec3 f11 = Unproject(tileMax, 0.0);
 
-		// View-space corners at near plane
-		vec3 viewTL = ScreenToView(tileMin).xyz;
-		vec3 viewTR = ScreenToView(vec2(tileMax.x, tileMin.y)).xyz;
-		vec3 viewBL = ScreenToView(vec2(tileMin.x, tileMax.y)).xyz;
-		vec3 viewBR = ScreenToView(tileMax).xyz;
+		vec3 nearMid = Unproject(tileMid, nearDepth);
+		vec3 farMid  = Unproject(tileMid, farDepth);
+		vec3 inside  = (nearMid + farMid) * 0.5;
 
-		// Build frustum planes (normals pointing inward)
-		// Left plane
-		s_FrustumPlanes[0] = vec4(normalize(cross(viewBL, viewTL)), 0.0);
-		// Right plane
-		s_FrustumPlanes[1] = vec4(normalize(cross(viewTR, viewBR)), 0.0);
-		// Top plane
-		s_FrustumPlanes[2] = vec4(normalize(cross(viewTL, viewTR)), 0.0);
-		// Bottom plane
-		s_FrustumPlanes[3] = vec4(normalize(cross(viewBR, viewBL)), 0.0);
-		// Near plane
-		s_FrustumPlanes[4] = vec4(0.0, 0.0, 1.0, minDepth);
-		// Far plane
-		s_FrustumPlanes[5] = vec4(0.0, 0.0, -1.0, -maxDepth);
+		s_FrustumPlanes[0] = PlaneFrom(n00, f00, f01, inside); // left
+		s_FrustumPlanes[1] = PlaneFrom(n10, f11, f10, inside); // right
+		s_FrustumPlanes[2] = PlaneFrom(n00, f10, f00, inside); // top
+		s_FrustumPlanes[3] = PlaneFrom(n01, f01, f11, inside); // bottom
+
+		// depth bounds: planes facing along the view through the nearest and farthest surface
+		// (depth is a function of distance along the camera's forward, so these are exact)
+		vec2 screenMid = vec2(u_PushConstants.screenWidth, u_PushConstants.screenHeight) * 0.5;
+		vec3 forward   = normalize(Unproject(screenMid, 0.0) - Unproject(screenMid, 1.0));
+		s_FrustumPlanes[4] = vec4(forward, -dot(forward, nearMid));
+		s_FrustumPlanes[5] = vec4(-forward, dot(forward, farMid));
 	}
 	barrier();
 
@@ -162,7 +168,8 @@ void main()
 		{
 			// Sphere-frustum test using light position and radius
 			vec3 lightPos = light.position.xyz;
-			float lightRadius = light.radius * 100.0; // Match CPU frustum cull scale
+			// a point light is zero past its radius; a spot is only bounded in range mode
+			float lightRadius = (light.type == 2.0 || u_PushConstants.rangeMode > 0.5) ? light.radius : light.radius * 100.0;
 
 			if(SphereInsideFrustum(lightPos, lightRadius))
 			{
@@ -178,7 +185,9 @@ void main()
 	if(localIndex == 0)
 	{
 		uint count = min(s_LightCount, uint(MAX_LIGHTS_PER_TILE));
-		s_GlobalOffset = atomicAdd(u_GlobalIndexCount.globalCount, count);
+		// a fixed slot per tile: a shared counter has to be zeroed between frames, and a frame
+		// still in flight could be adding to it when the CPU did that
+		s_GlobalOffset = tileIndex * uint(MAX_LIGHTS_PER_TILE);
 		u_LightGrid.tiles[tileIndex] = uvec2(s_GlobalOffset, count);
 	}
 	barrier();

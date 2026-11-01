@@ -29,6 +29,11 @@
 #include "Graphics/Model.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Renderers/DebugRenderer.h"
+#include "Graphics/Renderers/SceneRenderer.h"
+#include "Graphics/Gizmo.h"
+#include "Core/Undo.h"
+#include "Scene/SceneUndo.h"
+#include "Core/ToolPanels.h"
 #include "Maths/Transform.h"
 #include "Maths/BoundingBox.h"
 #include "Maths/Rect.h"
@@ -320,9 +325,6 @@ namespace Lumos
         return any;
     }
 
-        const Vec3 kGizmoAxes[3] = { Vec3(1.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f) };
-        const Vec4 kGizmoCols[3] = { Vec4(1.0f, 0.30f, 0.28f, 1.0f), Vec4(0.45f, 0.95f, 0.40f, 1.0f), Vec4(0.35f, 0.60f, 1.0f, 1.0f) };
-        const Vec4 kGizmoActive  = Vec4(1.0f, 0.85f, 0.25f, 1.0f);
     }
 
     void DebugMenu::Init()
@@ -342,6 +344,7 @@ namespace Lumos
 
     void DebugMenu::Shutdown()
     {
+        DebugWorkspace::Shutdown();
         m_Commands.Clear();
         m_Results.Clear();
         if(m_Arena)
@@ -476,6 +479,20 @@ namespace Lumos
         return true;
     }
 
+    void DebugMenu::RunCommandAt(u32 index)
+    {
+        if(index < m_Commands.Size())
+            RunCommand(m_Commands[index]);
+    }
+
+    bool DebugMenu::IsCommandOn(u32 index)
+    {
+        if(index >= m_Commands.Size())
+            return false;
+        DebugCommand& command = m_Commands[index];
+        return command.Type == DebugCommandType::Toggle && command.GetBool && command.GetBool();
+    }
+
     bool DebugMenu::SetToggle(const char* name, bool value)
     {
         DebugCommand* cmd = Find(name);
@@ -535,6 +552,39 @@ namespace Lumos
         }
     }
 
+    void DebugMenu::SetEnabled(bool enabled)
+    {
+        if(enabled == m_Enabled)
+            return;
+        m_Enabled = enabled;
+        if(enabled)
+            return;
+
+        // switched off (the editor leaving play mode): hand everything back as it was
+        ClosePalette();
+        SetFlyCamera(false);
+        for(u32 i = 0; i < DebugPanel_Count; i++)
+            m_Panels[i] = false;
+        m_StepFrames = 0;
+        Engine::GetTimeStep().SetTimeScale(1.0);
+        if(m_ExplorerWasOpen)
+        {
+            m_ExplorerWasOpen = false;
+            SetPassCutoff(-1);
+            if(Scene::SceneRenderSettings* rs = RenderSettings())
+                rs->DebugMode = 0;
+        }
+        if(m_PhysicsWasOpen)
+        {
+            m_PhysicsWasOpen = false;
+            if(LumosPhysicsEngine* physics = Application::Get().GetSystem<LumosPhysicsEngine>())
+            {
+                physics->SetManualStep(false);
+                physics->SetDebugDrawFlags(m_PhysicsSavedFlags);
+            }
+        }
+    }
+
     void DebugMenu::TogglePalette()
     {
         if(m_PaletteOpen)
@@ -547,6 +597,86 @@ namespace Lumos
     {
         if(panel < DebugPanel_Count)
             m_Panels[panel] = visible;
+    }
+
+    Graphics::SceneRenderer* DebugMenu::ExplorerRenderer() const
+    {
+        return m_ExplorerRenderer ? m_ExplorerRenderer : Graphics::SceneRenderer::GetGameRenderer();
+    }
+
+    void DebugMenu::DrawFrameExplorerDocked(Graphics::SceneRenderer* renderer, const Vec2& size)
+    {
+        // a different renderer than last time: the old one goes back to a whole frame
+        if(m_ExplorerRenderer && m_ExplorerRenderer != renderer)
+            m_ExplorerRenderer->SetPassCutoff(-1);
+        m_ExplorerRenderer = renderer;
+        m_DockedSize       = size;
+        DrawFrameExplorer();
+        m_DockedSize = Vec2(0.0f);
+    }
+
+    void DebugMenu::DrawPhysicsExplorerDocked(const Vec2& size)
+    {
+        m_DockedSize = size;
+        DrawPhysicsExplorer();
+        m_DockedSize = Vec2(0.0f);
+    }
+
+    void DebugMenu::CloseFrameExplorer()
+    {
+        if(!m_ExplorerWasOpen)
+            return;
+        m_ExplorerWasOpen = false;
+        SetPassCutoff(-1);
+        if(Scene::SceneRenderSettings* rs = RenderSettings())
+            rs->DebugMode = 0;
+        m_ExplorerRenderer = nullptr;
+    }
+
+    void DebugMenu::ClosePhysicsExplorer()
+    {
+        if(!m_PhysicsWasOpen)
+            return;
+        m_PhysicsWasOpen = false;
+        if(LumosPhysicsEngine* physics = Application::Get().GetSystem<LumosPhysicsEngine>())
+        {
+            physics->SetManualStep(false);
+            physics->SetDebugDrawFlags(m_PhysicsSavedFlags);
+        }
+    }
+
+    void DebugMenu::SetPassCutoff(i32 pass)
+    {
+        if(Graphics::SceneRenderer* renderer = ExplorerRenderer())
+            renderer->SetPassCutoff(pass);
+    }
+
+    i32 DebugMenu::GetPassCutoff() const
+    {
+        Graphics::SceneRenderer* renderer = ExplorerRenderer();
+        return renderer ? renderer->GetPassCutoff() : -1;
+    }
+
+    void DebugMenu::StepPass(i32 direction)
+    {
+        Graphics::SceneRenderer* renderer = ExplorerRenderer();
+        if(!renderer || direction == 0)
+            return;
+
+        direction = direction > 0 ? 1 : -1;
+        i32 pass  = renderer->GetPassCutoff();
+        if(pass < 0)
+            pass = direction > 0 ? -1 : (i32)Graphics::RenderPass_Count;
+
+        // passes that are off this frame would be a step with nothing to see
+        for(pass += direction; pass >= 0 && pass < (i32)Graphics::RenderPass_Count; pass += direction)
+        {
+            if(renderer->GetPassRecord((Graphics::RenderPassID)pass).State != Graphics::RenderPassState::Skipped)
+            {
+                renderer->SetPassCutoff(pass);
+                return;
+            }
+        }
     }
 
     void DebugMenu::RefreshResults()
@@ -646,6 +776,21 @@ namespace Lumos
         if(openPressed)
             TogglePalette();
 
+        // Edits made through the overlay (gizmo, inspector) can be stepped back.
+        if(ctrl && !m_PaletteOpen && GetUIState()->FocusedTextInput == 0 && Application::Get().GetAppType() != AppType::Editor)
+        {
+            const bool shift = input.GetKeyHeldRaw(InputCode::Key::LeftShift) || input.GetKeyHeldRaw(InputCode::Key::RightShift);
+            if(input.GetKeyPressedRaw(InputCode::Key::Z))
+            {
+                if(shift)
+                    Lumos::Redo();
+                else
+                    Lumos::Undo();
+            }
+            else if(input.GetKeyPressedRaw(InputCode::Key::Y))
+                Lumos::Redo();
+        }
+
         // Bound shortcuts fire whenever the palette is closed.
         if(!m_PaletteOpen)
         {
@@ -708,7 +853,7 @@ namespace Lumos
         // field in the entity panels has focus - typing a filter shouldn't also
         // play the game.
         const bool typingInPanel = GetUIState()->FocusedTextInput != 0
-            && (m_Panels[DebugPanel_Entities] || m_Panels[DebugPanel_Inspector]);
+            && (m_Panels[DebugPanel_Entities] || m_Panels[DebugPanel_Inspector] || DebugWorkspace::IsVisible());
         const bool wantBlock = m_PaletteOpen || m_FlyCamera || typingInPanel;
         if(wantBlock != m_BlockedKeyboard)
         {
@@ -722,6 +867,9 @@ namespace Lumos
         if(!m_Enabled || !m_Initialised)
             return;
 
+        // under the HUD panels and the palette, so those stay on top
+        DebugWorkspace::OnUI();
+
         if(m_Panels[DebugPanel_Stats])
             DrawStats();
         if(m_Panels[DebugPanel_FrameGraph])
@@ -732,10 +880,28 @@ namespace Lumos
             DrawToggles();
         if(m_Panels[DebugPanel_Tweaks])
             DrawTweaks();
-        if(m_Panels[DebugPanel_Entities])
+        // the docked tree and inspector replace these two
+        if(m_Panels[DebugPanel_Entities] && !DebugWorkspace::IsVisible())
             DrawEntities();
-        if(m_Panels[DebugPanel_Inspector])
+        if(m_Panels[DebugPanel_Inspector] && !DebugWorkspace::IsVisible())
             DrawInspector();
+        if(m_Panels[DebugPanel_FrameExplorer])
+            DrawFrameExplorer();
+        else if(m_ExplorerWasOpen && !m_ExplorerRenderer)
+            CloseFrameExplorer(); // back to a normal frame (a docked one is closed by whoever docks it)
+
+        if(m_Panels[DebugPanel_PhysicsExplorer])
+            DrawPhysicsExplorer();
+        else if(m_PhysicsWasOpen)
+        {
+            // closed: hand the simulation back as it was
+            m_PhysicsWasOpen = false;
+            if(LumosPhysicsEngine* physics = Application::Get().GetSystem<LumosPhysicsEngine>())
+            {
+                physics->SetManualStep(false);
+                physics->SetDebugDrawFlags(m_PhysicsSavedFlags);
+            }
+        }
 
         if(m_PaletteOpen)
             DrawPalette();
@@ -766,6 +932,53 @@ namespace Lumos
         panelToggle("Tweaks Panel", DebugPanel_Tweaks, (i32)InputCode::Key::F6);
         panelToggle("Entity List", DebugPanel_Entities, (i32)InputCode::Key::F7);
         panelToggle("Inspector", DebugPanel_Inspector, (i32)InputCode::Key::F8);
+        // not F11: macOS takes it for Show Desktop before the app sees it
+        panelToggle("Frame Explorer", DebugPanel_FrameExplorer, (i32)InputCode::Key::Backslash);
+
+        // ---- Learn ----
+        RegisterAction("Next Render Pass", "Learn", [this]()
+                       {
+                           m_Panels[DebugPanel_FrameExplorer] = true;
+                           StepPass(1);
+                       }, "]", (i32)InputCode::Key::RightBracket);
+        RegisterAction("Previous Render Pass", "Learn", [this]()
+                       {
+                           m_Panels[DebugPanel_FrameExplorer] = true;
+                           StepPass(-1);
+                       }, "[", (i32)InputCode::Key::LeftBracket);
+        RegisterAction("Show Full Frame", "Learn", [this]() { SetPassCutoff(-1); });
+
+        panelToggle("Physics Explorer", DebugPanel_PhysicsExplorer, (i32)InputCode::Key::F12);
+
+        // Docked tools around the game: entity tree, inspector, console drawer.
+        RegisterToggle(
+            "Workspace", "Overlay",
+            []() { return DebugWorkspace::IsVisible(); },
+            [](bool v) { DebugWorkspace::SetVisible(v); },
+            (i32)InputCode::Key::F11);
+        RegisterAction("Step Physics Stage", "Learn", [this]()
+                       {
+                           m_Panels[DebugPanel_PhysicsExplorer] = true;
+                           if(LumosPhysicsEngine* physics = Application::Get().GetSystem<LumosPhysicsEngine>())
+                           {
+                               physics->SetManualStep(true);
+                               physics->StepStages(1);
+                           }
+                       });
+        RegisterAction("Step Physics Substep", "Learn", [this]()
+                       {
+                           m_Panels[DebugPanel_PhysicsExplorer] = true;
+                           if(LumosPhysicsEngine* physics = Application::Get().GetSystem<LumosPhysicsEngine>())
+                           {
+                               physics->SetManualStep(true);
+                               physics->StepSubstep();
+                           }
+                       });
+        RegisterAction("Resume Physics", "Learn", []()
+                       {
+                           if(LumosPhysicsEngine* physics = Application::Get().GetSystem<LumosPhysicsEngine>())
+                               physics->SetManualStep(false);
+                       });
 
         RegisterAction("Hide All Overlays", "Overlay", [this]()
                        {
@@ -797,11 +1010,16 @@ namespace Lumos
         renderToggle("Skybox", &Scene::SceneRenderSettings::SkyboxRenderEnabled);
         renderToggle("Shadows", &Scene::SceneRenderSettings::ShadowsEnabled);
         renderToggle("Depth Pre-Pass", &Scene::SceneRenderSettings::DepthPrePass);
+        renderToggle("Occlusion Culling", &Scene::SceneRenderSettings::OcclusionCulling);
         renderToggle("Bloom", &Scene::SceneRenderSettings::BloomEnabled);
         renderToggle("SSAO", &Scene::SceneRenderSettings::SSAOEnabled);
         renderToggle("SSR", &Scene::SceneRenderSettings::SSREnabled);
         renderToggle("FXAA", &Scene::SceneRenderSettings::FXAAEnabled);
         renderToggle("SMAA", &Scene::SceneRenderSettings::SMAAEnabled);
+        renderToggle("TAA", &Scene::SceneRenderSettings::TAAEnabled);
+        renderToggle("Contact Shadows", &Scene::SceneRenderSettings::ContactShadowsEnabled);
+        renderToggle("Volumetric Fog", &Scene::SceneRenderSettings::VolumetricFogEnabled);
+        renderToggle("Global Illumination", &Scene::SceneRenderSettings::GIEnabled);
         renderToggle("Depth of Field", &Scene::SceneRenderSettings::DepthOfFieldEnabled);
         renderToggle("Motion Blur", &Scene::SceneRenderSettings::MotionBlurEnabled);
         renderToggle("Vignette", &Scene::SceneRenderSettings::VignetteEnabled);
@@ -830,11 +1048,27 @@ namespace Lumos
             []() { return Application::Get().GetQualitySettings().RendererScale; },
             [](float v)
             {
+                Application::Get().GetQualitySettings().DynamicResolution = false;
                 Application::Get().GetQualitySettings().RendererScale = Maths::Clamp(v, 0.25f, 2.0f);
                 Application::Get().OnSceneViewSizeUpdated(Application::Get().GetWindow()->GetWidth(),
                                                           Application::Get().GetWindow()->GetHeight());
             },
             0.25f, 2.0f);
+
+        RegisterToggle(
+            "Auto Resolution", "Render",
+            []() { return Application::Get().GetQualitySettings().DynamicResolution; },
+            [](bool v) { Application::Get().GetQualitySettings().DynamicResolution = v; });
+
+        RegisterFloat(
+            "Quality Level", "Render",
+            []() { return (float)Application::Get().GetQualitySettings().GeneralLevel; },
+            [](float v)
+            {
+                Application::Get().SetQualityLevel((int)(v + 0.5f));
+                Application::Get().GetQualitySettings().DynamicResolution = false;
+            },
+            0.0f, 2.0f);
 
         // ---- Physics debug draw ----
         // Turning any of these on also switches the debug line pass back on,
@@ -1007,9 +1241,25 @@ namespace Lumos
             });
 
         RegisterToggle(
-            "Move Gizmo", "View",
+            "Gizmo", "View",
             [this]() { return m_GizmoEnabled; },
             [this](bool v) { m_GizmoEnabled = v; });
+
+        RegisterAction("Gizmo: Move", "View", [this]() { m_GizmoOperation = GizmoOperation_Translate; });
+        RegisterAction("Gizmo: Rotate", "View", [this]() { m_GizmoOperation = GizmoOperation_Rotate; });
+        RegisterAction("Gizmo: Scale", "View", [this]() { m_GizmoOperation = GizmoOperation_Scale; });
+        RegisterAction("Gizmo: Universal", "View", [this]() { m_GizmoOperation = GizmoOperation_Universal; });
+        RegisterToggle(
+            "Gizmo Local Space", "View",
+            [this]() { return m_GizmoLocal; },
+            [this](bool v) { m_GizmoLocal = v; });
+        RegisterToggle(
+            "Gizmo Snap", "View",
+            [this]() { return m_GizmoSnap; },
+            [this](bool v) { m_GizmoSnap = v; });
+
+        RegisterAction("Undo", "Edit", []() { Lumos::Undo(); }, "Ctrl+Z");
+        RegisterAction("Redo", "Edit", []() { Lumos::Redo(); }, "Ctrl+Shift+Z");
 
         RegisterAction("Fly Camera: Auto", "View", [this]()
                        {
@@ -1070,7 +1320,7 @@ namespace Lumos
                            const entt::entity sel = (entt::entity)m_SelectedEntity;
                            if(!scene->GetRegistry().valid(sel))
                                return;
-                           scene->DestroyEntity(Entity(sel, scene));
+                           SceneUndo::DestroyEntity(Entity(sel, scene));
                            ClearSelection();
                        });
 
@@ -1159,7 +1409,8 @@ namespace Lumos
     {
         m_SelectedEntity = entityId;
         m_NameEditFor    = 0xFFFFFFFFu; // reload the name buffer
-        if(entityId != 0xFFFFFFFFu)
+        // the workspace has its own inspector
+        if(entityId != 0xFFFFFFFFu && !DebugWorkspace::IsVisible())
             m_Panels[DebugPanel_Inspector] = true;
     }
 
@@ -1527,143 +1778,48 @@ namespace Lumos
     {
         Scene* scene = CurrentScene();
         if((!m_GizmoEnabled && !m_ShowSelectionBounds) || !scene || m_SelectedEntity == 0xFFFFFFFFu)
-        {
-            m_GizmoAxis = -1;
             return;
-        }
 
         auto& reg              = scene->GetRegistry();
         const entt::entity sel = (entt::entity)m_SelectedEntity;
         if(!reg.valid(sel))
-        {
-            m_GizmoAxis = -1;
             return;
-        }
 
         Maths::Transform* tf = reg.try_get<Maths::Transform>(sel);
         ActiveCam cam        = GetActiveCam();
         if(!tf || !cam.cam || cam.entity == sel)
             return;
 
+        UI_State* ui = GetUIState();
 
-        const Vec3 origin = tf->GetWorldPosition();
-
-        Vec2 originScreen;
-        if(!WorldToScreen(cam, origin, originScreen))
-            return;
-
-        const float pxPerWorld = PixelsPerWorldUnit(cam, origin);
-        if(pxPerWorld <= 0.0001f)
-            return;
-
-        const float dpi       = GetUIState()->DPIScale;
-        const float handleLen = (80.0f * dpi) / pxPerWorld; // constant on screen
-        // 2D games only have two axes worth dragging.
-        const int axisCount = cam.cam->IsOrthographic() ? 2 : 3;
-
-        const Vec2 mouse     = UIMouse();
-        const bool held      = Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonLeft);
-        const bool pressed   = Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft);
-
-        Vec2 axisScreen[3];
-        for(int i = 0; i < axisCount; i++)
+        if(m_GizmoEnabled)
         {
-            if(!WorldToScreen(cam, origin + kGizmoAxes[i] * handleLen, axisScreen[i]))
-                axisScreen[i] = originScreen;
+            GizmoView view = TransformGizmo::ViewFromCamera(cam.cam, cam.tf, ui->FrameBufferSize);
+
+            GizmoInput input;
+            input.Mouse   = UIMouse();
+            input.Down    = Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonLeft);
+            input.Pressed = Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft);
+            input.Enabled = !UIIsMouseOverUI() && !m_FlyLooking;
+
+            GizmoSettings settings;
+            settings.DPIScale = ui->DPIScale;
+            settings.Snap     = m_GizmoSnap;
+
+            // 2D games only have two axes worth dragging; the gizmo hides the one facing the camera.
+            TransformGizmo::ManipulateEntities(scene, &sel, 1, view, input, m_GizmoOperation,
+                                      m_GizmoLocal ? GizmoSpace::Local : GizmoSpace::World, settings);
         }
-
-        if(!held || !m_GizmoEnabled)
-            m_GizmoAxis = -1;
-
-        int hovered = -1;
-        if(m_GizmoEnabled && m_GizmoAxis < 0)
-        {
-            float best = 10.0f * dpi;
-            if((mouse - originScreen).Length() < 9.0f * dpi)
-            {
-                hovered = 3; // centre handle: move in the camera plane
-            }
-            else
-            {
-                for(int i = 0; i < axisCount; i++)
-                {
-                    const float d = DistanceToSegment(mouse, originScreen, axisScreen[i]);
-                    if(d < best)
-                    {
-                        best    = d;
-                        hovered = i;
-                    }
-                }
-            }
-
-            if(hovered >= 0 && pressed && !UIIsMouseOverUI())
-            {
-                m_GizmoAxis       = hovered;
-                m_GizmoStartPos   = tf->GetLocalPosition();
-                m_GizmoStartMouse = mouse;
-
-                if(hovered < 3)
-                {
-                    const Vec2 dir       = axisScreen[hovered] - originScreen;
-                    const float len      = dir.Length();
-                    m_GizmoScreenDir     = len > 0.0001f ? dir / len : Vec2(1.0f, 0.0f);
-                    m_GizmoWorldPerPixel = len > 0.0001f ? handleLen / len : 0.0f;
-                    m_GizmoWorldA        = kGizmoAxes[hovered];
-                }
-                else
-                {
-                    // Screen-plane drag: camera right/up, x to the right, y up.
-                    m_GizmoWorldA        = cam.tf->GetRightDirection();
-                    m_GizmoWorldB        = cam.tf->GetUpDirection();
-                    m_GizmoWorldPerPixel = 1.0f / pxPerWorld;
-                }
-            }
-        }
-
-        if(m_GizmoAxis >= 0 && held)
-        {
-            const Vec2 delta = mouse - m_GizmoStartMouse;
-            Vec3 offset;
-            if(m_GizmoAxis < 3)
-            {
-                const float along = delta.x * m_GizmoScreenDir.x + delta.y * m_GizmoScreenDir.y;
-                offset            = m_GizmoWorldA * (along * m_GizmoWorldPerPixel);
-            }
-            else
-            {
-                offset = m_GizmoWorldA * (delta.x * m_GizmoWorldPerPixel)
-                    - m_GizmoWorldB * (delta.y * m_GizmoWorldPerPixel); // screen y is down
-            }
-            // Parented entities get an approximation: the drag is applied to the
-            // local position using world-space axes.
-            tf->SetLocalPosition(m_GizmoStartPos + offset);
-            RefreshWorldMatrix(reg, sel, tf);
-        }
-
-        // Draw last so it reflects this frame's drag.
-        const Vec3 drawOrigin = tf->GetWorldPosition();
 
         if(m_ShowSelectionBounds)
         {
             Maths::BoundingBox bounds;
             if(SelectionBounds(reg, sel, bounds))
-                DebugRenderer::DebugDraw(bounds, Vec4(1.0f, 0.72f, 0.20f, 0.9f), true, false, handleLen * 0.012f);
-        }
-
-        const float thickness = handleLen * 0.02f;
-        const int active      = m_GizmoAxis >= 0 ? m_GizmoAxis : hovered;
-
-        if(m_GizmoEnabled)
-        {
-            for(int i = 0; i < axisCount; i++)
             {
-                const Vec4 colour = (active == i) ? kGizmoActive : kGizmoCols[i];
-                const Vec3 tip    = drawOrigin + kGizmoAxes[i] * handleLen;
-                DebugRenderer::DrawThickLine(drawOrigin, tip, thickness, false, colour, 0.0f);
-                DebugRenderer::DrawPoint(tip, handleLen * 0.06f, false, colour, 0.0f);
+                const float size = (bounds.Max() - bounds.Min()).Length();
+                DebugRenderer::DebugDraw(bounds, Vec4(1.0f, 0.72f, 0.20f, 0.9f), true, false, Maths::Max(size * 0.004f, 0.002f));
+                DebugRenderer::RequestPass();
             }
-            DebugRenderer::DrawPoint(drawOrigin, handleLen * 0.05f,
-                                     false, active == 3 ? kGizmoActive : Vec4(1.0f, 1.0f, 1.0f, 0.9f), 0.0f);
         }
     }
 
@@ -2349,5 +2505,762 @@ namespace Lumos
 
         UIEndScrollArea();
         UIEndPanel();
+    }
+
+    namespace
+    {
+        // Render settings as they were when the explorer opened, for Reset.
+        Scene::SceneRenderSettings s_ExplorerSnapshot;
+        Scene* s_ExplorerSnapshotScene = nullptr;
+
+        // Index = ToneMapIndex in ToneMapping.frag
+        const char* kToneMapNames[] = { "None", "Linear", "Reinhard (Jodie)", "Reinhard (luma)", "Reinhard (white preserving)", "Uncharted 2", "ACES" };
+    }
+
+    void DebugMenu::DrawFrameExplorer()
+    {
+        Graphics::SceneRenderer* renderer = ExplorerRenderer();
+        Scene* scene                      = CurrentScene();
+        if(!renderer || !scene)
+            return;
+        // docked = a tool panel's body: no window of its own, the width it is given
+        const bool docked = m_DockedSize.x > 0.0f;
+
+        Scene::SceneRenderSettings& rs = scene->GetSettings().RenderSettings;
+        if(!m_ExplorerWasOpen || s_ExplorerSnapshotScene != scene)
+        {
+            s_ExplorerSnapshot      = rs;
+            s_ExplorerSnapshotScene = scene;
+            m_ExplorerWasOpen       = true;
+            m_ExplorerScrolledTo    = -1;
+        }
+
+        UI_State* ui       = GetUIState();
+        Arena* fa          = ui->UIFrameArena;
+        const float dpi    = ui->DPIScale;
+        const Vec2 view    = ui->root_parent.size;
+        const float panelW = docked ? m_DockedSize.x : Maths::Min(380.0f * dpi, view.x * 0.42f);
+        const float wrapW  = panelW / dpi - (docked ? 22.0f : 46.0f);
+        const bool paused  = Engine::GetTimeStep().GetTimeScale() == 0.0;
+
+        if(!docked)
+        {
+            UIPushStyle(StyleVar_BackgroundColor, kPanelBG);
+            UIPushStyle(StyleVar_Padding, Vec2(12.0f * dpi, 10.0f * dpi));
+            UIPushStyle(StyleVar_ItemSpacing, Vec2(0.0f, 3.0f * dpi));
+            UIBeginOverlay("debugframeexplorer", SizeKind_Pixels, panelW, SizeKind_ChildSum, 1.0f, WidgetFlags_StackVertically);
+            UIWindowAnchor(UIAnchor_MiddleRight, 12.0f * dpi, 0.0f);
+            UIPopStyle(StyleVar_ItemSpacing);
+            UIPopStyle(StyleVar_Padding);
+            UIPopStyle(StyleVar_BackgroundColor);
+
+            UIBeginRowFullWidth();
+            UIPushStyle(StyleVar_TextColor, kDimText);
+            UILabelCStr("fxtitle", "Frame Explorer");
+            UIPopStyle(StyleVar_TextColor);
+            UIFlexSpacer();
+            if(UIButton("X###fxclose").clicked)
+                m_Panels[DebugPanel_FrameExplorer] = false;
+            UIEndRow();
+            UISeparator();
+        }
+
+        UIBeginRowFullWidth();
+        GetUIState()->parents.Back()->style_vars[StyleVar_ItemSpacing] = Vec4(4.0f * dpi, 0.0f, 0.0f, 0.0f);
+        if(UIButton("< Prev###fxprev").clicked)
+            StepPass(-1);
+        if(UIButton("Next >###fxnext").clicked)
+            StepPass(1);
+        if(UIButton("Full frame###fxfull").clicked)
+            SetPassCutoff(-1);
+        UIFlexSpacer();
+        if(UIButton(paused ? "Resume###fxfreeze" : "Freeze###fxfreeze").clicked)
+            Engine::GetTimeStep().SetTimeScale(paused ? 1.0 : 0.0);
+        UIEndRow();
+
+        const i32 cutoff = renderer->GetPassCutoff();
+
+        const float rowH   = 22.0f;
+        const float stride = (rowH + 1.0f) * dpi;
+        const float listH  = Maths::Min(264.0f * dpi, view.y * 0.3f);
+
+        if(cutoff != m_ExplorerScrolledTo)
+        {
+            m_ExplorerScrolledTo = cutoff;
+            m_ExplorerInfoScroll = 0.0f;
+            if(cutoff >= 0)
+            {
+                const float top    = cutoff * stride;
+                const float bottom = top + rowH * dpi;
+                if(top < m_ExplorerScroll)
+                    m_ExplorerScroll = top;
+                else if(bottom > m_ExplorerScroll + listH - 6.0f * dpi)
+                    m_ExplorerScroll = bottom - (listH - 6.0f * dpi);
+            }
+        }
+
+        auto clearAreaSkin = [dpi]()
+        {
+            UI_Widget* area                            = GetUIState()->parents.Back();
+            area->style_vars[StyleVar_BackgroundColor] = Vec4(0.0f);
+            area->style_vars[StyleVar_BorderColor]     = Vec4(0.0f);
+            area->style_vars[StyleVar_Padding]         = Vec4(10.0f * dpi, 3.0f * dpi, 0.0f, 0.0f);
+        };
+
+        UIPushStyle(StyleVar_ItemSpacing, Vec2(0.0f, 1.0f * dpi));
+        UIBeginScrollArea("fxlist", listH, &m_ExplorerScroll);
+        clearAreaSkin();
+
+        for(u32 i = 0; i < Graphics::RenderPass_Count; i++)
+        {
+            const Graphics::RenderPassInfo& info  = Graphics::GetRenderPassInfo((Graphics::RenderPassID)i);
+            const Graphics::RenderPassRecord& rec = renderer->GetPassRecord((Graphics::RenderPassID)i);
+            const bool ran                        = rec.State == Graphics::RenderPassState::Ran;
+            const bool selected                   = (i32)i == cutoff;
+
+            String8 rowId      = PushStr8F(fa, "row###fxrow%u", i);
+            UI_Interaction row = UIBeginSelectableRow((const char*)rowId.str, selected, rowH);
+
+            if(!ran)
+                UIPushStyle(StyleVar_TextColor, kDimText);
+            String8 nameId = PushStr8F(fa, "n###fxname%u", i);
+            UILabel((const char*)nameId.str, PushStr8F(fa, "%02u  %s", i + 1, info.Name));
+            if(!ran)
+                UIPopStyle(StyleVar_TextColor);
+
+            UIFlexSpacer();
+
+            String8 badge = { 0 };
+            if(!ran)
+                badge = rec.State == Graphics::RenderPassState::CutOff ? Str8Lit("cut") : Str8Lit("off");
+            else if(rec.DrawCalls > 0)
+                badge = PushStr8F(fa, "%u draw%s  %.2f ms", rec.DrawCalls, rec.DrawCalls == 1 ? "" : "s", rec.CpuMs);
+            else
+                badge = PushStr8F(fa, "%.2f ms", rec.CpuMs);
+            String8 badgeId = PushStr8F(fa, "b###fxbadge%u", i);
+            UIBadge((const char*)badgeId.str, badge, kOffBG, ran ? kBadgeText : kDimText);
+
+            UIEndSelectableRow();
+
+            // clicking the current pass again goes back to the whole frame
+            if(row.clicked)
+                SetPassCutoff(selected ? -1 : (i32)i);
+        }
+
+        UIEndScrollArea();
+        UIPopStyle(StyleVar_ItemSpacing);
+        UISeparator();
+
+        const Graphics::RenderPassInfo& info = Graphics::GetRenderPassInfo((Graphics::RenderPassID)Maths::Max(cutoff, 0));
+
+        UIPushStyle(StyleVar_ItemSpacing, Vec2(0.0f, 3.0f * dpi));
+        UIBeginScrollArea("fxinfo", Maths::Min(400.0f * dpi, view.y * 0.44f), &m_ExplorerInfoScroll);
+        clearAreaSkin();
+
+        if(cutoff < 0)
+        {
+            UIPushStyle(StyleVar_TextColor, kDimText);
+            UILabelWrapped("fxintro", Str8Lit("Showing the whole frame. Pick a pass, or press ] and [, to stop the frame there and see what has been drawn so far. Freeze pauses the game so every step shows the same frame - the fly camera still works."), wrapW);
+            UIPopStyle(StyleVar_TextColor);
+        }
+        else
+        {
+            UIBeginRowFullWidth();
+            UIPushStyle(StyleVar_TextColor, kAccent);
+            UILabelCStr("fxpassname", info.Name);
+            UIPopStyle(StyleVar_TextColor);
+            UIFlexSpacer();
+            UIBadge("c###fxpasscat", Str8C((char*)info.Category), kBadgeBG, kBadgeText);
+            UIEndRow();
+
+            UILabelWrapped("fxsummary", Str8C((char*)info.Summary), wrapW);
+
+            auto field = [&](const char* title, const char* text)
+            {
+                UISpacer(2.0f);
+                UIPushStyle(StyleVar_TextColor, kDimText);
+                String8 titleId = PushStr8F(fa, "t###fxfieldt%s", title);
+                UILabelCStr((const char*)titleId.str, title);
+                UIPopStyle(StyleVar_TextColor);
+                String8 textId = PushStr8F(fa, "v###fxfieldv%s", title);
+                UILabelWrapped((const char*)textId.str, Str8C((char*)text), wrapW);
+            };
+            field("Reads", info.Reads);
+            field("Writes", info.Writes);
+            field("What to look for", info.LookFor);
+
+            UISpacer(4.0f);
+            if(cutoff < (i32)Graphics::RenderPass_ToneMapping)
+            {
+                bool tonemap = renderer->GetPassPreviewTonemap();
+                if(UIToggle("Tonemap preview###fxtonemap", &tonemap).clicked)
+                    renderer->SetPassPreviewTonemap(tonemap);
+            }
+            if(info.BufferView != 0)
+                UIToggle("Show buffer###fxbuffer", &m_ExplorerShowBuffer);
+
+            DrawPassTweaks(cutoff, wrapW);
+        }
+
+        UIEndScrollArea();
+        UIPopStyle(StyleVar_ItemSpacing);
+        if(!docked)
+            UIEndPanel();
+
+        rs.DebugMode = (cutoff >= 0 && m_ExplorerShowBuffer) ? info.BufferView : 0;
+    }
+
+    void DebugMenu::DrawPassTweaks(i32 pass, float wrapWidth)
+    {
+        Scene* scene = CurrentScene();
+        if(!scene)
+            return;
+
+        using namespace Graphics;
+        Scene::SceneRenderSettings& rs       = scene->GetSettings().RenderSettings;
+        const Scene::SceneRenderSettings* snap = s_ExplorerSnapshotScene == scene ? &s_ExplorerSnapshot : nullptr;
+        const QualitySettings& quality       = Application::Get().GetQualitySettings();
+        Arena* fa                            = GetUIState()->UIFrameArena;
+
+        UISpacer(4.0f);
+        UIBeginRowFullWidth();
+        UIPushStyle(StyleVar_TextColor, kAccent);
+        UILabelCStr("fxsettings", "Settings");
+        UIPopStyle(StyleVar_TextColor);
+        UIFlexSpacer();
+        const bool resetting = UIButton("Reset###fxreset").clicked && snap;
+        UIEndRow();
+
+        u32 row = 0;
+
+        // Reset copies the field back from the snapshot instead of needing a table of them.
+        auto restore = [&](void* field, size_t size)
+        {
+            if(resetting)
+                MemoryCopy(field, (const u8*)snap + ((const u8*)field - (const u8*)&rs), size);
+        };
+
+        auto note = [&](const char* text)
+        {
+            if(!text)
+                return;
+            UIPushStyle(StyleVar_TextColor, kDimText);
+            String8 id = PushStr8F(fa, "n###fxnote%d_%u", pass, row++);
+            UILabelWrapped((const char*)id.str, Str8C((char*)text), wrapWidth);
+            UIPopStyle(StyleVar_TextColor);
+        };
+
+        auto tBool = [&](const char* label, bool& value, const char* tip = nullptr)
+        {
+            restore(&value, sizeof(value));
+            String8 id = PushStr8F(fa, "%s###fxt%d_%u", label, pass, row++);
+            UIToggle((const char*)id.str, &value);
+            note(tip);
+        };
+
+        auto tFloat = [&](const char* label, float& value, float minValue, float maxValue, const char* tip = nullptr)
+        {
+            restore(&value, sizeof(value));
+            String8 id = PushStr8F(fa, "%s###fxt%d_%u", label, pass, row++);
+            UISliderRow((const char*)id.str, &value, minValue, maxValue, "%.3g");
+            note(tip);
+        };
+
+        auto tInt = [&](const char* label, int& value, int minValue, int maxValue, const char* tip = nullptr)
+        {
+            restore(&value, sizeof(value));
+            float f    = (float)value;
+            String8 id = PushStr8F(fa, "%s###fxt%d_%u", label, pass, row++);
+            UISliderRow((const char*)id.str, &f, (float)minValue, (float)maxValue, "%.0f");
+            value = Maths::Clamp((int)(f + 0.5f), minValue, maxValue);
+            note(tip);
+        };
+
+        auto qualityNote = [&](bool allowed)
+        {
+            if(!allowed)
+                note("Switched off by the current quality preset, so this pass will not run.");
+        };
+
+        switch(pass)
+        {
+        case RenderPass_DepthPrePass:
+            tBool("Depth pre-pass", rs.DepthPrePass, "Still runs while SSAO or reflections are on - they need its buffers.");
+            break;
+        case RenderPass_SSAO:
+            qualityNote(quality.EnableSSAO);
+            tBool("Enabled", rs.SSAOEnabled);
+            tFloat("Sample radius", rs.SSAOSampleRadius, 0.1f, 8.0f, "How far around each pixel to look. Small = tight contact shadows, large = soft room-scale darkening.");
+            tFloat("Strength", rs.SSAOStrength, 0.0f, 4.0f, "How dark occluded areas get.");
+            break;
+        case RenderPass_SSAOBlur:
+            tBool("Blur", rs.SSAOBlur, "Off shows the raw sample noise in the lit image.");
+            tInt("Blur radius", rs.SSAOBlurRadius, 1, 8);
+            break;
+        case RenderPass_ContactShadows:
+            tBool("Enabled", rs.ContactShadowsEnabled, "Needs a directional light. Turns the depth pre-pass on.");
+            tFloat("Ray length", rs.ContactShadowLength, 0.02f, 2.0f, "How far towards the sun each pixel looks, in metres. Longer catches more but starts to show its screen-space limits.");
+            tFloat("Thickness", rs.ContactShadowThickness, 0.01f, 1.0f, "How thick things are assumed to be behind what the depth buffer shows. Too thin and rays slip behind objects, too thick and things cast shadows that are too long.");
+            tInt("Steps", rs.ContactShadowSteps, 4, 64);
+            break;
+        case RenderPass_GI:
+            tBool("Enabled", rs.GIEnabled, "Static models only: anything with a moving rigid body or an animated mesh is lit by the probes but not seen by them.");
+            tFloat("Probe spacing", rs.GIProbeSpacing, 0.25f, 16.0f, "Metres between probes. Closer = more detail, more probes to trace. The grid is capped and widens itself to fit.");
+            tFloat("Intensity", rs.GIIntensity, 0.0f, 4.0f);
+            tFloat("Bounce", rs.GIBounce, 0.0f, 1.0f, "How much of the probes' own light the rays carry on. 0 = one bounce only.");
+            tFloat("Hysteresis", rs.GIHysteresis, 0.5f, 0.995f, "Share of the old value each update keeps. Higher is smoother and slower to catch a moving sun.");
+            tInt("Update stride", rs.GIUpdateStride, 1, 16, "One probe in this many is traced each frame.");
+            break;
+        case RenderPass_VolumetricFog:
+            tBool("Enabled", rs.VolumetricFogEnabled, "Replaces the Environment's flat fog while on.");
+            tFloat("Density", rs.VolumetricFogDensity, 0.0f, 0.2f, "How much light the air stops per metre at the base height.");
+            tFloat("Height falloff", rs.VolumetricFogFalloff, 0.0f, 1.0f, "How fast it thins going up. 0 = the same everywhere.");
+            tFloat("Base height", rs.VolumetricFogBaseHeight, -100.0f, 100.0f);
+            tFloat("Anisotropy", rs.VolumetricFogAnisotropy, -0.9f, 0.9f, "Positive scatters light forwards: the fog glows looking towards the sun and shafts stand out.");
+            tFloat("Sun", rs.VolumetricFogSun, 0.0f, 4.0f);
+            tFloat("Ambient", rs.VolumetricFogAmbient, 0.0f, 4.0f, "Sky light scattered in. Fog in full shadow is lit by this alone.");
+            tFloat("Distance", rs.VolumetricFogDistance, 10.0f, 1000.0f);
+            tInt("Steps", rs.VolumetricFogSteps, 4, 96);
+            break;
+        case RenderPass_TAA:
+            tBool("Enabled", rs.TAAEnabled, "Works with FXAA / SMAA off. Turn Sharpen on if the picture looks soft.");
+            tFloat("History (still)", rs.TAAHistoryWeight, 0.5f, 0.98f, "Share of the accumulated picture kept each frame. Higher = smoother edges, slower to settle.");
+            tFloat("History (moving)", rs.TAAMotionWeight, 0.0f, 0.98f, "The same for pixels that moved a lot, where old frames smear.");
+            tFloat("Clip", rs.TAAClipGamma, 0.5f, 3.0f, "How far history may stray from this frame's colours. Lower stops ghosting, higher stops flicker.");
+            break;
+        case RenderPass_Shadow:
+            qualityNote(quality.EnableShadows);
+            tBool("Enabled", rs.ShadowsEnabled);
+            {
+                // shadow fitting is renderer state, shared by every scene
+                auto& shadows = ExplorerRenderer()->GetShadowData();
+                auto sFloat   = [&](const char* label, float& value, float minValue, float maxValue, const char* tip)
+                {
+                    String8 id = PushStr8F(fa, "%s###fxt%d_%u", label, pass, row++);
+                    UISliderRow((const char*)id.str, &value, minValue, maxValue, "%.3g");
+                    note(tip);
+                };
+                sFloat("Max distance", shadows.m_MaxShadowDistance, 20.0f, 1000.0f, "The shadow maps are stretched over this range. Shorter = sharper, since the same texels cover less ground.");
+                sFloat("Cascade split", shadows.m_CascadeSplitLambda, 0.0f, 1.0f, "0 spaces cascades evenly, 1 logarithmically - more detail close to the camera.");
+                sFloat("Softness", shadows.m_LightSize, 0.0f, 4.0f, "Blur radius in shadow texels. Bigger light = softer edges.");
+                sFloat("Bias", shadows.m_InitialBias, 0.0f, 4.0f, "Offset in shadow texels that stops surfaces shadowing themselves. Too low = stripes (acne), too high = shadows detach from objects.");
+            }
+            tInt("Max spot shadows", rs.MaxSpotShadows, 0, 16, "Spot lights with Cast Shadows each get a tile of a shadow atlas, nearest the camera first. Each one draws the scene again from the light.");
+            tFloat("Spot shadow distance", rs.SpotShadowDistance, 5.0f, 500.0f, "Spot lights further than this from the camera cast no shadow; they fade out over the last fifth.");
+            break;
+        case RenderPass_Forward:
+            tBool("3D renderer", rs.Renderer3DEnabled);
+            tBool("Wireframe", rs.Wireframe, "Shows the triangles actually being drawn.");
+            break;
+        case RenderPass_Skybox:
+            tBool("Enabled", rs.SkyboxRenderEnabled);
+            tFloat("Mip level", rs.SkyboxMipLevel, 0.0f, 8.0f, "Higher mips are the blurrier copies of the cubemap that rough materials reflect.");
+            break;
+        case RenderPass_2D:
+        case RenderPass_2DLit:
+            tBool("2D renderer", rs.Renderer2DEnabled);
+            break;
+        case RenderPass_SSR:
+            qualityNote(quality.EnableSSR);
+            tBool("Enabled", rs.SSREnabled);
+            tFloat("Max distance", rs.SSRMaxDistance, 1.0f, 100.0f, "How far a reflection ray travels before giving up.");
+            tInt("Steps", rs.SSRMaxSteps, 4, 128, "March steps per ray. Fewer = faster, but rays skip over thin objects.");
+            tInt("Refine steps", rs.SSRBinarySteps, 0, 16, "Binary search after a hit to find the exact surface.");
+            tFloat("Thickness", rs.SSRThickness, 0.01f, 2.0f, "How thick surfaces are assumed to be. The depth buffer only knows the front of things.");
+            tFloat("Strength", rs.SSRStrength, 0.0f, 1.0f);
+            tFloat("Max roughness", rs.SSRMaxRoughness, 0.0f, 1.0f, "Rougher surfaces than this skip reflections.");
+            tFloat("Environment match", rs.SSREnvIntensity, 0.0f, 2.0f, "How much of the forward pass's environment reflection a screen hit replaces. 1 = matches it.");
+            break;
+        case RenderPass_DepthOfField:
+            tBool("Enabled", rs.DepthOfFieldEnabled);
+            tFloat("Focus distance", rs.DepthOfFieldDistance, 0.0f, 500.0f);
+            tFloat("Strength", rs.DepthOfFieldStrength, 0.0f, 5.0f);
+            break;
+        case RenderPass_Bloom:
+            qualityNote(quality.EnableBloom);
+            tBool("Enabled", rs.BloomEnabled);
+            tFloat("Threshold", rs.BloomThreshold, 0.0f, 5.0f, "Only pixels brighter than this glow. Above 1 means only true HDR highlights.");
+            tFloat("Knee", rs.BloomKnee, 0.0f, 1.0f, "Softens the threshold so glow fades in instead of popping.");
+            tFloat("Intensity", rs.m_BloomIntensity, 0.0f, 5.0f);
+            tFloat("Upsample scale", rs.BloomUpsampleScale, 0.0f, 2.0f, "Blur radius on the way back up - how wide the glow spreads.");
+            break;
+        case RenderPass_Debanding:
+            tBool("Enabled", rs.DebandingEnabled);
+            break;
+        case RenderPass_EyeAdaptation:
+            tBool("Adaptive exposure", rs.AdaptiveExposure);
+            tFloat("Target luminance", rs.AdaptiveTargetLuminance, 0.01f, 1.0f, "The average brightness exposure aims for. 0.18 is photographic middle grey.");
+            tFloat("Speed up", rs.AdaptiveSpeedUp, 0.1f, 10.0f, "How fast it adapts when the scene gets brighter.");
+            tFloat("Speed down", rs.AdaptiveSpeedDown, 0.1f, 10.0f, "How fast it adapts when the scene gets darker.");
+            break;
+        case RenderPass_ToneMapping:
+        {
+            restore(&rs.m_ToneMapIndex, sizeof(rs.m_ToneMapIndex));
+            int index = Maths::Clamp((int)rs.m_ToneMapIndex, 0, 6);
+            UIDropdown("Operator###fxtonemapop", &index, kToneMapNames, 7);
+            rs.m_ToneMapIndex = (uint32_t)Maths::Clamp(index, 0, 6);
+            note("None clips anything over 1 to white. The others compress highlights in different ways.");
+            tFloat("Brightness", rs.Brightness, -1.0f, 1.0f);
+            tFloat("Contrast", rs.Contrast, 0.0f, 2.0f);
+            tFloat("Saturation", rs.Saturation, 0.0f, 2.0f);
+            break;
+        }
+        case RenderPass_MotionBlur:
+            tBool("Enabled", rs.MotionBlurEnabled);
+            tFloat("Strength", rs.MotionBlurStrength, 0.0f, 2.0f);
+            tInt("Samples", rs.MotionBlurSamples, 2, 32, "Taps along the motion direction. Too few shows as separate ghost copies.");
+            break;
+        case RenderPass_Vignette:
+            tBool("Enabled", rs.VignetteEnabled);
+            tFloat("Intensity", rs.VignetteIntensity, 0.0f, 2.0f);
+            tFloat("Smoothness", rs.VignetteSmoothness, 0.0f, 1.0f);
+            tFloat("Roundness", rs.VignetteRoundness, 0.0f, 2.0f);
+            break;
+        case RenderPass_Sharpen:
+            tBool("Enabled", rs.SharpenEnabled);
+            break;
+        case RenderPass_SMAA:
+            qualityNote(quality.EnableFXAA);
+            tBool("Enabled", rs.SMAAEnabled, "Takes priority over FXAA when both are on.");
+            break;
+        case RenderPass_FXAA:
+            qualityNote(quality.EnableFXAA);
+            tBool("Enabled", rs.FXAAEnabled);
+            break;
+        case RenderPass_ChromaticAberation:
+            tBool("Enabled", rs.ChromaticAberationEnabled);
+            break;
+        case RenderPass_FilmicGrain:
+            tBool("Enabled", rs.FilmicGrainEnabled);
+            break;
+        case RenderPass_Debug:
+            tBool("Enabled", rs.DebugRenderEnabled);
+            break;
+        default:
+            note("Nothing to tweak on this pass.");
+            break;
+        }
+    }
+
+    namespace
+    {
+        struct PhysicsStageInfo
+        {
+            const char* Name;
+            const char* Summary;
+            const char* DebugView;
+            const char* LookFor;
+            u32 DebugFlags;
+        };
+
+        // Same order as PhysicsStage.
+        const PhysicsStageInfo kPhysicsStages[PhysicsStage_Count] = {
+            { "Broadphase",
+              "Finds pairs of bodies that might be touching, using only their bounding boxes. Testing every body against every other is n squared, so bodies are sorted into a spatial structure and only neighbours are paired up.",
+              "Boxes are each body's AABB, the grid is the spatial partition, lines join candidate pairs.",
+              "Pairs here are only maybes. Two boxes can overlap while the shapes inside are nowhere near each other - the next stage sorts that out. Compare the pair count with the octree on and off.",
+              PhysicsDebugFlags::BROADPHASE | PhysicsDebugFlags::BROADPHASE_PAIRS | PhysicsDebugFlags::AABB },
+            { "Narrowphase",
+              "Runs the exact shape-against-shape test on every candidate pair. For each real collision it builds a manifold: the contact points, the collision normal and how deep the shapes overlap.",
+              "Collision shapes, plus contact points and normals for every manifold found.",
+              "Pair count drops to manifold count - most candidates were false alarms. A box resting flat on the floor needs several contact points; one point would let it rock.",
+              PhysicsDebugFlags::COLLISIONVOLUMES | PhysicsDebugFlags::MANIFOLD | PhysicsDebugFlags::COLLISIONNORMALS },
+            { "Forces",
+              "Applies gravity and other forces to velocities. Nothing has moved yet - a force changes velocity, and velocity changes position later.",
+              "Velocity and force arrows on each body.",
+              "A resting box gains downward velocity here every single step. It only stays put because the solver removes that velocity again in the next stage.",
+              PhysicsDebugFlags::LINEARVELOCITY | PhysicsDebugFlags::LINEARFORCE },
+            { "Solve",
+              "Fixes velocities so contacts and joints are respected. Each contact pushes its two bodies apart with an impulse; because fixing one contact disturbs its neighbours, the whole set is repeated several times until it settles.",
+              "Manifolds, constraints and the corrected velocities.",
+              "Drop the iteration count to 1 on a stack of boxes and watch it sag and jitter. Warm starting reuses last step's impulses as the first guess, so fewer iterations are needed.",
+              PhysicsDebugFlags::MANIFOLD | PhysicsDebugFlags::CONSTRAINT | PhysicsDebugFlags::LINEARVELOCITY },
+            { "Integrate",
+              "Moves every body by its velocity over the timestep. This is the only stage where positions and rotations change.",
+              "Collision shapes at their new positions, with velocities.",
+              "The timestep is fixed, not the frame time - that keeps the simulation stable and repeatable. Different integrators trade accuracy for cost; explicit Euler gains energy and is the one that explodes.",
+              PhysicsDebugFlags::COLLISIONVOLUMES | PhysicsDebugFlags::LINEARVELOCITY },
+            { "Rest Test",
+              "Bodies that have barely moved for a while are put to sleep and skipped by every stage until something hits them.",
+              "Bounding boxes - sleeping bodies are drawn in a different colour.",
+              "Sleeping is why a level full of settled crates costs almost nothing. It uses a moving average of speed, so one still frame at the top of a bounce does not send a body to sleep.",
+              PhysicsDebugFlags::AABB | PhysicsDebugFlags::COLLISIONVOLUMES },
+        };
+
+        bool SliderChanged(const UI_Interaction& slider)
+        {
+            return slider.dragging || slider.clicked;
+        }
+
+        const char* kIntegratorNames[] = { "Explicit Euler", "Semi-implicit Euler", "Runge-Kutta 2", "Runge-Kutta 4" };
+    }
+
+    void DebugMenu::DrawPhysicsExplorer()
+    {
+        LumosPhysicsEngine* physics = Application::Get().GetSystem<LumosPhysicsEngine>();
+        Scene* scene                = CurrentScene();
+        if(!physics || !scene)
+            return;
+
+        if(!m_PhysicsWasOpen)
+        {
+            m_PhysicsWasOpen    = true;
+            m_PhysicsSavedFlags = physics->GetDebugDrawFlags();
+        }
+
+        UI_State* ui       = GetUIState();
+        Arena* fa          = ui->UIFrameArena;
+        const float dpi    = ui->DPIScale;
+        const Vec2 view    = ui->root_parent.size;
+        const bool docked  = m_DockedSize.x > 0.0f;
+        const float panelW = docked ? m_DockedSize.x : Maths::Min(380.0f * dpi, view.x * 0.42f);
+        const float wrapW  = panelW / dpi - (docked ? 22.0f : 46.0f);
+        const bool manual  = physics->GetManualStep();
+
+        if(!docked)
+        {
+            UIPushStyle(StyleVar_BackgroundColor, kPanelBG);
+            UIPushStyle(StyleVar_Padding, Vec2(12.0f * dpi, 10.0f * dpi));
+            UIPushStyle(StyleVar_ItemSpacing, Vec2(0.0f, 3.0f * dpi));
+            UIBeginOverlay("debugphysicsexplorer", SizeKind_Pixels, panelW, SizeKind_ChildSum, 1.0f, WidgetFlags_StackVertically);
+            UIWindowAnchor(UIAnchor_MiddleLeft, 12.0f * dpi, 0.0f);
+            UIPopStyle(StyleVar_ItemSpacing);
+            UIPopStyle(StyleVar_Padding);
+            UIPopStyle(StyleVar_BackgroundColor);
+
+            UIBeginRowFullWidth();
+            UIPushStyle(StyleVar_TextColor, kDimText);
+            UILabelCStr("pxtitle", "Physics Explorer");
+            UIPopStyle(StyleVar_TextColor);
+            UIFlexSpacer();
+            if(UIButton("X###pxclose").clicked)
+                m_Panels[DebugPanel_PhysicsExplorer] = false;
+            UIEndRow();
+            UISeparator();
+        }
+
+        UIBeginRowFullWidth();
+        GetUIState()->parents.Back()->style_vars[StyleVar_ItemSpacing] = Vec4(4.0f * dpi, 0.0f, 0.0f, 0.0f);
+        if(UIButton("Step stage###pxstage").clicked)
+        {
+            physics->SetManualStep(true);
+            physics->StepStages(1);
+        }
+        if(UIButton("Step substep###pxsubstep").clicked)
+        {
+            physics->SetManualStep(true);
+            physics->StepSubstep();
+        }
+        UIFlexSpacer();
+        if(UIButton(manual ? "Run###pxrun" : "Pause###pxrun").clicked)
+            physics->SetManualStep(!manual);
+        UIEndRow();
+
+        // while stepping, the card follows the stage that just ran
+        const PhysicsStage last = physics->GetLastStage();
+        if(manual && last != PhysicsStage_Count)
+            m_PhysicsSelected = (i32)last;
+
+        UIPushStyle(StyleVar_ItemSpacing, Vec2(0.0f, 1.0f * dpi));
+        for(u32 i = 0; i < PhysicsStage_Count; i++)
+        {
+            const bool selected = (i32)i == m_PhysicsSelected;
+            String8 rowId       = PushStr8F(fa, "row###pxrow%u", i);
+            UI_Interaction row  = UIBeginSelectableRow((const char*)rowId.str, selected, 22.0f);
+
+            String8 nameId = PushStr8F(fa, "n###pxname%u", i);
+            UILabel((const char*)nameId.str, PushStr8F(fa, "%u  %s", i + 1, kPhysicsStages[i].Name));
+            UIFlexSpacer();
+            if(manual && i == (u32)physics->GetNextStage())
+            {
+                String8 nextId = PushStr8F(fa, "x###pxnext%u", i);
+                UIBadge((const char*)nextId.str, Str8Lit("next"), kOnBG, Vec4(1.0f));
+            }
+            String8 msId = PushStr8F(fa, "m###pxms%u", i);
+            UIBadge((const char*)msId.str, PushStr8F(fa, "%.2f ms", physics->GetStageMs((PhysicsStage)i)), kOffBG, kBadgeText);
+            UIEndSelectableRow();
+
+            if(row.clicked)
+            {
+                // stepping: run up to and including the clicked stage
+                if(manual)
+                    physics->StepStages(((i + PhysicsStage_Count - (u32)physics->GetNextStage()) % PhysicsStage_Count) + 1);
+                m_PhysicsSelected = (i32)i;
+            }
+        }
+        UIPopStyle(StyleVar_ItemSpacing);
+
+        const PhysicsStats3D& stats = physics->GetStats();
+        const u32 awake             = stats.RigidBodyCount - Maths::Min(stats.RigidBodyCount, stats.RestCount);
+        UIPushStyle(StyleVar_TextColor, kDimText);
+        UILabel("pxstats", PushStr8F(fa, "%u bodies  %u awake  %d pairs  %u manifolds  %u constraints",
+                                      stats.RigidBodyCount, awake, physics->GetNumberCollisionPairs(),
+                                      physics->GetManifoldCount(), stats.ConstraintCount));
+        UIPopStyle(StyleVar_TextColor);
+        UISeparator();
+
+        UIPushStyle(StyleVar_ItemSpacing, Vec2(0.0f, 3.0f * dpi));
+        UIBeginScrollArea("pxinfo", Maths::Min(420.0f * dpi, view.y * 0.46f), &m_PhysicsInfoScroll);
+        {
+            UI_Widget* area                            = GetUIState()->parents.Back();
+            area->style_vars[StyleVar_BackgroundColor] = Vec4(0.0f);
+            area->style_vars[StyleVar_BorderColor]     = Vec4(0.0f);
+            area->style_vars[StyleVar_Padding]         = Vec4(10.0f * dpi, 3.0f * dpi, 0.0f, 0.0f);
+        }
+
+        auto note = [&](const char* id, const char* text)
+        {
+            UIPushStyle(StyleVar_TextColor, kDimText);
+            UILabelWrapped(id, Str8C((char*)text), wrapW);
+            UIPopStyle(StyleVar_TextColor);
+        };
+
+        if(physics->IsPaused())
+            note("pxpaused", "The physics engine is paused, so stepping does nothing.");
+
+        if(m_PhysicsSelected < 0)
+        {
+            note("pxintro", "The simulation runs in fixed substeps, and every substep is these six stages in order. Step stage runs one and stops, with the debug view switched to what that stage just produced. Click a stage to read about it.");
+        }
+        else
+        {
+            const PhysicsStageInfo& info = kPhysicsStages[m_PhysicsSelected];
+
+            UIPushStyle(StyleVar_TextColor, kAccent);
+            UILabelCStr("pxstagename", info.Name);
+            UIPopStyle(StyleVar_TextColor);
+            UILabelWrapped("pxsummary", Str8C((char*)info.Summary), wrapW);
+
+            auto field = [&](const char* title, const char* text)
+            {
+                UISpacer(2.0f);
+                UIPushStyle(StyleVar_TextColor, kDimText);
+                String8 titleId = PushStr8F(fa, "t###pxfieldt%s", title);
+                UILabelCStr((const char*)titleId.str, title);
+                UIPopStyle(StyleVar_TextColor);
+                String8 textId = PushStr8F(fa, "v###pxfieldv%s", title);
+                UILabelWrapped((const char*)textId.str, Str8C((char*)text), wrapW);
+            };
+            field("In the debug view", info.DebugView);
+            field("What to look for", info.LookFor);
+
+            UISpacer(4.0f);
+            UIToggle("Debug view follows stage###pxautodraw", &m_PhysicsAutoDraw);
+            if(m_PhysicsAutoDraw)
+            {
+                physics->SetDebugDrawFlags(info.DebugFlags);
+                scene->GetSettings().RenderSettings.DebugRenderEnabled = true;
+            }
+
+            UISpacer(4.0f);
+            UIPushStyle(StyleVar_TextColor, kAccent);
+            UILabelCStr("pxsettings", "Settings");
+            UIPopStyle(StyleVar_TextColor);
+
+            switch(m_PhysicsSelected)
+            {
+            case PhysicsStage_Broadphase:
+            {
+                bool octree = physics->GetBroadphaseType() == BroadphaseType::OCTREE;
+                if(UIToggle("Octree###pxoctree", &octree).clicked)
+                    physics->SetBroadphaseType(octree ? BroadphaseType::OCTREE : BroadphaseType::BRUTE_FORCE);
+                note("pxoctreetip", "Off = brute force: every body tested against every other. Same result, far more box tests.");
+                break;
+            }
+            case PhysicsStage_Narrowphase:
+            {
+                bool parallel = physics->GetParallelNarrowphase();
+                if(UIToggle("Parallel###pxparallel", &parallel).clicked)
+                    physics->SetParallelNarrowphase(parallel);
+                note("pxparalleltip", "Pairs do not depend on each other, so they can be tested on several threads at once.");
+                break;
+            }
+            case PhysicsStage_Forces:
+            {
+                Vec3 gravity = physics->GetGravity();
+                if(SliderChanged(UISliderRow("Gravity Y###pxgravity", &gravity.y, -30.0f, 10.0f, "%.2f")))
+                    physics->SetGravity(gravity);
+                float damping = physics->GetDampingFactor();
+                if(SliderChanged(UISliderRow("Damping###pxdamping", &damping, 0.9f, 1.0f, "%.4f")))
+                    physics->SetDampingFactor(damping);
+                note("pxdampingtip", "Velocity is multiplied by this every substep. 1 = nothing ever slows down on its own.");
+                break;
+            }
+            case PhysicsStage_Solve:
+            {
+                float iterations = (float)physics->GetVelocityIterations();
+                if(SliderChanged(UISliderRow("Iterations###pxveliters", &iterations, 1.0f, 30.0f, "%.0f")))
+                    physics->SetVelocityIterations((u32)(iterations + 0.5f));
+                note("pxveliterstip", "Passes over all contacts per substep. More = stiffer stacks, more CPU.");
+                bool warm = physics->GetWarmStartingEnabled();
+                if(UIToggle("Warm starting###pxwarm", &warm).clicked)
+                    physics->SetWarmStartingEnabled(warm);
+                break;
+            }
+            case PhysicsStage_Integrate:
+            {
+                int integrator = Maths::Clamp((int)physics->GetIntegrationType(), 0, 3);
+                UIDropdown("Integrator###pxintegrator", &integrator, kIntegratorNames, 4);
+                physics->SetIntegrationType((IntegrationType)Maths::Clamp(integrator, 0, 3));
+                float iterations = (float)physics->GetPositionIterations();
+                if(SliderChanged(UISliderRow("Sub-steps###pxpositers", &iterations, 1.0f, 8.0f, "%.0f")))
+                    physics->SetPositionIterations((u32)(iterations + 0.5f));
+                note("pxpositerstip", "The move is split into this many smaller moves.");
+                break;
+            }
+            default:
+                note("pxnosettings", "Nothing to tweak on this stage.");
+                break;
+            }
+
+            if(!manual)
+            {
+                float timeScale = physics->GetTimeScale();
+                if(SliderChanged(UISliderRow("Time scale###pxtimescale", &timeScale, 0.0f, 2.0f, "%.2f")))
+                    physics->SetTimeScale(timeScale);
+            }
+        }
+
+        // body under the inspector selection
+        UISpacer(4.0f);
+        UIPushStyle(StyleVar_TextColor, kAccent);
+        UILabelCStr("pxbody", "Selected body");
+        UIPopStyle(StyleVar_TextColor);
+
+        auto& reg              = scene->GetRegistry();
+        const entt::entity sel = (entt::entity)m_SelectedEntity;
+        RigidBody3D* body      = nullptr;
+        if(m_SelectedEntity != 0xFFFFFFFFu && reg.valid(sel))
+        {
+            if(RigidBody3DComponent* comp = reg.try_get<RigidBody3DComponent>(sel))
+                body = comp->GetRigidBody();
+        }
+
+        if(!body)
+        {
+            note("pxnobody", "Select an entity with a 3D rigid body (Entity List, F7) to watch its state change stage by stage.");
+        }
+        else
+        {
+            const Vec3& v      = body->GetLinearVelocity();
+            const Vec3& w      = body->GetAngularVelocity();
+            const float invM   = body->GetInverseMass();
+            const char* state  = body->GetIsStatic() ? "static" : (body->IsAwake() ? "awake" : "asleep");
+            String8 label      = EntityLabel(fa, reg, sel);
+            UILabel("pxbodyname", PushStr8F(fa, "%.*s  (%s)", (int)label.size, (const char*)label.str, state));
+            if(invM > 0.0f)
+                UILabel("pxbodymass", PushStr8F(fa, "Mass  %.2f", 1.0f / invM));
+            else
+                UILabelCStr("pxbodymass", "Mass  infinite (never moved by collisions)");
+            UILabel("pxbodyvel", PushStr8F(fa, "Velocity  %.2f  %.2f  %.2f   (%.2f m/s)", v.x, v.y, v.z, Maths::Length(v)));
+            UILabel("pxbodyang", PushStr8F(fa, "Spin  %.2f  %.2f  %.2f", w.x, w.y, w.z));
+            const Vec3& pos = body->GetPosition();
+            UILabel("pxbodypos", PushStr8F(fa, "Position  %.2f  %.2f  %.2f", pos.x, pos.y, pos.z));
+        }
+
+        UIEndScrollArea();
+        UIPopStyle(StyleVar_ItemSpacing);
+        if(!docked)
+            UIEndPanel();
     }
 }

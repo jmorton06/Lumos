@@ -1,0 +1,44 @@
+// Packed G-buffer (RGBA32F): rg = octahedral world normal, b = NDC depth, a = roughness + metallic.
+// a holds both at 8 bits: round(roughness * 255) * 256 + round(metallic * 255), exact in a 32-bit float.
+// An MSAA resolve averages it, so edge pixels between two materials decode to something in between.
+
+float GBufferPackMaterial(float perceptualRoughness, float metallic)
+{
+	return floor(clamp(perceptualRoughness, 0.0, 1.0) * 255.0 + 0.5) * 256.0 + floor(clamp(metallic, 0.0, 1.0) * 255.0 + 0.5);
+}
+
+// x = perceptual roughness, y = metallic
+vec2 GBufferUnpackMaterial(float packed)
+{
+	float r = floor(packed / 256.0);
+	return clamp(vec2(r, packed - r * 256.0) / 255.0, 0.0, 1.0);
+}
+
+#ifdef GBUFFER_MATERIAL
+// Same workflows as ForwardPBR.frag (needs Buffers.glslh + PBR.glslh). x = perceptual roughness, y = metallic
+vec2 GBufferMaterial(vec2 uv)
+{
+	if(u_MaterialData.workflow == 1.0) // metallic / roughness: g = roughness, b = metallic
+	{
+		vec3 tex = texture(u_MetallicMap, uv).rgb;
+		float f  = u_MaterialData.MetallicMapFactor;
+		return vec2((1.0 - f) * u_MaterialData.Roughness + f * tex.g, (1.0 - f) * u_MaterialData.Metallic + f * tex.b);
+	}
+	if(u_MaterialData.workflow == 2.0) // specular / glossiness
+	{
+		vec4 tex      = texture(u_MetallicMap, uv);
+		float f       = u_MaterialData.MetallicMapFactor;
+		vec3 specular = (1.0 - f) * vec3(u_MaterialData.Metallic) + f * tex.rgb;
+		float gloss   = (1.0 - f) * u_MaterialData.Roughness + f * tex.a;
+		return vec2(1.0 - gloss, computeMetallicFromSpecularColour(specular));
+	}
+
+	float roughness = u_MaterialData.Roughness;
+	if(u_MaterialData.RoughnessMapFactor >= 0.05)
+		roughness = (1.0 - u_MaterialData.RoughnessMapFactor) * roughness + u_MaterialData.RoughnessMapFactor * texture(u_RoughnessMap, uv).r;
+	float metallic = u_MaterialData.Metallic;
+	if(u_MaterialData.MetallicMapFactor >= 0.05)
+		metallic = (1.0 - u_MaterialData.MetallicMapFactor) * metallic + u_MaterialData.MetallicMapFactor * texture(u_MetallicMap, uv).r;
+	return vec2(roughness, metallic);
+}
+#endif

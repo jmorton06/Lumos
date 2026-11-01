@@ -26,6 +26,7 @@ namespace Lumos
         uint16_t LayerMask    = 0xFFFF;
         bool HitTriggers      = false;
         RigidBody3D* IgnoreBody = nullptr; // skip this body (e.g. a vehicle's own chassis)
+        float Radius          = 0.0f;    // > 0 sweeps a sphere of this radius instead of a ray
 
         RaycastQuery() = default;
         RaycastQuery(const Vec3& origin, const Vec3& dir, float maxDist = 1000.0f)

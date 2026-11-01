@@ -96,7 +96,9 @@ void main()
   float d_inner, d_outer, d_sdf;
   Distances(fs_in.uv, d_inner, d_outer, d_sdf);
 
-  vec2 fp = fwidth(fs_in.uv);
+  // taps spread over half a pixel: enough to calm small / minified text without blurring
+  // UI-size text on top of the ramp's own anti-aliasing
+  vec2 fp = fwidth(fs_in.uv) * 0.5;
   vec2 offs[4] = vec2[](vec2(-0.375, -0.125), vec2(0.125, -0.375),
                         vec2( 0.375,  0.125), vec2(-0.125,  0.375));
 

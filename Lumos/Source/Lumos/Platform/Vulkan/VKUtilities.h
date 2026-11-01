@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include "VK.h"
 #include "Graphics/RHI/RHIDefinitions.h"
 
@@ -30,6 +31,17 @@ namespace Lumos
             void Init();
             VkCommandBuffer BeginSingleTimeCommands();
             void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+
+            // Between these (per thread, nestable) single-time commands share one command buffer that is
+            // submitted and waited on once at the end, instead of a GPU round trip each.
+            void BeginBatchCommands();
+            // wait = false: submit and return; the queue runs in order, so later frames see the result.
+            // Deferred work (staging frees) runs once the fence signals - see PollBatches.
+            void EndBatchCommands(bool wait = true);
+            // Finishes async batches whose fence has signalled (all = block until every one is done)
+            void PollBatches(bool all = false);
+            // Runs after the batch's submit has finished (straight away when no batch is open)
+            bool DeferUntilBatchDone(std::function<void()> fn);
 
             void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
             void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);

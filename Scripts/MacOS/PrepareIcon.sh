@@ -25,6 +25,11 @@ mkdir -p "$ICON_DIR"
 # Resize to 1024x1024 using sips
 sips -z 1024 1024 "$SOURCE_PNG" --out "$ICON_DIR/AppIcon.png" > /dev/null 2>&1
 
+# macOS draws icons full size: the artwork belongs in the middle 824 px (Apple's grid) or it
+# looks bigger than every other icon in the Dock. iOS keeps the full bleed one.
+sips -Z 824 "$ICON_DIR/AppIcon.png" --out "$ICON_DIR/AppIcon-mac.png" > /dev/null 2>&1
+sips --padToHeightWidth 1024 1024 "$ICON_DIR/AppIcon-mac.png" --out "$ICON_DIR/AppIcon-mac.png" > /dev/null 2>&1
+
 # Write Contents.json with universal iOS + mac idioms
 cat > "$ICON_DIR/Contents.json" << 'EOF'
 {
@@ -36,13 +41,13 @@ cat > "$ICON_DIR/Contents.json" << 'EOF'
       "size" : "1024x1024"
     },
     {
-      "filename" : "AppIcon.png",
+      "filename" : "AppIcon-mac.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "512x512"
     },
     {
-      "filename" : "AppIcon.png",
+      "filename" : "AppIcon-mac.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "512x512"

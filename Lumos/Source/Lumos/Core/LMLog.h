@@ -53,6 +53,8 @@ namespace Lumos
             static void OnInit();
             static void OnRelease();
             static void SetLoggerFunction(LoggerFunction func);
+            // only warnings and errors reach the console (command-line tools)
+            static void SetQuiet(bool quiet);
             static void LogOutput(LogLevel level, const char* file, int line, const char* message, ...);
 
             // 0 = oldest still held. Count is capped at the ring size.

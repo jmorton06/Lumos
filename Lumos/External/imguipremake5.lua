@@ -16,19 +16,7 @@ project "imgui"
 		"imgui/imstb_rectpack.h",
 		"imgui/imstb_textedit.h",
 		"imgui/imstb_truetype.h",
-		"imgui/imgui_demo.cpp",
-		"imgui/Plugins/ImGuizmo.h",
-		"imgui/Plugins/ImGuizmo.cpp",
-		--"imgui/Plugins/ImCurveEdit.h",
-		--"imgui/Plugins/ImCurveEdit.cpp",
-		"imgui/Plugins/ImTextEditor.h",
-		"imgui/Plugins/ImTextEditor.cpp",
-		"imgui/Plugins/imcmd_command_palette.cpp",
-		"imgui/Plugins/imcmd_fuzzy_search.cpp",
-		"imgui/Plugins/implot/implot.h",
-		"imgui/Plugins/implot/implot.cpp",
-		"imgui/Plugins/implot/implot_internal.h",
-		"imgui/Plugins/implot/implot_items.cpp"
+		"imgui/imgui_demo.cpp"
 	}
 
 	includedirs

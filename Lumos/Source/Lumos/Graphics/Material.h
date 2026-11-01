@@ -1,6 +1,7 @@
 #pragma once
 #include "RHI/Texture.h"
 #include "RHI/Shader.h"
+#include "Maths/Vector4.h"
 
 namespace Lumos
 {

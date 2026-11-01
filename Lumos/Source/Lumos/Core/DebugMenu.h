@@ -12,6 +12,10 @@
 namespace Lumos
 {
     struct Arena;
+    namespace Graphics
+    {
+        class SceneRenderer;
+    }
 
     enum class DebugCommandType : u8
     {
@@ -52,6 +56,8 @@ namespace Lumos
         DebugPanel_Tweaks,
         DebugPanel_Entities,
         DebugPanel_Inspector,
+        DebugPanel_FrameExplorer,
+        DebugPanel_PhysicsExplorer,
         DebugPanel_Count
     };
 
@@ -80,9 +86,15 @@ namespace Lumos
         void UnregisterScriptCommands();
 
         bool Run(const char* name);
+        // For other launchers that want to list the same commands.
+        u32 GetCommandCount() const { return (u32)m_Commands.Size(); }
+        const DebugCommand& GetCommandAt(u32 index) const { return m_Commands[index]; }
+        void RunCommandAt(u32 index);
+        // State of a toggle command (false for anything else).
+        bool IsCommandOn(u32 index);
         bool SetToggle(const char* name, bool value);
 
-        void SetEnabled(bool enabled) { m_Enabled = enabled; }
+        void SetEnabled(bool enabled);
         bool IsEnabled() const { return m_Enabled; }
 
         void OpenPalette();
@@ -108,11 +120,33 @@ namespace Lumos
         u32 GetSelectedEntity() const { return m_SelectedEntity; }
         void ClearSelection() { m_SelectedEntity = 0xFFFFFFFFu; }
 
+        // GizmoOperation bits (move / rotate / scale).
+        void SetGizmoOperation(u32 operation) { m_GizmoOperation = operation; }
+        u32 GetGizmoOperation() const { return m_GizmoOperation; }
+        void SetGizmoLocal(bool local) { m_GizmoLocal = local; }
+        bool GetGizmoLocal() const { return m_GizmoLocal; }
+        void SetGizmoSnap(bool snap) { m_GizmoSnap = snap; }
+        bool GetGizmoSnap() const { return m_GizmoSnap; }
+
         void SetFlyCamera(bool enabled);
         bool IsFlyCamera() const { return m_FlyCamera; }
         // 0 = auto (follow the camera's projection), 1 = 2D pan, 2 = 3D free look.
         void SetFlyMode(i32 mode);
         i32 GetFlyMode() const { return m_FlyMode; }
+
+        // Frame explorer: stop the frame after a render pass (-1 = whole frame).
+        void SetPassCutoff(i32 pass);
+        i32 GetPassCutoff() const;
+        // Move the cutoff to the next / previous pass that has something to do.
+        void StepPass(i32 direction);
+
+        // The two explorers as the body of a tool panel (no window of their own, the size they are given).
+        // The frame explorer steps `renderer`'s frame. Call the Close one when the panel stops being drawn:
+        // it hands the frame / the simulation back.
+        void DrawFrameExplorerDocked(Graphics::SceneRenderer* renderer, const Vec2& size);
+        void DrawPhysicsExplorerDocked(const Vec2& size);
+        void CloseFrameExplorer();
+        void ClosePhysicsExplorer();
 
     private:
         DebugMenu()  = default;
@@ -130,6 +164,12 @@ namespace Lumos
         void DrawTweaks();
         void DrawEntities();
         void DrawInspector();
+        void DrawFrameExplorer();
+        void DrawPhysicsExplorer();
+        Graphics::SceneRenderer* ExplorerRenderer() const;
+        Graphics::SceneRenderer* m_ExplorerRenderer = nullptr; // docked: whose frame is being stepped
+        Vec2 m_DockedSize                           = Vec2(0.0f);
+        void DrawPassTweaks(i32 pass, float wrapWidth);
         void DrawToast();
         void DrawFlyHint();
         void UpdateFlyCamera(float dt, bool acceptInput);
@@ -151,7 +191,7 @@ namespace Lumos
         bool m_PaletteOpen = false;
         bool m_NextIsScript = false;
         bool m_ClaimFocus   = false;
-        bool m_Panels[DebugPanel_Count] = { false, false, false, false, false };
+        bool m_Panels[DebugPanel_Count] = {};
 
         char m_Query[96]   = { 0 };
         char m_LastQuery[96] = { 0 };
@@ -182,18 +222,26 @@ namespace Lumos
         f32 m_EntityScroll        = 0.0f;
         f32 m_InspectorScroll     = 0.0f;
 
-        // Gizmo
+        // Frame explorer
+        f32 m_ExplorerScroll      = 0.0f;
+        f32 m_ExplorerInfoScroll  = 0.0f;
+        i32 m_ExplorerScrolledTo  = -1;
+        bool m_ExplorerWasOpen    = false;
+        bool m_ExplorerShowBuffer = false;
+
+        // Physics explorer
+        f32 m_PhysicsInfoScroll = 0.0f;
+        i32 m_PhysicsSelected   = -1;
+        u32 m_PhysicsSavedFlags = 0;
+        bool m_PhysicsWasOpen   = false;
+        bool m_PhysicsAutoDraw  = true;
+
+        // Gizmo (see Graphics/Gizmo.h)
         bool m_GizmoEnabled        = true;
         bool m_ShowSelectionBounds = true;
-        i32 m_GizmoAxis     = -1;   // 0/1/2 = X/Y/Z, 3 = screen plane, -1 = none
-        Vec3 m_GizmoStartPos;
-        Vec2 m_GizmoStartMouse;
-        // Captured at press so the drag stays stable as the object moves.
-        Vec2 m_GizmoScreenDir;
-        Vec2 m_GizmoScreenDirB;
-        Vec3 m_GizmoWorldA;
-        Vec3 m_GizmoWorldB;
-        f32 m_GizmoWorldPerPixel = 0.0f;
+        u32 m_GizmoOperation       = 1; // GizmoOperation_Translate
+        bool m_GizmoLocal          = false;
+        bool m_GizmoSnap           = false;
 
         // Fly camera. The pose is owned here and written every frame - reading it
         // back would lose the move to whatever the game's camera script wrote

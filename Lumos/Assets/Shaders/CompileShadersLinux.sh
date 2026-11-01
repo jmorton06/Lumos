@@ -82,4 +82,15 @@ if [ -e "$PLUSSRC" ]; then
     fi
 fi
 
+# Low-quality forward variants: Forward+ and instanced
+for VARIANT in "ForwardPBRPlusLow:-DFORWARD_PLUS=1 -DQUALITY_LOW=1" "ForwardPBRInstancedLow:-DINSTANCED=1 -DQUALITY_LOW=1"; do
+    VNAME="${VARIANT%%:*}"
+    VFLAGS="${VARIANT#*:}"
+    VOUT="CompiledSPV/$VNAME.frag.spv"
+    if [ ! -e "$VOUT" ] || [ "$FORCE_RECOMPILE" -eq 1 ] || [ "ForwardPBR.frag" = "$(ls -t1 ForwardPBR.frag "$VOUT" 2>/dev/null | head -1)" ]; then
+        echo "Compiling $VOUT from: ForwardPBR.frag ($VFLAGS)"
+        $COMPILER $VFLAGS ForwardPBR.frag -o "$VOUT"
+    fi
+done
+
 echo "Finished Compiling Shaders"

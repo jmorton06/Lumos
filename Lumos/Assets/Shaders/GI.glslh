@@ -1,0 +1,133 @@
+// Probe grid lookup. The includer declares u_GIProbes { vec4 data[]; }: GI_PROBE_VEC4S per probe.
+// [0..3].xyz = L1 SH of the light arriving there, pre-scaled so irradiance / PI = c0 + cx*n.x + cy*n.y + cz*n.z.
+// [0].w = share of its rays that hit back faces (smoothed; over GI_BURIED = inside geometry).
+// [4].xyz = where the probe was moved to (offset from its grid point, out of walls).
+// [5..36] = distance to the nearest surface round the probe, 8x8 octahedral texels of (mean, mean^2),
+// two texels per vec4 - a Chebyshev test on it stops light leaking through walls.
+#define GI_PROBE_VEC4S 37
+#define GI_DEPTH_BASE 5
+#define GI_DEPTH_RES 8
+#define GI_BURIED 0.25
+
+int GIProbeIndex(ivec3 c, ivec3 counts)
+{
+    return c.x + counts.x * (c.y + counts.y * c.z);
+}
+
+vec3 GIProbePosition(ivec3 c, vec3 origin, vec3 spacing)
+{
+    return origin + vec3(c) * spacing;
+}
+
+vec3 GIProbeOffset(int probe)
+{
+    return u_GIProbes.data[probe * GI_PROBE_VEC4S + 4].xyz;
+}
+
+// direction -> [-1, 1] square
+vec2 GIOctEncode(vec3 n)
+{
+    n /= abs(n.x) + abs(n.y) + abs(n.z);
+    vec2 e = n.xy;
+    if(n.z < 0.0)
+        e = (1.0 - abs(n.yx)) * vec2(n.x >= 0.0 ? 1.0 : -1.0, n.y >= 0.0 ? 1.0 : -1.0);
+    return e;
+}
+
+vec3 GIOctDecode(vec2 e)
+{
+    vec3 n = vec3(e, 1.0 - abs(e.x) - abs(e.y));
+    if(n.z < 0.0)
+        n.xy = (1.0 - abs(n.yx)) * vec2(n.x >= 0.0 ? 1.0 : -1.0, n.y >= 0.0 ? 1.0 : -1.0);
+    return normalize(n);
+}
+
+vec2 GIDepthTexel(int probe, int x, int y)
+{
+    int t  = clamp(y, 0, GI_DEPTH_RES - 1) * GI_DEPTH_RES + clamp(x, 0, GI_DEPTH_RES - 1);
+    vec4 v = u_GIProbes.data[probe * GI_PROBE_VEC4S + GI_DEPTH_BASE + t / 2];
+    return (t & 1) == 0 ? v.xy : v.zw;
+}
+
+// bilinear between texels (no octahedral border: the edges of the square clamp)
+vec2 GIProbeDepth(int probe, vec3 dir)
+{
+    vec2 p  = (GIOctEncode(dir) * 0.5 + 0.5) * float(GI_DEPTH_RES) - 0.5;
+    ivec2 i = ivec2(floor(p));
+    vec2 f  = p - vec2(i);
+    vec2 a  = mix(GIDepthTexel(probe, i.x, i.y), GIDepthTexel(probe, i.x + 1, i.y), f.x);
+    vec2 b  = mix(GIDepthTexel(probe, i.x, i.y + 1), GIDepthTexel(probe, i.x + 1, i.y + 1), f.x);
+    return mix(a, b, f.y);
+}
+
+vec3 GIEvaluateProbe(int probe, vec3 n)
+{
+    int b   = probe * GI_PROBE_VEC4S;
+    vec3 c0 = u_GIProbes.data[b].xyz;
+    vec3 cx = u_GIProbes.data[b + 1].xyz;
+    vec3 cy = u_GIProbes.data[b + 2].xyz;
+    vec3 cz = u_GIProbes.data[b + 3].xyz;
+    // a probe lit from one side has a linear part as big as its mean, and the faces turned away
+    // came out black: keep each channel's linear part under its mean so nothing goes below a tenth of it
+    vec3 len   = sqrt(cx * cx + cy * cy + cz * cz);
+    vec3 scale = min(vec3(1.0), (0.9 * max(c0, vec3(0.0))) / max(len, vec3(1e-6)));
+    return max(c0 + (cx * n.x + cy * n.y + cz * n.z) * scale, vec3(0.0));
+}
+
+// Irradiance / PI at p facing n (the same units as the irradiance cube map). w = how much of
+// it to trust: 0 outside the grid, fading in over the outer half cell.
+vec4 GISampleGrid(vec3 p, vec3 n, vec3 origin, vec3 spacing, ivec3 counts)
+{
+    // off the surface a little, or the probes behind it leak through - but not so far that a
+    // face turned to the floor ends up under it
+    vec3 samplePos = p + n * min(0.1 * min(spacing.x, min(spacing.y, spacing.z)), 0.5);
+    vec3 rel       = (samplePos - origin) / spacing;
+
+    vec3 extent = vec3(counts - 1);
+    vec3 inside = clamp(min(rel + 0.5, extent + 0.5 - rel) * 2.0, 0.0, 1.0);
+    float edge  = inside.x * inside.y * inside.z;
+    if(edge <= 0.0)
+        return vec4(0.0);
+
+    ivec3 base = clamp(ivec3(floor(rel)), ivec3(0), max(counts - 2, ivec3(0)));
+    vec3 f     = clamp(rel - vec3(base), 0.0, 1.0);
+
+    vec3 sum    = vec3(0.0);
+    float total = 0.0;
+    for(int i = 0; i < 8; i++)
+    {
+        ivec3 o  = ivec3(i & 1, (i >> 1) & 1, (i >> 2) & 1);
+        ivec3 c  = min(base + o, counts - 1);
+        int idx  = GIProbeIndex(c, counts);
+        if(u_GIProbes.data[idx * GI_PROBE_VEC4S].w > GI_BURIED)
+            continue;
+
+        vec3 tri = mix(1.0 - f, f, vec3(o));
+        float w  = tri.x * tri.y * tri.z;
+
+        // probes behind the surface see the other side of it
+        vec3 probePos = GIProbePosition(c, origin, spacing) + GIProbeOffset(idx);
+        vec3 toProbe  = normalize(probePos - p);
+        float wrap    = (dot(toProbe, n) + 1.0) * 0.5;
+        w *= wrap * wrap + 0.05;
+
+        // Chebyshev: can the probe see the sample point, or is there a wall in between
+        vec3 v      = samplePos - probePos;
+        float dist  = length(v);
+        vec2 depth  = GIProbeDepth(idx, v / max(dist, 1e-4));
+        if(dist > depth.x)
+        {
+            float variance = abs(depth.y - depth.x * depth.x);
+            float d        = dist - depth.x;
+            float vis      = variance / (variance + d * d);
+            w *= max(vis * vis * vis, 0.02);
+        }
+
+        sum += GIEvaluateProbe(idx, n) * w;
+        total += w;
+    }
+
+    if(total <= 1e-5)
+        return vec4(0.0);
+    return vec4(sum / total, edge);
+}

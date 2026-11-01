@@ -3,7 +3,6 @@ VULKAN_SDK = os.getenv("VULKAN_SDK")
 IncludeDir = {}
 IncludeDir["entt"] = "%{wks.location}/Lumos/External/entt/src/"
 IncludeDir["GLFW"] = "%{wks.location}/Lumos/External/glfw/include/"
-IncludeDir["Glad"] = "%{wks.location}/Lumos/External/glad/include/"
 IncludeDir["lua"] = "%{wks.location}/Lumos/External/lua/src/"
 IncludeDir["stb"] = "%{wks.location}/Lumos/External/stb/"
 IncludeDir["OpenAL"] = "%{wks.location}/Lumos/External/OpenAL/include/"

@@ -33,17 +33,22 @@ namespace Lumos
             void Clear();
             void ReleaseBuffer(); // free GPU buffer while the device is still alive
 
-            StorageBuffer* GetBuffer() const { return m_Buffer; }
+            StorageBuffer* GetBuffer() const { return m_Buffers[m_Current]; }
             uint32_t GetCount() const { return m_Count; } // segment count
 
             void SetLocal(bool local) { m_Local = local; }
             bool IsLocal() const { return m_Local; }
 
         private:
+            // Ring of buffers rotated per frame: the immediate clouds are rebuilt
+            // every frame and a single buffer races the in-flight GPU reads.
+            static constexpr uint32_t kBufferCount = 3;
             TDArray<LineCloudSegment> m_Segments;
-            StorageBuffer* m_Buffer = nullptr;
-            uint32_t m_Count        = 0;
-            bool m_Local            = false;
+            StorageBuffer* m_Buffers[kBufferCount] = { nullptr, nullptr, nullptr };
+            uint32_t m_Capacity[kBufferCount]      = { 0, 0, 0 };
+            uint32_t m_Current                     = 0;
+            uint32_t m_Count                       = 0;
+            bool m_Local                           = false;
         };
 
         // Engine-generic registry of line clouds to draw each frame (like PointCloud).

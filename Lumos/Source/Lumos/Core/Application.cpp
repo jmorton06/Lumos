@@ -1,4 +1,8 @@
 #include "Precompiled.h"
+#include "Utilities/AsyncImageLoader.h"
+#include "Audio/AudioTagReader.h"
+#include "Utilities/AsyncFileCopy.h"
+#include "Utilities/AsyncFileList.h"
 #include "Application.h"
 
 #include "Scene/Scene.h"
@@ -35,6 +39,8 @@
 #include "Core/Asset/AssetImporter.h"
 #include "Scripting/Lua/LuaManager.h"
 #include "ImGui/ImGuiManager.h"
+#include "Scene/SceneUndo.h"
+#include "Core/BusyOverlay.h"
 #include "Events/ApplicationEvent.h"
 #include "Events/KeyEvent.h"
 #include "Audio/AudioManager.h"
@@ -63,14 +69,31 @@
 
 #include <filesystem>
 
+#if !defined(LUMOS_PLATFORM_WINDOWS)
+#include <execinfo.h>
+#include <signal.h>
+#include <unistd.h>
+#endif
+
 namespace Lumos
 {
+    namespace Graphics
+    {
+        void InstallOzzAllocator(); // AnimationController.cpp
+    }
+
+    static bool s_ImGuiEnabled = true;
+
+    void Application::SetImGuiEnabled(bool enabled) { s_ImGuiEnabled = enabled; }
+    bool Application::IsImGuiEnabled() { return s_ImGuiEnabled; }
+
     int Application::s_ExitCode = 0;
 
     // File-static rather than a member: Runtime/Editor subclass Application and
     // the generated projects don't track header deps, so growing the layout
     // silently breaks them.
     static bool s_TestUIRequested = false;
+    static std::thread::id s_MainThreadId;
 
     Application::Application()
         : m_Frames(0)
@@ -98,8 +121,32 @@ namespace Lumos
             EmbedShaderCount++;
         }
     };
+#if !defined(LUMOS_PLATFORM_WINDOWS)
+    // A fatal signal prints where it happened to stderr (a phone has no debugger attached to ask)
+    static void CrashHandler(int sig)
+    {
+        void* frames[64];
+        const int count = backtrace(frames, 64);
+        const char msg[] = "\n[CRASH] fatal signal, backtrace:\n";
+        write(2, msg, sizeof(msg) - 1);
+        backtrace_symbols_fd(frames, count, 2);
+        signal(sig, SIG_DFL);
+        raise(sig);
+    }
+
+    static void InstallCrashHandler()
+    {
+        for(int sig : { SIGSEGV, SIGBUS, SIGABRT, SIGILL, SIGFPE })
+            signal(sig, CrashHandler);
+    }
+#else
+    static void InstallCrashHandler() {}
+#endif
+
     void Application::Init()
     {
+        Graphics::InstallOzzAllocator();
+        InstallCrashHandler();
         LUMOS_PROFILE_FUNCTION();
         m_FrameArena = ArenaAlloc(Megabytes(1));
         m_Arena      = ArenaAlloc(Megabytes(1));
@@ -110,6 +157,7 @@ namespace Lumos
         m_AssetPath  = m_StringPool->Allocate("");
 
         InitialiseUndo();
+        SceneUndo::Init();
 
         m_EventQueueMutex      = PushObject(m_Arena, Mutex);
         m_MainThreadQueueMutex = PushObject(m_Arena, Mutex);
@@ -209,6 +257,20 @@ namespace Lumos
             m_ImportAssetsMode = true;
         }
 
+        // runs that need a known window leave the remembered one alone
+        if(m_BenchmarkMode || m_TakeScreenshotOnInit || m_HeadlessMode || cmdline->OptionString(Str8Lit("test")).size > 0
+           || cmdline->OptionBool(Str8Lit("no-window-memory")))
+            m_RememberWindow = false;
+        if(cmdline->OptionBool(Str8Lit("window-memory")))
+            m_RememberWindow = true; // tests of the feature itself
+
+        if(m_BenchmarkMode || m_TakeScreenshotOnInit
+           || cmdline->OptionString(Str8Lit("test")).size > 0
+           || cmdline->OptionBool(Str8Lit("no-app-nap")))
+        {
+            OS::Get().SetLowLatencyMode(true);
+        }
+
         // Scripted test run. The script is a physical path so a stale asset pack
         // can't shadow it the way it can shadow loose //Assets scripts.
         String8 testOpt = cmdline->OptionString(Str8Lit("test"));
@@ -290,6 +352,7 @@ namespace Lumos
                 OnQuit();
 
             m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+            RestoreWindowState();
 
             m_SceneViewWidth  = m_Window->GetWidth();
             m_SceneViewHeight = m_Window->GetHeight();
@@ -305,10 +368,20 @@ namespace Lumos
         bool loadEmbeddedShaders = m_ForceEmbeddedShaders;
         if(!m_ForceEmbeddedShaders)
         {
-#ifdef LUMOS_PLATFORM_MACOS
-            m_ProjectSettings.m_EngineAssetPath = "/Users/jmorton/Dev/Lumos-Dev/Lumos/Assets/";
+            // the path worked out at start-up (a shipped app's own Resources) wins; the dev checkout
+            // is only a fallback - a sandboxed app can see it exists but not read it
+#ifdef LUMOS_PLATFORM_IOS
+            m_ProjectSettings.m_EngineAssetPath = "/home/jmorton/Dev/Lumos-Dev/Lumos/Assets/"; // not there: iOS uses the embedded shaders
 #else
-            m_ProjectSettings.m_EngineAssetPath = "/home/jmorton/Dev/Lumos-Dev/Lumos/Assets/";
+            std::string computedShaders = m_ProjectSettings.m_EngineAssetPath + "Shaders";
+            if(!FileSystem::FolderExists(Str8StdS(computedShaders)))
+            {
+#ifdef LUMOS_PLATFORM_MACOS
+                m_ProjectSettings.m_EngineAssetPath = "/Users/jmorton/Dev/Lumos-Dev/Lumos/Assets/";
+#else
+                m_ProjectSettings.m_EngineAssetPath = "/home/jmorton/Dev/Lumos-Dev/Lumos/Assets/";
+#endif
+            }
 #endif
             std::string ShaderFolder = m_ProjectSettings.m_EngineAssetPath + "Shaders";
 
@@ -324,7 +397,9 @@ namespace Lumos
             }
         }
 
-        if(!loadEmbeddedShaders && !m_ForceEmbeddedShaders)
+        // regenerating the embedded shader headers is for dev checkouts; a shipped bundle is read-only
+        const bool shippedBundle = m_ProjectSettings.m_EngineAssetPath.find("Resources/EngineAssets") != std::string::npos;
+        if(!loadEmbeddedShaders && !m_ForceEmbeddedShaders && !shippedBundle)
         {
             LUMOS_PROFILE_SCOPE("Init::EmbedShaders");
             ArenaTemp temp     = ScratchBegin(0, 0);
@@ -392,7 +467,8 @@ namespace Lumos
                 m_Window->OnUpdate();
             }
 
-            delete splashTexture;
+            // kept: the frames drawn while the first scene is on its way show the same picture
+            m_SplashTexture = splashTexture;
         }
 
         uint32_t screenWidth  = m_Window->GetWidth();
@@ -421,6 +497,8 @@ namespace Lumos
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
                                    { m_SceneManager->LoadCurrentList(); });
 
+        // games keep ImGui (debug panels, the Lua bindings); the editor draws everything on the engine UI
+        if(s_ImGuiEnabled)
         {
             LUMOS_PROFILE_SCOPE("Init::ImGui");
             m_ImGuiManager = CreateUniquePtr<ImGuiManager>(m_ImGuiClearScreen);
@@ -467,14 +545,20 @@ namespace Lumos
         LINFO("SSE Maths Enabled");
 #endif
 
+        s_MainThreadId = std::this_thread::get_id();
+
         m_UIArena = ArenaAlloc(Megabytes(8));
 
         InitialiseUI(m_UIArena);
         UIApplyDarkTheme();
 
-        float dpiScale = Application::Get().GetWindow()->GetDPIScale();
+        // Content scale, not DPIScale: the two are the same on Retina/iOS, but on
+        // X11 DPIScale is 1.0 even at 200% desktop scaling and the whole UI would
+        // be laid out at 1x on a 4K panel. See Window::GetContentScale.
+        float dpiScale         = Application::Get().GetWindow()->GetContentScale();
         GetUIState()->DPIScale = dpiScale;
-        // Mouse mapping scales separately: iOS touches are already native px.
+        // Mouse mapping scales separately: iOS touches are already native px, and
+        // X11 mouse coordinates are already framebuffer pixels.
         GetUIState()->InputScale = Application::Get().GetWindow()->GetMousePosScale();
 
         // Scale UI style defaults by DPI so text/padding are correct on Retina
@@ -501,11 +585,30 @@ namespace Lumos
             Maths::TestMaths();
         }
 
+        {
+            // --quality=0|1|2 or LUMOS_QUALITY forces a level; otherwise the GPU decides
+            int forced              = -1;
+            String8 qualityOpt      = cmdline->OptionString(Str8Lit("quality"));
+            if(qualityOpt.size > 0)
+                forced = atoi((const char*)qualityOpt.str);
+            else if(const char* env = getenv("LUMOS_QUALITY"))
+                forced = atoi(env);
+
+            if(GetAppType() == AppType::Editor)
+            {
+                // the editor keeps full quality at native resolution
 #ifdef LUMOS_PLATFORM_MACOS
-        m_QualitySettings.SetGeneralLevel(1);
+                m_QualitySettings.SetGeneralLevel(1);
 #else
-        m_QualitySettings.SetGeneralLevel(2);
+                m_QualitySettings.SetGeneralLevel(2);
 #endif
+            }
+            else
+            {
+                SetQualityLevel(forced);
+                m_QualitySettings.DynamicResolution = forced < 0;
+            }
+        }
 
         if(m_Window)
             m_Window->Show();
@@ -556,8 +659,7 @@ namespace Lumos
                 }
 
                 LINFO("[ImportAssets] Importing %s", vfsPath.c_str());
-                ImportSettings settings;
-                std::string result = AssetImporter::Import(vfsPath, settings);
+                std::string result = AssetImporter::Import(vfsPath);
                 if(result.empty())
                 {
                     LERROR("[ImportAssets] Failed to import %s", vfsPath.c_str());
@@ -577,9 +679,84 @@ namespace Lumos
         LINFO("[ImportAssets] Done: %d imported, %d already cached, %d failed", imported, cached, failed);
     }
 
+    // <user data>/<title>/window.cfg: "x y w h maximised fullscreen"
+    static std::string WindowStatePath(const std::string& title)
+    {
+        std::string base;
+#if defined(LUMOS_PLATFORM_WINDOWS)
+        if(const char* appData = std::getenv("APPDATA"))
+            base = appData;
+#elif defined(LUMOS_PLATFORM_MACOS)
+        if(const char* home = std::getenv("HOME"))
+            base = std::string(home) + "/Library/Application Support";
+#else
+        if(const char* xdg = std::getenv("XDG_DATA_HOME"))
+            base = xdg;
+        else if(const char* home = std::getenv("HOME"))
+            base = std::string(home) + "/.local/share";
+#endif
+        if(base.empty())
+            return {};
+        std::string name = title.empty() ? "Lumos" : title;
+        for(char& c : name)
+            if(c == '/' || c == '\\' || c == ':')
+                c = '_';
+        return base + "/" + name + "/window.cfg";
+    }
+
+    void Application::SaveWindowState()
+    {
+#if !defined(LUMOS_PLATFORM_IOS) && !defined(LUMOS_PLATFORM_ANDROID)
+        if(!m_RememberWindow || !m_Window)
+            return;
+        std::string path = WindowStatePath(m_ProjectSettings.Title);
+        if(path.empty())
+            return;
+        std::error_code ec;
+        std::filesystem::create_directories(std::filesystem::path(path).parent_path(), ec);
+        Vec2 pos  = m_Window->GetWindowPosition();
+        Vec2 size = m_Window->GetWindowSize();
+        if(FILE* f = fopen(path.c_str(), "w"))
+        {
+            fprintf(f, "%d %d %d %d %d %d\n", (int)pos.x, (int)pos.y, (int)size.x, (int)size.y,
+                    OS::Get().IsWindowMaximised() ? 1 : 0, OS::Get().IsWindowFullscreen() ? 1 : 0);
+            fclose(f);
+        }
+#endif
+    }
+
+    void Application::RestoreWindowState()
+    {
+#if !defined(LUMOS_PLATFORM_IOS) && !defined(LUMOS_PLATFORM_ANDROID)
+        if(!m_RememberWindow || !m_Window)
+            return;
+        std::string path = WindowStatePath(m_ProjectSettings.Title);
+        FILE* f          = path.empty() ? nullptr : fopen(path.c_str(), "r");
+        if(!f)
+            return;
+        int x = 0, y = 0, w = 0, h = 0, maximised = 0, fullscreen = 0;
+        int n = fscanf(f, "%d %d %d %d %d %d", &x, &y, &w, &h, &maximised, &fullscreen);
+        fclose(f);
+        if(n < 4 || w < 200 || h < 150 || w > 16384 || h > 16384)
+            return;
+        if(fullscreen)
+        {
+            OS::Get().SetWindowFullscreen(true);
+            return;
+        }
+        m_Window->SetWindowSize((u32)w, (u32)h);
+        // a display that's gone would leave the window off screen
+        if(x > -1000 && y > -1000 && x < 8000 && y < 8000)
+            m_Window->SetWindowPosition(x, y);
+        if(maximised)
+            OS::Get().MaximiseWindow();
+#endif
+    }
+
     void Application::OnQuit()
     {
         LUMOS_PROFILE_FUNCTION();
+        SaveWindowState();
         Serialise();
 
         MutexDestroy(m_EventQueueMutex);
@@ -587,8 +764,24 @@ namespace Lumos
 
         ReleaseUndo();
 
+        if(m_ScreenUI)
+        {
+            UI_State* main = GetUIState();
+            delete m_SplashTexture;
+            m_SplashTexture = nullptr;
+            UIDestroyContext(m_ScreenUI);
+            UISetContext(main);
+            m_ScreenUI = nullptr;
+            ArenaRelease(m_ScreenUIArena);
+            m_ScreenUIArena = nullptr;
+        }
+
         DebugMenu::Get().Shutdown();
         DebugMenu::Release();
+        AsyncImageLoader::Shutdown();
+        AudioTagReader::Shutdown();
+        AsyncFileCopy::Shutdown();
+        AsyncFileList::Shutdown();
 
         Graphics::ClearPointClouds();
 
@@ -724,6 +917,13 @@ namespace Lumos
         return Vec2(static_cast<float>(m_Window->GetWidth()), static_cast<float>(m_Window->GetHeight()));
     }
 
+    Vec2 Application::GetGameViewSize() const
+    {
+        if(m_SceneViewWidth > 0 && m_SceneViewHeight > 0)
+            return Vec2((float)m_SceneViewWidth, (float)m_SceneViewHeight);
+        return GetWindowSize();
+    }
+
     float Application::GetWindowDPI() const
     {
         if(!m_Window)
@@ -745,8 +945,11 @@ namespace Lumos
 
             // Unscaled: a paused game (time scale 0) still has to hand ImGui a
             // positive delta, and debug UI should keep animating while paused.
-            ImGuiIO& io  = ImGui::GetIO();
-            io.DeltaTime = Maths::Max(0.0001f, (float)(ts.GetUnscaledMillis() * 0.001));
+            if(m_ImGuiManager)
+            {
+                ImGuiIO& io  = ImGui::GetIO();
+                io.DeltaTime = Maths::Max(0.0001f, (float)(ts.GetUnscaledMillis() * 0.001));
+            }
 
             stats.FrameTime = ts.GetRawMillis(); // Use raw time for stats display
         }
@@ -764,53 +967,103 @@ namespace Lumos
         // Every resize the poll above reported collapses into a single rebuild here,
         // before this frame's update or render sees the new size.
         ApplyPendingWindowResize();
+        UpdateDynamicResolution((float)ts.GetRawMillis());
 
         ArenaClear(m_FrameArena);
 
+        // The first scene waits for the window to finish going fullscreen (macOS): see below.
+        bool holdFirstScene = false;
 #ifdef LUMOS_PLATFORM_MACOS
         const bool wantFullscreen = m_ProjectSettings.Fullscreen || GetAppType() == AppType::Editor;
         // 0 = toggle pending, 1 = confirming it entered, 2 = done.
         static int s_FullscreenStage    = 0;
         static int s_FullscreenFrame    = 0;
         static int s_FullscreenAttempts = 0;
+        static TimeStamp s_FullscreenAsked;
+        static TimeStamp s_FullscreenBegan;
         if(wantFullscreen && s_FullscreenStage < 2 && m_Window)
         {
             s_FullscreenFrame++;
-            if(s_FullscreenStage == 0 && s_FullscreenFrame >= 2)
+            const TimeStamp clock = Timer::Now();
+            static TimeStamp s_FullscreenWaiting = clock;
+            const float waited                   = Timer::Duration(s_FullscreenWaiting, clock, 1000.0f);
+            // Not straight away, and not before the app is the active one. Asked in the first moments after the
+            // window is shown, the move starts and is turned back within a frame or two (measured: asked at once
+            // it failed every time, 0.4 s in it took first time) - and then only a retry gets there.
+            if(s_FullscreenStage == 0 && s_FullscreenFrame >= 2 && waited >= 400.0f && (OS::Get().IsAppActive() || waited > 1500.0f))
             {
                 OS::Get().SetWindowFullscreen(true);
                 s_FullscreenStage    = 1;
-                s_FullscreenFrame    = 0;
                 s_FullscreenAttempts = 1;
+                s_FullscreenAsked    = clock;
+                s_FullscreenBegan    = clock;
             }
             else if(s_FullscreenStage == 1)
             {
                 if(OS::Get().DidEnterFullscreen())
-                {
                     s_FullscreenStage = 2;
-                }
-                else if(s_FullscreenFrame >= 150)
+                // A move that is under way has the fullscreen style on the window. Without it this long after asking,
+                // the request was dropped or turned back: ask again now rather than wait out a long timeout.
+                else if(!OS::Get().IsWindowFullscreen() && Timer::Duration(s_FullscreenAsked, clock, 1000.0f) > 400.0f)
                 {
-                    if(s_FullscreenAttempts < 8)
+                    if(s_FullscreenAttempts < 12)
                     {
                         OS::Get().SetWindowFullscreen(true);
                         s_FullscreenAttempts++;
-                        s_FullscreenFrame = 0;
+                        s_FullscreenAsked = clock;
                     }
                     else
-                    {
                         s_FullscreenStage = 2; // give up rather than loop forever
-                    }
                 }
+                // started but never reported done
+                else if(Timer::Duration(s_FullscreenBegan, clock, 1000.0f) > 6000.0f)
+                    s_FullscreenStage = 2;
             }
+
+            // Loading the first scene now would stall the slide into fullscreen for seconds and then build every
+            // render target twice (windowed size, then fullscreen). Light frames until the window is where it is going.
+            holdFirstScene = s_FullscreenStage < 2 && m_SceneManager->GetSwitchingScene() && m_SceneManager->GetCurrentScene() == nullptr;
         }
 #endif
+
+        static bool s_HoldingFirstScene = false;
+        if(holdFirstScene)
+        {
+            if(!s_HoldingFirstScene)
+            {
+                s_HoldingFirstScene = true;
+                Busy::Begin("Starting");
+            }
+            PumpBusyFrame(false);
+            return m_CurrentState != AppState::Closing;
+        }
+        else if(s_HoldingFirstScene)
+        {
+            s_HoldingFirstScene = false;
+            Busy::End();
+        }
 
         if(m_SceneManager->GetSwitchingScene())
         {
             LUMOS_PROFILE_SCOPE("Application::SceneSwitch");
+            // Something on screen before the load takes the main thread; loaders
+            // can keep it moving with Busy::Pump().
+            const bool showLoading = m_SceneManager->GetCurrentScene() != nullptr && m_CurrentState == AppState::Running;
+            if(showLoading)
+            {
+                Busy::Begin("Loading scene");
+                PumpBusyFrame(true);
+            }
             Graphics::Renderer::GetGraphicsContext()->WaitIdle();
             m_SceneManager->ApplySceneSwitch();
+            if(showLoading)
+                Busy::End();
+            // a scene is up: the splash has done its job
+            if(m_SplashTexture)
+            {
+                delete m_SplashTexture;
+                m_SplashTexture = nullptr;
+            }
             return m_CurrentState != AppState::Closing;
         }
 
@@ -838,9 +1091,23 @@ namespace Lumos
 
         ExecuteMainThreadQueue();
 
+        // From here to the end of the function a frame is being built and drawn.
+        struct FrameScope
+        {
+            bool& InFrame;
+            FrameScope(bool& flag)
+                : InFrame(flag)
+            {
+                InFrame = true;
+            }
+            ~FrameScope() { InFrame = false; }
+        } frameScope(m_InFrame);
+        m_SceneDrawnThisFrame = false;
+
         {
             LUMOS_PROFILE_SCOPE("ImGui::NewFrame");
-            ImGui::NewFrame();
+            if(m_ImGuiManager)
+                ImGui::NewFrame();
         }
 
         // The UI runs on unscaled time so the overlay still animates when the
@@ -850,6 +1117,10 @@ namespace Lumos
         Vec2 frameSize = { (float)m_SceneViewWidth, (float)m_SceneViewHeight };
         UIBeginFrame(frameSize, uiDelta, m_SceneViewPosition);
         UIBeginBuild();
+
+        // In the editor the overlay belongs to the game being played, not to editing.
+        if(GetAppType() == AppType::Editor)
+            DebugMenu::Get().SetEnabled(m_EditorState != EditorState::Preview);
 
         // Before OnUpdate so the palette can take the keyboard off the game.
         DebugMenu::Get().OnUpdate(uiDelta);
@@ -876,13 +1147,16 @@ namespace Lumos
         {
             if(!Graphics::Renderer::GetRenderer()->Begin())
             {
-                ImGui::Render();
+                if(m_ImGuiManager)
+                    ImGui::Render();
                 return m_CurrentState != AppState::Closing;
             }
         }
-        m_ImGuiManager->OnNewFrame();
+        if(m_ImGuiManager)
+            m_ImGuiManager->OnNewFrame();
 
 #ifdef LUMOS_PLATFORM_IOS
+        if(m_ImGuiManager)
         {
             const bool isEditor = GetAppType() == AppType::Editor;
             SafeAreaInsets sa = UIResolveSafeAreaInsets(OS::Get().GetSafeAreaInsets(), isEditor);
@@ -891,7 +1165,9 @@ namespace Lumos
             const ImVec2 vpPos  = vp->Pos;
             const ImVec2 vpSize = vp->Size;
 
-            if(isEditor && (sa.left > 0.0f || sa.right > 0.0f || sa.top > 0.0f || sa.bottom > 0.0f))
+            // (not over a screen UI that draws to the edges itself: ImGui is drawn after it)
+            const bool fullBleed = m_ScreenUI && m_ScreenUI->FullBleed;
+            if(isEditor && !fullBleed && (sa.left > 0.0f || sa.right > 0.0f || sa.top > 0.0f || sa.bottom > 0.0f))
             {
                 const ImU32 bg = ImGui::GetColorU32(ImGuiCol_DockingEmptyBg);
                 ImDrawList* dl = ImGui::GetBackgroundDrawList(vp);
@@ -940,11 +1216,16 @@ namespace Lumos
         // Built last so the overlay sits on top of whatever the game drew.
         DebugMenu::Get().OnUI();
 
+        if(Busy::IsBusy() && !m_ScreenUIEnabled)
+            Busy::Draw(false);
+
         UIEndBuild();
         UILayout();
         UIAnimate();
 
         UIEndFrame(Graphics::Font::GetDefaultFont());
+
+        BuildScreenUI(uiDelta);
 
         if(!m_Minimized)
         {
@@ -952,7 +1233,10 @@ namespace Lumos
             Engine::Get().ResetStats();
 
             OnRender();
-            m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
+            if(m_ScreenUIEnabled && m_ScreenUI)
+                m_SceneRenderer->ScreenUIPass(m_ScreenUI, !m_SceneDrawnThisFrame);
+            if(m_ImGuiManager)
+                m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
 
             // Clears debug line and point lists
             DebugRenderer::Reset((float)ts.GetSeconds());
@@ -964,7 +1248,7 @@ namespace Lumos
             m_AssetManager->Update((float)ts.GetElapsedSeconds());
             m_Frames++;
         }
-        else
+        else if(m_ImGuiManager)
         {
             ImGui::Render();
         }
@@ -996,6 +1280,12 @@ namespace Lumos
             m_Updates = 0;
         }
 
+        // Submit + present before waiting on physics: the frame was recorded from last frame's
+        // synced transforms, so the GPU work does not depend on this update. The submit (often
+        // blocked on the swapchain) and the physics job now run at the same time.
+        if(!m_Minimized)
+            Graphics::Renderer::GetRenderer()->Present();
+
         // Sync transforms from physics for the next frame
         {
             System::JobSystem::Wait(context);
@@ -1005,10 +1295,7 @@ namespace Lumos
         }
 
         if(!m_Minimized)
-            OnDebugDraw(); // Moved after update thread sync to fix debug drawing physics Engine
-
-        if(!m_Minimized)
-            Graphics::Renderer::GetRenderer()->Present();
+            OnDebugDraw(); // after the physics sync: drawn with next frame
 
         // Test-requested captures - the swap chain image is only readable here.
         TestRunner::Get().ServiceScreenshots(!m_Minimized && m_SceneRenderer && m_Window);
@@ -1059,7 +1346,130 @@ namespace Lumos
         {
             m_SceneRenderer->BeginScene(m_SceneManager->GetCurrentScene());
             m_SceneRenderer->OnRender();
+            m_SceneDrawnThisFrame = true;
         }
+    }
+
+    static void ScaleUIStyleDefaults(float dpiScale)
+    {
+        if(dpiScale <= 1.0f)
+            return;
+        auto* styles = GetUIState()->style_variable_lists;
+        styles[StyleVar_FontSize].first->value.x *= dpiScale;
+        styles[StyleVar_Padding].first->value.x *= dpiScale;
+        styles[StyleVar_Padding].first->value.y *= dpiScale;
+        styles[StyleVar_Border].first->value.x *= dpiScale;
+        styles[StyleVar_Border].first->value.y *= dpiScale;
+        styles[StyleVar_CornerRadius].first->value.x *= dpiScale;
+        styles[StyleVar_ShadowOffset].first->value.y *= dpiScale;
+        styles[StyleVar_ShadowBlur].first->value.x *= dpiScale;
+    }
+
+    void Application::EnableScreenUI(bool enable)
+    {
+        m_ScreenUIEnabled = enable;
+        if(enable)
+            EnsureScreenUI();
+    }
+
+    void Application::EnsureScreenUI()
+    {
+        if(m_ScreenUI || !GetUIState())
+            return;
+
+        UI_State* main  = GetUIState();
+        m_ScreenUIArena = ArenaAlloc(Megabytes(8));
+        m_ScreenUI      = UICreateContext(m_ScreenUIArena);
+
+        UISetContext(m_ScreenUI);
+        UIApplyDarkTheme();
+        m_ScreenUI->DPIScale   = main->DPIScale;
+        m_ScreenUI->InputScale = main->InputScale;
+        ScaleUIStyleDefaults(main->DPIScale);
+        UISetContext(main);
+    }
+
+    void Application::BuildScreenUI(float dt)
+    {
+        if(!m_ScreenUIEnabled || !m_Window)
+            return;
+        EnsureScreenUI();
+        if(!m_ScreenUI)
+            return;
+
+        UI_State* main         = GetUIState();
+        m_ScreenUI->DPIScale   = main->DPIScale;
+        m_ScreenUI->InputScale = main->InputScale;
+
+        UISetContext(m_ScreenUI);
+        UIBeginFrame(Vec2((float)m_Window->GetWidth(), (float)m_Window->GetHeight()), dt, Vec2(0.0f, 0.0f));
+        UIBeginBuild();
+
+        OnScreenUI();
+        if(Busy::IsBusy())
+            Busy::Draw(false);
+
+        UIEndBuild();
+        UILayout();
+        UIAnimate();
+        UIEndFrame(Graphics::Font::GetDefaultFont());
+        UISetContext(main);
+    }
+
+    void Application::PumpBusyFrame(bool force)
+    {
+#if defined(LUMOS_PLATFORM_IOS) || defined(LUMOS_PLATFORM_ANDROID)
+        // the OS drives the frame there: an extra present from inside one is not ours to make
+        (void)force;
+        return;
+#else
+        // Only between frames: a frame that is already being recorded cannot be presented from here.
+        if(m_InFrame || !m_Window || !m_SceneRenderer || m_Minimized || m_HeadlessMode || !GetUIState())
+            return;
+        if(std::this_thread::get_id() != s_MainThreadId)
+            return;
+        if(m_CurrentState == AppState::Closing || !Graphics::Font::GetDefaultFont())
+            return;
+
+        static TimeStamp s_LastPump;
+        static bool s_HasPumped = false;
+        const TimeStamp now     = Timer::Now();
+        if(!force && s_HasPumped && Timer::Duration(s_LastPump, now, 1000.0f) < 33.0f)
+            return;
+        s_LastPump  = now;
+        s_HasPumped = true;
+
+        m_InFrame = true; // also stops this re-entering through an event handler
+
+        // keep the window answering the OS while the main loop is held up
+        Input::Get().ResetPressed();
+        Input::Get().ResetGestures();
+        m_Window->ProcessInput();
+        ApplyPendingWindowResize();
+
+        EnsureScreenUI();
+        if(m_ScreenUI && Graphics::Renderer::GetRenderer()->Begin())
+        {
+            UI_State* main         = GetUIState();
+            m_ScreenUI->DPIScale   = main->DPIScale;
+            m_ScreenUI->InputScale = main->InputScale;
+
+            UISetContext(m_ScreenUI);
+            UIBeginFrame(Vec2((float)m_Window->GetWidth(), (float)m_Window->GetHeight()), 0.033f, Vec2(0.0f, 0.0f));
+            UIBeginBuild();
+            Busy::Draw(true);
+            UIEndBuild();
+            UILayout();
+            UIAnimate();
+            UIEndFrame(Graphics::Font::GetDefaultFont());
+            UISetContext(main);
+
+            m_SceneRenderer->ScreenUIPass(m_ScreenUI, true);
+            Graphics::Renderer::GetRenderer()->Present();
+        }
+
+        m_InFrame = false;
+#endif
     }
 
     void Application::OnDebugDraw()
@@ -1336,6 +1746,13 @@ namespace Lumos
         }
     }
 
+    void Application::OnBackgroundUpdate(float dt)
+    {
+        if(m_CurrentState != AppState::Running || !m_SceneManager)
+            return;
+        LuaManager::Get().OnBackgroundUpdate(m_SceneManager->GetCurrentScene(), dt);
+    }
+
     void Application::OnUpdate(const TimeStep& dt)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -1348,7 +1765,8 @@ namespace Lumos
             LuaManager::Get().OnUpdate(m_SceneManager->GetCurrentScene());
             m_SceneManager->GetCurrentScene()->OnUpdate(dt);
         }
-        m_ImGuiManager->OnUpdate(dt, m_SceneManager->GetCurrentScene());
+        if(m_ImGuiManager)
+            m_ImGuiManager->OnUpdate(dt, m_SceneManager->GetCurrentScene());
     }
 
     void Application::OnEvent(Event& e)
@@ -1376,14 +1794,30 @@ namespace Lumos
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
 
         // UI keyboard input
-        dispatcher.Dispatch<KeyTypedEvent>([](KeyTypedEvent& event) -> bool
+        // both UIs get the keys; only the one with a focused field does anything with them
+        UI_State* screenUI = m_ScreenUIEnabled ? m_ScreenUI : nullptr;
+        dispatcher.Dispatch<KeyTypedEvent>([screenUI](KeyTypedEvent& event) -> bool
         {
             UIProcessKeyTyped(event.Character);
+            if(screenUI)
+            {
+                UI_State* main = GetUIState();
+                UISetContext(screenUI);
+                UIProcessKeyTyped(event.Character);
+                UISetContext(main);
+            }
             return false;
         });
-        dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent& event) -> bool
+        dispatcher.Dispatch<KeyPressedEvent>([screenUI](KeyPressedEvent& event) -> bool
         {
             UIProcessKeyPressed(event.GetKeyCode());
+            if(screenUI)
+            {
+                UI_State* main = GetUIState();
+                UISetContext(screenUI);
+                UIProcessKeyPressed(event.GetKeyCode());
+                UISetContext(main);
+            }
             return false;
         });
 
@@ -1435,12 +1869,19 @@ namespace Lumos
     void Application::ExecuteMainThreadQueue()
     {
         LUMOS_PROFILE_FUNCTION();
-        ScopedMutex lock(m_MainThreadQueueMutex);
+        // Run them outside the lock: a job can take a while (and pump frames),
+        // and anything it submits must not wait on its own caller.
+        TDArray<Function<void()>> pending;
+        {
+            ScopedMutex lock(m_MainThreadQueueMutex);
+            if(m_MainThreadQueue.Empty())
+                return;
+            pending = std::move(m_MainThreadQueue);
+            m_MainThreadQueue.Clear();
+        }
 
-        for(const auto& func : m_MainThreadQueue)
+        for(const auto& func : pending)
             func();
-
-        m_MainThreadQueue.Clear();
     }
 
     void Application::OnExitScene()
@@ -1489,6 +1930,101 @@ namespace Lumos
         return false;
     }
 
+    void Application::SetWindowTransparent(bool transparent)
+    {
+        if(!m_Window || transparent == m_WindowTransparent)
+            return;
+        m_WindowTransparent = transparent;
+        m_Window->SetTransparent(transparent);
+        if(m_Window->GetSwapChain())
+            m_Window->GetSwapChain()->SetTransparent(transparent);
+        if(m_SceneRenderer)
+            m_SceneRenderer->SetTransparentBackground(transparent);
+
+        // composite alpha is fixed at swapchain creation, so force a same-size rebuild
+        if(!m_HasPendingWindowResize)
+        {
+            m_PendingWindowWidth    = m_Window->GetWidth();
+            m_PendingWindowHeight   = m_Window->GetHeight();
+            m_PendingWindowDPIScale = m_Window->GetDPIScale();
+        }
+        m_HasPendingWindowResize = true;
+        m_ForceWindowResize      = true;
+    }
+
+    void Application::SetQualityLevel(int level)
+    {
+        const auto& caps = Graphics::Renderer::GetCapabilities();
+        uint8_t use      = level >= 0 ? (uint8_t)Maths::Min(level, 2) : QualitySettings::DetectLevel(caps.GPUType, caps.VideoMemoryMB, caps.Renderer.c_str());
+        m_QualitySettings.SetGeneralLevel(use);
+        // a weak GPU at medium still gets the cheap forward shader
+        if(level < 0 && use == 1 && caps.GPUType == 1)
+            m_QualitySettings.LowForwardShader = true;
+
+        const uint32_t width  = m_Window ? m_Window->GetWidth() : 0;
+        const uint32_t height = m_Window ? m_Window->GetHeight() : 0;
+        m_QualitySettings.MaxScale     = 1.0f;
+        const float scale              = QualitySettings::ScaleForBudget(use, width, height, m_QualitySettings.MinScale);
+        const bool changed             = Maths::Abs(scale - m_QualitySettings.RendererScale) > 0.001f;
+        m_QualitySettings.RendererScale = scale;
+        LINFO("Quality level %d (%s, %s) render scale %.2f at %ux%u", (int)use, level >= 0 ? "forced" : "detected", caps.Renderer.c_str(), scale, width, height);
+        if(changed && m_SceneRenderer && width > 0 && height > 0)
+            OnSceneViewSizeUpdated(width, height);
+    }
+
+    // Steps the render scale down when frames run long and probes back up once they are comfortable
+    void Application::UpdateDynamicResolution(float frameMs)
+    {
+        if(!m_QualitySettings.DynamicResolution || m_Minimized || !m_Window || !m_SceneRenderer)
+            return;
+
+        static float s_Ema         = 16.7f;
+        static float s_SinceChange = 0.0f;
+        static float s_GoodTime    = 0.0f;
+        static float s_Ceiling     = 1.0f; // a scale that was too slow caps the probe back up
+
+        // a loading stall or resize hitch is not steady load: forget it and wait before judging again
+        if(frameMs > 250.0f)
+        {
+            s_Ema         = m_QualitySettings.TargetFrameMs;
+            s_SinceChange = 0.0f;
+            s_GoodTime    = 0.0f;
+            return;
+        }
+        const float dt = frameMs;
+        s_Ema += (dt - s_Ema) * 0.05f;
+        s_SinceChange += dt * 0.001f;
+        const float target = m_QualitySettings.TargetFrameMs;
+        s_GoodTime         = s_Ema < target * 1.05f ? s_GoodTime + dt * 0.001f : 0.0f;
+        if(s_GoodTime > 60.0f)
+        {
+            s_Ceiling = Maths::Min(1.0f, s_Ceiling + 0.05f);
+            s_GoodTime = 30.0f;
+        }
+        if(s_SinceChange < 2.5f)
+            return;
+
+        const float current = m_QualitySettings.RendererScale;
+        float next          = current;
+        if(s_Ema > target * 1.2f && current > m_QualitySettings.MinScale + 0.001f)
+        {
+            next      = Maths::Max(m_QualitySettings.MinScale, current - 0.1f);
+            s_Ceiling = current - 0.01f;
+        }
+        else if(s_GoodTime > 10.0f && current + 0.05f <= Maths::Min(m_QualitySettings.MaxScale, s_Ceiling) + 0.001f)
+            next = current + 0.05f;
+
+        if(Maths::Abs(next - current) < 0.001f)
+            return;
+
+        m_QualitySettings.RendererScale = next;
+        s_SinceChange                   = 0.0f;
+        s_GoodTime                      = 0.0f;
+        s_Ema                           = target;
+        LINFO("Dynamic resolution: %.2f -> %.2f", current, next);
+        OnSceneViewSizeUpdated(m_Window->GetWidth(), m_Window->GetHeight());
+    }
+
     void Application::ApplyPendingWindowResize()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -1502,8 +2038,9 @@ namespace Lumos
 
         // A zero size still has to reach OnWindowResize to flag minimised, but a
         // repeat of the size already in use is pure rebuild cost.
-        if(width != 0 && height != 0 && width == m_AppliedWindowWidth && height == m_AppliedWindowHeight)
+        if(width != 0 && height != 0 && width == m_AppliedWindowWidth && height == m_AppliedWindowHeight && !m_ForceWindowResize)
             return;
+        m_ForceWindowResize = false;
 
         m_AppliedWindowWidth  = width;
         m_AppliedWindowHeight = height;
@@ -1587,9 +2124,19 @@ namespace Lumos
     void Application::Serialise()
     {
         LUMOS_PROFILE_FUNCTION();
+        // quit before start-up finished (iOS can terminate an app that is still launching)
+        if(!m_SceneManager || !m_ProjectLoaded)
+            return;
 
         // A test run must leave the project exactly as it found it - otherwise
         // its --width/--height end up committed to the .lmproj.
+        // a shipped app's project lives in its read-only bundle
+        const std::string& root = m_ProjectSettings.m_ProjectRoot;
+        if(root.find(".app/Contents/") != std::string::npos || root.find(".app/") != std::string::npos)
+        {
+            LINFO("Bundled project - skipping project serialisation");
+            return;
+        }
         if(TestRunner::Get().Active())
         {
             LINFO("Test run - skipping project serialisation");
@@ -1630,6 +2177,17 @@ namespace Lumos
                     if(FileSystem::Get().MountPack(packPath))
                         LINFO("Mounted asset pack: %.*s", (int)packPath.size, packPath.str);
                 }
+            }
+
+            // An exported app has only the pack (in a read-only bundle on iOS, a signed one on macOS):
+            // //Assets/ writes (saves, settings) go to a per-user folder that reads check before the pack
+            if(m_ProjectSettings.Packaged)
+            {
+                std::string overlay = WritableRoot() + "Assets";
+                FileSystem::CreateFolderIfDoesntExist(Str8StdS(overlay));
+                m_AssetPath = Str8F(m_AssetPath, "%s", overlay.c_str());
+                FileSystem::Get().SetAssetPath(m_AssetPath);
+                LINFO("Writable assets: %s", overlay.c_str());
             }
 
             LINFO("Loading Project : %s", filePath.c_str());
@@ -1702,8 +2260,18 @@ namespace Lumos
         }
     }
 
+    std::string Application::WritableRoot() const
+    {
+        if(m_ProjectSettings.Packaged)
+            return FileSystem::UserDataPath(m_ProjectSettings.m_ProjectName) + "/";
+        return m_ProjectSettings.m_ProjectRoot;
+    }
+
     void Application::CreateAssetFolders()
     {
+        // an exported app's Assets live in the pack; writes go to WritableRoot()
+        if(m_ProjectSettings.Packaged)
+            return;
         ArenaTemp tempArena = ScratchBegin(nullptr, 0);
         String8 path        = PushStr8F(tempArena.arena, "%sAssets", m_ProjectSettings.m_ProjectRoot.c_str());
         FileSystem::CreateFolderIfDoesntExist(path);

@@ -136,7 +136,8 @@ namespace Lumos
                         {
                             blendAttachState[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
                             blendAttachState[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-                            blendAttachState[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+                            // "over" for coverage; SRC_ALPHA here squared it and thinned translucent edges
+                            blendAttachState[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
                             blendAttachState[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
                         }
                         else if(pipelineDesc.blendMode == BlendMode::SrcAlphaOne)
@@ -218,7 +219,7 @@ namespace Lumos
                 ds.pNext                 = NULL;
                 ds.depthTestEnable       = pipelineDesc.DepthTest ? VK_TRUE : VK_FALSE;
                 ds.depthWriteEnable      = pipelineDesc.DepthWrite ? VK_TRUE : VK_FALSE;
-                ds.depthCompareOp        = VK_COMPARE_OP_LESS_OR_EQUAL;
+                ds.depthCompareOp        = pipelineDesc.ReverseDepth ? VK_COMPARE_OP_GREATER_OR_EQUAL : VK_COMPARE_OP_LESS_OR_EQUAL;
                 ds.depthBoundsTestEnable = VK_FALSE;
                 ds.stencilTestEnable     = VK_FALSE;
                 ds.back.failOp           = VK_STENCIL_OP_KEEP;
@@ -382,6 +383,7 @@ namespace Lumos
                 renderPassDesc.DebugName = m_Description.DebugName;
             renderPassDesc.samples = m_Description.samples;
             renderPassDesc.viewMask = m_Description.viewMask;
+            renderPassDesc.reverseDepth = m_Description.ReverseDepth;
 
             m_RenderPass = Graphics::RenderPass::Get(renderPassDesc);
 

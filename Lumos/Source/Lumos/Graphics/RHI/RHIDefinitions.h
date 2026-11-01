@@ -28,6 +28,8 @@ namespace Lumos
 
         static constexpr uint8_t MAX_RENDER_TARGETS = 8;
         static constexpr uint8_t SHADOWMAP_MAX      = 4;
+        static constexpr uint8_t SPOT_SHADOW_MAX    = 16; // MAX_SPOT_SHADOWS in Buffers.glslh
+        static constexpr uint8_t SPOT_SHADOW_LAYERS = 4;  // atlas layers after the cascades
         static constexpr uint8_t MAX_MIPS           = 32;
 
         // Descriptor set limits
@@ -316,14 +318,15 @@ namespace Lumos
 
         struct Descriptor
         {
-            Texture** textures;
-            Texture* texture;
-            UniformBuffer* buffer;
+            // zeroed: a binding nothing was ever set on must read as empty, not as whatever was in memory
+            Texture** textures             = nullptr;
+            Texture* texture               = nullptr;
+            UniformBuffer* buffer          = nullptr;
             StorageBuffer* storageBuffer = nullptr;
 
-            uint32_t offset;
-            uint32_t size;
-            uint32_t binding;
+            uint32_t offset  = 0;
+            uint32_t size    = 0;
+            uint32_t binding = 0;
             uint32_t textureCount = 1;
             uint32_t mipLevel     = 0;
 
@@ -370,6 +373,7 @@ namespace Lumos
             int mipIndex         = 0;
             int samples          = 1;
             uint32_t viewMask    = 0;
+            bool reverseDepth    = true; // depth cleared to 0 (reversed-Z) instead of 1
             std::string DebugName;
             Texture* resolveTexture = nullptr;
         };

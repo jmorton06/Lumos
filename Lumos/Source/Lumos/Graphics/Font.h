@@ -23,12 +23,17 @@ namespace Lumos
             const std::string& GetFilePath() const { return m_FilePath; }
             Vec2 CalculateTextSize(const std::string& text, float fontSize);
             Vec2 CalculateTextSize(const String8& text, float fontSize);
+            // every character (bar spaces / line breaks) has a glyph in the atlas - else it draws as '?'
+            bool HasGlyphs(const std::string& text) const;
 
             void Init();
 
             static void InitDefaultFont();
             static void ShutdownDefaultFont();
             static SharedPtr<Font> GetDefaultFont();
+            // Fixed-width font for code (<engine assets>/Fonts/Cousine-Regular.ttf), loaded on first use.
+            // The default font when that file is not there.
+            static SharedPtr<Font> GetMonoFont();
 
             SET_ASSET_TYPE(AssetType::Font);
 
@@ -41,6 +46,7 @@ namespace Lumos
 
         private:
             static SharedPtr<Font> s_DefaultFont;
+            static SharedPtr<Font> s_MonoFont;
         };
     }
 

@@ -52,6 +52,9 @@ namespace Lumos
         if (res != VK_SUCCESS || surface == VK_NULL_HANDLE)
         LFATAL("Failed to create Vulkan surface: %s",std::to_string(res).c_str());
 
+        // MoltenVK config lives in VKContext::CreateInstance via VK_EXT_layer_settings -
+        // it has to be set when the instance is created, and vkSetMoltenVKConfigurationMVK()
+        // is a silent no-op on MoltenVK 1.3+.
 #ifdef MVK_VERSION_STRING
         LINFO("MVK Version %s", MVK_VERSION_STRING);
 #endif

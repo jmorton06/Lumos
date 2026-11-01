@@ -22,7 +22,10 @@ namespace Lumos
             int MaxTextureUnits              = 0;
             int UniformBufferOffsetAlignment = 0;
             bool WideLines                   = false;
+            bool FillModeNonSolid            = false; // wireframe polygon mode
             bool SupportCompute              = false;
+            int GPUType                      = 0; // 0 unknown, 1 integrated, 2 discrete, 3 virtual, 4 software
+            uint32_t VideoMemoryMB           = 0;
         };
 
         class LUMOS_EXPORT Renderer
@@ -37,9 +40,9 @@ namespace Lumos
             virtual void InitInternal()                            = 0;
             virtual bool Begin()                                   = 0;
             virtual void OnResize(uint32_t width, uint32_t height) = 0;
+            // a depth texture is cleared to clearColour.x
             virtual void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Vec4 clearColour = Vec4(0.1f, 0.1f, 0.1f, 1.0f)) { }
             virtual void DepthArrayBarrier(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer) { }
-            virtual void CopyDepthToArraySlice(Graphics::Texture* srcDepth, Graphics::Texture* dstDepthArray, uint32_t sliceIndex, Graphics::CommandBuffer* commandBuffer) { }
             inline static Renderer* GetRenderer()
             {
                 return s_Instance;
@@ -47,7 +50,7 @@ namespace Lumos
 
             virtual void PresentInternal()                                                                                                                                                                            = 0;
             virtual void PresentInternal(Graphics::CommandBuffer* commandBuffer)                                                                                                                                      = 0;
-            virtual void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount) = 0;
+            virtual void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount, uint32_t firstSet = 0) = 0;
 
             virtual const char* GetTitleInternal() const                                                                                    = 0;
             virtual void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const             = 0;
@@ -59,6 +62,8 @@ namespace Lumos
             virtual bool SupportsCompute() { return false; }
             virtual void SaveScreenshot(const std::string& path, Graphics::Texture* texture = nullptr, bool Blur = false, float BlurRadius = 2.0f) { };
             virtual RHIFormat GetDepthFormat() { return RHIFormat::D32_Float; };
+            // copies a whole depth texture into one layer of a depth array
+            virtual void CopyDepthToArraySlice(Graphics::Texture* srcDepth, Graphics::Texture* dstDepthArray, uint32_t slice, Graphics::CommandBuffer* commandBuffer) { }
 
             inline static void Present()
             {
@@ -68,9 +73,9 @@ namespace Lumos
             {
                 s_Instance->PresentInternal(commandBuffer);
             }
-            inline static void BindDescriptorSets(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount)
+            inline static void BindDescriptorSets(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount, uint32_t firstSet = 0)
             {
-                s_Instance->BindDescriptorSetsInternal(pipeline, commandBuffer, dynamicOffset, descriptorSets, descriptorCount);
+                s_Instance->BindDescriptorSetsInternal(pipeline, commandBuffer, dynamicOffset, descriptorSets, descriptorCount, firstSet);
             }
             inline static void Draw(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType = DataType::UNSIGNED_INT, void* indices = nullptr)
             {

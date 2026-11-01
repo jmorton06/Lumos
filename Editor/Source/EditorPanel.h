@@ -36,7 +36,6 @@ namespace Lumos
         {
             m_Active = active;
         }
-        virtual void OnImGui() = 0;
         virtual void OnNewScene(Scene* scene)
         {
         }

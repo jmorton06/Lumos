@@ -5,7 +5,6 @@ newoption
    description = "Choose a renderer",
    allowed = 
    {
-      { "opengl", "OpenGL (macOS, linux, Windows)" },
       --{ "dx11",  "DirectX 11 (Windows only)" },
       --{ "metal", "Metal (macOS, iOS only)" },
       { "vulkan", "Vulkan (Windows, linux, iOS, macOS)" }
@@ -22,7 +21,8 @@ newoption
 		{"x86", "x86" },
 		{"x64", "x64" },
 		{"arm", "arm" },
-		{"arm64", "arm64"}
+		{"arm64", "arm64"},
+		{"universal", "macOS: Apple Silicon + Intel"}
 	}
 }
 
@@ -45,6 +45,13 @@ newoption
 	trigger     = "game-project",
 	value       = "path",
 	description = "Path to game project directory to bundle into standalone app"
+}
+
+newoption
+{
+	trigger     = "starter-project",
+	value       = "path",
+	description = "Project bundled into the iOS editor as its first-run project (keeps the editor's own name and bundle id)"
 }
 
 newaction

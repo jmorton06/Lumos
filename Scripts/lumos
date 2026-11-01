@@ -1,0 +1,16 @@
+#!/bin/bash
+# lumos <command> [options] - the command-line side of the editor's Export window.
+# Runs the LumosEditor binary in CLI mode (no window). `lumos help` lists the commands.
+# LUMOS_EDITOR=<path to the LumosEditor executable> overrides the lookup.
+ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+EDITOR="${LUMOS_EDITOR:-}"
+if [ -z "$EDITOR" ]; then
+    # newest built editor in this checkout
+    EDITOR=$(ls -t "$ROOT"/bin/*/LumosEditor.app/Contents/MacOS/LumosEditor "$ROOT"/bin/*/LumosEditor 2>/dev/null | head -1)
+fi
+if [ -z "$EDITOR" ] || [ ! -x "$EDITOR" ]; then
+    echo "lumos: no LumosEditor build found (build the editor, or set LUMOS_EDITOR)" >&2
+    exit 1
+fi
+[ $# -eq 0 ] && set -- help
+exec "$EDITOR" "$@"

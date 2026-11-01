@@ -60,6 +60,13 @@ namespace Lumos
         return length;
     }
 
+    uint64_t CalculateCStringLength(const char* cstr)
+    {
+        uint64_t length = 0;
+        for(; cstr[length]; length += 1);
+        return length;
+    }
+
     String8 Str8(uint8_t* str, uint64_t size)
     {
         String8 string;

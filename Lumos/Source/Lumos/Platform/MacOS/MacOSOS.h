@@ -18,14 +18,20 @@ namespace Lumos
         std::string GetExecutablePath() override;
         void SetTitleBarColour(const Vec4& colour, bool dark = true) override;
         void SetWindowDecorations(bool decorated) override;
+        bool IsDarkMode() const override;
+        void OpenFileLocation(const std::string& path) override;
+        void OpenFileExternal(const std::string& path) override;
+        void OpenURL(const std::string& url) override;
         bool BeginWindowDrag() override;
         void UpdateWindowDrag() override;
         bool IsWindowMaximised() const override;
         bool IsWindowFullscreen() const override;
         void SetWindowFullscreen(bool fullscreen) override;
         bool DidEnterFullscreen() const override;
+        bool IsAppActive() override;
         void RestoreWindow() override;
         void Delay(uint32_t usec) override;
         void MaximiseWindow() override;
+        void SetLowLatencyMode(bool enabled) override;
     };
 }

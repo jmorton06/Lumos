@@ -21504,7 +21504,7 @@ namespace sol {
 			int index = 0;
 			detail::indexed_insert insert_fx(l, index);
 			detail::insert_default_registrations<T>(insert_fx, detail::property_always_true);
-			if constexpr (!std::is_pointer_v<X>) {
+			if constexpr (!std::is_pointer_v<X> && !std::is_trivially_destructible_v<T>) {
 				l[index] = luaL_Reg{ to_string(meta_function::garbage_collect).c_str(), detail::make_destructor<T>() };
 			}
 			luaL_setfuncs(L, l, 0);
@@ -22516,7 +22516,11 @@ namespace sol { namespace u_detail {
 				case submetatable_type::value:
 				case submetatable_type::const_value:
 				default:
-					stack::set_field<false, true>(L, meta_function::garbage_collect, detail::make_destructor<T>(), t.stack_index());
+					// Lumos: trivially destructible values (Vec2/Vec4/Mat4...) live inside the userdata and need no
+					// finaliser; registering one made every temporary a finalizable object and GC cycles very slow
+					if constexpr (!std::is_trivially_destructible_v<T>) {
+						stack::set_field<false, true>(L, meta_function::garbage_collect, detail::make_destructor<T>(), t.stack_index());
+					}
 					break;
 				}
 			}

@@ -32,7 +32,7 @@ namespace Lumos
         {
             vkDeviceWaitIdle(VKDevice::Get().GetDevice());
 
-            for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
+            for(uint32_t i = 0; i < MAX_SWAPCHAIN_BUFFERS; i++)
             {
                 if(m_Frames[i].MainCommandBuffer)
                     m_Frames[i].MainCommandBuffer->Flush();
@@ -40,9 +40,10 @@ namespace Lumos
                 m_Frames[i].MainCommandBuffer     = nullptr;
                 m_Frames[i].CommandPool           = nullptr;
                 m_Frames[i].ImageAcquireSemaphore = nullptr;
-
-                delete m_SwapChainBuffers[i];
+                m_RenderFinished[i]               = nullptr;
             }
+            for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
+                delete m_SwapChainBuffers[i];
             vkDestroySwapchainKHR(VKDevice::Get().GetDevice(), m_SwapChain, VK_NULL_HANDLE);
 
             if(m_Surface != VK_NULL_HANDLE)
@@ -100,6 +101,12 @@ namespace Lumos
             swapChainExtent.width  = static_cast<uint32_t>(m_Width);
             swapChainExtent.height = static_cast<uint32_t>(m_Height);
 
+            // The size we were told to resize to lags the surface: on X11 the window
+            // manager drives interactive resizes and the configure event that got us
+            // here can already be a step behind. Where the surface has a fixed extent
+            // it is the only legal one - creating the swapchain at any other size is
+            // invalid, and drivers either fail the create outright or present a
+            // stretched image with stale pixels down the edges that grew.
             if(surfaceCapabilities.currentExtent.width != 0xFFFFFFFF
                && surfaceCapabilities.currentExtent.height != 0xFFFFFFFF
                && surfaceCapabilities.currentExtent.width != 0
@@ -113,6 +120,8 @@ namespace Lumos
                 swapChainExtent.height = Maths::Max(surfaceCapabilities.minImageExtent.height, Maths::Min(surfaceCapabilities.maxImageExtent.height, swapChainExtent.height));
             }
 
+            // Everything downstream (framebuffers, viewport, scissor) sizes itself off
+            // these, so they have to describe the images that actually got created.
             m_Width  = swapChainExtent.width;
             m_Height = swapChainExtent.height;
 
@@ -141,6 +150,10 @@ namespace Lumos
                 VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR,
                 VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR,
             };
+            // any non-opaque mode will do (MoltenVK has no PRE_MULTIPLIED; CoreAnimation treats it as premultiplied anyway)
+            if(m_Transparent)
+                compositeAlphaFlags = { VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR, VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR,
+                                        VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR, VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR };
             for(auto& compositeAlphaFlag : compositeAlphaFlags)
             {
                 if(surfaceCapabilities.supportedCompositeAlpha & compositeAlphaFlag)
@@ -183,16 +196,16 @@ namespace Lumos
 
             if(m_OldSwapChain != VK_NULL_HANDLE)
             {
-                for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
+                for(uint32_t i = 0; i < m_FramesInFlight; i++)
                 {
-                    if(m_Frames[i].MainCommandBuffer->GetState() == CommandBufferState::Submitted)
+                    if(m_Frames[i].MainCommandBuffer && m_Frames[i].MainCommandBuffer->GetState() == CommandBufferState::Submitted)
                         m_Frames[i].MainCommandBuffer->Wait();
-
-                    m_Frames[i].MainCommandBuffer->Reset();
-
-                    delete m_SwapChainBuffers[i];
+                    if(m_Frames[i].MainCommandBuffer)
+                        m_Frames[i].MainCommandBuffer->Reset();
                     m_Frames[i].ImageAcquireSemaphore = VK_NULL_HANDLE;
                 }
+                for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
+                    delete m_SwapChainBuffers[i];
 
                 MemorySet(m_SwapChainBuffers, 0, sizeof(Texture*) * MAX_SWAPCHAIN_BUFFERS);
 
@@ -245,13 +258,23 @@ namespace Lumos
 
         FrameData& VKSwapChain::GetCurrentFrameData()
         {
-            ASSERT(m_CurrentBuffer < m_SwapChainBufferCount, "Incorrect swapchain buffer index");
+            ASSERT(m_CurrentBuffer < m_FramesInFlight, "Incorrect frame index");
             return m_Frames[m_CurrentBuffer];
+        }
+
+        VkSemaphore VKSwapChain::GetRenderFinishedSemaphore()
+        {
+            return m_RenderFinished[m_AcquireImageIndex]->GetHandle();
         }
 
         void VKSwapChain::CreateFrameData()
         {
+            // never more frames in flight than images to put them in
+            m_FramesInFlight = m_SwapChainBufferCount < MAX_FRAMES_IN_FLIGHT ? m_SwapChainBufferCount : MAX_FRAMES_IN_FLIGHT;
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
+                m_RenderFinished[i] = CreateSharedPtr<VKSemaphore>(false);
+
+            for(uint32_t i = 0; i < m_FramesInFlight; i++)
             {
                 m_Frames[i].ImageAcquireSemaphore = CreateSharedPtr<VKSemaphore>(false);
                 if(!m_Frames[i].MainCommandBuffer)
@@ -345,7 +368,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             auto& frameData = GetCurrentFrameData();
-            frameData.MainCommandBuffer->Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, frameData.ImageAcquireSemaphore->GetHandle(), true);
+            frameData.MainCommandBuffer->Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, frameData.ImageAcquireSemaphore->GetHandle(), true, GetRenderFinishedSemaphore());
         }
 
         CommandBuffer* VKSwapChain::GetCurrentCommandBuffer()
@@ -356,7 +379,7 @@ namespace Lumos
         bool VKSwapChain::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_CurrentBuffer = (m_CurrentBuffer + 1) % m_SwapChainBufferCount;
+            m_CurrentBuffer = (m_CurrentBuffer + 1) % m_FramesInFlight;
 
             auto commandBuffer = GetCurrentFrameData().MainCommandBuffer;
             if(commandBuffer->GetState() == CommandBufferState::Submitted)
@@ -404,6 +427,9 @@ namespace Lumos
 
             auto error = vkQueuePresentKHR(VKDevice::Get().GetPresentQueue(), &present);
 
+            // Rebuild here rather than leaving it to the next acquire to fail: this
+            // is after the queue has taken the frame, so the recreate happens with
+            // the device idle instead of half way through setting up the next one.
             if(error == VK_ERROR_OUT_OF_DATE_KHR)
             {
                 LWARN("[Vulkan] SwapChain out of date");
@@ -461,9 +487,6 @@ namespace Lumos
         }
         else
         {
-            // Prefer R8G8B8A8 — the bundled MoltenVK presents B8G8R8A8 swapchains
-            // with red/blue swapped on macOS (whole frame renders R<->B flipped).
-            // Fall back to B8G8R8A8 then first available.
             bool found = false;
             for(auto&& surfaceFormat : surfaceFormats)
             {

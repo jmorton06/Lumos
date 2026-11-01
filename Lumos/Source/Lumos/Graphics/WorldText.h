@@ -14,7 +14,7 @@ namespace Lumos
             Vec4 Background; // alpha 0 = none; else a solid backing quad under the text
             float Size;
             bool Local; // authored in the local "system frame" (see PlanetField)
-            char Text[64];
+            char Text[512]; // '\n' starts a new line; lines are centred and share one background
         };
 
         TDArray<WorldLabel>& GetActiveWorldLabels();

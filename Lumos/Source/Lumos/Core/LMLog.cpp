@@ -7,12 +7,15 @@ namespace Lumos::Debug
 {
 #if LUMOS_ENABLE_LOG
     static LoggerFunction s_LogFunction = 0;
+    static bool s_Quiet                 = false;
 #endif
 
     void Log::SetLoggerFunction(LoggerFunction func)
     {
         s_LogFunction = func;
     }
+
+    void Log::SetQuiet(bool quiet) { s_Quiet = quiet; }
 
 #if LUMOS_ENABLE_LOG
     // Fixed ring so logging never allocates. Lines longer than the slot are cut.
@@ -78,7 +81,8 @@ namespace Lumos::Debug
         va_end(args);
 
         formattedMessage = PushStr8F(scratch.arena, " %s%s", levelStrs[(u8)level], formattedMessage.str);
-        OS::ConsoleWrite((const char*)formattedMessage.str, u8(level));
+        if(!s_Quiet || level >= LogLevel::Warning)
+            OS::ConsoleWrite((const char*)formattedMessage.str, u8(level));
 
 #if LUMOS_ENABLE_LOG
         PushLogRing(level, (const char*)formattedMessage.str);

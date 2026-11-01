@@ -18,6 +18,8 @@
 #include "CompiledSPV/Headers/ForwardPBRvertspv.hpp"
 #include "CompiledSPV/Headers/ForwardPBRfragspv.hpp"
 #include "CompiledSPV/Headers/ForwardPBRLowfragspv.hpp"
+#include "CompiledSPV/Headers/ForwardPBRPlusLowfragspv.hpp"
+#include "CompiledSPV/Headers/ForwardPBRInstancedLowfragspv.hpp"
 
 #include "CompiledSPV/Headers/Skyboxvertspv.hpp"
 #include "CompiledSPV/Headers/Skyboxfragspv.hpp"
@@ -36,12 +38,14 @@
 
 #include "CompiledSPV/Headers/ScreenPassvertspv.hpp"
 #include "CompiledSPV/Headers/ScreenPassfragspv.hpp"
+#include "CompiledSPV/Headers/ScreenPassAlphafragspv.hpp"
 
 #include "CompiledSPV/Headers/Gridvertspv.hpp"
 #include "CompiledSPV/Headers/Gridfragspv.hpp"
 
 #include "CompiledSPV/Headers/CreateEnvironmentMapfragspv.hpp"
 #include "CompiledSPV/Headers/EnvironmentMipFilterfragspv.hpp"
+#include "CompiledSPV/Headers/EnvironmentProbeFacefragspv.hpp"
 #include "CompiledSPV/Headers/EnvironmentIrradiancefragspv.hpp"
 #include "CompiledSPV/Headers/FXAAfragspv.hpp"
 #include "CompiledSPV/Headers/FXAAComputecompspv.hpp"
@@ -69,6 +73,12 @@
 #include "CompiledSPV/Headers/ShadowInstancedvertspv.hpp"
 
 #include "CompiledSPV/Headers/SMAABlendfragspv.hpp"
+#include "CompiledSPV/Headers/TAAfragspv.hpp"
+#include "CompiledSPV/Headers/ContactShadowsfragspv.hpp"
+#include "CompiledSPV/Headers/VolumetricFogfragspv.hpp"
+#include "CompiledSPV/Headers/VolumetricFogApplyfragspv.hpp"
+#include "CompiledSPV/Headers/GIProbeTracecompspv.hpp"
+#include "CompiledSPV/Headers/GIMaterialAlbedocompspv.hpp"
 #include "CompiledSPV/Headers/SMAAEdgesfragspv.hpp"
 #include "CompiledSPV/Headers/SMAAWeightsfragspv.hpp"
 
@@ -84,8 +94,10 @@
 #include "CompiledSPV/Headers/Planetfragspv.hpp"
 #include "CompiledSPV/Headers/Cosmovertspv.hpp"
 #include "CompiledSPV/Headers/Cosmofragspv.hpp"
+#include "CompiledSPV/Headers/CosmoBakefragspv.hpp"
 #include "CompiledSPV/Headers/SSRfragspv.hpp"
 #include "CompiledSPV/Headers/LuminanceHistogramcompspv.hpp"
+#include "CompiledSPV/Headers/OcclusionGridcompspv.hpp"
 #include "CompiledSPV/Headers/LuminanceAveragecompspv.hpp"
 
 namespace Lumos
@@ -127,6 +139,7 @@ namespace Lumos
                 LoadShaderEmbedded(Str8Lit("ForwardPBR"), ForwardPBR, ForwardPBR);
                 LoadShaderEmbedded(Str8Lit("ForwardPBRAnim"), ForwardPBRAnim, ForwardPBR);
                 LoadShaderEmbedded(Str8Lit("ForwardPBR_Low"), ForwardPBR, ForwardPBRLow);
+                LoadShaderEmbedded(Str8Lit("ForwardPBRInstancedLow"), ForwardPBRInstanced, ForwardPBRInstancedLow);
                 LoadShaderEmbedded(Str8Lit("Shadow"), Shadow, Shadow);
                 LoadShaderEmbedded(Str8Lit("ShadowAlpha"), Shadow, ShadowAlpha);
                 LoadShaderEmbedded(Str8Lit("ShadowAnim"), ShadowAnim, Shadow);
@@ -139,15 +152,18 @@ namespace Lumos
                 LoadShaderEmbedded(Str8Lit("Batch2D"), Batch2D, Batch2D);
                 LoadShaderEmbedded(Str8Lit("Batch2DLit"), Batch2DLit, Batch2DLit);
                 LoadShaderEmbedded(Str8Lit("FinalPass"), ScreenPass, ScreenPass);
+                LoadShaderEmbedded(Str8Lit("FinalPassAlpha"), ScreenPass, ScreenPassAlpha);
                 LoadShaderEmbedded(Str8Lit("Grid"), Grid, Grid);
                 LoadShaderEmbedded(Str8Lit("CreateEnvironmentMap"), ScreenPass, CreateEnvironmentMap);
                 LoadShaderEmbedded(Str8Lit("EnvironmentIrradiance"), ScreenPass, EnvironmentIrradiance);
                 LoadShaderEmbedded(Str8Lit("EnvironmentMipFilter"), ScreenPass, EnvironmentMipFilter);
+                LoadShaderEmbedded(Str8Lit("EnvironmentProbeFace"), ScreenPass, EnvironmentProbeFace);
                 LoadShaderEmbedded(Str8Lit("FXAA"), ScreenPass, FXAA);
                 LoadShaderEmbedded(Str8Lit("FilmicGrain"), ScreenPass, FilmicGrain);
                 LoadShaderEmbedded(Str8Lit("ChromaticAberation"), ScreenPass, ChromaticAberation);
                 LoadShaderEmbedded(Str8Lit("DepthPrePass"), ForwardPBR, DepthPrePass);
                 LoadShaderEmbedded(Str8Lit("DepthPrePassAlpha"), ForwardPBR, DepthPrePassAlpha);
+                LoadShaderEmbedded(Str8Lit("DepthPrePassInstanced"), ForwardPBRInstanced, DepthPrePass);
                 LoadShaderEmbedded(Str8Lit("DepthPrePassAnim"), ForwardPBRAnim, DepthPrePassAlpha);
                 LoadShaderEmbedded(Str8Lit("DepthPrePassAlphaAnim"), ForwardPBRAnim, DepthPrePassAlpha);
                 LoadShaderEmbedded(Str8Lit("ToneMapping"), ScreenPass, ToneMapping);
@@ -166,10 +182,15 @@ namespace Lumos
                 LoadShaderEmbedded(Str8Lit("LineCloud"), LineCloud, LineCloud); // instanced AA line ribbons
                 LoadShaderEmbedded(Str8Lit("Planet"), Planet, Planet); // procedural planet impostors
                 LoadShaderEmbedded(Str8Lit("Cosmo"), Cosmo, Cosmo); // procedural nebula backdrop
+                LoadShaderEmbedded(Str8Lit("CosmoBake"), Cosmo, CosmoBake);
                 LoadShaderEmbedded(Str8Lit("SSR"), ScreenPass, SSR);
                 LoadShaderEmbedded(Str8Lit("SMAAEdges"), ScreenPass, SMAAEdges);
                 LoadShaderEmbedded(Str8Lit("SMAAWeights"), ScreenPass, SMAAWeights);
                 LoadShaderEmbedded(Str8Lit("SMAABlend"), ScreenPass, SMAABlend);
+                LoadShaderEmbedded(Str8Lit("TAA"), ScreenPass, TAA);
+                LoadShaderEmbedded(Str8Lit("ContactShadows"), ScreenPass, ContactShadows);
+                LoadShaderEmbedded(Str8Lit("VolumetricFog"), ScreenPass, VolumetricFog);
+                LoadShaderEmbedded(Str8Lit("VolumetricFogApply"), ScreenPass, VolumetricFogApply);
 
                 if(Renderer::GetCapabilities().SupportCompute)
                 {
@@ -177,8 +198,12 @@ namespace Lumos
                     LoadComputeShaderEmbedded(Str8Lit("FXAAComp"), FXAACompute);
                     LoadComputeShaderEmbedded(Str8Lit("LightCulling"), LightCulling);
                     LoadShaderEmbedded(Str8Lit("ForwardPBRPlus"), ForwardPBR, ForwardPBRPlus);
+                    LoadShaderEmbedded(Str8Lit("ForwardPBRPlusLow"), ForwardPBR, ForwardPBRPlusLow);
                     LoadComputeShaderEmbedded(Str8Lit("LuminanceHistogram"), LuminanceHistogram);
+                    LoadComputeShaderEmbedded(Str8Lit("OcclusionGrid"), OcclusionGrid);
                     LoadComputeShaderEmbedded(Str8Lit("LuminanceAverage"), LuminanceAverage);
+                    LoadComputeShaderEmbedded(Str8Lit("GIProbeTrace"), GIProbeTrace);
+                    LoadComputeShaderEmbedded(Str8Lit("GIMaterialAlbedo"), GIMaterialAlbedo);
                 }
             }
             else
@@ -194,10 +219,12 @@ namespace Lumos
                 LoadShaderFromFile(Str8Lit("Batch2D"), "Shaders/Batch2D.shader");
                 LoadShaderFromFile(Str8Lit("Batch2DLit"), "Shaders/Batch2DLit.shader");
                 LoadShaderFromFile(Str8Lit("FinalPass"), "Shaders/ScreenPass.shader");
+                LoadShaderFromFile(Str8Lit("FinalPassAlpha"), "Shaders/ScreenPassAlpha.shader");
                 LoadShaderFromFile(Str8Lit("Grid"), "Shaders/Grid.shader");
                 LoadShaderFromFile(Str8Lit("CreateEnvironmentMap"), "Shaders/CreateEnvironmentMap.shader");
                 LoadShaderFromFile(Str8Lit("EnvironmentIrradiance"), "Shaders/EnvironmentIrradiance.shader");
                 LoadShaderFromFile(Str8Lit("EnvironmentMipFilter"), "Shaders/EnvironmentMipFilter.shader");
+                LoadShaderFromFile(Str8Lit("EnvironmentProbeFace"), "Shaders/EnvironmentProbeFace.shader");
                 LoadShaderFromFile(Str8Lit("FXAA"), "Shaders/FXAA.shader");
                 LoadShaderFromFile(Str8Lit("SMAAEdges"), "Shaders/SMAAEdges.shader");
                 LoadShaderFromFile(Str8Lit("SMAAWeights"), "Shaders/SMAAWeights.shader");
@@ -217,11 +244,13 @@ namespace Lumos
                 LoadShaderFromFile(Str8Lit("Sharpen"), "Shaders/Sharpen.shader");
                 LoadShaderFromFile(Str8Lit("ForwardPBR"), "Shaders/ForwardPBR.shader");
                 LoadShaderFromFile(Str8Lit("ForwardPBR_Low"), "Shaders/ForwardPBR_Low.shader");
+                LoadShaderFromFile(Str8Lit("ForwardPBRInstancedLow"), "Shaders/ForwardPBRInstancedLow.shader");
                 LoadShaderFromFile(Str8Lit("ForwardPBRAnim"), "Shaders/ForwardPBRAnim.shader");
                 LoadShaderFromFile(Str8Lit("ForwardPBRInstanced"), "Shaders/ForwardPBRInstanced.shader");
                 LoadShaderFromFile(Str8Lit("ShadowInstanced"), "Shaders/ShadowInstanced.shader");
                 LoadShaderFromFile(Str8Lit("ShadowInstancedAlpha"), "Shaders/ShadowInstancedAlpha.shader");
                 LoadShaderFromFile(Str8Lit("Particle"), "Shaders/Particle.shader");
+                LoadShaderFromFile(Str8Lit("DepthPrePassInstanced"), "Shaders/DepthPrePassInstanced.shader");
                 LoadShaderFromFile(Str8Lit("DepthPrePassAnim"), "Shaders/DepthPrePassAnim.shader");
                 LoadShaderFromFile(Str8Lit("DepthPrePassAlphaAnim"), "Shaders/DepthPrePassAlphaAnim.shader");
                 LoadShaderFromFile(Str8Lit("Vignette"), "Shaders/Vignette.shader");
@@ -230,7 +259,12 @@ namespace Lumos
                 LoadShaderFromFile(Str8Lit("LineCloud"), "Shaders/LineCloud.shader"); // instanced AA line ribbons
                 LoadShaderFromFile(Str8Lit("Planet"), "Shaders/Planet.shader"); // procedural planet impostors
                 LoadShaderFromFile(Str8Lit("Cosmo"), "Shaders/Cosmo.shader"); // procedural nebula backdrop
+                LoadShaderFromFile(Str8Lit("CosmoBake"), "Shaders/CosmoBake.shader");
                 LoadShaderFromFile(Str8Lit("SSR"), "Shaders/SSR.shader");
+                LoadShaderFromFile(Str8Lit("TAA"), "Shaders/TAA.shader");
+                LoadShaderFromFile(Str8Lit("ContactShadows"), "Shaders/ContactShadows.shader");
+                LoadShaderFromFile(Str8Lit("VolumetricFog"), "Shaders/VolumetricFog.shader");
+                LoadShaderFromFile(Str8Lit("VolumetricFogApply"), "Shaders/VolumetricFogApply.shader");
 
                 if(Renderer::GetCapabilities().SupportCompute)
                 {
@@ -238,8 +272,12 @@ namespace Lumos
                     LoadShaderFromFile(Str8Lit("BloomComp"), "Shaders/BloomComp.shader");
                     LoadShaderFromFile(Str8Lit("LightCulling"), "Shaders/LightCulling.shader");
                     LoadShaderFromFile(Str8Lit("ForwardPBRPlus"), "Shaders/ForwardPBRPlus.shader");
+                    LoadShaderFromFile(Str8Lit("ForwardPBRPlusLow"), "Shaders/ForwardPBRPlusLow.shader");
                     LoadShaderFromFile(Str8Lit("LuminanceHistogram"), "Shaders/LuminanceHistogram.shader");
+                    LoadShaderFromFile(Str8Lit("OcclusionGrid"), "Shaders/OcclusionGrid.shader");
                     LoadShaderFromFile(Str8Lit("LuminanceAverage"), "Shaders/LuminanceAverage.shader");
+                    LoadShaderFromFile(Str8Lit("GIProbeTrace"), "Shaders/GIProbeTrace.shader");
+                    LoadShaderFromFile(Str8Lit("GIMaterialAlbedo"), "Shaders/GIMaterialAlbedo.shader");
                 }
             }
         }

@@ -137,6 +137,10 @@ namespace Lumos
         static void Release();
         static void Reset(float dt);
 
+        // Ask for the debug pass this frame even when the scene has debug drawing off (gizmos).
+        static void RequestPass() { s_PassRequested = true; }
+        static bool PassRequested() { return s_PassRequested; }
+
         DebugRenderer();
         ~DebugRenderer();
 
@@ -227,6 +231,7 @@ namespace Lumos
         void ClearInternal();
 
         static DebugRenderer* s_Instance;
+        static bool s_PassRequested;
 
         struct DebugDrawList
         {

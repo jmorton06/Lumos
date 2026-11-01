@@ -366,6 +366,10 @@ namespace Lumos
                 return sizeof(Vec4);
             case VK_FORMAT_R32G32B32A32_SINT:
                 return sizeof(IVec4);
+            case VK_FORMAT_R16G16B16A16_SNORM:
+                return 8;
+            case VK_FORMAT_R8G8B8A8_UNORM:
+                return 4;
             case VK_FORMAT_R32G32_SINT:
             case VK_FORMAT_R32G32B32_SINT:
             case VK_FORMAT_R32G32_UINT:
@@ -637,6 +641,23 @@ namespace Lumos
                          < comp.get_decoration(b->id, spv::DecorationLocation);
                 });
 
+                // Graphics::PackedVertex: inputs named with a format suffix sit at fixed offsets by
+                // location (unused inputs get stripped from the SPIR-V, so sizes can't be summed)
+                struct PackedInput
+                {
+                    const char* Suffix;
+                    VkFormat Format;
+                };
+                static const PackedInput packedInputs[] = {
+                    { "_f32x3", VK_FORMAT_R32G32B32_SFLOAT },
+                    { "_f32x2", VK_FORMAT_R32G32_SFLOAT },
+                    { "_snorm16", VK_FORMAT_R16G16B16A16_SNORM },
+                    { "_unorm8", VK_FORMAT_R8G8B8A8_UNORM },
+                };
+                static const uint32_t packedOffsets[] = { 0, 12, 20, 28, 36 }; // position, normal, tangent, uv, colour
+                const uint32_t packedStride           = 40;
+                bool packed                           = false;
+
                 for(const spirv_cross::Resource* resource : sortedInputs)
                 {
                     const spirv_cross::SPIRType& InputType = comp.get_type(resource->type_id);
@@ -646,10 +667,24 @@ namespace Lumos
                     Description.location                          = comp.get_decoration(resource->id, spv::DecorationLocation);
                     Description.offset                            = m_VertexInputStride;
                     Description.format                            = GetVulkanFormat(InputType);
+
+                    const std::string& name = resource->name;
+                    for(const PackedInput& p : packedInputs)
+                    {
+                        const size_t n = strlen(p.Suffix);
+                        if(name.size() > n && name.compare(name.size() - n, n, p.Suffix) == 0 && Description.location < 5)
+                        {
+                            Description.format = p.Format;
+                            Description.offset = packedOffsets[Description.location];
+                            packed             = true;
+                        }
+                    }
                     m_VertexInputAttributeDescriptions.PushBack(Description);
 
                     m_VertexInputStride += GetStrideFromVulkanFormat(Description.format);
                 }
+                if(packed)
+                    m_VertexInputStride = packedStride;
             }
 
             // Descriptor Layout

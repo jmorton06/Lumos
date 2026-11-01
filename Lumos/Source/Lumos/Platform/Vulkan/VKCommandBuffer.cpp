@@ -150,15 +150,15 @@ namespace Lumos
             m_State = CommandBufferState::Ended;
         }
 
-        bool VKCommandBuffer::Execute(VkPipelineStageFlags flags, VkSemaphore waitSemaphore, bool waitFence)
+        bool VKCommandBuffer::Execute(VkPipelineStageFlags flags, VkSemaphore waitSemaphore, bool waitFence, VkSemaphore signalSemaphore)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             ASSERT(m_Primary, "Used Execute on secondary command buffer!");
             ASSERT(m_State == CommandBufferState::Ended, "CommandBuffer executed before ended recording");
             uint32_t waitSemaphoreCount   = waitSemaphore ? 1 : 0;
-            uint32_t signalSemaphoreCount = m_Semaphore ? 1 : 0;
+            VkSemaphore semaphore           = signalSemaphore ? signalSemaphore : (m_Semaphore ? m_Semaphore->GetHandle() : VK_NULL_HANDLE);
+            uint32_t signalSemaphoreCount = semaphore ? 1 : 0;
 
-            VkSemaphore semaphore           = m_Semaphore->GetHandle();
             VkSubmitInfo submitInfo         = VKInitialisers::SubmitInfo();
             submitInfo.waitSemaphoreCount   = waitSemaphoreCount;
             submitInfo.pWaitSemaphores      = waitSemaphoreCount == 0 ? nullptr : &waitSemaphore;
@@ -254,6 +254,39 @@ namespace Lumos
                 m_BoundRenderPass->EndRenderPass(this);
 
             m_BoundRenderPass = nullptr;
+        }
+
+        void VKCommandBuffer::ClearDepthAttachment(float depth)
+        {
+            if(!m_BoundRenderPass)
+                return;
+
+            VkClearAttachment clear       = {};
+            clear.aspectMask              = VK_IMAGE_ASPECT_DEPTH_BIT;
+            clear.clearValue.depthStencil = { depth, 0 };
+
+            VkClearRect rect      = {};
+            rect.rect.extent      = { m_BoundRenderPassWidth, m_BoundRenderPassHeight };
+            rect.baseArrayLayer   = 0;
+            rect.layerCount       = 1;
+            vkCmdClearAttachments(m_CommandBuffer, 1, &clear, 1, &rect);
+        }
+
+        void VKCommandBuffer::ClearDepthAttachmentRect(float depth, int32_t x, int32_t y, uint32_t width, uint32_t height)
+        {
+            if(!m_BoundRenderPass)
+                return;
+
+            VkClearAttachment clear       = {};
+            clear.aspectMask              = VK_IMAGE_ASPECT_DEPTH_BIT;
+            clear.clearValue.depthStencil = { depth, 0 };
+
+            VkClearRect rect      = {};
+            rect.rect.offset      = { x, y };
+            rect.rect.extent      = { width, height };
+            rect.baseArrayLayer   = 0;
+            rect.layerCount       = 1;
+            vkCmdClearAttachments(m_CommandBuffer, 1, &clear, 1, &rect);
         }
 
         void VKCommandBuffer::BeginRenderPass(RenderPass* renderpass, float* clearColour, Framebuffer* framebuffer, uint32_t width, uint32_t height)

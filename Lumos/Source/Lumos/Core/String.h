@@ -91,6 +91,7 @@ namespace Lumos
     uint8_t CharToForwardSlash(uint8_t c);
 
     uint64_t CalculateCStringLength(char* cstr);
+    uint64_t CalculateCStringLength(const char* cstr);
     String8 Str8(uint8_t* str, uint64_t size);
 
     String8 Str8Range(uint8_t* first, uint8_t* one_past_last);

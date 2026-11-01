@@ -21,10 +21,10 @@ layout (set = 0,binding = 1) uniform sampler2D in_SSAO;
 layout (set = 0,binding = 2) uniform sampler2D in_Normal;
 layout (set = 0,binding = 3) uniform sampler2D in_Depth;
 
-// Linearise a Vulkan zero-to-one clip depth into a positive view-space distance.
+// Reversed-Z depth (near = 1, far = 0) to a positive view-space distance.
 float LinearizeDepth(float d)
 {
-	return (ubo.near * ubo.far) / (ubo.far - d * (ubo.far - ubo.near));
+	return (ubo.near * ubo.far) / (ubo.near + d * (ubo.far - ubo.near));
 }
 
 void main()

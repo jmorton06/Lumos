@@ -21,13 +21,6 @@
 
 #include <imgui/imgui.h>
 
-#ifdef LUMOS_RENDER_API_OPENGL
-#undef NOGDI
-#include <glad/glad_wgl.h>
-#include <Windows.h>
-#define NOGDI
-#endif
-
 extern "C"
 {
     __declspec(dllexport) DWORD NvOptimusEnablement                = 0x00000001;
@@ -302,54 +295,6 @@ namespace Lumos
             }
         }
 #if 0
-#ifdef LUMOS_RENDER_API_OPENGL
-		if(properties.RenderAPI == RenderAPI::OpenGL)
-		{
-            HDC hDc = GetDC(static_cast<HWND>(GetHandle()));
-            
-            HGLRC tempContext = wglCreateContext(hDc);
-            wglMakeCurrent(hDc, tempContext);
-            
-            if(!wglMakeCurrent(hDc, tempContext))
-            {
-                LERROR("Failed to initialise OpenGL context");
-            }
-            
-            if(!gladLoadWGL(hDc))
-                LERROR("glad failed to load WGL!");
-            if(!gladLoadGL())
-                LERROR("glad failed to load OpenGL!");
-            
-            const int contextAttribsList[] = {
-                WGL_CONTEXT_MAJOR_VERSION_ARB,
-                4,
-                WGL_CONTEXT_MINOR_VERSION_ARB,
-                4,
-                WGL_CONTEXT_PROFILE_MASK_ARB,
-                WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-#ifdef _DEBUG
-                WGL_CONTEXT_FLAGS_ARB,
-                WGL_CONTEXT_DEBUG_BIT_ARB,
-#else
-                WGL_CONTEXT_FLAGS_ARB,
-                0,
-#endif
-                0,
-            };
-            
-            HGLRC hrc = wglCreateContextAttribsARB(hDc, nullptr, contextAttribsList);
-            if(hrc == nullptr)
-            {
-                LERROR("Failed to create core OpenGL context");
-            }
-            else
-            {
-                wglMakeCurrent(NULL, NULL);
-                wglDeleteContext(tempContext);
-                wglMakeCurrent(hDc, hrc);
-            }
-		}
-#endif
 #endif
 
         // Input

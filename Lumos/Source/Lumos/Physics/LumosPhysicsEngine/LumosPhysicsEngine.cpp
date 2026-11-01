@@ -8,12 +8,18 @@
 #include "RaycastVehicle.h"
 #include "Constraints/Constraint.h"
 #include "CollisionShapes/SphereCollisionShape.h"
+#include "CollisionShapes/Hull.h"
+#include "CollisionShapes/MeshCollisionShape.h"
+#include "CollisionShapes/HullCollisionShape.h"
+#include "CollisionShapes/PyramidCollisionShape.h"
+#include "CollisionShapes/CuboidCollisionShape.h"
 #include "CollisionShapes/CapsuleCollisionShape.h"
 #include "CollisionShapes/TerrainCollisionShape.h"
 #include "Scene/Component/ModelComponent.h"
 #include "Graphics/Model.h"
 #include "Graphics/Terrain.h"
 #include "Utilities/TimeStep.h"
+#include "Utilities/Timer.h"
 #include "Core/OS/Window.h"
 #include "Core/JobSystem.h"
 #include "Core/Application.h"
@@ -92,154 +98,247 @@ namespace Lumos
     void LumosPhysicsEngine::OnUpdate(const TimeStep& timeStep, Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
-        if(!m_IsPaused)
+        if(m_IsPaused)
+            return;
+
+        if(m_ManualStep)
         {
-            auto& registry    = scene->GetRegistry();
-            m_ConstraintCount = 0;
-            ArenaClear(m_FrameArena);
+            ManualUpdate(scene);
+            return;
+        }
 
+        if(!GatherConstraints(scene))
+            return;
+
+        {
+        LUMOS_PROFILE_SCOPE("Physics::UpdatePhysics");
+
+        m_CollisionEvents.Clear();
+        m_CurrCollisionPairs.Clear();
+
+        m_UpdateAccum += (float)timeStep.GetSeconds() * m_TimeScale;
+        for(uint32_t i = 0; (m_UpdateAccum + Maths::M_EPSILON >= s_UpdateTimestep) && i < m_MaxUpdatesPerFrame; ++i)
+        {
+            m_UpdateAccum -= s_UpdateTimestep;
+            UpdatePhysics();
+        }
+
+        // Dispatch Lua collision callbacks after physics
+        DispatchCollisionCallbacks(scene);
+
+        Swap(m_PrevCollisionPairs, m_CurrCollisionPairs);
+
+        float overrun = 0.0f;
+        if(m_UpdateAccum + Maths::M_EPSILON >= s_UpdateTimestep)
+        {
+            overrun       = m_UpdateAccum;
+            m_UpdateAccum = Maths::Mod(overrun, s_UpdateTimestep);
+        }
+
+        m_OverrunHistory[m_OverrunIndex] = overrun;
+        m_OverrunIndex                   = (m_OverrunIndex + 1) % kRollingBufferSize;
+
+        float sum = 0.0f;
+        for(int i = 0; i < kRollingBufferSize; ++i)
+            sum += m_OverrunHistory[i];
+        m_AvgOverrun = sum / kRollingBufferSize;
+        }
+    }
+
+    bool LumosPhysicsEngine::GatherConstraints(Scene* scene)
+    {
+        auto& registry    = scene->GetRegistry();
+        m_ConstraintCount = 0;
+        ArenaClear(m_FrameArena);
+
+        LUMOS_PROFILE_SCOPE("Physics::Get Spring Constraints");
+        auto viewSpring = registry.view<SpringConstraintComponent>();
+        auto viewAxis   = registry.view<AxisConstraintComponent>();
+        auto viewDis    = registry.view<DistanceConstraintComponent>();
+        auto viewWeld   = registry.view<WeldConstraintComponent>();
+
+        m_ConstraintCount = (uint32_t)viewSpring.size() + (uint32_t)viewAxis.size() + (uint32_t)viewDis.size() + (uint32_t)viewWeld.size();
+
+        if(m_ConstraintCount == 0 && m_Vehicles.Empty())
+        {
+            bool hasActiveBodies = false;
+            for(u32 i = 0; i < m_RigidBodyCount; i++)
             {
-                LUMOS_PROFILE_SCOPE("Physics::Get Spring Constraints");
-                auto viewSpring = registry.view<SpringConstraintComponent>();
-                auto viewAxis   = registry.view<AxisConstraintComponent>();
-                auto viewDis    = registry.view<DistanceConstraintComponent>();
-                auto viewWeld   = registry.view<WeldConstraintComponent>();
-
-                m_ConstraintCount = (uint32_t)viewSpring.size() + (uint32_t)viewAxis.size() + (uint32_t)viewDis.size() + (uint32_t)viewWeld.size();
-
-                if(m_ConstraintCount == 0 && m_Vehicles.Empty())
+                if(m_RigidBodies[i].m_IsValid && !m_RigidBodies[i].GetIsStatic() && m_RigidBodies[i].IsAwake())
                 {
-                    bool hasActiveBodies = false;
-                    for(u32 i = 0; i < m_RigidBodyCount; i++)
-                    {
-                        if(m_RigidBodies[i].m_IsValid && !m_RigidBodies[i].GetIsStatic() && m_RigidBodies[i].IsAwake())
-                        {
-                            hasActiveBodies = true;
-                            break;
-                        }
-                    }
-                    if(!hasActiveBodies)
-                        return;
-                }
-                m_Constraints     = PushArray(m_FrameArena, SharedPtr<Constraint>, m_ConstraintCount);
-
-                uint32_t constraintIndex = 0;
-                for(auto entity : viewSpring)
-                {
-                    auto& springComp = viewSpring.get<SpringConstraintComponent>(entity);
-
-                    if(!springComp.Initialised())
-                        springComp.Initialise();
-
-                    if(springComp.Initialised())
-                        m_Constraints[constraintIndex++] = viewSpring.get<SpringConstraintComponent>(entity).GetConstraint();
-                }
-
-                for(auto entity : viewAxis)
-                {
-                    auto constraint = viewAxis.get<AxisConstraintComponent>(entity);
-
-                    if(constraint.GetEntityID() != Entity(entity, Application::Get().GetCurrentScene()).GetID())
-                        constraint.SetEntity(Entity(entity, Application::Get().GetCurrentScene()).GetID());
-                    if(constraint.GetConstraint())
-                        m_Constraints[constraintIndex++] = constraint.GetConstraint();
-                }
-
-                for(auto entity : viewDis)
-                {
-                    m_Constraints[constraintIndex++] = viewDis.get<DistanceConstraintComponent>(entity).GetConstraint();
-                }
-
-                for(auto entity : viewWeld)
-                {
-                    m_Constraints[constraintIndex++] = viewWeld.get<WeldConstraintComponent>(entity).GetConstraint();
+                    hasActiveBodies = true;
+                    break;
                 }
             }
+            if(!hasActiveBodies)
+                return false;
+        }
+        m_Constraints     = PushArray(m_FrameArena, SharedPtr<Constraint>, m_ConstraintCount);
 
-            m_Stats.ConstraintCount = m_ConstraintCount;
+        uint32_t constraintIndex = 0;
+        for(auto entity : viewSpring)
+        {
+            auto& springComp = viewSpring.get<SpringConstraintComponent>(entity);
 
+            if(!springComp.Initialised())
+                springComp.Initialise();
+
+            if(springComp.Initialised())
+                m_Constraints[constraintIndex++] = viewSpring.get<SpringConstraintComponent>(entity).GetConstraint();
+        }
+
+        for(auto entity : viewAxis)
+        {
+            auto constraint = viewAxis.get<AxisConstraintComponent>(entity);
+
+            if(constraint.GetEntityID() != Entity(entity, Application::Get().GetCurrentScene()).GetID())
+                constraint.SetEntity(Entity(entity, Application::Get().GetCurrentScene()).GetID());
+            if(constraint.GetConstraint())
+                m_Constraints[constraintIndex++] = constraint.GetConstraint();
+        }
+
+        for(auto entity : viewDis)
+        {
+            m_Constraints[constraintIndex++] = viewDis.get<DistanceConstraintComponent>(entity).GetConstraint();
+        }
+
+        for(auto entity : viewWeld)
+        {
+            m_Constraints[constraintIndex++] = viewWeld.get<WeldConstraintComponent>(entity).GetConstraint();
+        }
+
+        m_Stats.ConstraintCount = m_ConstraintCount;
+        return true;
+    }
+
+    void LumosPhysicsEngine::SetManualStep(bool manual)
+    {
+        if(m_ManualStep == manual)
+            return;
+
+        // a half-done substep is dropped, the next one starts clean
+        m_ManualStep    = manual;
+        m_PendingStages = 0;
+        m_UpdateAccum   = 0.0f;
+        m_NextStage     = 0;
+        m_LastStage     = PhysicsStage_Count;
+        m_ManualScene   = nullptr;
+    }
+
+    void LumosPhysicsEngine::ManualUpdate(Scene* scene)
+    {
+        // contacts from another scene point at bodies that are gone
+        if(scene != m_ManualScene)
+        {
+            m_ManualScene   = scene;
+            m_NextStage     = 0;
+            m_LastStage     = PhysicsStage_Count;
+            m_ManifoldCount = 0;
+        }
+
+        while(m_PendingStages > 0)
+        {
+            m_PendingStages--;
+
+            // The frame arena holds the manifolds, so it is only reset between substeps.
+            if(m_NextStage == 0)
             {
-                LUMOS_PROFILE_SCOPE("Physics::UpdatePhysics");
-
+                if(!GatherConstraints(scene))
+                {
+                    m_PendingStages = 0;
+                    return;
+                }
                 m_CollisionEvents.Clear();
                 m_CurrCollisionPairs.Clear();
+            }
 
-                m_UpdateAccum += (float)timeStep.GetSeconds() * m_TimeScale;
-                for(uint32_t i = 0; (m_UpdateAccum + Maths::M_EPSILON >= s_UpdateTimestep) && i < m_MaxUpdatesPerFrame; ++i)
-                {
-                    m_UpdateAccum -= s_UpdateTimestep;
-                    UpdatePhysics();
-                }
+            RunStage((PhysicsStage)m_NextStage);
+            m_LastStage = m_NextStage;
 
-                // Dispatch Lua collision callbacks after physics
+            if(++m_NextStage == PhysicsStage_Count)
+            {
+                m_NextStage = 0;
                 DispatchCollisionCallbacks(scene);
-
                 Swap(m_PrevCollisionPairs, m_CurrCollisionPairs);
-
-                float overrun = 0.0f;
-                if(m_UpdateAccum + Maths::M_EPSILON >= s_UpdateTimestep)
-                {
-                    overrun       = m_UpdateAccum;
-                    m_UpdateAccum = Maths::Mod(overrun, s_UpdateTimestep);
-                }
-
-                m_OverrunHistory[m_OverrunIndex] = overrun;
-                m_OverrunIndex                   = (m_OverrunIndex + 1) % kRollingBufferSize;
-
-                float sum = 0.0f;
-                for(int i = 0; i < kRollingBufferSize; ++i)
-                    sum += m_OverrunHistory[i];
-                m_AvgOverrun = sum / kRollingBufferSize;
-
             }
         }
     }
 
     void LumosPhysicsEngine::UpdatePhysics()
     {
-        m_ManifoldCount = 0;
-        m_MaxManifolds  = 1000;
-        m_Manifolds     = PushArrayNoZero(m_FrameArena, Manifold, m_MaxManifolds);
+        for(uint32_t stage = 0; stage < PhysicsStage_Count; stage++)
+            RunStage((PhysicsStage)stage);
+    }
 
-        for(u32 i = 0; i < m_RigidBodyCount; i++)
+    void LumosPhysicsEngine::RunStage(PhysicsStage stage)
+    {
+        const TimeStamp start = Timer::Now();
+
+        switch(stage)
         {
-            RigidBody3D& body = m_RigidBodies[i];
-            if(body.m_IsValid)
-                body.SnapshotPrev();
+        case PhysicsStage_Broadphase:
+        {
+            m_ManifoldCount = 0;
+            m_MaxManifolds  = 1000;
+            m_Manifolds     = PushArrayNoZero(m_FrameArena, Manifold, m_MaxManifolds);
+
+            for(u32 i = 0; i < m_RigidBodyCount; i++)
+            {
+                RigidBody3D& body = m_RigidBodies[i];
+                if(body.m_IsValid)
+                    body.SnapshotPrev();
+            }
+
+            BroadPhaseCollisions();
+            break;
+        }
+        case PhysicsStage_Narrowphase:
+        {
+            if(m_ParallelNarrowphase && m_BroadphaseCollisionPairs.Size() > 32)
+                NarrowPhaseCollisionsParallel();
+            else
+                NarrowPhaseCollisions();
+            break;
+        }
+        case PhysicsStage_Forces:
+        {
+            for(u32 i = 0; i < m_RigidBodyCount; i++)
+            {
+                RigidBody3D& body = m_RigidBodies[i];
+                if(!body.m_IsValid || body.m_Static || !body.IsAwake())
+                    continue;
+                if(body.m_InvMass > 0.0f)
+                    body.m_LinearVelocity += m_Gravity * s_UpdateTimestep;
+            }
+
+            for(u32 i = 0; i < m_Vehicles.Size(); i++)
+                m_Vehicles[i]->Update(this, s_UpdateTimestep);
+            break;
+        }
+        case PhysicsStage_Solve:
+            SolveConstraints();
+            break;
+        case PhysicsStage_Integrate:
+        {
+            for(uint32_t i = 0; i < m_PositionIterations; i++)
+                UpdateRigidBodies();
+            break;
+        }
+        case PhysicsStage_Rest:
+        {
+            for(u32 i = 0; i < m_RigidBodyCount; i++)
+            {
+                RigidBody3D& current = m_RigidBodies[i];
+                if(current.m_IsValid)
+                    current.RestTest();
+            }
+            break;
+        }
+        default:
+            break;
         }
 
-        // Check for collisions
-        BroadPhaseCollisions();
-
-        if(m_ParallelNarrowphase && m_BroadphaseCollisionPairs.Size() > 32)
-            NarrowPhaseCollisionsParallel();
-        else
-            NarrowPhaseCollisions();
-
-        for(u32 i = 0; i < m_RigidBodyCount; i++)
-        {
-            RigidBody3D& body = m_RigidBodies[i];
-            if(!body.m_IsValid || body.m_Static || !body.IsAwake())
-                continue;
-            if(body.m_InvMass > 0.0f)
-                body.m_LinearVelocity += m_Gravity * s_UpdateTimestep;
-        }
-
-        for(u32 i = 0; i < m_Vehicles.Size(); i++)
-            m_Vehicles[i]->Update(this, s_UpdateTimestep);
-
-        // Solve collision constraints
-        SolveConstraints();
-        // Update movement
-        for(uint32_t i = 0; i < m_PositionIterations; i++)
-            UpdateRigidBodies();
-
-        for(u32 i = 0; i < m_RigidBodyCount; i++)
-        {
-            RigidBody3D& current = m_RigidBodies[i];
-            if(current.m_IsValid)
-                current.RestTest();
-        }
+        m_StageMs[stage] = Timer::Duration(start, Timer::Now(), 1000.0f);
     }
 
     void LumosPhysicsEngine::UpdateRigidBodies()
@@ -265,6 +364,159 @@ namespace Lumos
 
             UpdateRigidBody(&current);
         }
+    }
+
+    // Continuous collision. Collisions are normally found by looking for overlap AFTER
+    // each move, so a body that travels further than its own thickness in one step can
+    // jump clean over something thin and never overlap it.
+    //
+    // For bodies moving that fast - their tips included, so a spinning plank counts - the
+    // step is replayed in pieces no longer than the body is thick, running the real
+    // shape-against-shape test at each one. The move stops at the first piece that
+    // touches something; the two then overlap slightly and the ordinary contact solve
+    // takes it from there. Only things near the path are tested.
+    void LumosPhysicsEngine::StopAtFirstContact(RigidBody3D* obj, const Vec3& startPosition, const Quat& startOrientation, float dt) const
+    {
+        const auto& shape = obj->GetCollisionShape();
+        if(!shape)
+            return;
+
+        // thinnest half-size, and how far the shape reaches from its centre
+        float inner = shape->GetSize();
+        float reach = inner;
+        switch(shape->GetType())
+        {
+        case CollisionShapeType::CollisionCuboid:
+        {
+            auto* cuboid    = static_cast<CuboidCollisionShape*>(shape.get());
+            const Vec3 half = Vec3(cuboid->GetHalfWidth(), cuboid->GetHalfHeight(), cuboid->GetHalfDepth());
+            inner           = Maths::Min(half.x, Maths::Min(half.y, half.z));
+            reach           = Maths::Length(half);
+            break;
+        }
+        case CollisionShapeType::CollisionCapsule:
+        {
+            auto* capsule = static_cast<CapsuleCollisionShape*>(shape.get());
+            inner         = capsule->GetRadius();
+            reach         = capsule->GetHeight() * 0.5f + inner;
+            break;
+        }
+        default:
+            break;
+        }
+        if(inner <= 0.0f)
+            return;
+
+        // how far the fastest-moving point of the body can have gone this step
+        const float travel = Maths::Length(obj->m_LinearVelocity) * dt + Maths::Length(obj->m_AngularVelocity) * dt * reach;
+        // a step no longer than the body is thick always ends overlapping whatever was in the way
+        if(travel <= inner)
+            return;
+
+        const Vec3 endPosition    = obj->m_Position;
+        const Quat endOrientation = obj->m_Orientation;
+
+        // everything whose bounds come near the path
+        static constexpr u32 kMaxCandidates = 32;
+        RigidBody3D* candidates[kMaxCandidates];
+        u32 candidateCount = 0;
+
+        const Vec3 margin(reach + inner);
+        const Vec3 pathMin = Vec3(Maths::Min(startPosition.x, endPosition.x), Maths::Min(startPosition.y, endPosition.y), Maths::Min(startPosition.z, endPosition.z)) - margin;
+        const Vec3 pathMax = Vec3(Maths::Max(startPosition.x, endPosition.x), Maths::Max(startPosition.y, endPosition.y), Maths::Max(startPosition.z, endPosition.z)) + margin;
+
+        for(u32 i = 0; i < m_RigidBodyCount && candidateCount < kMaxCandidates; i++)
+        {
+            RigidBody3D& other = m_RigidBodies[i];
+            if(&other == obj || !other.m_IsValid || !other.GetCollisionShape() || other.GetIsTrigger())
+                continue;
+            if(!obj->CanCollideWith(&other))
+                continue;
+
+            const Maths::BoundingBox& bounds = other.GetWorldSpaceAABB();
+            const Vec3 lo                    = bounds.Min();
+            const Vec3 hi                    = bounds.Max();
+            if(lo.x > pathMax.x || hi.x < pathMin.x || lo.y > pathMax.y || hi.y < pathMin.y || lo.z > pathMax.z || hi.z < pathMin.z)
+                continue;
+
+            candidates[candidateCount++] = &other;
+        }
+        if(candidateCount == 0)
+            return;
+
+        auto placeAt = [&](float fraction)
+        {
+            obj->m_Position    = Vec3::Lerp(startPosition, endPosition, fraction);
+            obj->m_Orientation = Quat::Slerp(startOrientation, endOrientation, fraction);
+            obj->m_Orientation.Normalise();
+            obj->m_WSTransformInvalidated = true;
+            obj->m_WSAabbInvalidated      = true;
+        };
+        auto touching = [&](RigidBody3D* other)
+        {
+            return CollisionDetection::Get().CheckCollision(obj, other, shape.get(), other->GetCollisionShape().get(), nullptr);
+        };
+
+        static constexpr int kMaxPieces = 32;
+        const int pieces                = Maths::Clamp((int)(travel / inner) + 1, 2, kMaxPieces);
+
+        // Things it is already touching at the start. Resting on or sliding along one is the
+        // contact solver's business and must not stop the move - but pushing further INTO
+        // one must, or a body stopped at a wall by one step would be let through by the next.
+        float startDepth[kMaxCandidates];
+        bool startTouching[kMaxCandidates];
+        bool anyTouching = false;
+        placeAt(0.0f);
+        for(u32 i = 0; i < candidateCount; i++)
+        {
+            CollisionData data;
+            startTouching[i] = CollisionDetection::Get().CheckCollision(obj, candidates[i], shape.get(), candidates[i]->GetCollisionShape().get(), &data);
+            startDepth[i]    = startTouching[i] ? Maths::Abs(data.penetration) : 0.0f;
+            anyTouching      = anyTouching || startTouching[i];
+        }
+        if(anyTouching)
+        {
+            placeAt(1.0f / (float)pieces);
+            for(u32 i = 0; i < candidateCount; i++)
+            {
+                if(!startTouching[i])
+                    continue;
+                CollisionData data;
+                const bool still = CollisionDetection::Get().CheckCollision(obj, candidates[i], shape.get(), candidates[i]->GetCollisionShape().get(), &data);
+                if(still && Maths::Abs(data.penetration) > startDepth[i] + inner * 0.05f)
+                {
+                    placeAt(0.0f); // going deeper: stay put this step
+                    return;
+                }
+            }
+            // the rest are being rested on or slid along: leave them out of the sweep
+            for(u32 i = 0; i < candidateCount;)
+            {
+                if(startTouching[i])
+                {
+                    --candidateCount;
+                    candidates[i]    = candidates[candidateCount];
+                    startTouching[i] = startTouching[candidateCount];
+                }
+                else
+                    i++;
+            }
+        }
+
+        if(candidateCount > 0)
+        {
+            for(int piece = 1; piece < pieces; piece++)
+            {
+                placeAt((float)piece / (float)pieces);
+                for(u32 i = 0; i < candidateCount; i++)
+                {
+                    if(touching(candidates[i]))
+                        return; // leave the body here, just touching
+                }
+            }
+        }
+
+        placeAt(1.0f);
     }
 
     RigidBody3D* LumosPhysicsEngine::CreateBody(const RigidBody3DProperties& properties)
@@ -338,7 +590,8 @@ namespace Lumos
         const float alpha = (s_UpdateTimestep > 0.0f)
             ? Maths::Clamp(m_UpdateAccum / s_UpdateTimestep, 0.0f, 1.0f)
             : 0.0f;
-        const bool interp = alpha > Maths::M_EPSILON && alpha < 1.0f - Maths::M_EPSILON;
+        // stepping by hand shows the real body state, not a blend towards it
+        const bool interp = !m_ManualStep && alpha > Maths::M_EPSILON && alpha < 1.0f - Maths::M_EPSILON;
 
         auto& registry = scene->GetRegistry();
         auto group     = registry.group<RigidBody3DComponent>(entt::get<Maths::Transform>);
@@ -411,6 +664,64 @@ namespace Lumos
                 body->SetIsStatic(true);
             }
         }
+
+        // Fill empty mesh collision shapes from the entity's model once it has loaded
+        {
+            auto meshView = registry.view<Graphics::ModelComponent, RigidBody3DComponent, Maths::Transform>();
+            for(auto entity : meshView)
+            {
+                auto* body = meshView.get<RigidBody3DComponent>(entity).GetRigidBody();
+                if(!body)
+                    continue;
+                auto shape = body->GetCollisionShape();
+                if(!shape || shape->GetType() != CollisionShapeType::CollisionMesh)
+                    continue;
+                auto* meshShape = static_cast<MeshCollisionShape*>(shape.get());
+                if(meshShape->IsBuilt())
+                    continue;
+
+                // the body carries position + rotation; the entity's scale is baked into the triangles
+                auto& trans     = meshView.get<Maths::Transform>(entity);
+                auto placeBody = [&]()
+                {
+                    body->SetIsStatic(true);
+                    body->SetPosition(trans.GetWorldPosition());
+                    body->SetOrientation(trans.GetWorldOrientation());
+                    body->SetCollisionShape(shape); // resize the body's bounds
+                };
+
+                // a baked .lcol needs neither the model nor a BVH build
+                const auto start = Timer::Now();
+                if(meshShape->ShouldLoadFile())
+                {
+                    meshShape->SetShouldLoadFile(false); // one try: a bad or missing file is rebuilt below
+                    if(meshShape->LoadFromFile(Str8C((char*)meshShape->GetFilePath())))
+                    {
+                        placeBody();
+                        LINFO("Mesh collision loaded: %s, %u triangles in %.1f ms", meshShape->GetFilePath(), meshShape->GetTriangleCount(), Timer::Duration(start, Timer::Now(), 1000.0f));
+                        continue;
+                    }
+                }
+
+                auto& model = meshView.get<Graphics::ModelComponent>(entity);
+                if(!model.ModelRef || model.ModelRef->IsLoading() || model.ModelRef->GetMeshes().Empty())
+                    continue;
+
+                const Mat4 bodyToWorld = Mat4::Translation(trans.GetWorldPosition()) * trans.GetWorldOrientation().ToMatrix4();
+                if(meshShape->BuildFromModel(model.ModelRef.get(), Mat4::Inverse(bodyToWorld) * trans.GetWorldMatrix()))
+                {
+                    placeBody();
+                    LINFO("Mesh collision built: %u triangles in %.1f ms", meshShape->GetTriangleCount(), Timer::Duration(start, Timer::Now(), 1000.0f));
+                    if(meshShape->GetFilePath()[0] != 0)
+                    {
+                        if(meshShape->SaveToFile(Str8C((char*)meshShape->GetFilePath())))
+                            LINFO("Mesh collision saved: %s", meshShape->GetFilePath());
+                        else
+                            LWARN("Mesh collision could not be saved: %s", meshShape->GetFilePath());
+                    }
+                }
+            }
+        }
     }
 
     Quat QuatMulVec3(const Quat& quat, const Vec3& b)
@@ -435,7 +746,9 @@ namespace Lumos
 
         if(!obj->GetIsStatic() && obj->IsAwake())
         {
-            const float damping = m_DampingFactor;
+            const float damping         = m_DampingFactor;
+            const Vec3 startPosition    = obj->m_Position;
+            const Quat startOrientation = obj->m_Orientation;
 
             // Gravity is applied once per frame in UpdatePhysics before SolveConstraints.
 
@@ -552,6 +865,9 @@ namespace Lumos
                 break;
             }
             }
+
+            if(m_ContinuousCollision)
+                StopAtFirstContact(obj, startPosition, startOrientation, dt);
 
             // Mark cached world transform and AABB as invalid
             obj->m_WSTransformInvalidated = true;
@@ -962,12 +1278,57 @@ namespace Lumos
         }
     }
 
+    void LumosPhysicsEngine::PersistentTable::Reset(uint32_t expected)
+    {
+        uint32_t capacity = 64;
+        while(capacity < expected * 2)
+            capacity <<= 1;
+        if(Keys.Size() < capacity)
+        {
+            Keys.Resize(capacity);
+            Values.Resize(capacity);
+        }
+        memset(Keys.Data(), 0, Keys.Size() * sizeof(uint64_t));
+        Count = 0;
+    }
+
+    LumosPhysicsEngine::PersistentManifoldCache* LumosPhysicsEngine::PersistentTable::Find(uint64_t key)
+    {
+        if(Count == 0)
+            return nullptr;
+        key              = key ? key : 1;
+        const size_t mask = Keys.Size() - 1;
+        for(size_t i = key & mask;; i = (i + 1) & mask)
+        {
+            if(Keys[i] == key)
+                return &Values[i];
+            if(Keys[i] == 0)
+                return nullptr;
+        }
+    }
+
+    LumosPhysicsEngine::PersistentManifoldCache* LumosPhysicsEngine::PersistentTable::Insert(uint64_t key)
+    {
+        key              = key ? key : 1;
+        const size_t mask = Keys.Size() - 1;
+        for(size_t i = key & mask;; i = (i + 1) & mask)
+        {
+            if(Keys[i] == key)
+                return &Values[i];
+            if(Keys[i] == 0)
+            {
+                Keys[i] = key;
+                Count++;
+                return &Values[i];
+            }
+        }
+    }
+
     void LumosPhysicsEngine::WarmStartManifolds()
     {
         LUMOS_PROFILE_FUNCTION();
 
-        for(auto& entry : m_PersistentManifolds)
-            entry.second.usedThisFrame = false;
+        PersistentTable& table = m_PersistentTables[m_PersistentCurrent];
 
         const float kMatchToleranceSq = 0.02f * 0.02f;
 
@@ -979,13 +1340,10 @@ namespace Lumos
             if(!a || !b)
                 continue;
 
-            uint64_t key = MakeBodyPairKey(a, b);
-            auto it      = m_PersistentManifolds.find(key);
-            if(it == m_PersistentManifolds.end())
+            PersistentManifoldCache* found = table.Find(MakeBodyPairKey(a, b));
+            if(!found)
                 continue;
-
-            PersistentManifoldCache& cache = it->second;
-            cache.usedThisFrame            = true;
+            PersistentManifoldCache& cache = *found;
 
             if(cache.savedNodeA != a)
                 continue;
@@ -1060,6 +1418,11 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
+        // pairs without a manifold this substep are simply not carried over
+        m_PersistentCurrent ^= 1;
+        PersistentTable& table = m_PersistentTables[m_PersistentCurrent];
+        table.Reset(m_ManifoldCount);
+
         for(uint32_t i = 0; i < m_ManifoldCount; i++)
         {
             Manifold& m   = m_Manifolds[i];
@@ -1068,9 +1431,7 @@ namespace Lumos
             if(!a || !b)
                 continue;
 
-            uint64_t key                   = MakeBodyPairKey(a, b);
-            PersistentManifoldCache& cache = m_PersistentManifolds[key];
-            cache.usedThisFrame            = true;
+            PersistentManifoldCache& cache = *table.Insert(MakeBodyPairKey(a, b));
             cache.savedNodeA               = a;
 
             const ContactPoint* contacts = m.GetContacts();
@@ -1095,15 +1456,6 @@ namespace Lumos
                 pc.rollingImpulse  = c.frictionTangent1 * c.sumImpulseRolling1
                     + c.frictionTangent2 * c.sumImpulseRolling2;
             }
-        }
-
-        // Drop entries that didn't see a manifold this frame — contact pair separated.
-        for(auto it = m_PersistentManifolds.begin(); it != m_PersistentManifolds.end();)
-        {
-            if(!it->second.usedThisFrame)
-                it = m_PersistentManifolds.erase(it);
-            else
-                ++it;
         }
     }
 
@@ -1326,247 +1678,506 @@ namespace Lumos
         return t >= 0.0f;
     }
 
+    // Ray against a capsule given by its two end points. dir must be unit length.
+    // Returns the distance to the first surface hit; a ray starting inside misses.
+    static bool RayIntersectsSegmentCapsule(const Vec3& origin, const Vec3& dir, const Vec3& a, const Vec3& b, float radius, float& t)
+    {
+        const Vec3 ba    = b - a;
+        const Vec3 oa    = origin - a;
+        const float baba = Maths::Dot(ba, ba);
+        const float bard = Maths::Dot(ba, dir);
+        const float baoa = Maths::Dot(ba, oa);
+        const float rdoa = Maths::Dot(dir, oa);
+        const float oaoa = Maths::Dot(oa, oa);
+
+        // the cylinder between the ends
+        const float qa = baba - bard * bard;
+        const float qb = baba * rdoa - baoa * bard;
+        const float qc = baba * oaoa - baoa * baoa - radius * radius * baba;
+        const float h  = qb * qb - qa * qc;
+        if(h < 0.0f)
+            return false;
+
+        if(qa > 1e-8f)
+        {
+            const float tc = (-qb - Maths::Sqrt(h)) / qa;
+            const float y  = baoa + tc * bard;
+            if(y > 0.0f && y < baba)
+            {
+                t = tc;
+                return tc >= 0.0f;
+            }
+            // off one end: the rounded cap there
+            const Vec3 oc    = y <= 0.0f ? oa : origin - b;
+            const float cb   = Maths::Dot(dir, oc);
+            const float cc   = Maths::Dot(oc, oc) - radius * radius;
+            const float capH = cb * cb - cc;
+            if(capH > 0.0f)
+            {
+                t = -cb - Maths::Sqrt(capH);
+                return t >= 0.0f;
+            }
+            return false;
+        }
+
+        // ray runs along the capsule: only the caps can be hit
+        bool hit = false;
+        for(const Vec3& end : { a, b })
+        {
+            float ts;
+            if(RayIntersectsSphere(origin, dir, end, radius, ts) && (!hit || ts < t))
+            {
+                t   = ts;
+                hit = true;
+            }
+        }
+        return hit;
+    }
+
+    // Exact test of one body against a ray (or a swept sphere when query.Radius > 0).
+    // Only hits closer than maxDistance count.
+    bool LumosPhysicsEngine::RaycastBody(RigidBody3D& body, const RaycastQuery& query, const Vec3& invDir, float maxDistance, RaycastHit& result) const
+    {
+        result            = RaycastHit();
+        float closestDist = maxDistance;
+        // A sphere cast is a ray against every shape grown by the sphere's radius.
+        const float castRadius = Maths::Max(query.Radius, 0.0f);
+
+        if(!body.m_IsValid || !body.GetCollisionShape())
+            return false;
+
+        if(&body == query.IgnoreBody)
+            return false;
+
+        // Layer mask check
+        if((query.LayerMask & (1 << body.GetCollisionLayer())) == 0)
+            return false;
+
+        // Skip triggers if not wanted
+        if(body.GetIsTrigger() && !query.HitTriggers)
+            return false;
+
+        // AABB early-out (grown by the radius for a sphere cast)
+        float tMin, tMax;
+        Maths::BoundingBox bounds = body.GetWorldSpaceAABB();
+        if(castRadius > 0.0f)
+            bounds = Maths::BoundingBox(bounds.Min() - Vec3(castRadius), bounds.Max() + Vec3(castRadius));
+        if(!RayIntersectsAABB(query.Origin, invDir, bounds, tMin, tMax))
+            return false;
+
+        if(tMin > closestDist)
+            return false;
+
+        // Shape-specific intersection
+        auto shape = body.GetCollisionShape();
+        float t    = closestDist;
+
+        switch(shape->GetType())
+        {
+        case CollisionShapeType::CollisionSphere:
+        {
+            auto* sphere = static_cast<SphereCollisionShape*>(shape.get());
+            if(RayIntersectsSphere(query.Origin, query.Direction, body.GetPosition(), sphere->GetRadius() + castRadius, t))
+            {
+                if(t < closestDist && t <= query.MaxDistance)
+                {
+                    closestDist    = t;
+                    result.Body    = &body;
+                    result.Shape   = shape.get();
+                    result.Distance = t;
+                    result.Point   = query.Origin + query.Direction * t;
+                    result.Normal  = (result.Point - body.GetPosition()).Normalised();
+                }
+            }
+            break;
+        }
+        case CollisionShapeType::CollisionCuboid:
+        {
+            // Slab test in the box's own space, so rotated boxes (ramps) are exact.
+            auto* cuboid       = static_cast<CuboidCollisionShape*>(shape.get());
+            const Quat invRot  = body.GetOrientation().Inverse();
+            const Vec3 localO  = invRot * (query.Origin - body.GetPosition());
+            const Vec3 localD  = invRot * query.Direction;
+            const Vec3 half    = Vec3(cuboid->GetHalfWidth(), cuboid->GetHalfHeight(), cuboid->GetHalfDepth()) + Vec3(castRadius);
+            const float o[3]   = { localO.x, localO.y, localO.z };
+            const float d[3]   = { localD.x, localD.y, localD.z };
+            const float h[3]   = { half.x, half.y, half.z };
+
+            float tNear = -FLT_MAX, tFar = FLT_MAX;
+            int nearAxis   = 0;
+            float nearSign = 1.0f;
+            bool miss      = false;
+            for(int axis = 0; axis < 3 && !miss; axis++)
+            {
+                if(Maths::Abs(d[axis]) < 1e-8f)
+                {
+                    miss = Maths::Abs(o[axis]) > h[axis]; // parallel to this slab and outside it
+                    continue;
+                }
+                float t0   = (-h[axis] - o[axis]) / d[axis];
+                float t1   = (h[axis] - o[axis]) / d[axis];
+                float sign = -1.0f; // entering through the negative face
+                if(t0 > t1)
+                {
+                    float tmp = t0;
+                    t0        = t1;
+                    t1        = tmp;
+                    sign      = 1.0f;
+                }
+                if(t0 > tNear)
+                {
+                    tNear    = t0;
+                    nearAxis = axis;
+                    nearSign = sign;
+                }
+                tFar = Maths::Min(tFar, t1);
+                miss = tNear > tFar;
+            }
+
+            Vec3 localNormal(0.0f);
+            if(nearAxis == 0)
+                localNormal.x = nearSign;
+            else if(nearAxis == 1)
+                localNormal.y = nearSign;
+            else
+                localNormal.z = nearSign;
+
+            // A box grown by a sphere has ROUNDED edges and corners; the slab test above
+            // treated them as square. If the entry point is beyond the real box on more than
+            // one axis it is in an edge or corner region, and the true surface there is a
+            // capsule along that edge (or the three edges meeting at that corner).
+            if(castRadius > 0.0f && !miss && tNear >= 0.0f)
+            {
+                const Vec3 entry   = localO + localD * tNear;
+                const float e[3]   = { entry.x, entry.y, entry.z };
+                const float box[3] = { h[0] - castRadius, h[1] - castRadius, h[2] - castRadius };
+                float corner[3];
+                int outside = 0;
+                bool beyond[3];
+                for(int axis = 0; axis < 3; axis++)
+                {
+                    beyond[axis] = Maths::Abs(e[axis]) > box[axis];
+                    corner[axis] = e[axis] < 0.0f ? -box[axis] : box[axis];
+                    outside += beyond[axis] ? 1 : 0;
+                }
+
+                if(outside >= 2)
+                {
+                    miss        = true;
+                    float bestT = FLT_MAX;
+                    for(int axis = 0; axis < 3; axis++)
+                    {
+                        // the three edges that meet at the corner nearest the entry point
+                        float endA[3] = { corner[0], corner[1], corner[2] };
+                        float endB[3] = { corner[0], corner[1], corner[2] };
+                        endA[axis]    = -box[axis];
+                        endB[axis]    = box[axis];
+                        const Vec3 a(endA[0], endA[1], endA[2]);
+                        const Vec3 b(endB[0], endB[1], endB[2]);
+
+                        float te;
+                        if(RayIntersectsSegmentCapsule(localO, localD, a, b, castRadius, te) && te < bestT)
+                        {
+                            bestT = te;
+                            miss  = false;
+                            // normal: from the nearest point on the edge out to the hit
+                            const Vec3 hitPoint = localO + localD * te;
+                            const Vec3 ab       = b - a;
+                            const float along   = Maths::Clamp(Maths::Dot(hitPoint - a, ab) / Maths::Max(Maths::Dot(ab, ab), 1e-8f), 0.0f, 1.0f);
+                            localNormal         = (hitPoint - (a + ab * along)).Normalised();
+                        }
+                    }
+                    tNear = bestT;
+                }
+            }
+
+            // tNear < 0: the ray starts inside the box, which does not count as a hit
+            if(!miss && tNear >= 0.0f && tNear < closestDist && tNear <= query.MaxDistance)
+            {
+
+                closestDist     = tNear;
+                result.Body     = &body;
+                result.Shape    = shape.get();
+                result.Distance = tNear;
+                result.Point    = query.Origin + query.Direction * tNear;
+                result.Normal   = (body.GetOrientation() * localNormal).Normalised();
+            }
+            break;
+        }
+        case CollisionShapeType::CollisionCapsule:
+        {
+            auto* capsule = static_cast<CapsuleCollisionShape*>(shape.get());
+            float capRadius = capsule->GetRadius() + castRadius;
+            float halfH = capsule->GetHeight() * 0.5f;
+
+            // Transform ray into capsule local space (Y-aligned)
+            Mat4 invWS = Mat4::Inverse(body.GetWorldSpaceTransform());
+            Vec3 localOrigin = invWS * Vec4(query.Origin, 1.0f);
+            Vec3 localDir = (invWS * Vec4(query.Direction, 0.0f)).Normalised();
+
+            float bestT = FLT_MAX;
+            Vec3 bestLocalPoint;
+            bool hitCapsule = false;
+
+            // Ray vs infinite cylinder (radius=capRadius, Y-axis)
+            float a_cyl = localDir.x * localDir.x + localDir.z * localDir.z;
+            float b_cyl = 2.0f * (localOrigin.x * localDir.x + localOrigin.z * localDir.z);
+            float c_cyl = localOrigin.x * localOrigin.x + localOrigin.z * localOrigin.z - capRadius * capRadius;
+            float disc_cyl = b_cyl * b_cyl - 4.0f * a_cyl * c_cyl;
+
+            if(a_cyl > Maths::M_EPSILON && disc_cyl >= 0.0f)
+            {
+                float sqrtDisc = Maths::Sqrt(disc_cyl);
+                float t0 = (-b_cyl - sqrtDisc) / (2.0f * a_cyl);
+                float t1 = (-b_cyl + sqrtDisc) / (2.0f * a_cyl);
+
+                for(float tc : { t0, t1 })
+                {
+                    if(tc < 0.0f) continue;
+                    Vec3 p = localOrigin + localDir * tc;
+                    if(p.y >= -halfH && p.y <= halfH && tc < bestT)
+                    {
+                        bestT = tc;
+                        bestLocalPoint = p;
+                        hitCapsule = true;
+                    }
+                }
+            }
+
+            // Ray vs top hemisphere sphere
+            float tSphere;
+            Vec3 topCenter(0, halfH, 0);
+            if(RayIntersectsSphere(localOrigin, localDir, topCenter, capRadius, tSphere) && tSphere < bestT)
+            {
+                Vec3 p = localOrigin + localDir * tSphere;
+                if(p.y >= halfH)
+                {
+                    bestT = tSphere;
+                    bestLocalPoint = p;
+                    hitCapsule = true;
+                }
+            }
+
+            // Ray vs bottom hemisphere sphere
+            Vec3 bottomCenter(0, -halfH, 0);
+            if(RayIntersectsSphere(localOrigin, localDir, bottomCenter, capRadius, tSphere) && tSphere < bestT)
+            {
+                Vec3 p = localOrigin + localDir * tSphere;
+                if(p.y <= -halfH)
+                {
+                    bestT = tSphere;
+                    bestLocalPoint = p;
+                    hitCapsule = true;
+                }
+            }
+
+            if(hitCapsule)
+            {
+                // Convert back to world space distance
+                Vec3 worldHit = body.GetWorldSpaceTransform() * Vec4(bestLocalPoint, 1.0f);
+                float worldT = Maths::Length(worldHit - query.Origin);
+
+                if(worldT < closestDist && worldT <= query.MaxDistance)
+                {
+                    closestDist    = worldT;
+                    result.Body    = &body;
+                    result.Shape   = shape.get();
+                    result.Distance = worldT;
+                    result.Point   = worldHit;
+                    // Compute normal: project hit point onto capsule segment
+                    float clampedY = Maths::Clamp(bestLocalPoint.y, -halfH, halfH);
+                    Vec3 localNormal = (bestLocalPoint - Vec3(0, clampedY, 0)).Normalised();
+                    result.Normal = (Mat4(body.GetOrientation()) * Vec4(localNormal, 0.0f)).Normalised();
+                }
+            }
+            break;
+        }
+        case CollisionShapeType::CollisionTerrain:
+        {
+            auto* terrain = static_cast<TerrainCollisionShape*>(shape.get());
+            if(!terrain->HasHeightData())
+                break;
+
+            const Vec3 bodyPos = body.GetPosition();
+            const float tStart = Maths::Max(tMin, 0.0f);
+            const float tEnd   = Maths::Min(tMax, query.MaxDistance);
+            if(tEnd <= tStart)
+                break;
+
+            const float cell    = terrain->GetScaleXZ();
+            const float stepLen = Maths::Max(cell * 0.5f, 0.01f);
+            const float length  = tEnd - tStart;
+            int steps           = (int)(length / stepLen);
+            if(steps < 2) steps = 2;
+            if(steps > 4096) steps = 4096;
+
+            const float dt = length / (float)steps;
+
+            Vec3 startPt  = query.Origin + query.Direction * tStart;
+            Vec3 localPt  = startPt - bodyPos;
+            float prevDelta = localPt.y - castRadius - terrain->GetHeightAt(localPt.x, localPt.z);
+            bool hit = false;
+            float hitT = 0.0f;
+
+            for(int s = 1; s <= steps; ++s)
+            {
+                float t = tStart + dt * (float)s;
+                Vec3 wp = query.Origin + query.Direction * t;
+                Vec3 lp = wp - bodyPos;
+                float delta = lp.y - castRadius - terrain->GetHeightAt(lp.x, lp.z);
+
+                if(prevDelta >= 0.0f && delta <= 0.0f)
+                {
+                    // Linear interpolate between sample points for sub-cell precision.
+                    float denom = (prevDelta - delta);
+                    float frac  = denom > Maths::M_EPSILON ? prevDelta / denom : 0.0f;
+                    hitT = t - dt + frac * dt;
+                    hit  = true;
+                    break;
+                }
+                prevDelta = delta;
+            }
+
+            if(hit && hitT < closestDist && hitT <= query.MaxDistance)
+            {
+                closestDist     = hitT;
+                result.Body     = &body;
+                result.Shape    = shape.get();
+                result.Distance = hitT;
+                result.Point    = query.Origin + query.Direction * hitT;
+                Vec3 lp         = result.Point - bodyPos;
+                result.Normal   = terrain->GetNormalAt(lp.x, lp.z);
+            }
+            break;
+        }
+        case CollisionShapeType::CollisionMesh:
+        {
+            // Nearest triangle through the mesh's BVH, either side. A sphere cast moves each
+            // triangle's plane a radius toward the ray: exact on faces, generous along edges.
+            auto* mesh         = static_cast<MeshCollisionShape*>(shape.get());
+            const Mat4 world   = body.GetWorldSpaceTransform() * shape->GetLocalTransform();
+            const Mat4 toLocal = Mat4::Inverse(world);
+            const Vec3 origin  = Vec3(toLocal * Vec4(query.Origin, 1.0f));
+            const Vec3 dir     = Vec3(toLocal * Vec4(query.Direction, 0.0f));
+
+            float tHit;
+            Vec3 normal;
+            if(mesh->RayCast(origin, dir, Maths::Min(closestDist, query.MaxDistance), castRadius, tHit, normal))
+            {
+                closestDist     = tHit;
+                result.Body     = &body;
+                result.Shape    = shape.get();
+                result.Distance = tHit;
+                result.Point    = query.Origin + query.Direction * tHit;
+                result.Normal   = Vec3(world * Vec4(normal, 0.0f));
+            }
+            break;
+        }
+        default:
+        {
+            // Convex shapes (pyramid, hull): clip the ray against every face plane. It is
+            // inside the shape between the last plane it enters and the first it leaves.
+            Hull* hull = shape->GetHull();
+            if(hull && hull->GetNumFaces() >= 4 && hull->GetNumVertices() >= 4)
+            {
+                const Mat4 world = body.GetWorldSpaceTransform() * shape->GetLocalTransform();
+                Vec3 centre(0.0f);
+                for(size_t v = 0; v < hull->GetNumVertices(); v++)
+                    centre += Vec3(world * Vec4(hull->GetVertex((int)v).pos, 1.0f));
+                centre = centre / (float)hull->GetNumVertices();
+
+                float tEnter = -FLT_MAX, tExit = FLT_MAX;
+                Vec3 enterNormal(0.0f, 1.0f, 0.0f);
+                bool miss = false;
+                for(size_t f = 0; f < hull->GetNumFaces() && !miss; f++)
+                {
+                    const HullFace& face = hull->GetFace((int)f);
+                    if(face.vert_ids.Size() < 3)
+                        continue;
+                    const Vec3 a = Vec3(world * Vec4(hull->GetVertex(face.vert_ids[0]).pos, 1.0f));
+                    const Vec3 b = Vec3(world * Vec4(hull->GetVertex(face.vert_ids[1]).pos, 1.0f));
+                    const Vec3 c = Vec3(world * Vec4(hull->GetVertex(face.vert_ids[2]).pos, 1.0f));
+                    Vec3 normal  = Maths::Cross(b - a, c - a).Normalised();
+                    if(Maths::Dot(normal, a - centre) < 0.0f) // make it point out of the shape
+                        normal = normal * -1.0f;
+
+                    // a sphere cast pushes each face out by the radius (edges come out square)
+                    const float height = Maths::Dot(normal, query.Origin - a) - castRadius;
+                    const float denom  = Maths::Dot(normal, query.Direction);
+                    if(Maths::Abs(denom) < 1e-8f)
+                    {
+                        miss = height > 0.0f; // parallel to this face and outside it
+                        continue;
+                    }
+                    const float tPlane = -height / denom;
+                    if(denom < 0.0f)
+                    {
+                        if(tPlane > tEnter)
+                        {
+                            tEnter      = tPlane;
+                            enterNormal = normal;
+                        }
+                    }
+                    else
+                        tExit = Maths::Min(tExit, tPlane);
+                    miss = tEnter > tExit;
+                }
+
+                if(!miss && tEnter >= 0.0f && tEnter < closestDist && tEnter <= query.MaxDistance)
+                {
+                    closestDist     = tEnter;
+                    result.Body     = &body;
+                    result.Shape    = shape.get();
+                    result.Distance = tEnter;
+                    result.Point    = query.Origin + query.Direction * tEnter;
+                    result.Normal   = enterNormal;
+                }
+                break;
+            }
+
+            // Fall back to AABB for unknown shapes
+            if(tMin >= 0.0f && tMin < closestDist && tMin <= query.MaxDistance)
+            {
+                closestDist    = tMin;
+                result.Body    = &body;
+                result.Shape   = shape.get();
+                result.Distance = tMin;
+                result.Point   = query.Origin + query.Direction * tMin;
+                result.Normal  = Vec3(0.0f, 1.0f, 0.0f);
+            }
+            break;
+        }
+        }
+
+        // Distance is how far the sphere's centre travelled; Point is where its surface touched.
+        if(castRadius > 0.0f && result.Hit())
+            result.Point = result.Point - result.Normal * castRadius;
+
+        return result.Hit();
+    }
+
+    static Vec3 InverseDirection(const Vec3& direction)
+    {
+        return Vec3(
+            direction.x != 0.0f ? 1.0f / direction.x : 1e30f,
+            direction.y != 0.0f ? 1.0f / direction.y : 1e30f,
+            direction.z != 0.0f ? 1.0f / direction.z : 1e30f);
+    }
+
     RaycastHit LumosPhysicsEngine::Raycast(const RaycastQuery& query) const
     {
         LUMOS_PROFILE_FUNCTION();
         RaycastHit result;
         float closestDist = query.MaxDistance;
-
-        Vec3 invDir = Vec3(
-            query.Direction.x != 0.0f ? 1.0f / query.Direction.x : 1e30f,
-            query.Direction.y != 0.0f ? 1.0f / query.Direction.y : 1e30f,
-            query.Direction.z != 0.0f ? 1.0f / query.Direction.z : 1e30f);
+        const Vec3 invDir = InverseDirection(query.Direction);
 
         for(u32 i = 0; i < m_RigidBodyCount; i++)
         {
-            RigidBody3D& body = m_RigidBodies[i];
-            if(!body.m_IsValid || !body.GetCollisionShape())
-                continue;
-
-            if(&body == query.IgnoreBody)
-                continue;
-
-            // Layer mask check
-            if((query.LayerMask & (1 << body.GetCollisionLayer())) == 0)
-                continue;
-
-            // Skip triggers if not wanted
-            if(body.GetIsTrigger() && !query.HitTriggers)
-                continue;
-
-            // AABB early-out
-            float tMin, tMax;
-            if(!RayIntersectsAABB(query.Origin, invDir, body.GetWorldSpaceAABB(), tMin, tMax))
-                continue;
-
-            if(tMin > closestDist)
-                continue;
-
-            // Shape-specific intersection
-            auto shape = body.GetCollisionShape();
-            float t    = closestDist;
-
-            switch(shape->GetType())
+            RaycastHit hit;
+            if(RaycastBody(m_RigidBodies[i], query, invDir, closestDist, hit))
             {
-            case CollisionShapeType::CollisionSphere:
-            {
-                auto* sphere = static_cast<SphereCollisionShape*>(shape.get());
-                if(RayIntersectsSphere(query.Origin, query.Direction, body.GetPosition(), sphere->GetRadius(), t))
-                {
-                    if(t < closestDist && t <= query.MaxDistance)
-                    {
-                        closestDist    = t;
-                        result.Body    = &body;
-                        result.Shape   = shape.get();
-                        result.Distance = t;
-                        result.Point   = query.Origin + query.Direction * t;
-                        result.Normal  = (result.Point - body.GetPosition()).Normalised();
-                    }
-                }
-                break;
-            }
-            case CollisionShapeType::CollisionCuboid:
-            {
-                // Use AABB result for cuboids (approximate for rotated)
-                if(tMin >= 0.0f && tMin < closestDist && tMin <= query.MaxDistance)
-                {
-                    closestDist    = tMin;
-                    result.Body    = &body;
-                    result.Shape   = shape.get();
-                    result.Distance = tMin;
-                    result.Point   = query.Origin + query.Direction * tMin;
-                    // Approximate normal from AABB
-                    Vec3 center    = body.GetWorldSpaceAABB().Center();
-                    Vec3 toCenter  = result.Point - center;
-                    Vec3 halfSize  = body.GetWorldSpaceAABB().Size() * 0.5f;
-                    Vec3 d         = toCenter / halfSize;
-                    if(Maths::Abs(d.x) > Maths::Abs(d.y) && Maths::Abs(d.x) > Maths::Abs(d.z))
-                        result.Normal = Vec3(d.x > 0 ? 1.0f : -1.0f, 0.0f, 0.0f);
-                    else if(Maths::Abs(d.y) > Maths::Abs(d.z))
-                        result.Normal = Vec3(0.0f, d.y > 0 ? 1.0f : -1.0f, 0.0f);
-                    else
-                        result.Normal = Vec3(0.0f, 0.0f, d.z > 0 ? 1.0f : -1.0f);
-                }
-                break;
-            }
-            case CollisionShapeType::CollisionCapsule:
-            {
-                auto* capsule = static_cast<CapsuleCollisionShape*>(shape.get());
-                float capRadius = capsule->GetRadius();
-                float halfH = capsule->GetHeight() * 0.5f;
-
-                // Transform ray into capsule local space (Y-aligned)
-                Mat4 invWS = Mat4::Inverse(body.GetWorldSpaceTransform());
-                Vec3 localOrigin = invWS * Vec4(query.Origin, 1.0f);
-                Vec3 localDir = (invWS * Vec4(query.Direction, 0.0f)).Normalised();
-
-                float bestT = FLT_MAX;
-                Vec3 bestLocalPoint;
-                bool hitCapsule = false;
-
-                // Ray vs infinite cylinder (radius=capRadius, Y-axis)
-                float a_cyl = localDir.x * localDir.x + localDir.z * localDir.z;
-                float b_cyl = 2.0f * (localOrigin.x * localDir.x + localOrigin.z * localDir.z);
-                float c_cyl = localOrigin.x * localOrigin.x + localOrigin.z * localOrigin.z - capRadius * capRadius;
-                float disc_cyl = b_cyl * b_cyl - 4.0f * a_cyl * c_cyl;
-
-                if(a_cyl > Maths::M_EPSILON && disc_cyl >= 0.0f)
-                {
-                    float sqrtDisc = Maths::Sqrt(disc_cyl);
-                    float t0 = (-b_cyl - sqrtDisc) / (2.0f * a_cyl);
-                    float t1 = (-b_cyl + sqrtDisc) / (2.0f * a_cyl);
-
-                    for(float tc : { t0, t1 })
-                    {
-                        if(tc < 0.0f) continue;
-                        Vec3 p = localOrigin + localDir * tc;
-                        if(p.y >= -halfH && p.y <= halfH && tc < bestT)
-                        {
-                            bestT = tc;
-                            bestLocalPoint = p;
-                            hitCapsule = true;
-                        }
-                    }
-                }
-
-                // Ray vs top hemisphere sphere
-                float tSphere;
-                Vec3 topCenter(0, halfH, 0);
-                if(RayIntersectsSphere(localOrigin, localDir, topCenter, capRadius, tSphere) && tSphere < bestT)
-                {
-                    Vec3 p = localOrigin + localDir * tSphere;
-                    if(p.y >= halfH)
-                    {
-                        bestT = tSphere;
-                        bestLocalPoint = p;
-                        hitCapsule = true;
-                    }
-                }
-
-                // Ray vs bottom hemisphere sphere
-                Vec3 bottomCenter(0, -halfH, 0);
-                if(RayIntersectsSphere(localOrigin, localDir, bottomCenter, capRadius, tSphere) && tSphere < bestT)
-                {
-                    Vec3 p = localOrigin + localDir * tSphere;
-                    if(p.y <= -halfH)
-                    {
-                        bestT = tSphere;
-                        bestLocalPoint = p;
-                        hitCapsule = true;
-                    }
-                }
-
-                if(hitCapsule)
-                {
-                    // Convert back to world space distance
-                    Vec3 worldHit = body.GetWorldSpaceTransform() * Vec4(bestLocalPoint, 1.0f);
-                    float worldT = Maths::Length(worldHit - query.Origin);
-
-                    if(worldT < closestDist && worldT <= query.MaxDistance)
-                    {
-                        closestDist    = worldT;
-                        result.Body    = &body;
-                        result.Shape   = shape.get();
-                        result.Distance = worldT;
-                        result.Point   = worldHit;
-                        // Compute normal: project hit point onto capsule segment
-                        float clampedY = Maths::Clamp(bestLocalPoint.y, -halfH, halfH);
-                        Vec3 localNormal = (bestLocalPoint - Vec3(0, clampedY, 0)).Normalised();
-                        result.Normal = (Mat4(body.GetOrientation()) * Vec4(localNormal, 0.0f)).Normalised();
-                    }
-                }
-                break;
-            }
-            case CollisionShapeType::CollisionTerrain:
-            {
-                auto* terrain = static_cast<TerrainCollisionShape*>(shape.get());
-                if(!terrain->HasHeightData())
-                    break;
-
-                const Vec3 bodyPos = body.GetPosition();
-                const float tStart = Maths::Max(tMin, 0.0f);
-                const float tEnd   = Maths::Min(tMax, query.MaxDistance);
-                if(tEnd <= tStart)
-                    break;
-
-                const float cell    = terrain->GetScaleXZ();
-                const float stepLen = Maths::Max(cell * 0.5f, 0.01f);
-                const float length  = tEnd - tStart;
-                int steps           = (int)(length / stepLen);
-                if(steps < 2) steps = 2;
-                if(steps > 4096) steps = 4096;
-
-                const float dt = length / (float)steps;
-
-                Vec3 startPt  = query.Origin + query.Direction * tStart;
-                Vec3 localPt  = startPt - bodyPos;
-                float prevDelta = localPt.y - terrain->GetHeightAt(localPt.x, localPt.z);
-                bool hit = false;
-                float hitT = 0.0f;
-
-                for(int s = 1; s <= steps; ++s)
-                {
-                    float t = tStart + dt * (float)s;
-                    Vec3 wp = query.Origin + query.Direction * t;
-                    Vec3 lp = wp - bodyPos;
-                    float delta = lp.y - terrain->GetHeightAt(lp.x, lp.z);
-
-                    if(prevDelta >= 0.0f && delta <= 0.0f)
-                    {
-                        // Linear interpolate between sample points for sub-cell precision.
-                        float denom = (prevDelta - delta);
-                        float frac  = denom > Maths::M_EPSILON ? prevDelta / denom : 0.0f;
-                        hitT = t - dt + frac * dt;
-                        hit  = true;
-                        break;
-                    }
-                    prevDelta = delta;
-                }
-
-                if(hit && hitT < closestDist && hitT <= query.MaxDistance)
-                {
-                    closestDist     = hitT;
-                    result.Body     = &body;
-                    result.Shape    = shape.get();
-                    result.Distance = hitT;
-                    result.Point    = query.Origin + query.Direction * hitT;
-                    Vec3 lp         = result.Point - bodyPos;
-                    result.Normal   = terrain->GetNormalAt(lp.x, lp.z);
-                }
-                break;
-            }
-            default:
-                // Fall back to AABB for unknown shapes
-                if(tMin >= 0.0f && tMin < closestDist && tMin <= query.MaxDistance)
-                {
-                    closestDist    = tMin;
-                    result.Body    = &body;
-                    result.Shape   = shape.get();
-                    result.Distance = tMin;
-                    result.Point   = query.Origin + query.Direction * tMin;
-                    result.Normal  = Vec3(0.0f, 1.0f, 0.0f);
-                }
-                break;
+                result      = hit;
+                closestDist = hit.Distance;
             }
         }
 
@@ -1583,43 +2194,14 @@ namespace Lumos
     bool LumosPhysicsEngine::RaycastAll(const RaycastQuery& query, TDArray<RaycastHit>& results, uint32_t maxResults) const
     {
         LUMOS_PROFILE_FUNCTION();
-
-        Vec3 invDir = Vec3(
-            query.Direction.x != 0.0f ? 1.0f / query.Direction.x : 1e30f,
-            query.Direction.y != 0.0f ? 1.0f / query.Direction.y : 1e30f,
-            query.Direction.z != 0.0f ? 1.0f / query.Direction.z : 1e30f);
+        results.Clear();
+        const Vec3 invDir = InverseDirection(query.Direction);
 
         for(u32 i = 0; i < m_RigidBodyCount && results.Size() < maxResults; i++)
         {
-            RigidBody3D& body = m_RigidBodies[i];
-            if(!body.m_IsValid || !body.GetCollisionShape())
-                continue;
-
-            if(&body == query.IgnoreBody)
-                continue;
-
-            if((query.LayerMask & (1 << body.GetCollisionLayer())) == 0)
-                continue;
-
-            if(body.GetIsTrigger() && !query.HitTriggers)
-                continue;
-
-            float tMin, tMax;
-            if(!RayIntersectsAABB(query.Origin, invDir, body.GetWorldSpaceAABB(), tMin, tMax))
-                continue;
-
-            if(tMin > query.MaxDistance)
-                continue;
-
-            // Simplified: add hit at AABB intersection
             RaycastHit hit;
-            hit.Body     = &body;
-            hit.Shape    = body.GetCollisionShape().get();
-            hit.Distance = tMin >= 0.0f ? tMin : 0.0f;
-            hit.Point    = query.Origin + query.Direction * hit.Distance;
-            hit.Normal   = Vec3(0.0f, 1.0f, 0.0f);
-
-            results.PushBack(hit);
+            if(RaycastBody(m_RigidBodies[i], query, invDir, query.MaxDistance, hit))
+                results.PushBack(hit);
         }
 
         // Sort by distance

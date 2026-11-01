@@ -54,6 +54,11 @@ namespace Lumos
             return m_Data.DPIScale;
         }
 
+        inline float GetContentScale() const override
+        {
+            return m_Data.ContentScale;
+        }
+
         inline float GetScreenRatio() const override
         {
             return (float)m_Data.Width / (float)m_Data.Height;
@@ -76,6 +81,18 @@ namespace Lumos
 
         void SetIcon(const WindowDesc& desc) override;
         void RefreshSize() override;
+
+        void SetWindowSize(uint32_t width, uint32_t height) override;
+        Vec2 GetWindowSize() const override;
+        void SetWindowPosition(int x, int y) override;
+        Vec2 GetWindowPosition() const override;
+        Vec2 GetCursorScreenPosition() const override;
+        void SetDecorated(bool decorated) override;
+        void SetFloating(bool floating) override;
+        void SetWindowShape(float cornerRadius, bool shadow) override;
+        void SetTransparent(bool transparent) override;
+        void Minimise() override;
+        TDArray<std::string> PopDroppedFiles() override;
         float GetMonitorXScale();
 
         static void MakeDefault();
@@ -88,11 +105,13 @@ namespace Lumos
         struct WindowData
         {
             std::string Title;
+            TDArray<std::string> DroppedFiles;
             uint32_t Width, Height;
             bool VSync;
             bool Exit;
             Graphics::RenderAPI m_RenderAPI;
             float DPIScale;
+            float ContentScale; // UI scale - see Window::GetContentScale
 
             EventCallbackFn EventCallback;
         };

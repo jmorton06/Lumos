@@ -38,10 +38,17 @@ float LinearizeDepth(float depth)
 
 vec3 reconstructVSPosFromDepth(vec2 uv)
 {
-    float depth = texture(in_Depth, uv).r;
+    float depth = texture(in_Normal, uv).b; // G-buffer depth: see DepthPrePass.frag
     vec4 clipPos = vec4(uv * 2.0 - 1.0, depth, 1.0);
     vec4 viewPos = ubo.invProj * clipPos;
     return viewPos.xyz / viewPos.w;
+}
+
+// Slack for the depth buffer's own error: reversed-Z keeps it to a tiny share of the distance,
+// but a huge triangle clipped by the camera still rounds a little differently from its neighbour.
+float DepthPrecision(float viewDist)
+{
+    return 2.0e-5 * viewDist;
 }
 
 const int MAX_KERNEL_SIZE = 64; // upper bound; actual count is ubo.SampleCount
@@ -57,9 +64,10 @@ vec3 GetNormal(vec2 uv)
 
 void main()
 {
-    float depth = texture(in_Depth, outTexCoord).r;
+    float depth = texture(in_Normal, outTexCoord).b;
 
-	if (depth < 0.0001f)
+	// nothing drawn here (reversed-Z: cleared depth 0 is the far plane)
+	if (depth <= 0.0f)
 	{
 		fragColour = vec4(1.0);
 		return;
@@ -79,38 +87,40 @@ void main()
 	vec3 bitangent = cross(tangent, normal);
 	mat3 TBN = mat3(tangent, bitangent, normal);
 
-	//float bias = 0.001f;
-	float bias = 0.001f;
+	// in view units, scaled with the radius: a fixed tiny bias let flat surfaces occlude themselves
+	// plus a share of the distance: depth is coarse far out, and the seam between two big floor
+	// triangles read as a step
+	float bias = 0.025 * ubo.ssaoRadius + 0.004 * -posVS.z + DepthPrecision(-posVS.z);
+	float planeBias = 0.1 * ubo.ssaoRadius + 0.005 * -posVS.z;
 
 	float occlusion = 0.0f;
-	int sampleCount = 0;
 	int kernelSize = clamp(ubo.SampleCount, 1, MAX_KERNEL_SIZE);
+	// the 64 samples run small to large: stride through all of them so a short kernel still
+	// reaches the whole radius (the first 16 alone were all close to the centre)
+	int kernelStride = max(MAX_KERNEL_SIZE / kernelSize, 1);
 	for (int i = 0; i < kernelSize; i++)
 	{
-		vec3 samplePos = TBN * ubo.samples[i].xyz;
+		vec3 samplePos = TBN * ubo.samples[i * kernelStride].xyz;
 		samplePos = posVS + samplePos * ubo.ssaoRadius;
 
-		vec4 offset = vec4(samplePos, 1.0f);
-		offset = ubo.projection * offset;
+		vec4 offset = ubo.projection * vec4(samplePos, 1.0f);
 		offset.xy /= offset.w;
 		offset.xy = (offset.xy * 0.5f) + HALF_2;
-		//offset.y = 1.0 - offset.y;
+		if(any(lessThan(offset.xy, vec2(0.0))) || any(greaterThan(offset.xy, vec2(1.0))))
+			continue;
 
-		vec3 sampledNormal = GetNormal(offset.xy);
-		vec3 reconstructedPos = reconstructVSPosFromDepth(offset.xy);
-
-		if (dot(sampledNormal, normal) > 0.7)
-        {
-            ++sampleCount;
-        }
-        else
-        {
-            float rangeCheck = smoothstep(0.0f, 1.0f, ubo.ssaoRadius / abs(-reconstructedPos.z + samplePos.z - bias));
-            occlusion += (reconstructedPos.z > samplePos.z - bias ? 1.0f : 0.0f) * rangeCheck;
-            ++sampleCount;
-        }
-
+		vec3 scenePos = reconstructVSPosFromDepth(offset.xy);
+		float sceneZ  = scenePos.z;
+		// only things within the radius of this point count (a far-in-front object does not)
+		float rangeCheck = smoothstep(0.0f, 1.0f, ubo.ssaoRadius / max(abs(posVS.z - sceneZ), 1e-4));
+		// and only things standing above this surface's plane: being nearer the camera is not enough.
+		// A huge triangle clipped by the camera can hold depth a metre off its neighbour's along the
+		// view ray (GPU setup error); at a grazing view that is barely above the plane, a real occluder is well above it.
+		float aboveSurface = dot(scenePos - posVS, normal);
+		bool occluder      = sceneZ >= samplePos.z + bias && aboveSurface > planeBias;
+		occlusion += (occluder ? 1.0f : 0.0f) * rangeCheck;
 	}
+
 	//occlusion = 1.0f - (occlusion * INV_MAX_KERNEL_SIZE_F);
 	//occlusion = pow(occlusion, ubo.strength);
 

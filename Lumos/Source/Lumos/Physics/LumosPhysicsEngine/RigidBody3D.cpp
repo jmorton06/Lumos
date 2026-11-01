@@ -9,6 +9,7 @@
 #include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/TerrainCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/MeshCollisionShape.h"
 #include "Maths/MathsUtilities.h"
 
 namespace Lumos
@@ -17,7 +18,8 @@ namespace Lumos
     RigidBody3D::RigidBody3D(const RigidBody3DProperties& properties)
         : m_WSTransformInvalidated(true)
         , m_RestVelocityThresholdSquared(properties.RestVelocityThreshold)
-        , m_AverageSummedVelocity(0.0f)
+        // starts high: a new body has to actually be still for a while before it can sleep
+        , m_AverageSummedVelocity(properties.AtRest ? 0.0f : 1.0f)
         , m_WSAabbInvalidated(true)
         , m_Position(properties.Position)
         , m_PrevPosition(properties.Position)
@@ -202,6 +204,10 @@ namespace Lumos
             break;
         case CollisionShapeType::CollisionTerrain:
             SetCollisionShape(CreateSharedPtr<TerrainCollisionShape>());
+            break;
+        case CollisionShapeType::CollisionMesh:
+            // empty until the physics engine fills it from the entity's model
+            SetCollisionShape(CreateSharedPtr<MeshCollisionShape>());
             break;
         default:
             LERROR("Unsupported Collision shape");

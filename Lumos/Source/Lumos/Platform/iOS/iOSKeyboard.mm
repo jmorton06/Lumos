@@ -1,5 +1,6 @@
 #ifdef LUMOS_PLATFORM_IOS
 #import <UIKit/UIKit.h>
+#include "Core/Application.h"
 #import <Foundation/Foundation.h>
 #import <string>
 
@@ -58,6 +59,18 @@ static ImGuiKeyboardHelper *persistentHelper = nil;
         self.hiddenTextField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, 1, 1)];
         self.hiddenTextField.alpha = 1.0; // Nearly invisible but not zero
         self.hiddenTextField.inputAccessoryView = accessory;
+
+        // Games draw their own text fields: plain keyboard, the hidden field carries the edits.
+        // (The editor keeps the bar so ImGui text stays visible above the keyboard.)
+        if (Lumos::Application::Get().GetAppType() != Lumos::AppType::Editor || Lumos::Application::Get().IsScreenUIEnabled()) {
+            self.hiddenTextField.inputAccessoryView = nil;
+            self.hiddenTextField.frame = CGRectMake(-100, -100, 1, 1);
+            self.hiddenTextField.text = self.visibleTextField.text;
+            self.hiddenTextField.autocorrectionType = UITextAutocorrectionTypeNo;
+            self.hiddenTextField.returnKeyType = UIReturnKeyDone;
+            self.hiddenTextField.delegate = self;
+            self.visibleTextField = self.hiddenTextField;
+        }
         
         UIWindow *keyWindow = UIApplication.sharedApplication.windows.firstObject;
         UIView *rootView = keyWindow.rootViewController.view;
@@ -125,8 +138,11 @@ static ImGuiKeyboardHelper *persistentHelper = nil;
     return YES;
 }
 
+extern "C" void iOSSendReturnKey();
+
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
     [self closeKeyboard];
+    iOSSendReturnKey(); // Return on the keyboard is Enter for the app (search fields act on it)
     return YES;
 }
 
@@ -219,8 +235,23 @@ static ImGuiKeyboardHelper *persistentHelper = nil;
 
 @end
 
+// The field the keyboard is typing into right now (nil when none): handwriting is sent to it.
+UITextField *iOSKeyboardActiveField(void) {
+    if (persistentHelper == nil)
+        return nil;
+    UITextField *field = persistentHelper.visibleTextField;
+    return (field != nil && field.isFirstResponder) ? field : nil;
+}
+
 extern "C" void RegisterTextChangedCallback(TextChangedCallback callback) {
     g_textChangedCallback = callback;
+}
+
+extern "C" void CloseiOSKeyboard() {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (persistentHelper != nil)
+            [persistentHelper closeKeyboard];
+    });
 }
 
 extern "C" void OpeniOSKeyboard(std::string *cppString) {

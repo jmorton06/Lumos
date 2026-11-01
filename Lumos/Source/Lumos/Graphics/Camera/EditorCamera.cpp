@@ -425,7 +425,8 @@ namespace Lumos
 
         if((rmbHeld || ctrlHeld) && offset != 0.0f)
         {
-            m_CameraSpeed += dt * offset * (m_CameraSpeed * 0.5f + 1.0f);
+            // a fixed ratio per notch: the same feel at any speed, and not tied to the frame rate
+            m_CameraSpeed *= powf(1.15f, Maths::Clamp(offset, -4.0f, 4.0f));
             m_CameraSpeed = Maths::Clamp(m_CameraSpeed, 0.1f, 1000.0f);
             return;
         }

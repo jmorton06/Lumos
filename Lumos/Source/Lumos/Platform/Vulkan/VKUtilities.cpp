@@ -48,7 +48,26 @@ namespace Lumos
             return 0;
         }
 
-        VkCommandBuffer VKUtilities::BeginSingleTimeCommands()
+        namespace
+        {
+            struct CommandBatch
+            {
+                u32 depth         = 0;
+                VkCommandBuffer cb = VK_NULL_HANDLE;
+                std::vector<std::function<void()>> after;
+            };
+            thread_local CommandBatch t_Batch;
+
+            struct AsyncSubmit
+            {
+                VkFence fence;
+                VkCommandBuffer cb;
+                std::vector<std::function<void()>> after;
+            };
+            std::vector<AsyncSubmit> s_Async; // main thread only (uploads happen there)
+        }
+
+        static VkCommandBuffer AllocateAndBegin()
         {
             VkCommandBufferAllocateInfo allocInfo = {};
             allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -62,13 +81,113 @@ namespace Lumos
             VkCommandBufferBeginInfo beginInfo = {};
             beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
             beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
             VK_CHECK_RESULT(vkBeginCommandBuffer(commandBuffer, &beginInfo));
-
             return commandBuffer;
         }
 
+        static void SubmitAndWait(VkCommandBuffer commandBuffer);
+        static void FullBarrier(VkCommandBuffer cb);
+
+        void VKUtilities::BeginBatchCommands()
+        {
+            if(t_Batch.depth++ == 0)
+                t_Batch.cb = VK_NULL_HANDLE; // allocated on first use
+        }
+
+        void VKUtilities::EndBatchCommands(bool wait)
+        {
+            if(t_Batch.depth == 0 || --t_Batch.depth > 0)
+                return;
+            if(t_Batch.cb && !wait)
+            {
+                VkCommandBuffer cb = t_Batch.cb;
+                t_Batch.cb         = VK_NULL_HANDLE;
+                // not waited on: frames submitted after it must still see the upload
+                FullBarrier(cb);
+                VK_CHECK_RESULT(vkEndCommandBuffer(cb));
+                VkFence fence;
+                VkFenceCreateInfo fenceInfo { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+                VK_CHECK_RESULT(vkCreateFence(VKDevice::Get().GetDevice(), &fenceInfo, nullptr, &fence));
+                VkSubmitInfo submitInfo       = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+                submitInfo.commandBufferCount = 1;
+                submitInfo.pCommandBuffers    = &cb;
+                VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, fence));
+                s_Async.push_back({ fence, cb, std::move(t_Batch.after) });
+                t_Batch.after.clear();
+                return;
+            }
+            if(t_Batch.cb)
+            {
+                VkCommandBuffer cb = t_Batch.cb;
+                t_Batch.cb         = VK_NULL_HANDLE;
+                SubmitAndWait(cb);
+            }
+            auto after = std::move(t_Batch.after);
+            t_Batch.after.clear();
+            for(auto& fn : after)
+                fn();
+        }
+
+        void VKUtilities::PollBatches(bool all)
+        {
+            for(size_t i = 0; i < s_Async.size();)
+            {
+                AsyncSubmit& a = s_Async[i];
+                VkResult r     = all ? vkWaitForFences(VKDevice::Get().GetDevice(), 1, &a.fence, VK_TRUE, UINT64_MAX)
+                                     : vkGetFenceStatus(VKDevice::Get().GetDevice(), a.fence);
+                if(r != VK_SUCCESS)
+                {
+                    i++;
+                    continue;
+                }
+                vkDestroyFence(VKDevice::Get().GetDevice(), a.fence, nullptr);
+                vkFreeCommandBuffers(VKDevice::Get().GetDevice(), VKDevice::Get().GetCommandPool()->GetHandle(), 1, &a.cb);
+                for(auto& fn : a.after)
+                    fn();
+                s_Async[i] = std::move(s_Async.back());
+                s_Async.pop_back();
+            }
+        }
+
+        bool VKUtilities::DeferUntilBatchDone(std::function<void()> fn)
+        {
+            if(t_Batch.depth == 0)
+                return false;
+            t_Batch.after.push_back(std::move(fn));
+            return true;
+        }
+
+        // Steps that used to be a submit-and-wait each now share one command buffer: each one
+        // must still see the last one's writes (a staging copy, then the image copy reading it).
+        static void FullBarrier(VkCommandBuffer cb)
+        {
+            VkMemoryBarrier barrier = { VK_STRUCTURE_TYPE_MEMORY_BARRIER };
+            barrier.srcAccessMask   = VK_ACCESS_MEMORY_WRITE_BIT;
+            barrier.dstAccessMask   = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+            vkCmdPipelineBarrier(cb, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 1, &barrier, 0, nullptr, 0, nullptr);
+        }
+
+        VkCommandBuffer VKUtilities::BeginSingleTimeCommands()
+        {
+            if(t_Batch.depth > 0)
+            {
+                if(!t_Batch.cb)
+                    t_Batch.cb = AllocateAndBegin();
+                else
+                    FullBarrier(t_Batch.cb);
+                return t_Batch.cb;
+            }
+            return AllocateAndBegin();
+        }
+
         void VKUtilities::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
+        {
+            if(t_Batch.depth > 0 && commandBuffer == t_Batch.cb)
+                return; // submitted by EndBatchCommands
+            SubmitAndWait(commandBuffer);
+        }
+
+        static void SubmitAndWait(VkCommandBuffer commandBuffer)
         {
             VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffer));
 

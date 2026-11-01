@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "ModelComponent.h"
+#include "Graphics/Animation/AnimationController.h"
 #include "Core/Application.h"
 #include "Core/Asset/AssetManager.h"
 #include "Core/Asset/AssetImporter.h"
@@ -9,6 +10,8 @@
 #include "Utilities/Hash.h"
 #include "Scene/SceneManager.h"
 #include "Scene/Scene.h"
+#include "Scene/Serialisation/SerialisationImplementation.h"
+#include <cereal/archives/json.hpp>
 #include <entt/entity/registry.hpp>
 #include <filesystem>
 
@@ -102,8 +105,7 @@ namespace Lumos::Graphics
             if(AssetImporter::NeedsImport(path))
             {
                 LINFO("Auto-importing source model: %s", path.c_str());
-                ImportSettings settings;
-                AssetImporter::Import(path, settings);
+                AssetImporter::Import(path);
             }
         }
         else if(!previewOnly && ext == "lmesh" && path.find("//Assets/Imported/") != std::string::npos)
@@ -112,9 +114,10 @@ namespace Lumos::Graphics
 
             if(!foundSource.empty())
             {
-                LINFO("ModelComponent: migrating stale imported path -> %s", foundSource.c_str());
-                ImportSettings settings;
-                AssetImporter::Import(foundSource, settings);
+                // load by the source path from now on; only rebuild the .lmesh when it is out of date
+                LINFO("ModelComponent: imported path -> source %s", foundSource.c_str());
+                if(AssetImporter::NeedsImport(foundSource))
+                    AssetImporter::Import(foundSource);
                 loadPath = foundSource;
             }
             else
@@ -165,9 +168,39 @@ namespace Lumos::Graphics
         auto& meshes = ModelRef->GetMeshes();
         for(auto& [idx, path] : MaterialOverrides)
         {
-            if(idx < (u32)meshes.Size() && !path.empty())
-                meshes[idx]->SetAndLoadMaterial(path);
+            if(idx >= (u32)meshes.Size() || path.empty())
+                continue;
+            // one object per file (cached), so every entity wearing it shares it
+            SharedPtr<Material> material = Application::Get().GetAssetManager()->LoadMaterialAsset(Str8StdS(path));
+            if(material)
+                InstanceMaterials[idx] = material;
+            else
+                LERROR("ModelComponent: could not load material %s", path.c_str());
         }
+    }
+
+    void ModelComponent::SetMaterialOverride(u32 mesh, const std::string& path)
+    {
+        if(path.empty())
+        {
+            MaterialOverrides.erase(mesh);
+            InstanceMaterials.erase(mesh);
+            return;
+        }
+        MaterialOverrides[mesh] = path;
+        if(SharedPtr<Material> material = Application::Get().GetAssetManager()->LoadMaterialAsset(Str8StdS(path)))
+            InstanceMaterials[mesh] = material;
+    }
+
+    bool ModelComponent::WriteMaterialFile(const Material& material, const std::string& path)
+    {
+        std::ostringstream out;
+        {
+            cereal::JSONOutputArchive archive(out);
+            Graphics::save(archive, material);
+        }
+        // the cached material (if any) is the one just written, so the cache stays as it is
+        return FileSystem::Get().WriteTextFileVFS(Str8StdS(path), Str8StdS(out.str()));
     }
 
     void ModelComponent::ApplyAnimationOverride()
@@ -200,5 +233,33 @@ namespace Lumos::Graphics
             }
         }
         return found;
+    }
+
+    AnimationController* ModelComponent::GetAnimator()
+    {
+        if(!ModelRef || ModelRef->GetAnimations().Empty())
+        {
+            Animator = nullptr;
+            return nullptr;
+        }
+        // a different model, or the same one with other clips (an animation override): start again
+        if(!Animator || AnimatorSource != ModelRef.get() || AnimatorClipCount != ModelRef->GetAnimations().Size())
+        {
+            Animator          = ModelRef->CreateAnimator();
+            AnimatorSource    = ModelRef.get();
+            AnimatorClipCount = ModelRef->GetAnimations().Size();
+            AnimatorScripted  = false;
+        }
+        return Animator.get();
+    }
+
+    void ModelComponent::TickAnimation(float dt)
+    {
+        AnimationController* animator = GetAnimator();
+        if(!animator)
+            return;
+        if(!AnimatorScripted && animator->GetLayerWeight((int)ModelRef->GetCurrentAnimationIndex()) <= 0.0f)
+            animator->Play((int)ModelRef->GetCurrentAnimationIndex(), animator->HasLayers() ? 0.2f : 0.0f);
+        animator->Tick(dt);
     }
 }

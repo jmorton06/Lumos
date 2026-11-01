@@ -15,7 +15,7 @@ layout(set = 0, binding = 0) uniform UniformBuffer
 	float Brightness;
 	float TargetLuminance;    // middle-grey target (typically 0.18)
 	float UseAdaptive;        // 0 or 1; non-bool to keep std140 alignment
-	float _pad;               // keep UBO 16-byte aligned for std140
+	float KeepAlpha;          // 1 = transparent window, carry scene alpha through
 } ubo;
 
 layout(set = 0, binding = 1) uniform sampler2D u_Texture;
@@ -214,6 +214,15 @@ void main()
 	colour.rgb = (colour.rgb - 0.5f) * ubo.Contrast + 0.5f + ubo.Brightness;
 	float lum = dot(colour.rgb, vec3(0.3086, 0.6094, 0.0820));
 	colour.rgb = mix(vec3(lum), colour.rgb, ubo.Saturation);
+
+	if (ubo.KeepAlpha > 0.5)
+	{
+		// stay premultiplied so empty pixels don't glow over the desktop
+		float a = texture(u_Texture, outTexCoord).a;
+		colour.rgb = min(colour.rgb + screenSpaceDither(gl_FragCoord.xy) * a, vec3(a));
+		outFrag = vec4(colour, a);
+		return;
+	}
 
 	colour.rgb += screenSpaceDither(gl_FragCoord.xy);
 

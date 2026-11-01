@@ -10,7 +10,7 @@ namespace Lumos
         class VKStorageBuffer : public StorageBuffer, public VKBuffer
         {
         public:
-            VKStorageBuffer(uint32_t size, const void* data);
+            VKStorageBuffer(uint32_t size, const void* data, bool readback = false);
             VKStorageBuffer();
             ~VKStorageBuffer();
 
@@ -27,7 +27,7 @@ namespace Lumos
 
         protected:
             void* GetPointerInternal() override;
-            static StorageBuffer* CreateFuncVulkan(uint32_t size, const void* data);
+            static StorageBuffer* CreateFuncVulkan(uint32_t size, const void* data, bool readback);
         };
     }
 }

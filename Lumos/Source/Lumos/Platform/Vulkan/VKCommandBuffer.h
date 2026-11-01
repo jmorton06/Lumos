@@ -43,10 +43,13 @@ namespace Lumos
             void BindPipeline(Pipeline* pipeline, uint32_t layer) override;
             void UnBindPipeline() override;
             void EndCurrentRenderPass() override;
+            void ClearDepthAttachment(float depth = 1.0f) override;
+            void ClearDepthAttachmentRect(float depth, int32_t x, int32_t y, uint32_t width, uint32_t height) override;
 
             void BeginRenderPass(RenderPass* renderpass, float* clearColour, Framebuffer* framebuffer, uint32_t width, uint32_t height);
 
-            bool Execute(VkPipelineStageFlags flags, VkSemaphore signalSemaphore, bool waitFence);
+            // signalSemaphore: what the submit signals instead of this buffer's own semaphore (VK_NULL_HANDLE = its own)
+            bool Execute(VkPipelineStageFlags flags, VkSemaphore waitSemaphore, bool waitFence, VkSemaphore signalSemaphore = VK_NULL_HANDLE);
 
             void ExecuteSecondary(CommandBuffer* primaryCmdBuffer) override;
             void UpdateViewport(uint32_t width, uint32_t height, bool flipViewport) override;

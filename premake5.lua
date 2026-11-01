@@ -11,6 +11,18 @@ newoption
 	description = "Build with shaderc (enables runtime shader compilation)"
 }
 
+newoption
+{
+	trigger = "package",
+	description = "Packaged build: bundle the game's Assets.lpak (+ .lmproj) instead of its loose project folder"
+}
+
+newoption
+{
+	trigger = "time-trace",
+	description = "Build with -ftime-trace (clang only)"
+}
+
 include "premake-dependencies.lua"
 --require 'Scripts/premake-utilities/premake-vscode/vscode'
 
@@ -47,6 +59,8 @@ workspace( settings.workspace_name )
 		architecture "x86_64"
 	elseif Arch == "x86" then
 		architecture "x86"
+	elseif Arch == "universal" then
+		architecture "universal" -- macOS: Apple Silicon + Intel in one app
 	end
 
 	print("Arch = ", Arch)
@@ -62,6 +76,11 @@ workspace( settings.workspace_name )
 	{
 		["pack"] = "install-time",
 	}
+
+	-- workspace-wide so external libs get traced too; json lands next to each .o
+	filter "options:time-trace"
+		buildoptions { "-ftime-trace" }
+	filter {}
 
 	group "External"
 		require("Lumos/External/box2dpremake5")

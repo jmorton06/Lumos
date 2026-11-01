@@ -24,6 +24,7 @@ layout(location = 0) out vec4 outColour;
 const float PROFILE_K    = 2.6;  // core tightness; higher = thinner hot centre
 const float PROFILE_EDGE = 0.30; // profile value at the stroke edge
 const float CORE_BOOST   = 0.55; // extra HDR in the centre, so bloom finds it
+const float FILTER_PX    = 1.3;  // edge filter width in pixels; wider = smoother, softer
 
 void main()
 {
@@ -42,14 +43,20 @@ void main()
     // actually drew it. That is what makes this frame-agnostic: the same maths
     // is right for world, star-local and camera-relative draws, none of which
     // agree on where the eye is.
-    float halfPx = 1.0 / max(fwidth(vSide), 1e-8);
+    // Euclidean, not fwidth: fwidth is |dx|+|dy|, which overstates the
+    // gradient by up to 1.4x on a diagonal and drew those lines thinner and
+    // rougher than horizontal ones.
+    vec2 grad    = vec2(dFdx(vSide), dFdy(vSide));
+    float halfPx = 1.0 / max(length(grad), 1e-8);
 
-    float t = abs(vSide);
+    // vSide runs past +-1 into the quad's margin (see the vert); the profile
+    // below only wants the in-stroke part.
+    float t = min(abs(vSide), 1.0);
 
-    // Coverage of a 1px box filter against the ribbon edge, in pixels. Using
-    // fwidth for the SCALE (which varies slowly across the quad) rather than
-    // for the edge distance itself is what keeps thin lines from crawling.
-    float cov = clamp((1.0 - t) * halfPx + 0.5, 0.0, 1.0);
+    // Coverage of a FILTER_PX-wide box filter against the ribbon edge. Using
+    // the derivative for the SCALE (which varies slowly across the quad) rather
+    // than for the edge distance itself is what keeps thin lines from crawling.
+    float cov = clamp((1.0 - abs(vSide)) * halfPx / FILTER_PX + 0.5, 0.0, 1.0);
 
     // Sub-pixel ribbons can't be drawn narrower than a pixel, so let them fade
     // instead: a hairline dims away rather than breaking into dashes as the

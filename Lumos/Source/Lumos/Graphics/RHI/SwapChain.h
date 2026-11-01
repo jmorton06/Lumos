@@ -27,6 +27,9 @@ namespace Lumos
             virtual size_t GetSwapChainBufferCount() const   = 0;
             virtual CommandBuffer* GetCurrentCommandBuffer() = 0;
             virtual void SetVSync(bool vsync)                = 0;
+            // Per-pixel alpha composited with the desktop; takes effect on the next recreate
+            virtual void SetTransparent(bool transparent) { }
+            virtual bool IsTransparent() const { return false; }
 
         protected:
             static SwapChain* (*CreateFunc)(uint32_t, uint32_t);

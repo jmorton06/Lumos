@@ -21,6 +21,8 @@
 #include "Maths/MathsUtilities.h"
 #include "Maths/Matrix3.h"
 #include "Graphics/ModelLoader/GLTFSceneImport.h"
+#include "Core/JobSystem.h"
+#include "Utilities/LoadImage.h"
 
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_USE_CPP14
@@ -92,8 +94,85 @@ namespace Lumos::Graphics
         }
     }
 
+    // tinygltf decodes images one at a time while it parses; keep the file bytes instead
+    // and decode them all at once below, in parallel, at the size they will be used.
+    static bool KeepEncodedImage(tinygltf::Image* image, const int, std::string*, std::string*, int, int, const unsigned char* bytes, int size, void*)
+    {
+        image->image.assign(bytes, bytes + size);
+        image->width      = 0;
+        image->height     = 0;
+        image->component  = 4;
+        image->bits       = 8;
+        image->pixel_type = TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE;
+        image->as_is      = true; // still encoded
+        return true;
+    }
+
+    static bool LoadGLTFFile(tinygltf::Model& model, const std::string& path, std::string& err, std::string& warn)
+    {
+        tinygltf::TinyGLTF loader;
+        loader.SetImageLoader(KeepEncodedImage, nullptr);
+        if(StringUtilities::GetFilePathExtension(path) == "glb")
+            return loader.LoadBinaryFromFile(&model, &err, &warn, path);
+        return loader.LoadASCIIFromFile(&model, &err, &warn, path);
+    }
+
+    static void DecodeImages(tinygltf::Model& model)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        TDArray<u32> pending;
+        for(u32 i = 0; i < (u32)model.images.size(); i++)
+            if(model.images[i].as_is && !model.images[i].image.empty())
+                pending.PushBack(i);
+        if(pending.Empty())
+            return;
+
+        uint32_t maxWidth, maxHeight;
+        GetMaxImageDimensions(maxWidth, maxHeight);
+
+        System::JobSystem::Context ctx;
+        System::JobSystem::Dispatch(ctx, (u32)pending.Size(), 1, [&model, &pending, maxWidth, maxHeight](JobDispatchArgs args)
+                                    {
+            tinygltf::Image& img = model.images[pending[args.jobIndex]];
+            int w = 0, h = 0, comp = 0;
+            stbi_uc* pixels = stbi_load_from_memory(img.image.data(), (int)img.image.size(), &w, &h, &comp, 4);
+            std::vector<unsigned char> decoded;
+            int outW = 0, outH = 0;
+            if(pixels)
+            {
+                outW = w;
+                outH = h;
+                if(maxWidth > 0 && maxHeight > 0 && ((u32)w > maxWidth || (u32)h > maxHeight))
+                {
+                    const float aspect = float(w) / float(h);
+                    if((u32)outW > maxWidth)
+                    {
+                        outW = (int)maxWidth;
+                        outH = int(maxWidth / aspect);
+                    }
+                    if((u32)outH > maxHeight)
+                    {
+                        outH = (int)maxHeight;
+                        outW = int(maxHeight * aspect);
+                    }
+                }
+                decoded.resize((size_t)outW * outH * 4);
+                if(outW != w || outH != h)
+                    stbir_resize_uint8_linear(pixels, w, h, 0, decoded.data(), outW, outH, 0, STBIR_RGBA);
+                else
+                    memcpy(decoded.data(), pixels, decoded.size());
+                stbi_image_free(pixels);
+            }
+            img.image.swap(decoded);
+            img.width  = outW;
+            img.height = outH;
+            img.as_is  = false; });
+        System::JobSystem::Wait(ctx);
+    }
+
     TDArray<SharedPtr<Material>> LoadMaterials(tinygltf::Model& gltfModel, const std::string& directory)
     {
+        DecodeImages(gltfModel);
         LUMOS_PROFILE_FUNCTION();
         TDArray<SharedPtr<Graphics::Texture2D>> loadedTextures;
         TDArray<SharedPtr<Material>> loadedMaterials;
@@ -179,17 +258,17 @@ namespace Lumos::Graphics
                 imageAndSampler.Image->image.clear();
                 imageAndSampler.Image->image.shrink_to_fit();
             }
+            else
+                loadedTextures.PushBack(nullptr); // keep one slot per glTF texture: materials index by texture
         }
 
         auto TextureName = [&](int index)
         {
             if(index >= 0)
             {
-                const tinygltf::Texture& tex = gltfModel.textures[index];
-                if(tex.source >= 0 && tex.source < loadedTextures.Size())
-                {
-                    return loadedTextures[tex.source];
-                }
+                // materials name a texture (not its image) - textures and images need not line up
+                if(index < (int)loadedTextures.Size())
+                    return loadedTextures[index];
             }
             return SharedPtr<Graphics::Texture2D>();
         };
@@ -266,13 +345,13 @@ namespace Lumos::Graphics
                 if(metallicGlossinessWorkflow->second.Has("diffuseTexture"))
                 {
                     int index       = metallicGlossinessWorkflow->second.Get("diffuseTexture").Get("index").Get<int>();
-                    textures.albedo = loadedTextures[gltfModel.textures[index].source];
+                    textures.albedo = TextureName(index);
                 }
 
                 if(metallicGlossinessWorkflow->second.Has("metallicGlossinessTexture"))
                 {
                     int index           = metallicGlossinessWorkflow->second.Get("metallicGlossinessTexture").Get("index").Get<int>();
-                    textures.roughness  = loadedTextures[gltfModel.textures[index].source];
+                    textures.roughness  = TextureName(index);
                     properties.workflow = PBR_WORKFLOW_SPECULAR_GLOSINESS;
                 }
 
@@ -324,6 +403,14 @@ namespace Lumos::Graphics
         }
 
         return loadedMaterials;
+    }
+
+    // A vertex's JOINTS_0 index is a position in the skin's joint list; the skeleton orders its joints
+    // its own way. Set while the meshes of a skinned model load, null otherwise.
+    static const TDArray<u32>* s_JointRemap = nullptr;
+    static inline u32 RemapJoint(u32 joint)
+    {
+        return (s_JointRemap && joint < s_JointRemap->Size()) ? (*s_JointRemap)[joint] : joint;
     }
 
     TDArray<Graphics::Mesh*> LoadMesh(tinygltf::Model& model, tinygltf::Mesh& mesh, TDArray<SharedPtr<Material>>& materials, Maths::Transform& parentTransform)
@@ -435,11 +522,24 @@ namespace Lumos::Graphics
 
                 else if(attribute.first == "COLOR_0")
                 {
-                    size_t uvCount                = accessor.count;
-                    Maths::Vector4Simple* colours = reinterpret_cast<Maths::Vector4Simple*>(data.Data());
-                    for(auto p = 0; p < uvCount; ++p)
+                    // vec3 or vec4; float or normalised u8 / u16
+                    const size_t count = accessor.count;
+                    const int comps    = componentLength;
+                    const uint8_t* src = data.Data();
+                    for(size_t p = 0; p < count; ++p)
                     {
-                        vertices[p].Colours = ToVector(colours[p]);
+                        float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+                        for(int k = 0; k < comps && k < 4; k++)
+                        {
+                            const size_t i = p * comps + k;
+                            if(accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
+                                c[k] = ((const uint16_t*)src)[i] / 65535.0f;
+                            else if(accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+                                c[k] = src[i] / 255.0f;
+                            else
+                                c[k] = ((const float*)src)[i];
+                        }
+                        vertices[p].Colours = Vec4(c[0], c[1], c[2], c[3]);
                     }
                 }
 
@@ -560,10 +660,10 @@ namespace Lumos::Graphics
                         {
                             const JointTmp& joint = *(const JointTmp*)(data.Data() + p * stride);
 
-                            animVertices[p].BoneInfoIndices[0] = (uint32_t)joint.ind[0];
-                            animVertices[p].BoneInfoIndices[1] = (uint32_t)joint.ind[1];
-                            animVertices[p].BoneInfoIndices[2] = (uint32_t)joint.ind[2];
-                            animVertices[p].BoneInfoIndices[3] = (uint32_t)joint.ind[3];
+                            animVertices[p].BoneInfoIndices[0] = RemapJoint((uint32_t)joint.ind[0]);
+                            animVertices[p].BoneInfoIndices[1] = RemapJoint((uint32_t)joint.ind[1]);
+                            animVertices[p].BoneInfoIndices[2] = RemapJoint((uint32_t)joint.ind[2]);
+                            animVertices[p].BoneInfoIndices[3] = RemapJoint((uint32_t)joint.ind[3]);
                         }
                     }
                     else if(accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
@@ -571,10 +671,10 @@ namespace Lumos::Graphics
                         uint8_t* joints = reinterpret_cast<uint8_t*>(data.Data());
                         for(auto p = 0; p < jointCount; ++p)
                         {
-                            animVertices[p].BoneInfoIndices[0] = (uint32_t)joints[p * 4];
-                            animVertices[p].BoneInfoIndices[1] = (uint32_t)joints[p * 4 + 1];
-                            animVertices[p].BoneInfoIndices[2] = (uint32_t)joints[p * 4 + 2];
-                            animVertices[p].BoneInfoIndices[3] = (uint32_t)joints[p * 4 + 3];
+                            animVertices[p].BoneInfoIndices[0] = RemapJoint((uint32_t)joints[p * 4]);
+                            animVertices[p].BoneInfoIndices[1] = RemapJoint((uint32_t)joints[p * 4 + 1]);
+                            animVertices[p].BoneInfoIndices[2] = RemapJoint((uint32_t)joints[p * 4 + 2]);
+                            animVertices[p].BoneInfoIndices[3] = RemapJoint((uint32_t)joints[p * 4 + 3]);
                         }
                     }
                     else if(accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
@@ -588,10 +688,10 @@ namespace Lumos::Graphics
                         {
                             const JointTmp& joint = *(const JointTmp*)(data.Data() + i * stride);
 
-                            animVertices[i].BoneInfoIndices[0] = joint.ind[0];
-                            animVertices[i].BoneInfoIndices[1] = joint.ind[1];
-                            animVertices[i].BoneInfoIndices[2] = joint.ind[2];
-                            animVertices[i].BoneInfoIndices[3] = joint.ind[3];
+                            animVertices[i].BoneInfoIndices[0] = RemapJoint(joint.ind[0]);
+                            animVertices[i].BoneInfoIndices[1] = RemapJoint(joint.ind[1]);
+                            animVertices[i].BoneInfoIndices[2] = RemapJoint(joint.ind[2]);
+                            animVertices[i].BoneInfoIndices[3] = RemapJoint(joint.ind[3]);
                         }
                     }
                     else
@@ -812,7 +912,10 @@ namespace Lumos::Graphics
         {
             int subIndex = 0;
 
-            auto meshes = LoadMesh(model, model.meshes[node.mesh], materials, transform);
+            // glTF: a skinned mesh ignores its node transform, the joints (and inverse binds) place it
+            Maths::Transform skinned;
+            skinned.SetWorldMatrix(Mat4(1.0f));
+            auto meshes = LoadMesh(model, model.meshes[node.mesh], materials, node.skin >= 0 ? skinned : transform);
 
             for(auto& mesh : meshes)
             {
@@ -939,26 +1042,14 @@ namespace Lumos::Graphics
         EnsureGLTFLookupTables();
 
         tinygltf::Model model;
-        tinygltf::TinyGLTF loader;
         std::string err;
         std::string warn;
 
-        std::string ext = StringUtilities::GetFilePathExtension(path);
-
-        // loader.SetImageLoader(tinygltf::LoadImageData, nullptr);
-        // loader.SetImageWriter(tinygltf::WriteImageData, nullptr);
-
         bool ret;
 
-        if(ext == "glb") // assume binary glTF.
         {
-            LUMOS_PROFILE_SCOPE(".glb binary loading");
-            ret = tinygltf::TinyGLTF().LoadBinaryFromFile(&model, &err, &warn, path);
-        }
-        else // assume ascii glTF.
-        {
-            LUMOS_PROFILE_SCOPE(".gltf loading");
-            ret = tinygltf::TinyGLTF().LoadASCIIFromFile(&model, &err, &warn, path);
+            LUMOS_PROFILE_SCOPE("glTF loading");
+            ret = LoadGLTFFile(model, path, err, warn);
         }
 
         if(!err.empty())
@@ -971,25 +1062,15 @@ namespace Lumos::Graphics
             LERROR(warn.c_str());
         }
 
-        if(!ret || model.defaultScene < 0 || model.scenes.empty())
+        if(!ret || model.scenes.empty())
         {
-            LERROR("Failed to parse glTF");
+            LERROR("Failed to parse glTF %s", path.c_str());
+            return;
         }
         {
             LUMOS_PROFILE_SCOPE("Parse GLTF Model");
 
-            std::string directory = path.substr(0, path.find_last_of('/') + 1);
-            auto LoadedMaterials = LoadMaterials(model, directory);
-
-            std::string name = path.substr(path.find_last_of('/') + 1);
-
-            auto meshes                      = TDArray<TDArray<Graphics::Mesh*>>();
-            const tinygltf::Scene& gltfScene = model.scenes[Lumos::Maths::Max(0, model.defaultScene)];
-            for(size_t i = 0; i < gltfScene.nodes.size(); i++)
-            {
-                LoadNode(this, gltfScene.nodes[i], Mat4(1.0f), model, LoadedMaterials, meshes);
-            }
-
+            TDArray<u32> jointRemap;
             auto skins = model.skins;
             if(!skins.empty() || !model.animations.empty())
             {
@@ -1027,15 +1108,47 @@ namespace Lumos::Graphics
                         m_BindPoses.PushBack(Mat4::Inverse(ConvertToGLM2(pose)));
                     }
 
+                    // the skin's own joint order -> the skeleton's, by name; and its inverse bind
+                    // matrices, which are what the mesh was skinned against (the rest pose can differ)
+                    if(!skins.empty())
+                    {
+                        const tinygltf::Skin& skin = skins[0];
+                        const auto names           = m_Skeleton->GetSkeleton().joint_names();
+                        jointRemap.Resize((u32)skin.joints.size());
+                        const float* ibm = nullptr;
+                        if(skin.inverseBindMatrices >= 0)
+                        {
+                            const tinygltf::Accessor& acc = model.accessors[skin.inverseBindMatrices];
+                            const tinygltf::BufferView& bv = model.bufferViews[acc.bufferView];
+                            ibm = reinterpret_cast<const float*>(model.buffers[bv.buffer].data.data() + bv.byteOffset + acc.byteOffset);
+                        }
+                        for(size_t j = 0; j < skin.joints.size(); j++)
+                        {
+                            const std::string& jointName = model.nodes[skin.joints[j]].name;
+                            u32 found                    = (u32)j;
+                            for(size_t k = 0; k < names.size(); k++)
+                                if(jointName == names[k])
+                                {
+                                    found = (u32)k;
+                                    break;
+                                }
+                            jointRemap[(u32)j] = found;
+                            if(ibm && found < m_BindPoses.Size())
+                                m_BindPoses[found] = Mat4(ibm + j * 16);
+                        }
+                    }
+
                     ozz::animation::offline::AnimationBuilder animBuilder;
                     auto animationNames = importer.GetAnimationNames();
 
                     for(auto& animName : animationNames)
                     {
                         RawAnimation* rawAnimation = new RawAnimation();
-                        importer.Import(animName.c_str(), m_Skeleton->GetSkeleton(), 30.0f, rawAnimation);
-
-                        m_Animation.PushBack(CreateSharedPtr<Animation>(std::string(animName.c_str()), animBuilder(*rawAnimation).release(), m_Skeleton));
+                        auto built                 = importer.Import(animName.c_str(), m_Skeleton->GetSkeleton(), 30.0f, rawAnimation) ? animBuilder(*rawAnimation) : nullptr;
+                        if(built)
+                            m_Animation.PushBack(CreateSharedPtr<Animation>(std::string(animName.c_str()), built.release(), m_Skeleton));
+                        else
+                            LWARN("glTF: skipped animation '%s' (it would not convert)", animName.c_str());
 
                         delete rawAnimation;
                     }
@@ -1043,6 +1156,21 @@ namespace Lumos::Graphics
 
                 delete rawSkeleton;
             }
+
+            s_JointRemap = jointRemap.Empty() ? nullptr : &jointRemap;
+            std::string directory = path.substr(0, path.find_last_of('/') + 1);
+            auto LoadedMaterials = LoadMaterials(model, directory);
+
+            std::string name = path.substr(path.find_last_of('/') + 1);
+
+            auto meshes                      = TDArray<TDArray<Graphics::Mesh*>>();
+            const tinygltf::Scene& gltfScene = model.scenes[Lumos::Maths::Max(0, model.defaultScene)];
+            for(size_t i = 0; i < gltfScene.nodes.size(); i++)
+            {
+                LoadNode(this, gltfScene.nodes[i], Mat4(1.0f), model, LoadedMaterials, meshes);
+            }
+            s_JointRemap = nullptr;
+
         }
         
         if(HashMapsInitialised)
@@ -1172,11 +1300,7 @@ namespace Lumos::Graphics
         std::string err, warn;
         std::string ext = StringUtilities::GetFilePathExtension(path);
 
-        bool ret;
-        if(ext == "glb")
-            ret = tinygltf::TinyGLTF().LoadBinaryFromFile(&model, &err, &warn, path);
-        else
-            ret = tinygltf::TinyGLTF().LoadASCIIFromFile(&model, &err, &warn, path);
+        bool ret = LoadGLTFFile(model, path, err, warn);
 
         if(!err.empty())
             LERROR(err.c_str());

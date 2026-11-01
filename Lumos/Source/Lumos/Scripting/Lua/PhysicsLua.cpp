@@ -170,8 +170,24 @@ namespace Lumos
         raycastQuery_type["layerMask"]   = &RaycastQuery::LayerMask;
         raycastQuery_type["hitTriggers"] = &RaycastQuery::HitTriggers;
 
-        state.set_function("Raycast", [](const Vec3& origin, const Vec3& dir, float maxDist) -> RaycastHit
-            { return Application::Get().GetSystem<LumosPhysicsEngine>()->Raycast(origin, dir, maxDist); });
+        // `ignore` skips one body - a ray cast from inside a collider hits that collider first,
+        // so anything casting from its own position (ground checks, guns, cameras) needs it.
+        state.set_function("Raycast", [](const Vec3& origin, const Vec3& dir, float maxDist, sol::optional<RigidBody3D*> ignore) -> RaycastHit
+            {
+                RaycastQuery query(origin, dir, maxDist);
+                query.IgnoreBody = ignore.value_or(nullptr);
+                return Application::Get().GetSystem<LumosPhysicsEngine>()->Raycast(query);
+            });
+
+        // Sweep a sphere along a ray: what would a ball of this radius hit first? `distance` is how
+        // far its centre gets, `point` where it touches. For fat bullets, cameras, "can I fit" tests.
+        state.set_function("SphereCast", [](const Vec3& origin, const Vec3& dir, float radius, float maxDist, sol::optional<RigidBody3D*> ignore) -> RaycastHit
+            {
+                RaycastQuery query(origin, dir, maxDist);
+                query.Radius     = radius;
+                query.IgnoreBody = ignore.value_or(nullptr);
+                return Application::Get().GetSystem<LumosPhysicsEngine>()->Raycast(query);
+            });
 
         state.set_function("TerrainHeightAt", [](float wx, float wz) -> sol::optional<float>
             {
@@ -231,7 +247,8 @@ namespace Lumos
             { "Pyramid", CollisionShapeType::CollisionPyramid },
             { "Capsule", CollisionShapeType::CollisionCapsule },
             { "Hull", CollisionShapeType::CollisionHull },
-            { "Terrain", CollisionShapeType::CollisionTerrain }
+            { "Terrain", CollisionShapeType::CollisionTerrain },
+            { "Mesh", CollisionShapeType::CollisionMesh }
         };
         state.new_enum<CollisionShapeType, false>("CollisionShapeType", shapes3D);
 
@@ -289,6 +306,36 @@ namespace Lumos
 
         auto physics = state["Physics"].get_or_create<sol::table>();
         physics.set_function("SetGravity3D", &SetGravity3D);
+        // Fast bodies are swept so they stop at thin obstacles instead of skipping through. On by default.
+        physics.set_function("SetContinuousCollision", [](bool enabled)
+            {
+                if(auto* p = Application::Get().GetSystem<LumosPhysicsEngine>())
+                    p->SetContinuousCollision(enabled);
+            });
+        // CPU ms of the last physics substep: all stages, or one (0 broadphase, 1 narrowphase, 2 forces, 3 solve, 4 integrate, 5 rest)
+        physics.set_function("GetStepMs", [](sol::optional<int> stage) -> float
+            {
+                auto* p = Application::Get().GetSystem<LumosPhysicsEngine>();
+                if(!p)
+                    return 0.0f;
+                if(stage)
+                    return (*stage >= 0 && *stage < (int)PhysicsStage_Count) ? p->GetStageMs((PhysicsStage)*stage) : 0.0f;
+                float total = 0.0f;
+                for(u32 i = 0; i < PhysicsStage_Count; i++)
+                    total += p->GetStageMs((PhysicsStage)i);
+                return total;
+            });
+        // false = test every pair (slow, for checking the octree against)
+        physics.set_function("SetOctreeBroadphase", [](bool enabled)
+            {
+                if(auto* p = Application::Get().GetSystem<LumosPhysicsEngine>())
+                    p->SetBroadphaseType(enabled ? BroadphaseType::OCTREE : BroadphaseType::BRUTE_FORCE);
+            });
+        physics.set_function("GetContinuousCollision", []() -> bool
+            {
+                auto* p = Application::Get().GetSystem<LumosPhysicsEngine>();
+                return p && p->GetContinuousCollision();
+            });
         physics.set_function("GetGravity3D", &GetGravity3D);
         physics.set_function("CreateVehicle", [](RigidBody3D* chassis) -> RaycastVehicle*
             { return Application::Get().GetSystem<LumosPhysicsEngine>()->CreateVehicle(chassis); });

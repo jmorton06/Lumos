@@ -4,7 +4,6 @@
 #include <Lumos/Utilities/IniFile.h>
 #include <Lumos/Graphics/Camera/EditorCamera.h>
 #include <Lumos/Graphics/Camera/Camera.h>
-#include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/Entity.h>
 

@@ -2,6 +2,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 #include "Octahedral.glslh"
+#include "GBuffer.glslh"
 
 
 layout(location = 0) in vec2 outTexCoord;
@@ -53,6 +54,16 @@ vec3 SampleReflection(vec2 uv)
     return texture(u_Colour, uv).rgb;
 }
 
+// Karis' analytic fit of the split-sum BRDF LUT: x = F0 scale, y = bias
+vec2 EnvBRDFApprox(float perceptualRoughness, float NoV)
+{
+    const vec4 c0 = vec4(-1.0, -0.0275, -0.572, 0.022);
+    const vec4 c1 = vec4(1.0, 0.0425, 1.04, -0.04);
+    vec4 r        = perceptualRoughness * c0 + c1;
+    float a004    = min(r.x * r.x, exp2(-9.28 * NoV)) * r.x + r.y;
+    return vec2(-1.04, 1.04) * a004 + r.zw;
+}
+
 float Dither(vec2 p)
 {
     return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715))));
@@ -65,7 +76,9 @@ void main()
 
     vec4 gb         = texture(u_GBuffer, outTexCoord);
     float depth     = gb.b;
-    float roughness = gb.a;
+    vec2 material   = GBufferUnpackMaterial(gb.a);
+    float roughness = material.x;
+    float metallic  = material.y;
 
     // No geometry here (cleared G-buffer reads ~0), or too rough to reflect.
     if(depth <= 0.0 || depth >= 1.0)
@@ -92,12 +105,17 @@ void main()
     vec3 prevPos  = posVS;
     float prevDist = 0.0;
 
-    if(reflVS.z < 0.0)
+    // rays turned back towards the camera march too (a helmet facing us reflects the floor in
+    // front of it), stopping short of the near plane
+    float rayLength = ubo.MaxDistance;
+    if(reflVS.z > 1e-4)
+        rayLength = min(rayLength, (-ubo.Near * 1.05 - posVS.z) / reflVS.z);
+    if(rayLength > 0.0)
     {
         for(int i = 1; i <= ubo.MaxSteps; ++i)
         {
             float t    = clamp((float(i) - jitter) / float(ubo.MaxSteps), 0.0, 1.0);
-            float dist = t * t * ubo.MaxDistance;
+            float dist = t * t * rayLength;
             float segLen = dist - prevDist;
 
             vec3 rayPos = posVS + reflVS * dist;
@@ -155,45 +173,35 @@ void main()
         }
     }
 
-    // Nothing to add: no screen hit and no environment to fall back to.
-    if(!hit && !hasEnv)
+    // a miss keeps what the forward pass reflected (the environment)
+    if(!hit)
         return;
 
-    float NoV          = clamp(dot(-viewDir, normalVS), 0.0, 1.0);
-    float grazingBoost = mix(0.75, 1.0, pow(1.0 - NoV, 4.0));
-
+    float NoV       = clamp(dot(-viewDir, normalVS), 0.0, 1.0);
     float roughFade = 1.0 - smoothstep(ubo.MaxRoughness * 0.6, ubo.MaxRoughness, roughness);
 
-    float screenConf = 0.0;
-    if(hit)
-    {
-        vec2 e         = smoothstep(0.0, 0.12, hitUV) * (1.0 - smoothstep(0.88, 1.0, hitUV));
-        float edgeFade = e.x * e.y;
-        float hitDist  = length(hitPos - posVS);
-        float distFade = 1.0 - smoothstep(ubo.MaxDistance * 0.75, ubo.MaxDistance, hitDist);
-        screenConf     = edgeFade * distFade;
-    }
+    vec2 e          = smoothstep(0.0, 0.12, hitUV) * (1.0 - smoothstep(0.88, 1.0, hitUV));
+    float hitDist   = length(hitPos - posVS);
+    float distFade  = 1.0 - smoothstep(ubo.MaxDistance * 0.75, ubo.MaxDistance, hitDist);
+    float screenConf = e.x * e.y * distFade;
 
     vec3 screenRefl = SampleReflection(hitUV);
 
-    vec3 reflColour;
-    float amount;
+    // the forward pass already reflected the environment here: swap that for what the ray found
+    vec3 envRefl = vec3(0.0);
     if(hasEnv)
     {
         mat3 invViewRot = transpose(mat3(ubo.view));
         vec3 reflW      = normalize(invViewRot * reflVS);
         float maxMip    = max(ubo.EnvMipCount - 1.0, 1.0);
-        vec3 envRefl    = textureLod(u_EnvMap, reflW, roughness * maxMip).rgb * ubo.EnvIntensity;
-
-        reflColour = mix(envRefl, screenRefl, screenConf);
-        amount     = clamp(ubo.Strength * roughFade * grazingBoost, 0.0, 1.0);
-    }
-    else
-    {
-        // No environment: screen reflection fades to the underlying surface.
-        reflColour = screenRefl;
-        amount     = clamp(ubo.Strength * roughFade * grazingBoost * screenConf, 0.0, 1.0);
+        envRefl         = min(textureLod(u_EnvMap, reflW, roughness * maxMip).rgb, vec3(50.0)) * ubo.EnvIntensity;
     }
 
-    outFrag = vec4(mix(sceneColour.rgb, reflColour, amount), sceneColour.a);
+    // same split-sum weight as the forward IBL; no albedo in the G-buffer, so metals are untinted
+    vec3 F0         = mix(vec3(0.04), vec3(1.0), metallic);
+    vec2 ab         = EnvBRDFApprox(roughness, NoV);
+    vec3 specWeight = F0 * ab.x + ab.y;
+
+    vec3 delta = (screenRefl - envRefl) * specWeight * (screenConf * roughFade * ubo.Strength);
+    outFrag    = vec4(max(sceneColour.rgb + delta, vec3(0.0)), sceneColour.a);
 }
