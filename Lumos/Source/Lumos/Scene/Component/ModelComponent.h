@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics/Model.h"
 #include "Graphics/Material.h"
+#include "Graphics/Animation/AnimationController.h"
 #include <unordered_map>
 
 namespace Lumos::Graphics

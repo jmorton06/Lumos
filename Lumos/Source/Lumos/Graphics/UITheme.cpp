@@ -25,31 +25,31 @@ namespace Lumos
             i32 TabStyle;
         };
 
-        Vec4 RGB(int r, int g, int b)
+        Vec4 Rgb(int r, int g, int b)
         {
             return Vec4((f32)r / 255.0f, (f32)g / 255.0f, (f32)b / 255.0f, 1.0f);
         }
 
         // The first three are the engine's own; the rest follow the ImGui editor themes.
         const Preset kPresets[] = {
-            { "Lumos", RGB(24, 22, 19), RGB(40, 36, 31), RGB(234, 228, 218), RGB(233, 150, 64), 10.0f, 6.0f, UIToolTabStyle_Pill },
-            { "Midnight", RGB(13, 15, 20), RGB(24, 27, 35), RGB(226, 230, 238), RGB(92, 148, 255), 10.0f, 6.0f, UIToolTabStyle_Pill },
-            { "Paper", RGB(226, 224, 218), RGB(250, 249, 246), RGB(38, 36, 33), RGB(214, 104, 54), 10.0f, 6.0f, UIToolTabStyle_Pill },
-            { "Dark", RGB(40, 42, 54), RGB(52, 54, 64), RGB(200, 200, 200), RGB(155, 130, 207), 4.0f, 2.0f, UIToolTabStyle_Block },
-            { "Dracula", RGB(33, 34, 44), RGB(40, 42, 54), RGB(244, 244, 244), RGB(145, 111, 186), 6.0f, 4.0f, UIToolTabStyle_Underline },
-            { "Black", RGB(0, 0, 0), RGB(26, 26, 26), RGB(255, 255, 255), RGB(84, 171, 219), 0.0f, 1.0f, UIToolTabStyle_Underline },
-            { "Grey", RGB(48, 48, 48), RGB(64, 64, 64), RGB(255, 255, 255), RGB(166, 166, 166), 3.0f, 2.0f, UIToolTabStyle_Block },
-            { "Light", RGB(214, 214, 214), RGB(240, 240, 240), RGB(0, 0, 0), RGB(66, 150, 250), 4.0f, 2.0f, UIToolTabStyle_Block },
-            { "Cherry", RGB(24, 26, 32), RGB(33, 36, 43), RGB(242, 245, 250), RGB(181, 56, 69), 6.0f, 4.0f, UIToolTabStyle_Pill },
-            { "Blue", RGB(33, 46, 60), RGB(44, 62, 80), RGB(236, 240, 241), RGB(41, 128, 185), 4.0f, 3.0f, UIToolTabStyle_Underline },
-            { "Cinder", RGB(24, 26, 32), RGB(33, 36, 43), RGB(242, 245, 250), RGB(235, 46, 74), 4.0f, 3.0f, UIToolTabStyle_Underline },
-            { "Classic", RGB(20, 20, 28), RGB(36, 36, 48), RGB(230, 230, 230), RGB(102, 102, 178), 0.0f, 1.0f, UIToolTabStyle_Block },
-            { "Classic Dark", RGB(15, 15, 15), RGB(30, 30, 30), RGB(255, 255, 255), RGB(66, 150, 250), 0.0f, 1.0f, UIToolTabStyle_Block },
-            { "Classic Light", RGB(210, 210, 210), RGB(240, 240, 240), RGB(0, 0, 0), RGB(66, 150, 250), 0.0f, 1.0f, UIToolTabStyle_Block },
-            { "Cosy", RGB(32, 33, 39), RGB(42, 44, 54), RGB(230, 175, 137), RGB(47, 179, 135), 8.0f, 5.0f, UIToolTabStyle_Pill },
-            { "Apple Light", RGB(222, 222, 224), RGB(242, 242, 242), RGB(26, 26, 26), RGB(0, 122, 255), 10.0f, 6.0f, UIToolTabStyle_Pill },
-            { "Graphite Dark", RGB(26, 26, 26), RGB(38, 38, 38), RGB(230, 230, 230), RGB(153, 153, 153), 6.0f, 4.0f, UIToolTabStyle_Underline },
-            { "Pastel", RGB(235, 230, 242), RGB(250, 247, 242), RGB(38, 38, 38), RGB(128, 115, 191), 10.0f, 6.0f, UIToolTabStyle_Pill },
+            { "Lumos", Rgb(24, 22, 19), Rgb(40, 36, 31), Rgb(234, 228, 218), Rgb(233, 150, 64), 10.0f, 6.0f, UIToolTabStyle_Pill },
+            { "Midnight", Rgb(13, 15, 20), Rgb(24, 27, 35), Rgb(226, 230, 238), Rgb(92, 148, 255), 10.0f, 6.0f, UIToolTabStyle_Pill },
+            { "Paper", Rgb(226, 224, 218), Rgb(250, 249, 246), Rgb(38, 36, 33), Rgb(214, 104, 54), 10.0f, 6.0f, UIToolTabStyle_Pill },
+            { "Dark", Rgb(40, 42, 54), Rgb(52, 54, 64), Rgb(200, 200, 200), Rgb(155, 130, 207), 4.0f, 2.0f, UIToolTabStyle_Block },
+            { "Dracula", Rgb(33, 34, 44), Rgb(40, 42, 54), Rgb(244, 244, 244), Rgb(145, 111, 186), 6.0f, 4.0f, UIToolTabStyle_Underline },
+            { "Black", Rgb(0, 0, 0), Rgb(26, 26, 26), Rgb(255, 255, 255), Rgb(84, 171, 219), 0.0f, 1.0f, UIToolTabStyle_Underline },
+            { "Grey", Rgb(48, 48, 48), Rgb(64, 64, 64), Rgb(255, 255, 255), Rgb(166, 166, 166), 3.0f, 2.0f, UIToolTabStyle_Block },
+            { "Light", Rgb(214, 214, 214), Rgb(240, 240, 240), Rgb(0, 0, 0), Rgb(66, 150, 250), 4.0f, 2.0f, UIToolTabStyle_Block },
+            { "Cherry", Rgb(24, 26, 32), Rgb(33, 36, 43), Rgb(242, 245, 250), Rgb(181, 56, 69), 6.0f, 4.0f, UIToolTabStyle_Pill },
+            { "Blue", Rgb(33, 46, 60), Rgb(44, 62, 80), Rgb(236, 240, 241), Rgb(41, 128, 185), 4.0f, 3.0f, UIToolTabStyle_Underline },
+            { "Cinder", Rgb(24, 26, 32), Rgb(33, 36, 43), Rgb(242, 245, 250), Rgb(235, 46, 74), 4.0f, 3.0f, UIToolTabStyle_Underline },
+            { "Classic", Rgb(20, 20, 28), Rgb(36, 36, 48), Rgb(230, 230, 230), Rgb(102, 102, 178), 0.0f, 1.0f, UIToolTabStyle_Block },
+            { "Classic Dark", Rgb(15, 15, 15), Rgb(30, 30, 30), Rgb(255, 255, 255), Rgb(66, 150, 250), 0.0f, 1.0f, UIToolTabStyle_Block },
+            { "Classic Light", Rgb(210, 210, 210), Rgb(240, 240, 240), Rgb(0, 0, 0), Rgb(66, 150, 250), 0.0f, 1.0f, UIToolTabStyle_Block },
+            { "Cosy", Rgb(32, 33, 39), Rgb(42, 44, 54), Rgb(230, 175, 137), Rgb(47, 179, 135), 8.0f, 5.0f, UIToolTabStyle_Pill },
+            { "Apple Light", Rgb(222, 222, 224), Rgb(242, 242, 242), Rgb(26, 26, 26), Rgb(0, 122, 255), 10.0f, 6.0f, UIToolTabStyle_Pill },
+            { "Graphite Dark", Rgb(26, 26, 26), Rgb(38, 38, 38), Rgb(230, 230, 230), Rgb(153, 153, 153), 6.0f, 4.0f, UIToolTabStyle_Underline },
+            { "Pastel", Rgb(235, 230, 242), Rgb(250, 247, 242), Rgb(38, 38, 38), Rgb(128, 115, 191), 10.0f, 6.0f, UIToolTabStyle_Pill },
         };
         constexpr i32 kPresetCount = (i32)(sizeof(kPresets) / sizeof(kPresets[0]));
 
