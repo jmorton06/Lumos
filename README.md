@@ -54,7 +54,7 @@ A portrait arcade game: read the wind and the gravity, then shoot your way acros
 
 ### Vielle
 
-[Vielle](https://joem.app/vielle) plays your own music, audiobooks and podcasts on iPhone, iPad and Mac. No account, no tracking, no subscription. Not a game: the whole app is built on the engine's UI. Source in [Tools/LumosTunes](Tools/LumosTunes).
+[Vielle](https://joem.app/vielle) plays your own music, audiobooks and podcasts on iPhone, iPad and Mac. No account, no tracking, no subscription. Not a game: the whole app is built on the engine's UI.
 
 <table>
   <tr>
