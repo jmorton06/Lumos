@@ -147,6 +147,9 @@ project "Lumos"
 		cppdialect "C++17"
 		systemversion "11.0"
 
+		-- Swift back-deploy libs would have to be linked by every app using libLumos. Store.swift is all macOS 12+.
+		xcodebuildsettings { ['OTHER_SWIFT_FLAGS'] = '-runtime-compatibility-version none' }
+
 		files
 		{
 			"Source/Lumos/Platform/macOS/*.mm",
