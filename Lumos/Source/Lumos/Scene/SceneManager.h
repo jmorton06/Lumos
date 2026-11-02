@@ -56,6 +56,10 @@ namespace Lumos
             return m_SwitchingScenes;
         }
 
+        // Drops a scene from the project's list (its file is left alone). The open scene is switched
+        // away from first and dropped once the switch lands. False if it is the only scene.
+        bool RemoveScene(uint32_t index);
+
         int EnqueueSceneFromFile(const char* filePath);
         void EnqueueScene(Scene* scene);
         bool ContainsScene(const char* filePath);
@@ -74,6 +78,8 @@ namespace Lumos
     private:
         bool m_SwitchingScenes = false;
         int m_QueuedSceneIndex = -1;
+        Scene* m_PendingRemove = nullptr;
+        void EraseScene(Scene* scene);
         NONCOPYABLE(SceneManager)
     };
 }

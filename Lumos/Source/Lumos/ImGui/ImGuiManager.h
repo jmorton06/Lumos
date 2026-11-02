@@ -5,6 +5,7 @@
 #include "Events/Event.h"
 #include "Events/MouseEvent.h"
 #include "Events/ApplicationEvent.h"
+#include "Events/GestureEvent.h"
 
 namespace Lumos
 {
@@ -39,6 +40,9 @@ namespace Lumos
         bool OnKeyReleasedEvent(KeyReleasedEvent& e);
         bool OnKeyTypedEvent(KeyTypedEvent& e);
         bool OnWindowResizeEvent(WindowResizeEvent& e);
+        bool OnGestureLongPressEvent(GestureLongPressEvent& e);
+        bool OnGesturePanEvent(GesturePanEvent& e);
+        bool OnGestureSwipeEvent(GestureSwipeEvent& e);
 
         void SetImGuiKeyCodes();
         void SetImGuiStyle();
@@ -46,6 +50,8 @@ namespace Lumos
 
         float m_FontSize;
         float m_DPIScale;
+        float m_ContentScale = 1.0f; // UI sizing scale - see Window::GetContentScale
+        float m_MousePosScale = 1.0f;
 
         UniquePtr<Graphics::IMGUIRenderer> m_IMGUIRenderer;
         bool m_ClearScreen;

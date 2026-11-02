@@ -149,7 +149,7 @@ namespace Lumos::Graphics
         m_MaterialProperties->albedoColour       = properties.albedoColour;
         m_MaterialProperties->metallic           = properties.metallic;
         m_MaterialProperties->roughness          = properties.roughness;
-        m_MaterialProperties->emissive           = properties.emissive;
+        m_MaterialProperties->emissiveColour     = properties.emissiveColour;
         m_MaterialProperties->albedoMapFactor    = properties.albedoMapFactor;
         m_MaterialProperties->normalMapFactor    = properties.normalMapFactor;
         m_MaterialProperties->metallicMapFactor  = properties.metallicMapFactor;

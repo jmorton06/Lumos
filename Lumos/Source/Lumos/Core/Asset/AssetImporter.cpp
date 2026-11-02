@@ -17,11 +17,16 @@
 #include "Graphics/RHI/IndexBuffer.h"
 #include "Utilities/StringUtilities.h"
 #include "Utilities/LoadImage.h"
+#include "Core/JobSystem.h"
+#include "Core/BusyOverlay.h"
+#include "Core/OS/OS.h"
+#include <atomic>
 
 #include "Maths/MathsSerialisation.h"
 
 #include <cereal/archives/json.hpp>
 #include <cereal/cereal.hpp>
+#include <cereal/types/vector.hpp>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -98,9 +103,6 @@ namespace Lumos
             auto ext = entry.path().extension().string();
             if(ext == ".lmesh" || ext == ".lanim" || ext == ".limg" || ext == ".lmat")
             {
-                // Check if a .meta file references this hash — if orphaned, delete
-                // For now just log; actual orphan detection requires scanning all source paths
-                // which we don't track globally. Skip files newer than 1 hour to avoid race conditions.
             }
         }
 
@@ -122,7 +124,7 @@ namespace Lumos
         ScratchEnd(scratch);
     }
 
-    static std::string CopyTextureToImported(Arena* arena, SharedPtr<Graphics::Texture2D> tex, u32 slot)
+    static std::string CopyTextureToImported(Arena* arena, SharedPtr<Graphics::Texture2D> tex, u32 slot, u32 maxWidth, u32 maxHeight)
     {
         if(!tex)
             return "";
@@ -136,30 +138,48 @@ namespace Lumos
 
         const std::string& texPath = tex->GetFilepath();
 
+        // already an imported texture (model came from an .lmesh / .lmat): point at it
+        static const std::string importedPrefix = "//Assets/Imported/Textures/";
+        if(texPath.rfind(importedPrefix, 0) == 0 && StringUtilities::GetFilePathExtension(texPath) == "limg"
+           && FileSystem::Get().FileExistsVFS(Str8StdS(texPath)))
+            return texPath;
+
         if(!texPath.empty())
         {
             // File-based texture — load with stbi, write as .limg
             std::string normalizedTexPath = AssetImporter::NormalizeAssetPath(texPath);
             u64 texHash = MurmurHash64A(normalizedTexPath.c_str(), (int)normalizedTexPath.size(), 0);
 
-            uint32_t w, h, bits;
-            bool isHDR = false;
-            uint8_t* pixels = LoadImageFromFile(texPath.c_str(), &w, &h, &bits, &isHDR, false, true);
-            if(!pixels)
-            {
-                LERROR("AssetImporter: Failed to load texture %s for limg conversion", texPath.c_str());
-                return "";
-            }
-
-            Graphics::RHIFormat format = isHDR ? Graphics::RHIFormat::R32G32B32A32_Float
-                                               : Graphics::RHIFormat::R8G8B8A8_Unorm;
-
             String8 dstPath = PushStr8F(arena, "%s/Imported/Textures/%llu.limg",
                                         (const char*)assetsPath.str, (unsigned long long)texHash);
             NullTerminate(dstPath);
 
-            bool ok = LImgWriter::Write(dstPath, w, h, pixels, format);
-            delete[] pixels;
+            bool ok = false;
+            if(tex->GetPixelData() && tex->GetFormat() == Graphics::RHIFormat::R8G8B8A8_Unorm)
+            {
+                // the loader kept its decoded copy: no second decode of the file
+                ok = LImgWriter::Write(dstPath, tex->GetWidth(), tex->GetHeight(), tex->GetPixelData(), Graphics::RHIFormat::R8G8B8A8_Unorm);
+            }
+            else
+            {
+                // the desc form returns false on a bad file (the other one hands back a magenta placeholder)
+                ImageLoadDesc load = {};
+                load.filePath      = texPath.c_str();
+                load.maxWidth      = maxWidth;
+                load.maxHeight     = maxHeight;
+                const bool decoded = LoadImageFromFile(load);
+                if(!decoded || !load.outPixels)
+                {
+                    delete[] load.outPixels;
+                    LERROR("AssetImporter: Failed to load texture %s for limg conversion", texPath.c_str());
+                    return "";
+                }
+
+                Graphics::RHIFormat format = load.isHDR ? Graphics::RHIFormat::R32G32B32A32_Float
+                                                        : Graphics::RHIFormat::R8G8B8A8_Unorm;
+                ok = LImgWriter::Write(dstPath, load.outWidth, load.outHeight, load.outPixels, format);
+                delete[] load.outPixels;
+            }
 
             if(!ok)
             {
@@ -176,7 +196,10 @@ namespace Lumos
         // Embedded texture (e.g. GLB) — pixels already in memory, write as .limg
         const uint8_t* pixels = tex->GetPixelData();
         if(!pixels)
+        {
+            LWARN("AssetImporter: slot %u texture has no file and no kept pixels (%ux%u): material will import untextured", slot, tex->GetWidth(), tex->GetHeight());
             return "";
+        }
 
         u64 texHash = MurmurHash64A((const char*)pixels, (int)(tex->GetWidth() * tex->GetHeight() * 4), slot);
 
@@ -263,13 +286,8 @@ namespace Lumos
 
         std::string json = oss.str();
 
-        // Build physical path from source path rather than ResolvePhysicalPath,
-        // because ResolvePhysicalPath returns false for non-existent files
-        // and the .meta file won't exist yet on first import.
         String8 sourcePhysical;
         FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(sourcePath), &sourcePhysical);
-        // ResolvePhysicalPath populates outPhysicalPath even when returning false,
-        // but for non-VFS paths it just returns the input. Construct meta path from source.
         String8 physicalPath = PushStr8F(scratch.arena, "%s.meta", (const char*)sourcePhysical.str);
         NullTerminate(physicalPath);
 
@@ -299,6 +317,16 @@ namespace Lumos
                 }
                 if(peekHeader.Version == LMESH_VERSION)
                     needsImport = false;
+
+                // source edited since it was imported
+                String8 physSource;
+                if(!needsImport && FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(sourcePath), &physSource)
+                   && FileSystem::GetFileModifiedTime(physSource) > FileSystem::GetFileModifiedTime(physImportedPath))
+                    needsImport = true;
+            }
+            else
+            {
+                needsImport = false;
             }
         }
 
@@ -306,10 +334,39 @@ namespace Lumos
         return needsImport;
     }
 
+    std::string AssetImporter::Import(const std::string& sourcePath)
+    {
+        ImportMeta meta;
+        if(LoadMeta(sourcePath, meta))
+            return Import(sourcePath, meta.Settings);
+        return Import(sourcePath, ImportSettings());
+    }
+
     std::string AssetImporter::Import(const std::string& sourcePath, const ImportSettings& settings)
     {
         LUMOS_PROFILE_FUNCTION();
         ArenaTemp scratch = ScratchBegin(0, 0);
+
+        // the loading overlay for as long as this runs (painted between steps when called outside a frame,
+        // e.g. through Busy::Run)
+        struct BusyScope
+        {
+            BusyScope(const std::string& path)
+            {
+                const size_t slash = path.find_last_of('/');
+                char label[160];
+                snprintf(label, sizeof(label), "Importing %s", path.c_str() + (slash == std::string::npos ? 0 : slash + 1));
+                Busy::Begin(label);
+            }
+            ~BusyScope() { Busy::End(); }
+        } busy(sourcePath);
+        auto step = [](const char* text, float progress)
+        {
+            Busy::SetStep(text);
+            Busy::SetProgress(progress);
+            Busy::Pump();
+        };
+        step("Reading the source file", -1.0f);
 
         std::string effectivePath = sourcePath;
 
@@ -329,7 +386,15 @@ namespace Lumos
                 // Copy to Assets/Models/
                 String8 modelsDir = PushStr8F(scratch.arena, "%s/Models", assetsDir.c_str());
                 NullTerminate(modelsDir);
-                std::filesystem::create_directories((const char*)modelsDir.str);
+                std::error_code mkdirEc;
+                std::filesystem::create_directories((const char*)modelsDir.str, mkdirEc);
+                if(mkdirEc)
+                {
+                    LERROR("AssetImporter: can't create %s (%s) - skipping import of %s",
+                           (const char*)modelsDir.str, mkdirEc.message().c_str(), sourcePath.c_str());
+                    ScratchEnd(scratch);
+                    return "";
+                }
 
                 std::string filename = StringUtilities::GetFileName(physSourceStr);
                 std::string dstPath = std::string((const char*)modelsDir.str) + "/" + filename;
@@ -372,8 +437,6 @@ namespace Lumos
             FileSystem::CreateFolderIfDoesntExist(physDir);
         }
 
-        // Delete existing .lmesh and .lanim before loading source, to prevent
-        // LoadModel from finding stale/corrupt files and trying to load them
         std::string normalizedEffective = NormalizeAssetPath(effectivePath);
         u64 pathHash = MurmurHash64A(normalizedEffective.c_str(), (int)normalizedEffective.size(), 0);
         {
@@ -388,11 +451,37 @@ namespace Lumos
             NullTerminate(existingLAnim);
             if(FileSystem::FileExists(existingLAnim))
                 std::remove((const char*)existingLAnim.str);
+
+            // old .lmat files: a shorter material list would leave the tail behind, and the reader trusts any it finds
+            const std::string matPrefix = std::to_string((unsigned long long)pathHash) + "_";
+            String8 matDir = PushStr8F(scratch.arena, "%s/Imported/Materials", (const char*)assetsPath.str);
+            NullTerminate(matDir);
+            std::error_code ec;
+            if(FileSystem::FolderExists(matDir))
+            {
+                TDArray<std::filesystem::path> stale;
+                for(auto& entry : std::filesystem::directory_iterator((const char*)matDir.str, ec))
+                {
+                    const std::string name = entry.path().filename().string();
+                    if(entry.is_regular_file(ec) && name.rfind(matPrefix, 0) == 0 && entry.path().extension() == ".lmat")
+                        stale.PushBack(entry.path());
+                }
+                for(auto& file : stale)
+                    std::filesystem::remove(file, ec);
+            }
+            Application::Get().GetAssetManager()->EvictMaterialAssets("//Assets/Imported/Materials/" + matPrefix);
         }
 
-        // Load source model using existing loaders
-        Graphics::Model sourceModel(effectivePath);
-        if(sourceModel.GetMeshes().Empty())
+        // never via LoadModel: it prefers an imported .lmesh (a packed one survives the delete above), whose
+        // textures have no source to copy, and a stale one would call back into Import
+        // textures at the size the import asks for (0 = as authored), not the runtime cap: loads shrink .limg to fit
+        u32 prevMaxW, prevMaxH;
+        GetMaxImageDimensions(prevMaxW, prevMaxH);
+        SetMaxImageDimensions(settings.MaxTextureWidth, settings.MaxTextureHeight);
+        Graphics::Model sourceModel;
+        const bool sourceLoaded = sourceModel.LoadFromSource(effectivePath);
+        SetMaxImageDimensions(prevMaxW, prevMaxH);
+        if(!sourceLoaded)
         {
             LERROR("AssetImporter: Failed to load source %s", effectivePath.c_str());
             ScratchEnd(scratch);
@@ -406,6 +495,67 @@ namespace Lumos
 
         auto& meshes = sourceModel.GetMeshes();
         LINFO("AssetImporter: source model has %d meshes", meshes.Size());
+
+        // meshes share materials and materials share textures: write each once
+        std::unordered_map<const Graphics::Material*, u32> materialIndices;
+        std::unordered_map<const Graphics::Texture2D*, std::string> importedTextures;
+
+        // every texture converted up front, side by side on the job system (decode + LZ4 + write are CPU only)
+        if(settings.ImportMaterials)
+        {
+            struct Pending
+            {
+                SharedPtr<Graphics::Texture2D> Texture;
+                u32 Slot;
+                std::string Result;
+            };
+            TDArray<Pending> pending;
+            for(int i = 0; i < meshes.Size(); i++)
+            {
+                auto& material = meshes[i]->GetMaterial();
+                if(!material)
+                    continue;
+                const auto& t                         = material->GetTextures();
+                const SharedPtr<Graphics::Texture2D> slots[] = { t.albedo, t.normal, t.metallic, t.roughness, t.ao, t.emissive };
+                for(u32 s = 0; s < LMESH_MAX_TEXTURE_SLOTS; s++)
+                {
+                    if(!slots[s] || importedTextures.count(slots[s].get()))
+                        continue;
+                    importedTextures[slots[s].get()] = std::string();
+                    pending.PushBack({ slots[s], s, std::string() });
+                }
+            }
+
+            if(!pending.Empty())
+            {
+                String8 texDir = PushStr8F(scratch.arena, "%s/Imported/Textures", (const char*)assetsPath.str);
+                NullTerminate(texDir);
+                FileSystem::CreateFolderIfDoesntExist(texDir);
+
+                std::atomic<u32> done { 0 };
+                const u32 maxW = settings.MaxTextureWidth, maxH = settings.MaxTextureHeight;
+                System::JobSystem::Context ctx;
+                System::JobSystem::Dispatch(ctx, (u32)pending.Size(), 1, [&pending, &done, maxW, maxH](JobDispatchArgs args)
+                                            {
+                    ArenaTemp jobScratch = ScratchBegin(0, 0);
+                    Pending& p           = pending[args.jobIndex];
+                    p.Result             = CopyTextureToImported(jobScratch.arena, p.Texture, p.Slot, maxW, maxH);
+                    ScratchEnd(jobScratch);
+                    done.fetch_add(1); });
+
+                char text[64];
+                while(System::JobSystem::IsBusy(ctx))
+                {
+                    snprintf(text, sizeof(text), "Textures %u / %u", done.load(), (u32)pending.Size());
+                    step(text, (float)done.load() / (float)pending.Size());
+                    OS::Get().Delay(4000);
+                }
+                System::JobSystem::Wait(ctx);
+                for(auto& p : pending)
+                    importedTextures[p.Texture.get()] = p.Result;
+            }
+        }
+        step("Reading meshes", -1.0f);
         for(int i = 0; i < meshes.Size(); i++)
         {
             auto& mesh = meshes[i];
@@ -418,8 +568,6 @@ namespace Lumos
                 entry.Name = buf;
             }
 
-            // Extract vertex/index data from GPU buffers
-            // The mesh was just created, so we reconstruct from the buffers
             auto& vb  = mesh->GetVertexBuffer();
             auto& avb = mesh->GetAnimVertexBuffer();
             auto& ib  = mesh->GetIndexBuffer();
@@ -437,15 +585,21 @@ namespace Lumos
                     avb->ReleasePointer();
                 }
             }
+            else if(mesh->HasCPUVertices())
+            {
+                entry.Vertices = mesh->GetCPUVertices();
+            }
             else if(vb && vb->GetSize() > 0)
             {
-                u32 vertCount = vb->GetSize() / sizeof(Graphics::Vertex);
+                // the GPU copy is packed (Graphics::PackedVertex): unpack it
+                u32 vertCount = vb->GetSize() / sizeof(Graphics::PackedVertex);
                 entry.Vertices.Resize(vertCount);
 
-                auto* ptr = vb->GetPointer<Graphics::Vertex>();
+                auto* ptr = vb->GetPointer<Graphics::PackedVertex>();
                 if(ptr)
                 {
-                    memcpy(entry.Vertices.Data(), ptr, vb->GetSize());
+                    for(u32 v = 0; v < vertCount; v++)
+                        entry.Vertices[v] = Graphics::UnpackVertex(ptr[v]);
                     vb->ReleasePointer();
                 }
             }
@@ -468,10 +622,11 @@ namespace Lumos
                   entry.Animated ? 1 : 0);
 
             // Material
-            if(settings.ImportMaterials && mesh->GetMaterial())
+            if(settings.ImportMaterials && mesh->GetMaterial() && materialIndices.count(mesh->GetMaterial().get()))
+                entry.MaterialIndex = materialIndices[mesh->GetMaterial().get()];
+            else if(settings.ImportMaterials && mesh->GetMaterial())
             {
                 auto& mat = mesh->GetMaterial();
-                entry.MaterialIndex = (u32)writeData.Materials.Size();
 
                 LMeshWriteData::MaterialEntry matEntry;
                 matEntry.Name = mat->GetName();
@@ -488,7 +643,10 @@ namespace Lumos
                 {
                     if(texSlots[s])
                     {
-                        std::string imported = CopyTextureToImported(scratch.arena, texSlots[s], s);
+                        auto found = importedTextures.find(texSlots[s].get());
+                        if(found == importedTextures.end())
+                            found = importedTextures.emplace(texSlots[s].get(), CopyTextureToImported(scratch.arena, texSlots[s], s, settings.MaxTextureWidth, settings.MaxTextureHeight)).first;
+                        const std::string& imported = found->second;
                         if(!imported.empty())
                         {
                             matEntry.TexturePaths[s] = imported;
@@ -499,7 +657,25 @@ namespace Lumos
                     }
                 }
 
-                writeData.Materials.PushBack(std::move(matEntry));
+                // loaders often make one material object per mesh: same name, maps, numbers and flags = one entry
+                u32 index = (u32)writeData.Materials.Size();
+                for(u32 m = 0; m < (u32)writeData.Materials.Size(); m++)
+                {
+                    const auto& other = writeData.Materials[m];
+                    bool same         = other.Name == matEntry.Name && other.Flags == matEntry.Flags
+                             && memcmp(&other.Properties, &matEntry.Properties, sizeof(Graphics::MaterialProperties)) == 0;
+                    for(u32 t = 0; same && t < LMESH_MAX_TEXTURE_SLOTS; t++)
+                        same = other.TexturePaths[t] == matEntry.TexturePaths[t] && other.TextureWraps[t] == matEntry.TextureWraps[t] && other.TextureFilters[t] == matEntry.TextureFilters[t];
+                    if(same)
+                    {
+                        index = m;
+                        break;
+                    }
+                }
+                entry.MaterialIndex        = index;
+                materialIndices[mat.get()] = index;
+                if(index == (u32)writeData.Materials.Size())
+                    writeData.Materials.PushBack(std::move(matEntry));
             }
 
             writeData.Meshes.PushBack(std::move(entry));
@@ -514,6 +690,7 @@ namespace Lumos
         }
 
         // Write .lmesh
+        step("Optimising and writing", -1.0f);
         std::string outputPath = GetImportedPath(effectivePath);
 
         String8 physOutputPath = PushStr8F(scratch.arena, "%s/Imported/%llu.lmesh",
@@ -528,17 +705,30 @@ namespace Lumos
         }
 
         // Export .lmat files for each material
-        if(settings.ImportMaterials)
+        std::error_code matDirEc;
         {
             String8 matDir = PushStr8F(scratch.arena, "%s/Imported/Materials", (const char*)assetsPath.str);
             NullTerminate(matDir);
-            std::filesystem::create_directories((const char*)matDir.str);
+            std::filesystem::create_directories((const char*)matDir.str, matDirEc);
+            if(matDirEc)
+                LWARN("AssetImporter: can't create %s (%s) - skipping .lmat export (lmesh has inline materials)",
+                      (const char*)matDir.str, matDirEc.message().c_str());
+        }
+        if(settings.ImportMaterials && !matDirEc)
+        {
+            String8 matDir = PushStr8F(scratch.arena, "%s/Imported/Materials", (const char*)assetsPath.str);
+            NullTerminate(matDir);
 
             static const char* texNames[] = { "Albedo", "Normal", "Metallic", "Roughness", "Ao", "Emissive" };
 
             for(u32 mi = 0; mi < writeData.Materials.Size(); mi++)
             {
                 auto& mat = writeData.Materials[mi];
+
+                bool animated = false;
+                for(auto& m : writeData.Meshes)
+                    animated |= (m.MaterialIndex == mi && m.Animated);
+                std::string shaderName = animated ? "ForwardPBRAnim" : "ForwardPBR";
 
                 std::stringstream ss;
                 {
@@ -555,7 +745,7 @@ namespace Lumos
                     ar(cereal::make_nvp("albedoColour", props.albedoColour),
                        cereal::make_nvp("roughnessValue", props.roughness),
                        cereal::make_nvp("metallicValue", props.metallic),
-                       cereal::make_nvp("emissiveValue", props.emissive),
+                       cereal::make_nvp("emissiveColour", props.emissiveColour),
                        cereal::make_nvp("albedoMapFactor", props.albedoMapFactor),
                        cereal::make_nvp("metallicMapFactor", props.metallicMapFactor),
                        cereal::make_nvp("roughnessMapFactor", props.roughnessMapFactor),
@@ -564,9 +754,26 @@ namespace Lumos
                        cereal::make_nvp("emissiveMapFactor", props.emissiveMapFactor),
                        cereal::make_nvp("alphaCutOff", props.alphaCutoff),
                        cereal::make_nvp("workflow", props.workflow),
-                       cereal::make_nvp("shader", std::string()));
+                       cereal::make_nvp("shader", shaderName));
 
                     ar(cereal::make_nvp("Reflectance", props.reflectance));
+
+                    // Texture sampling parameters
+                    std::vector<int> filters(LMESH_MAX_TEXTURE_SLOTS);
+                    std::vector<int> wraps(LMESH_MAX_TEXTURE_SLOTS);
+                    for(u32 s = 0; s < LMESH_MAX_TEXTURE_SLOTS; s++)
+                    {
+                        filters[s] = (int)mat.TextureFilters[s];
+                        wraps[s]   = (int)mat.TextureWraps[s];
+                    }
+                    ar(cereal::make_nvp("TextureFilters", filters));
+                    ar(cereal::make_nvp("TextureWraps", wraps));
+
+                    // the .lmat is the whole material: the lmesh copy is only used when there is no .lmat (packs)
+                    std::string name = mat.Name;
+                    u32 flags        = mat.Flags;
+                    ar(cereal::make_nvp("Name", name));
+                    ar(cereal::make_nvp("Flags", flags));
                 }
 
                 String8 lmatPath = PushStr8F(scratch.arena, "%s/Imported/Materials/%llu_%u.lmat",

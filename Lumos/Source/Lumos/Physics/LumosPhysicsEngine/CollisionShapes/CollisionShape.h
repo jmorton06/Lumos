@@ -44,6 +44,8 @@ namespace Lumos
         CollisionShapeTypeMax = 256
     };
 
+    class Hull;
+
     class LUMOS_EXPORT CollisionShape
     {
     public:
@@ -95,6 +97,10 @@ namespace Lumos
         {
             m_LocalTransform = transform;
         }
+        const Mat4& GetLocalTransform() const { return m_LocalTransform; }
+
+        // Faces of a convex shape in its local space, for exact ray tests. Null if it has none.
+        virtual Hull* GetHull() const { return nullptr; }
 
         inline CollisionShapeType GetType() const
         {

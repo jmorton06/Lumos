@@ -163,6 +163,14 @@ namespace Lumos
         RigidBody3DComponent(RigidBody3D* physics);
         RigidBody3DComponent(const RigidBody3DProperties& params);
 
+        RigidBody3DComponent(RigidBody3DComponent&& other) noexcept
+            : m_RigidBody(other.m_RigidBody)
+            , m_OwnRigidBody(other.m_OwnRigidBody)
+        {
+            other.m_RigidBody    = nullptr;
+            other.m_OwnRigidBody = false;
+        }
+
         ~RigidBody3DComponent();
 
         RigidBody3DComponent& operator=(const RigidBody3DComponent& rhs)

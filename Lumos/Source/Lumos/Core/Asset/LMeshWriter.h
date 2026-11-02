@@ -22,7 +22,7 @@ namespace Lumos
             TDArray<Graphics::AnimVertex> AnimVertices;
             TDArray<u32> Indices;
             bool Animated = false;
-            u32 MaterialIndex = 0;
+            u32 MaterialIndex = ~0u; // none: the reader leaves the mesh without a material
         };
 
         struct MaterialEntry

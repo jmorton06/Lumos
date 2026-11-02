@@ -23,6 +23,9 @@ namespace Lumos
 
             bool DepthTest  = true;
             bool DepthWrite = true;
+            // reversed-Z: near = 1, far = 0 (cleared to 0, GREATER_OR_EQUAL). Only targets drawn with a
+            // standard projection (shadow maps) turn it off.
+            bool ReverseDepth = true;
 
             std::array<Texture*, MAX_RENDER_TARGETS> colourTargets = {};
             Texture* resolveTexture                                = nullptr;
@@ -36,6 +39,7 @@ namespace Lumos
             int cubeMapIndex                                       = 0;
             int mipIndex                                           = 0;
             uint8_t samples                                        = 1;
+            uint32_t viewMask = 0;
 
             const char* DebugName = nullptr;
         };
@@ -47,6 +51,7 @@ namespace Lumos
             friend class VKCommandBuffer;
 
         public:
+            const PipelineDesc& GetDescription() const { return m_Description; }
             static Pipeline* Create(const PipelineDesc& pipelineDesc);
             static SharedPtr<Pipeline> Get(const PipelineDesc& pipelineDesc);
             static void ClearCache();

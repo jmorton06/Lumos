@@ -2,6 +2,7 @@
 
 namespace Lumos
 {
+    class RigidBody3D;
 
     class LUMOS_EXPORT Constraint
     {
@@ -20,6 +21,12 @@ namespace Lumos
 
         virtual void DebugDraw() const
         {
+        }
+
+        virtual void GetBodies(RigidBody3D*& a, RigidBody3D*& b) const
+        {
+            a = nullptr;
+            b = nullptr;
         }
     };
 }

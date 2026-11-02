@@ -174,8 +174,6 @@ namespace Lumos
         {
             if(added)
             {
-                // Slot is zero-initialized bytes — use placement new + copy construct
-                // to properly handle SharedPtr refcounting and std::string
                 new(ptr) AssetMetaData(data);
             }
             else

@@ -5,8 +5,6 @@
 
 namespace Lumos
 {
-    // Safe wrapper for Lua function calls
-    // With SOL_ALL_SAFETIES_ON 0, we need manual error handling
     template<typename Func, typename... Args>
     inline bool SafeLuaCall(const char* functionName, Func&& func, Args&&... args)
     {

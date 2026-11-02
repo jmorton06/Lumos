@@ -1,4 +1,6 @@
 #!/bin/bash
+# Superseded by the export system: Scripts/lumos export|deploy (or Project > Export... in the editor),
+# which uses prebuilt templates instead of regenerating the Runtime project per game. See Docs/Packaging.md.
 # PackageGame.sh <project-dir> [--ios]
 # Builds a standalone .app (macOS) or generates iOS Xcode project from a Lumos game project
 set -e
@@ -9,19 +11,24 @@ ROOT_DIR="$SCRIPT_DIR/../.."
 # Parse args
 PROJECT_DIR=""
 IOS_MODE=false
+SHADERC=""
+NO_BUILD=false
 
 for arg in "$@"; do
     case "$arg" in
         --ios) IOS_MODE=true ;;
+        --shaderc) SHADERC="1" ;;
+        --no-build) NO_BUILD=true ;; # generate the project only (ArchiveApp.sh archives it)
         *) PROJECT_DIR="$arg" ;;
     esac
 done
 
 if [ -z "$PROJECT_DIR" ]; then
-    echo "Usage: PackageGame.sh <project-dir> [--ios]"
+    echo "Usage: PackageGame.sh <project-dir> [--ios] [--shaderc]"
     echo ""
     echo "  <project-dir>  Path to game project directory (contains .lmproj)"
     echo "  --ios          Generate iOS Xcode project instead of building macOS .app"
+    echo "  --shaderc      Enable runtime shader compilation"
     exit 1
 fi
 
@@ -71,49 +78,103 @@ echo "Bundle ID: ${BUNDLE_ID:-auto}"
 echo "Mode:      $([ "$IOS_MODE" = true ] && echo "iOS" || echo "macOS")"
 echo ""
 
-# Prepare icon if available
-ICON_CANDIDATES=(
-    "$PROJECT_DIR/Assets/Textures/icon.png"
-    "$PROJECT_DIR/Assets/Textures/Icon.png"
-    "$PROJECT_DIR/Assets/icon.png"
-    "$PROJECT_DIR/icon.png"
-)
-
-for icon in "${ICON_CANDIDATES[@]}"; do
-    if [ -f "$icon" ]; then
-        echo "Preparing icon from $icon..."
-        "$SCRIPT_DIR/PrepareIcon.sh" "$icon"
-        break
-    fi
-done
+# Generate icons (reads IconPath from .lmproj, falls back to common locations)
+ICON_PLATFORM="macos"
+if [ "$IOS_MODE" = true ]; then
+    ICON_PLATFORM="ios"
+fi
+echo "Generating icons..."
+"$SCRIPT_DIR/../GenerateIcons.sh" "$PROJECT_DIR" --platform="$ICON_PLATFORM"
 
 # Generate customized iOS launch screen
 "$SCRIPT_DIR/GenerateLaunchScreen.sh" "$LMPROJ"
 
 cd "$ROOT_DIR"
 
-# Pack assets into .lpak
-RUNTIME_BIN="$ROOT_DIR/bin/Release-macosx-x86_64/Runtime.app/Contents/MacOS/Runtime"
+# Pack assets into .lpak — needs a macOS Runtime binary. Builds one on demand if missing,
+# since iOS-only build pipelines wipe the macOS bin/ tree.
 PACK_OUTPUT="$PROJECT_DIR/Assets.lpak"
-if [ -f "$RUNTIME_BIN" ]; then
-    echo "Packing assets..."
-    "$RUNTIME_BIN" --project="$PROJECT_DIR" --pack-assets="$PACK_OUTPUT" || echo "Warning: asset packing failed, bundling raw assets"
+RUNTIME_BIN=$(find "$ROOT_DIR/bin" -path "*macosx*" -name "Runtime" -type f -perm -u+x 2>/dev/null | head -1)
+
+if [ -z "$RUNTIME_BIN" ] || [ ! -f "$RUNTIME_BIN" ]; then
+    echo "macOS Runtime missing — building it for asset packing..."
+
+    # Regenerate Xcode projects for macOS. iOS pass later in this script overwrites them again.
+    echo "  Generating macOS Xcode project..."
+    ( cd "$ROOT_DIR" && Tools/premake5 xcode4 )
+
+    HOST_ARCH=$(uname -m)
+    ( cd "$ROOT_DIR" && xcodebuild -project Runtime/Runtime.xcodeproj \
+        -parallelizeTargets -jobs 4 -configuration Release \
+        -sdk macosx -arch "$HOST_ARCH" \
+        CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+        2>&1 | tail -20 )
+
+    RUNTIME_BIN=$(find "$ROOT_DIR/bin" -path "*macosx*" -name "Runtime" -type f -perm -u+x 2>/dev/null | head -1)
+fi
+
+if [ -n "$RUNTIME_BIN" ] && [ -f "$RUNTIME_BIN" ]; then
+    # Bake .lmesh caches for any source model (obj/gltf/glb/fbx) before packing.
+    # AssetImporter writes to //Assets/Imported/ on first load of a given mesh -
+    # fine on desktop, but the iOS app bundle is read-only, so any mesh never
+    # seen on a writable filesystem before crashes on-device. Runs headless,
+    # no scene/window needed.
+    echo "Importing source models via $RUNTIME_BIN ..."
+    "$RUNTIME_BIN" --project="$PROJECT_DIR" --import-assets \
+        || { echo "Error: asset import failed"; exit 1; }
+
+    echo "Packing assets via $RUNTIME_BIN ..."
+    "$RUNTIME_BIN" --project="$PROJECT_DIR" --pack-assets="$PACK_OUTPUT" --embed-engine-shaders \
+        || { echo "Error: asset packing failed"; exit 1; }
 else
-    echo "Warning: Runtime binary not found, skipping asset packing"
+    echo "Error: failed to obtain a macOS Runtime binary for packing"
+    exit 1
 fi
 
 # Run premake
-if [ "$IOS_MODE" = true ]; then
-    echo "Generating iOS Xcode project..."
-    Tools/premake5 xcode4 --game-project="$PROJECT_DIR" --os=ios
-else
-    echo "Generating macOS Xcode project..."
-    Tools/premake5 xcode4 --game-project="$PROJECT_DIR"
+PREMAKE_ARGS="--game-project=\"$PROJECT_DIR\""
+if [ -n "$SHADERC" ]; then
+    PREMAKE_ARGS="$PREMAKE_ARGS --shaderc"
 fi
 
-# Post-process pbxproj (SKIP_INSTALL fix)
+if [ "$IOS_MODE" = true ]; then
+    echo "Generating iOS Xcode project..."
+    eval "Tools/premake5 xcode4 $PREMAKE_ARGS --os=ios"
+else
+    # shipping build: only the pack in the bundle, Apple Silicon + Intel
+    echo "Generating macOS Xcode project (packaged, universal)..."
+    eval "Tools/premake5 xcode4 $PREMAKE_ARGS --package --arch=universal"
+fi
+
+# Post-process pbxproj (SKIP_INSTALL fix + orientation array split)
 python3 -c "
 import re, glob
+
+# Premake serialises a Lua string with spaces as one quoted element in an array.
+# Split any UISupportedInterfaceOrientations entry that still holds a joined
+# string into proper per-orientation array elements so iOS honours the lock.
+ORIENT_KEY = re.compile(r'(INFOPLIST_KEY_UISupportedInterfaceOrientations(?:~ipad)?)\s*=\s*\(\s*((?:\"[^\"]*\",?\s*)+)\)\s*;')
+
+def fix_orient(m):
+    key = m.group(1)
+    body = m.group(2)
+    tokens = []
+    for s in re.findall(r'\"([^\"]*)\"', body):
+        for t in s.split():
+            t = t.strip()
+            if t and t.startswith('UIInterfaceOrientation'):
+                tokens.append(t)
+    # Dedup preserving order
+    seen = set()
+    out = []
+    for t in tokens:
+        if t not in seen:
+            seen.add(t)
+            out.append(t)
+    if not out:
+        return m.group(0)
+    inner = ',\n\t\t\t\t\t'.join('\"%s\"' % t for t in out)
+    return '%s = (\n\t\t\t\t\t%s,\n\t\t\t\t);' % (key, inner)
 
 for pbx in glob.glob('**/project.pbxproj', recursive=True):
     with open(pbx, 'r') as f:
@@ -126,6 +187,7 @@ for pbx in glob.glob('**/project.pbxproj', recursive=True):
         content = re.sub(r'SKIP_INSTALL = \(\s*YES,?\s*\);', 'SKIP_INSTALL = NO;', content)
         content = re.sub(r'SKIP_INSTALL = YES;', 'SKIP_INSTALL = NO;', content)
         content = re.sub(r'INSTALL_PATH = .*?;', 'INSTALL_PATH = \"/Applications\";', content)
+        content = ORIENT_KEY.sub(fix_orient, content)
     else:
         content = re.sub(r'SKIP_INSTALL = \(\s*YES,?\s*\);', 'SKIP_INSTALL = YES;', content)
 
@@ -135,7 +197,10 @@ for pbx in glob.glob('**/project.pbxproj', recursive=True):
         print(f'  Patched {pbx}')
 "
 
-if [ "$IOS_MODE" = true ]; then
+if [ "$NO_BUILD" = true ]; then
+    echo ""
+    echo "=== Xcode project generated (no build) ==="
+elif [ "$IOS_MODE" = true ]; then
     echo ""
     echo "=== iOS project generated ==="
     echo "Open in Xcode: $ROOT_DIR/Runtime/Runtime.xcodeproj"
@@ -154,6 +219,29 @@ else
     APP_PATH=$(find "$ROOT_DIR/bin" -name "*.app" -path "*Production*" -type d 2>/dev/null | head -1)
     if [ -z "$APP_PATH" ]; then
         APP_PATH=$(find "$ROOT_DIR/bin" -name "Runtime.app" -type d 2>/dev/null | head -1)
+    fi
+
+    # Optional <project>/Package.json: {"DocumentTypes": [{"Name", "Extensions", "ContentTypes", "Role"}]}
+    # lets Finder offer the app under "Open With" (kept out of the .lmproj, which the runtime rewrites).
+    if [ -n "$APP_PATH" ] && [ -f "$PROJECT_DIR/Package.json" ]; then
+        python3 - "$APP_PATH/Contents/Info.plist" "$PROJECT_DIR/Package.json" <<'PYEOF'
+import json, plistlib, sys
+plist_path, pkg_path = sys.argv[1], sys.argv[2]
+pkg = json.load(open(pkg_path))
+types = []
+for d in pkg.get("DocumentTypes", []):
+    t = {"CFBundleTypeName": d.get("Name", "Document"),
+         "CFBundleTypeRole": d.get("Role", "Viewer"),
+         "LSHandlerRank": d.get("Rank", "Alternate")}
+    if d.get("Extensions"): t["CFBundleTypeExtensions"] = d["Extensions"]
+    if d.get("ContentTypes"): t["LSItemContentTypes"] = d["ContentTypes"]
+    types.append(t)
+if types:
+    with open(plist_path, "rb") as f: plist = plistlib.load(f)
+    plist["CFBundleDocumentTypes"] = types
+    with open(plist_path, "wb") as f: plistlib.dump(plist, f)
+    print("  Added %d document type(s) to Info.plist" % len(types))
+PYEOF
     fi
 
     if [ -n "$APP_PATH" ]; then

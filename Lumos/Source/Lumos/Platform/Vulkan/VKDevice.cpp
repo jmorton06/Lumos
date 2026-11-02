@@ -182,6 +182,15 @@ namespace Lumos
             caps.MaxTextureUnits              = m_PhysicalDeviceProperties.limits.maxDescriptorSetSamplers;
             caps.UniformBufferOffsetAlignment = int(m_PhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment);
             caps.SupportCompute               = true;
+            caps.VideoMemoryMB                = m_DeviceInfo.Memory;
+            switch(m_DeviceInfo.Type)
+            {
+            case PhysicalDeviceType::INTEGRATED: caps.GPUType = 1; break;
+            case PhysicalDeviceType::DISCRETE:   caps.GPUType = 2; break;
+            case PhysicalDeviceType::VIRTUAL:    caps.GPUType = 3; break;
+            case PhysicalDeviceType::CPU:        caps.GPUType = 4; break;
+            default:                             caps.GPUType = 0; break;
+            }
 
             uint32_t queueFamilyCount;
             vkGetPhysicalDeviceQueueFamilyProperties(m_Handle, &queueFamilyCount, nullptr);
@@ -390,6 +399,7 @@ namespace Lumos
         VKDevice::~VKDevice()
         {
             LINFO("Destroying VKDevice");
+            VKUtilities::PollBatches(true); // uploads still in flight own command buffers from the pool
             m_CommandPool.reset();
             SavePipelineCache();
             vkDestroyPipelineCache(m_Device, m_PipelineCache, VK_NULL_HANDLE);
@@ -404,7 +414,7 @@ namespace Lumos
 #ifdef LUMOS_DEBUG
             for(int i = 0; i < 3; i++)
             {
-                auto queue = VKRenderer::GetDeletionQueue(i);
+                auto& queue = VKRenderer::GetDeletionQueue(i);
                 ASSERT((int)queue.Deletors.Size() == 0);
             }
 #endif
@@ -452,6 +462,9 @@ namespace Lumos
             if(supportedFeatures.samplerAnisotropy)
                 m_EnabledFeatures.samplerAnisotropy = true;
 
+            m_EnabledFeatures.fillModeNonSolid           = supportedFeatures.fillModeNonSolid;
+            Renderer::GetCapabilities().FillModeNonSolid = supportedFeatures.fillModeNonSolid;
+
             if(supportedFeatures.depthClamp)
                 m_EnabledFeatures.depthClamp = true;
 
@@ -485,6 +498,21 @@ namespace Lumos
             indexingFeatures.sType                                         = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
             indexingFeatures.runtimeDescriptorArray                        = VK_TRUE;
             indexingFeatures.descriptorBindingPartiallyBound               = VK_TRUE;
+
+            // VK_KHR_multiview — required for single-pass cascaded shadow rendering.
+            VkPhysicalDeviceMultiviewFeaturesKHR multiviewFeatures = {};
+            multiviewFeatures.sType                                = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR;
+            multiviewFeatures.multiview                            = VK_TRUE;
+            indexingFeatures.pNext                                 = &multiviewFeatures;
+
+            if(m_PhysicalDevice->IsExtensionSupported(Str8Lit(VK_KHR_MULTIVIEW_EXTENSION_NAME)))
+            {
+                deviceExtensions.PushBack(VK_KHR_MULTIVIEW_EXTENSION_NAME);
+            }
+            else
+            {
+                LWARN("%s unsupported - cascaded shadow multiview disabled", VK_KHR_MULTIVIEW_EXTENSION_NAME);
+            }
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
             // https://vulkan.lunarg.com/doc/view/1.2.162.0/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451
@@ -625,7 +653,7 @@ namespace Lumos
         {
             LINFO("Creating VK Pipeline Cache");
 
-            m_PipelineCachePath = Application::Get().GetProjectSettings().m_ProjectRoot + "pipeline_cache.bin";
+            m_PipelineCachePath = Application::Get().WritableRoot() + "pipeline_cache.bin";
 
             VkPipelineCacheCreateInfo pipelineCacheCI = {};
             pipelineCacheCI.sType                     = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;

@@ -32,6 +32,8 @@ namespace Lumos
         }
 
         m_vpAllScenes.Clear();
+        
+        TextureCache::Clear();
 
         ArenaRelease(m_Arena);
     }
@@ -118,12 +120,17 @@ namespace Lumos
 
         {
             LUMOS_PROFILE_SCOPE("SceneSwitch::Deserialise");
-            String8 physicalPath;
-            std::string path = "//Assets/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn";
-            if(Lumos::FileSystem::Get().ResolvePhysicalPath(Application::Get().GetFrameArena(), Str8StdS(path), &physicalPath))
+            std::string vfsPath = "//Assets/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn";
+            bool exists = Lumos::FileSystem::Get().FileExistsVFS(Str8StdS(vfsPath));
+            LINFO("[SceneManager] Scene lookup '%s' existsVFS=%d packMounted=%d", vfsPath.c_str(), exists ? 1 : 0, Lumos::FileSystem::Get().HasMountedPack() ? 1 : 0);
+            if(exists)
             {
-                auto newPath = StringUtilities::RemoveName(ToStdString(physicalPath));
-                m_CurrentScene->Deserialise(newPath, false);
+                // Scene::Deserialise expects a directory; reconstructs <dir><sceneName>.lsn.
+                m_CurrentScene->Deserialise(std::string("//Assets/Scenes/"), false);
+            }
+            else
+            {
+                LERROR("[SceneManager] Scene file missing from VFS/disk: %s", vfsPath.c_str());
             }
             TextureCache::Clear();
         }
@@ -142,6 +149,34 @@ namespace Lumos
         LINFO("[SceneManager] - Scene switched to : %s", m_CurrentScene->GetSceneName().c_str());
 
         m_SwitchingScenes = false;
+
+        if(m_PendingRemove && m_PendingRemove != m_CurrentScene)
+            EraseScene(m_PendingRemove);
+        m_PendingRemove = nullptr;
+    }
+
+    bool SceneManager::RemoveScene(uint32_t index)
+    {
+        if(index >= m_vpAllScenes.Size() || m_vpAllScenes.Size() < 2)
+            return false;
+        Scene* scene = m_vpAllScenes[index].get();
+        LINFO("[SceneManager] - Removing scene from the project : %s", scene->GetSceneName().c_str());
+        if(scene == m_CurrentScene)
+        {
+            m_PendingRemove = scene;
+            SwitchScene(index == 0 ? 1 : (int)index - 1);
+            return true;
+        }
+        EraseScene(scene);
+        return true;
+    }
+
+    void SceneManager::EraseScene(Scene* scene)
+    {
+        m_vpAllScenes.RemoveIf([scene](const SharedPtr<Scene>& s) { return s.get() == scene; });
+        for(uint32_t i = 0; i < m_vpAllScenes.Size(); i++)
+            if(m_vpAllScenes[i].get() == m_CurrentScene)
+                m_SceneIdx = i;
     }
 
     TDArray<String8> SceneManager::GetSceneNames(Arena* arena)
@@ -213,7 +248,8 @@ namespace Lumos
     {
         m_SceneFilePaths.Clear();
         for(Scene* scene : m_vpAllScenes)
-            m_SceneFilePaths.PushBack(PushStr8F(m_Arena, "//Assets/Scenes/%s", scene->GetSceneName().c_str()));
+            if(scene != m_PendingRemove)
+                m_SceneFilePaths.PushBack(PushStr8F(m_Arena, "//Assets/Scenes/%s", scene->GetSceneName().c_str()));
         return m_SceneFilePaths;
     }
 

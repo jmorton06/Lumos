@@ -1,0 +1,378 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
+
+// One work group per probe, one ray per thread. Rays are traced through a BVH of the static
+// scene, shaded with the sun, point / spot lights (shadow rays), emissive surfaces, the sky and the
+// probes themselves (so light keeps bouncing frame to frame), projected to L1 SH and blended into
+// the probe. The same rays update the probe's octahedral depth and move it out of walls.
+
+#define RAYS 64
+layout(local_size_x = RAYS, local_size_y = 1, local_size_z = 1) in;
+
+struct BVHNode
+{
+    vec3 Min;
+    uint LeftFirst; // leaf: first triangle, else: left child (right = left + 1)
+    vec3 Max;
+    uint Count;     // > 0 = leaf
+};
+
+struct GILight
+{
+    vec4 colour;
+    vec4 position;
+    vec4 direction;
+    float intensity;
+    float radius;
+    float type; // 1 = spot, 2 = point
+    float angle;
+};
+
+layout(set = 0, binding = 0) uniform GIData
+{
+    mat4 RayRotation;
+    vec4 Origin;       // w = share of the old value kept (0 = replace)
+    vec4 Spacing;
+    ivec4 Counts;      // w = probe count
+    vec4 SunDirection; // towards the sun, w = 1 when there is one
+    vec4 SunColour;    // illuminance in sky units
+    uvec4 Update;      // x = stride, y = offset, z = node count, w = triangle count
+    vec4 Params;       // x = sky strength, y = bounce strength, z = ray bias, w = emissive to sky units
+    vec4 Scales;       // x = light intensity to sky units, y = max depth, z = closest a wall may be
+    uvec4 Extra;       // x = light count, y = 1 moves probes, z = 1 light range mode
+} ubo;
+
+layout(std430, set = 0, binding = 1) readonly buffer Nodes { BVHNode nodes[]; } u_Nodes;
+layout(std430, set = 0, binding = 2) readonly buffer Triangles { vec4 v[]; } u_Tris; // 3 per triangle, v0.w = material
+layout(std430, set = 0, binding = 3) readonly buffer Materials { vec4 data[]; } u_Materials; // albedo, emissive per material
+layout(std430, set = 0, binding = 4) buffer Probes { vec4 data[]; } u_GIProbes;
+layout(set = 0, binding = 5) uniform samplerCube u_EnvMap;
+layout(std430, set = 0, binding = 6) readonly buffer Lights { GILight lights[]; } u_GILights;
+
+#include "GI.glslh"
+
+shared vec3 s_SH[4][RAYS];
+shared vec3 s_RayDir[RAYS];
+shared float s_RayDist[RAYS]; // < 0 = hit a back face
+shared uint s_Backfaces;
+
+const float PI = 3.14159265359;
+
+vec3 SphericalFibonacci(float i, float n)
+{
+    const float PHI = 1.6180339887;
+    float phi       = 2.0 * PI * fract(i * (PHI - 1.0));
+    float cosTheta  = 1.0 - (2.0 * i + 1.0) / n;
+    float sinTheta  = sqrt(clamp(1.0 - cosTheta * cosTheta, 0.0, 1.0));
+    return vec3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
+}
+
+bool RayBox(vec3 o, vec3 invD, vec3 bmin, vec3 bmax, float tMax, out float tNear)
+{
+    vec3 t0  = (bmin - o) * invD;
+    vec3 t1  = (bmax - o) * invD;
+    vec3 lo  = min(t0, t1);
+    vec3 hi  = max(t0, t1);
+    tNear    = max(max(lo.x, lo.y), max(lo.z, 0.0));
+    float tf = min(min(hi.x, hi.y), min(hi.z, tMax));
+    return tNear <= tf;
+}
+
+// Moller-Trumbore, both sides
+bool RayTriangle(vec3 o, vec3 d, vec3 a, vec3 b, vec3 c, inout float t)
+{
+    vec3 e1 = b - a;
+    vec3 e2 = c - a;
+    vec3 p  = cross(d, e2);
+    float det = dot(e1, p);
+    if(abs(det) < 1e-9)
+        return false;
+    float inv = 1.0 / det;
+    vec3 s    = o - a;
+    float u   = dot(s, p) * inv;
+    if(u < 0.0 || u > 1.0)
+        return false;
+    vec3 q  = cross(s, e1);
+    float v = dot(d, q) * inv;
+    if(v < 0.0 || u + v > 1.0)
+        return false;
+    float h = dot(e2, q) * inv;
+    if(h <= 1e-4 || h >= t)
+        return false;
+    t = h;
+    return true;
+}
+
+// anyHit: stop at the first thing in the way (shadow rays)
+int Trace(vec3 o, vec3 d, float tMax, bool anyHit, out float tHit)
+{
+    tHit       = tMax;
+    int hitTri = -1;
+    if(ubo.Update.z == 0u)
+        return -1;
+
+    vec3 invD = 1.0 / mix(d, vec3(1e-8), lessThan(abs(d), vec3(1e-8)));
+    uint stack[32];
+    int sp      = 0;
+    stack[sp++] = 0u;
+
+    while(sp > 0)
+    {
+        BVHNode node = u_Nodes.nodes[stack[--sp]];
+        float tBox;
+        if(!RayBox(o, invD, node.Min, node.Max, tHit, tBox))
+            continue;
+
+        if(node.Count > 0u)
+        {
+            for(uint i = 0u; i < node.Count; i++)
+            {
+                uint tri = node.LeftFirst + i;
+                vec3 a   = u_Tris.v[tri * 3u].xyz;
+                vec3 b   = u_Tris.v[tri * 3u + 1u].xyz;
+                vec3 c   = u_Tris.v[tri * 3u + 2u].xyz;
+                if(RayTriangle(o, d, a, b, c, tHit))
+                {
+                    hitTri = int(tri);
+                    if(anyHit)
+                        return hitTri;
+                }
+            }
+        }
+        else if(sp < 30)
+        {
+            // nearer child last so it is popped first
+            BVHNode l = u_Nodes.nodes[node.LeftFirst];
+            BVHNode r = u_Nodes.nodes[node.LeftFirst + 1u];
+            float tl, tr;
+            bool hl = RayBox(o, invD, l.Min, l.Max, tHit, tl);
+            bool hr = RayBox(o, invD, r.Min, r.Max, tHit, tr);
+            if(hl && hr)
+            {
+                if(tl < tr)
+                {
+                    stack[sp++] = node.LeftFirst + 1u;
+                    stack[sp++] = node.LeftFirst;
+                }
+                else
+                {
+                    stack[sp++] = node.LeftFirst;
+                    stack[sp++] = node.LeftFirst + 1u;
+                }
+            }
+            else if(hl)
+                stack[sp++] = node.LeftFirst;
+            else if(hr)
+                stack[sp++] = node.LeftFirst + 1u;
+        }
+    }
+    return hitTri;
+}
+
+// what the point / spot lights put on a surface (irradiance / PI, sky units)
+vec3 LocalLights(vec3 p, vec3 n)
+{
+    vec3 sum = vec3(0.0);
+    for(uint i = 0u; i < ubo.Extra.x; i++)
+    {
+        GILight light = u_GILights.lights[i];
+        vec3 L        = light.position.xyz - p;
+        float dist    = length(L);
+        L /= max(dist, 1e-4);
+        float NoL = dot(n, L);
+        if(NoL <= 0.0)
+            continue;
+
+        // same falloff as ForwardPBR.frag
+        float atten;
+        if(light.type == 2.0)
+            atten = clamp(1.0 - (dist * dist) / (light.radius * light.radius), 0.0, 1.0);
+        else
+        {
+            float cutoff = 1.0 - light.angle;
+            atten        = (dot(L, light.direction.xyz) - cutoff) / (cutoff * 0.1);
+            atten *= light.radius / (dist * dist + 1.0);
+            if(ubo.Extra.z != 0u)
+            {
+                float q = dist / light.radius;
+                q *= q;
+                float w = clamp(1.0 - q * q, 0.0, 1.0);
+                atten *= w * w;
+            }
+            atten = clamp(atten, 0.0, 1.0);
+        }
+
+        vec3 E = light.colour.rgb * (light.intensity * ubo.Scales.x * atten * NoL);
+        if(max(E.r, max(E.g, E.b)) < 1e-5)
+            continue;
+        float st;
+        if(Trace(p, L, dist, true, st) < 0)
+            sum += E;
+    }
+    return sum / PI;
+}
+
+void main()
+{
+    uint probe = gl_WorkGroupID.x * ubo.Update.x + ubo.Update.y;
+    uint ray   = gl_LocalInvocationID.x;
+    if(probe >= uint(ubo.Counts.w))
+        return;
+
+    if(ray == 0u)
+        s_Backfaces = 0u;
+    barrier();
+
+    uint base    = probe * uint(GI_PROBE_VEC4S);
+    ivec3 counts = ubo.Counts.xyz;
+    ivec3 cell   = ivec3(int(probe) % counts.x, (int(probe) / counts.x) % counts.y, int(probe) / (counts.x * counts.y));
+    vec4 moved   = u_GIProbes.data[base + 4u];
+    vec3 origin  = GIProbePosition(cell, ubo.Origin.xyz, ubo.Spacing.xyz) + moved.xyz;
+
+    vec3 dir = normalize(mat3(ubo.RayRotation) * SphericalFibonacci(float(ray), float(RAYS)));
+
+    float t;
+    int tri = Trace(origin, dir, 1e6, false, t);
+
+    float maxDepth = ubo.Scales.y;
+    s_RayDir[ray]  = dir;
+    s_RayDist[ray] = tri < 0 ? 1e6 : t;
+
+    vec3 radiance = vec3(0.0);
+    if(tri < 0)
+    {
+        // a few very bright rays (the sun's disc in the sky map) would flicker the probe
+        radiance = min(textureLod(u_EnvMap, dir, 0.0).rgb * ubo.Params.x, vec3(8.0));
+    }
+    else
+    {
+        vec3 a = u_Tris.v[uint(tri) * 3u].xyz;
+        vec3 b = u_Tris.v[uint(tri) * 3u + 1u].xyz;
+        vec3 c = u_Tris.v[uint(tri) * 3u + 2u].xyz;
+        vec3 n = normalize(cross(b - a, c - a));
+
+        if(dot(n, dir) > 0.0)
+        {
+            // the back of a surface: this probe is inside something
+            atomicAdd(s_Backfaces, 1u);
+            s_RayDist[ray] = -t;
+        }
+        else
+        {
+            uint material = floatBitsToUint(u_Tris.v[uint(tri) * 3u].w);
+            vec3 albedo   = u_Materials.data[material * 2u].rgb;
+            vec3 emissive = u_Materials.data[material * 2u + 1u].rgb;
+            vec3 hit      = origin + dir * t + n * ubo.Params.z;
+
+            vec3 direct = vec3(0.0);
+            float NoL   = dot(n, ubo.SunDirection.xyz);
+            if(ubo.SunDirection.w > 0.5 && NoL > 0.0)
+            {
+                float st;
+                if(Trace(hit, ubo.SunDirection.xyz, 1e6, true, st) < 0)
+                    direct = ubo.SunColour.rgb * NoL / PI;
+            }
+            direct += LocalLights(hit, n);
+
+            // what the probes already hold there: the bounce before this one
+            vec4 bounce = GISampleGrid(hit, n, ubo.Origin.xyz, ubo.Spacing.xyz, counts);
+            radiance    = albedo * (direct + bounce.rgb * bounce.w * ubo.Params.y) + emissive * ubo.Params.w;
+        }
+    }
+
+    // L1 projection: 4 PI / N per ray, Y00 = 0.282095, Y1 = 0.488603, and the cosine lobe's
+    // 2/3 for band 1 folded in so the stored values evaluate straight to irradiance / PI
+    float k = 4.0 * PI / float(RAYS);
+    s_SH[0][ray] = radiance * (k * 0.282095 * 0.282095);
+    s_SH[1][ray] = radiance * (k * 0.488603 * 0.488603 * (2.0 / 3.0) * dir.x);
+    s_SH[2][ray] = radiance * (k * 0.488603 * 0.488603 * (2.0 / 3.0) * dir.y);
+    s_SH[3][ray] = radiance * (k * 0.488603 * 0.488603 * (2.0 / 3.0) * dir.z);
+    barrier();
+
+    float keep = ubo.Origin.w;
+
+    // depth: this thread is now one octahedral texel, gathering the rays near its direction.
+    // A back face counts as very close, so nothing behind a wall the probe is in is trusted.
+    {
+        int tx      = int(ray) % GI_DEPTH_RES;
+        int ty      = int(ray) / GI_DEPTH_RES;
+        vec3 texDir = GIOctDecode((vec2(tx, ty) + 0.5) / float(GI_DEPTH_RES) * 2.0 - 1.0);
+        vec2 acc    = vec2(0.0);
+        float wsum  = 0.0;
+        for(int r = 0; r < RAYS; r++)
+        {
+            float w = pow(max(dot(texDir, s_RayDir[r]), 0.0), 20.0);
+            float d = s_RayDist[r] < 0.0 ? -s_RayDist[r] * 0.2 : min(s_RayDist[r], maxDepth);
+            acc += w * vec2(d, d * d);
+            wsum += w;
+        }
+        if(wsum > 1e-3)
+        {
+            uint slot   = base + uint(GI_DEPTH_BASE) + ray / 2u;
+            vec4 old    = u_GIProbes.data[slot];
+            vec2 prev   = (ray & 1u) == 0u ? old.xy : old.zw;
+            float blend = (1.0 - keep) * smoothstep(0.0, 0.3, wsum);
+            vec2 now    = mix(prev, acc / wsum, blend);
+            // two texels share a vec4: each thread writes its own half
+            if((ray & 1u) == 0u)
+                u_GIProbes.data[slot].xy = now;
+            else
+                u_GIProbes.data[slot].zw = now;
+        }
+    }
+
+    for(uint stride = RAYS / 2u; stride > 0u; stride >>= 1u)
+    {
+        if(ray < stride)
+        {
+            for(int i = 0; i < 4; i++)
+                s_SH[i][ray] += s_SH[i][ray + stride];
+        }
+        barrier();
+    }
+
+    if(ray == 0u)
+    {
+        // smoothed like the light, so a probe near a wall does not flip in and out of use
+        // as the ray set turns
+        float backfaces = float(s_Backfaces) / float(RAYS);
+        for(int i = 0; i < 4; i++)
+        {
+            vec4 old = u_GIProbes.data[base + uint(i)];
+            vec3 now = mix(s_SH[i][0], old.xyz, keep);
+            float w  = i == 0 ? mix(backfaces, old.w, keep) : 0.0;
+            u_GIProbes.data[base + uint(i)] = vec4(now, w);
+        }
+
+        // move the probe out of the wall it is in, or away from one it is pressed against
+        if(ubo.Extra.y != 0u)
+        {
+            float backDist = 1e9, frontDist = 1e9;
+            vec3 backDir = vec3(0.0), frontDir = vec3(0.0);
+            for(int r = 0; r < RAYS; r++)
+            {
+                float d = s_RayDist[r];
+                if(d < 0.0 && -d < backDist)
+                {
+                    backDist = -d;
+                    backDir  = s_RayDir[r];
+                }
+                else if(d >= 0.0 && d < frontDist)
+                {
+                    frontDist = d;
+                    frontDir  = s_RayDir[r];
+                }
+            }
+
+            float minFront = ubo.Scales.z;
+            vec3 offset    = moved.xyz;
+            if(backfaces > GI_BURIED && backDist < 1e9)
+                offset += backDir * (backDist + minFront * 0.5);
+            else if(frontDist < minFront)
+                offset -= frontDir * (minFront - frontDist);
+            offset = clamp(offset, -0.45 * ubo.Spacing.xyz, 0.45 * ubo.Spacing.xyz);
+            u_GIProbes.data[base + 4u] = vec4(offset, 0.0);
+        }
+    }
+}

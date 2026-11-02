@@ -9,6 +9,7 @@
 #include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/TerrainCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/MeshCollisionShape.h"
 #include "Maths/MathsUtilities.h"
 
 namespace Lumos
@@ -17,12 +18,15 @@ namespace Lumos
     RigidBody3D::RigidBody3D(const RigidBody3DProperties& properties)
         : m_WSTransformInvalidated(true)
         , m_RestVelocityThresholdSquared(properties.RestVelocityThreshold)
-        , m_AverageSummedVelocity(0.0f)
+        // starts high: a new body has to actually be still for a while before it can sleep
+        , m_AverageSummedVelocity(properties.AtRest ? 0.0f : 1.0f)
         , m_WSAabbInvalidated(true)
         , m_Position(properties.Position)
+        , m_PrevPosition(properties.Position)
         , m_LinearVelocity(properties.LinearVelocity)
         , m_Force(properties.Force)
         , m_Orientation(properties.Orientation)
+        , m_PrevOrientation(properties.Orientation)
         , m_AngularVelocity(properties.AngularVelocity)
         , m_Torque(properties.Torque)
         , m_InvInertia(Mat3(1.0f))
@@ -172,10 +176,10 @@ namespace Lumos
         }
 
         if(flags & PhysicsDebugFlags::LINEARVELOCITY)
-            DebugRenderer::DrawThickLine(Vec3(m_WSTransform.Translation()), m_WSTransform * Vec4(m_LinearVelocity, 1.0f), 0.02f, false, Vec4(0.0f, 1.0f, 0.0f, 1.0f));
+            DebugRenderer::DrawThickLine(Vec3(m_WSTransform.Translation()), m_WSTransform * Vec4(m_LinearVelocity, 1.0f), DEBUG_LINE_WIDTH, false, Vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
         if(flags & PhysicsDebugFlags::LINEARFORCE)
-            DebugRenderer::DrawThickLine(Vec3(m_WSTransform.Translation()), m_WSTransform * Vec4(m_Force, 1.0f), 0.02f, false, Vec4(0.0f, 0.0f, 1.0f, 1.0f));
+            DebugRenderer::DrawThickLine(Vec3(m_WSTransform.Translation()), m_WSTransform * Vec4(m_Force, 1.0f), DEBUG_LINE_WIDTH, false, Vec4(0.0f, 0.0f, 1.0f, 1.0f));
     }
 
     void RigidBody3D::SetCollisionShape(CollisionShapeType type)
@@ -201,6 +205,10 @@ namespace Lumos
         case CollisionShapeType::CollisionTerrain:
             SetCollisionShape(CreateSharedPtr<TerrainCollisionShape>());
             break;
+        case CollisionShapeType::CollisionMesh:
+            // empty until the physics engine fills it from the entity's model
+            SetCollisionShape(CreateSharedPtr<MeshCollisionShape>());
+            break;
         default:
             LERROR("Unsupported Collision shape");
             break;
@@ -216,6 +224,46 @@ namespace Lumos
             m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
             AutoResizeBoundingBox();
         }
+    }
+
+    Mat3 RigidBody3D::GetWorldInverseInertia() const
+    {
+        const Mat3 R = Mat3(m_Orientation);
+        return R * m_InvInertia * Mat3::Transpose(R);
+    }
+
+    Vec3 RigidBody3D::GetPointVelocity(const Vec3& worldPoint) const
+    {
+        return m_LinearVelocity + Maths::Cross(m_AngularVelocity, worldPoint - m_Position);
+    }
+
+    void RigidBody3D::ApplyImpulse(const Vec3& impulse)
+    {
+        if(m_Static)
+            return;
+        m_LinearVelocity += impulse * m_InvMass * m_LinearFactor;
+        WakeUp();
+    }
+
+    void RigidBody3D::ApplyImpulseAtPoint(const Vec3& impulse, const Vec3& worldPoint)
+    {
+        if(m_Static)
+            return;
+        m_LinearVelocity += impulse * m_InvMass * m_LinearFactor;
+
+        const Vec3 r = worldPoint - m_Position;
+        m_AngularVelocity += (GetWorldInverseInertia() * Maths::Cross(r, impulse)) * m_AngularFactor;
+        WakeUp();
+    }
+
+    void RigidBody3D::ApplyForceAtPoint(const Vec3& force, const Vec3& worldPoint)
+    {
+        if(m_Static)
+            return;
+        m_Force += force;
+        const Vec3 r = worldPoint - m_Position;
+        m_Torque += Maths::Cross(r, force);
+        WakeUp();
     }
 
     void RigidBody3D::SetAngularVelocity(const Vec3& v)

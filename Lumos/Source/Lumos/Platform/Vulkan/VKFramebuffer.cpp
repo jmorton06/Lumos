@@ -31,7 +31,10 @@ namespace Lumos
                     attachments.PushBack(static_cast<VKTextureDepth*>(frameBufferInfo.attachments[i])->GetImageView());
                     break;
                 case TextureType::DEPTHARRAY:
-                    attachments.PushBack(static_cast<VKTextureDepthArray*>(frameBufferInfo.attachments[i])->GetImageView(frameBufferInfo.layer));
+                    // layer == UINT32_MAX → multi-layer 2D_ARRAY view of every slice (multiview path).
+                    attachments.PushBack(frameBufferInfo.layer == UINT32_MAX
+                                             ? static_cast<VKTextureDepthArray*>(frameBufferInfo.attachments[i])->GetImageView()
+                                             : static_cast<VKTextureDepthArray*>(frameBufferInfo.attachments[i])->GetImageView(frameBufferInfo.layer));
                     break;
                 case TextureType::OTHER:
                     attachments.PushBack(static_cast<VKTexture2D*>(frameBufferInfo.attachments[i])->GetImageView());

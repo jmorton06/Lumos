@@ -5,7 +5,7 @@ namespace Lumos
     struct Version
     {
         int major = 0;
-        int minor = 4;
+        int minor = 5;
         int patch = 0;
     };
 

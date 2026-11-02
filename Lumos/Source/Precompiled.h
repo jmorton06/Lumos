@@ -34,10 +34,6 @@
 #include "Platform/Vulkan/VK.h"
 #endif
 
-#ifdef LUMOS_RENDER_API_OPENGL
-#include <glad/glad.h>
-#endif
-
 // Sol2 (Lua bindings) removed from PCH - include only in Lua-related .cpp files
 // #include <sol/sol.hpp>
 #endif

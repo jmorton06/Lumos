@@ -3,6 +3,8 @@
 #include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/TerrainCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Scene/Component/ModelComponent.h"
 #include "Maths/Random.h"
@@ -12,11 +14,18 @@
 #include "Graphics/Material.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
+#include "Graphics/Terrain.h"
+#include "Graphics/Model.h"
 #include "Graphics/Light.h"
 #include "Scene/Component/Components.h"
 #include "Scene/Component/RigidBody3DComponent.h"
+#include "Scene/Component/TerrainComponent.h"
 #include "Maths/Transform.h"
 #include "Scene/EntityManager.h"
+#include "Core/OS/FileSystem.h"
+#include "Utilities/Hash.h"
+#include <filesystem>
+#include "Graphics/ModelLoader/GLTFSceneImport.h"
 
 namespace Lumos
 {
@@ -44,24 +53,23 @@ namespace Lumos
         bool collidable,
         const Vec4& colour)
     {
-        auto sphere = scene->GetEntityManager()->Create(name);
+        auto sphere     = scene->GetEntityManager()->Create(name);
         sphere.AddComponent<Maths::Transform>(Mat4::Translation(pos) * Mat4::Scale(Vec3(radius * 2.0f)));
-        auto& model = sphere.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Sphere).ModelRef;
+        auto& modelComp = sphere.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Sphere);
+        auto& model     = modelComp.ModelRef;
 
         SharedPtr<Graphics::Material> matInstance = CreateSharedPtr<Graphics::Material>();
         Graphics::MaterialProperties properties;
         properties.albedoColour       = colour;
-        properties.roughness          = Random32::Rand(0.0f, 1.0f);
-        properties.metallic           = Random32::Rand(0.0f, 1.0f);
+        properties.roughness          = 0.85f;
+        properties.metallic           = 0.0f;
         properties.albedoMapFactor    = 0.0f;
         properties.roughnessMapFactor = 0.0f;
         properties.normalMapFactor    = 0.0f;
         properties.metallicMapFactor  = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
-        // auto shader = Application::Get().GetShaderLibrary()->GetAsset("//CoreShaders/ForwardPBR.shader");
-        // matInstance->SetShader(nullptr);//shader);
-        model->GetMeshes().Front()->SetMaterial(matInstance);
+        modelComp.InstanceMaterials[0] = matInstance;
 
         if(physics_enabled)
         {
@@ -103,16 +111,18 @@ namespace Lumos
         bool collidable,
         const Vec4& colour)
     {
-        auto cube = scene->GetEntityManager()->Create(name);
+        auto cube       = scene->GetEntityManager()->Create(name);
         cube.AddComponent<Maths::Transform>(Mat4::Translation(pos) * Mat4::Scale(halfdims * 2.0f));
-        auto& model = cube.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube).ModelRef;
+        auto& modelComp = cube.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
+        auto& model     = modelComp.ModelRef;
 
         auto matInstance = CreateSharedPtr<Graphics::Material>();
         Graphics::MaterialProperties properties;
         properties.albedoColour       = colour;
-        properties.roughness          = Random32::Rand(0.0f, 1.0f);
-        properties.metallic           = Random32::Rand(0.0f, 1.0f);
-        properties.emissive           = 3.0f;
+        // Deterministic matte, no emissive — glow is opt-in via SetEntityPulse.
+        properties.roughness          = 0.85f;
+        properties.metallic           = 0.0f;
+        properties.emissiveColour     = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
         properties.albedoMapFactor    = 0.0f;
         properties.roughnessMapFactor = 0.0f;
         properties.normalMapFactor    = 0.0f;
@@ -121,9 +131,7 @@ namespace Lumos
         properties.occlusionMapFactor = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
-        // auto shader = Application::Get().GetShaderLibrary()->GetAsset("//CoreShaders/ForwardPBR.shader");
-        // matInstance->SetShader(shader);
-        model->GetMeshes().Front()->SetMaterial(matInstance);
+        modelComp.InstanceMaterials[0] = matInstance;
 
         if(physics_enabled)
         {
@@ -183,8 +191,8 @@ namespace Lumos
 
         pyramidMeshEntity.AddComponent<Maths::Transform>(Quat(-90.0f, 0.0f, 0.0f).Normalised().ToMatrix4() * Mat4::Scale(halfdims));
         pyramidMeshEntity.SetParent(pyramid);
-        auto& model = pyramidMeshEntity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Pyramid).ModelRef;
-        model->GetMeshes().Front()->SetMaterial(matInstance);
+        auto& pyramidModelComp                  = pyramidMeshEntity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Pyramid);
+        pyramidModelComp.InstanceMaterials[0]   = matInstance;
 
         if(physics_enabled)
         {
@@ -287,6 +295,304 @@ namespace Lumos
         sphere.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetLinearVelocity(forward * 30.0f);
     }
 
+    Entity EntityFactory::AddTerrainEx(Scene* scene, const Vec3& pos, int gridSize, float scaleXZ, float heightScale, const TerrainMaterial& mat)
+    {
+        auto entity = scene->GetEntityManager()->Create("Terrain");
+        entity.AddComponent<Maths::Transform>(Mat4::Translation(pos));
+
+        const float uvScale = (1.0f / 16.0f) * std::max(mat.uvTile, 0.0001f);
+        const int tileOriginX = (int)std::floor(pos.x / std::max(scaleXZ, 0.0001f));
+        const int tileOriginZ = (int)std::floor(pos.z / std::max(scaleXZ, 0.0001f));
+        SharedPtr<Lumos::Terrain> terrainMesh = CreateSharedPtr<Lumos::Terrain>(
+            gridSize, gridSize,
+            50, 10,
+            scaleXZ, heightScale, scaleXZ,
+            uvScale, uvScale,
+            tileOriginX, tileOriginZ);
+
+        SharedPtr<Graphics::Model> model = CreateSharedPtr<Graphics::Model>(
+            SharedPtr<Graphics::Mesh>(terrainMesh), Graphics::PrimitiveType::Terrain);
+
+        auto& modelComp = entity.AddComponent<Graphics::ModelComponent>(model);
+
+        {
+            auto& tc = entity.AddComponent<TerrainComponent>();
+            tc.GridW       = gridSize;
+            tc.GridH       = gridSize;
+            tc.ScaleXZ     = scaleXZ;
+            tc.ScaleY      = heightScale;
+            tc.TileOriginX = tileOriginX;
+            tc.TileOriginZ = tileOriginZ;
+            const TDArray<float>& heights = terrainMesh->GetHeightData();
+            tc.Heights.Resize(heights.Size());
+            for(uint32_t i = 0; i < (uint32_t)heights.Size(); i++)
+                tc.Heights[i] = heights[i];
+            tc.InitSplatWeights();
+            tc.HasCustomEdits = false;
+        }
+
+        SharedPtr<Graphics::Material> matInstance = CreateSharedPtr<Graphics::Material>();
+        Graphics::MaterialProperties properties;
+        properties.albedoColour       = mat.albedoColour;
+        properties.roughness          = mat.roughness;
+        properties.metallic           = mat.metallic;
+        properties.albedoMapFactor    = 0.0f;
+        properties.roughnessMapFactor = 0.0f;
+        properties.normalMapFactor    = 0.0f;
+        properties.metallicMapFactor  = 0.0f;
+        properties.emissiveMapFactor  = 0.0f;
+        properties.occlusionMapFactor = 0.0f;
+        matInstance->SetMaterialProperites(properties);
+
+        auto FileOnDisk = [](const std::string& vfsPath) -> bool
+        {
+            if(vfsPath.empty()) return false;
+            return FileSystem::Get().FileExistsVFS(Str8StdS(vfsPath));
+        };
+
+        if(FileOnDisk(mat.albedoPath))
+        {
+            matInstance->SetAlbedoTexture(mat.albedoPath);
+            if(matInstance->GetTextures().albedo)
+                matInstance->GetProperties()->albedoMapFactor = 1.0f;
+        }
+        if(FileOnDisk(mat.normalPath))
+        {
+            matInstance->SetNormalTexture(mat.normalPath);
+            if(matInstance->GetTextures().normal)
+                matInstance->GetProperties()->normalMapFactor = 1.0f;
+        }
+        if(FileOnDisk(mat.roughnessPath))
+        {
+            matInstance->SetRoughnessTexture(mat.roughnessPath);
+            if(matInstance->GetTextures().roughness)
+                matInstance->GetProperties()->roughnessMapFactor = 1.0f;
+        }
+        matInstance->UpdateMaterialPropertiesData();
+        modelComp.InstanceMaterials[0] = matInstance;
+
+        if(!mat.noCollider)
+        {
+            RigidBody3D* body = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
+            body->SetPosition(pos);
+            body->SetIsStatic(true);
+            body->SetInverseMass(0.0f);
+            body->SetFriction(0.9f);
+
+            const TDArray<float>& heights = terrainMesh->GetHeightData();
+            SharedPtr<TerrainCollisionShape> shape = CreateSharedPtr<TerrainCollisionShape>(
+                (uint32_t)gridSize, (uint32_t)gridSize,
+                const_cast<float*>(heights.Data()),
+                scaleXZ, heightScale);
+
+            body->SetCollisionShape(shape);
+            body->SetInverseInertia(shape->BuildInverseInertia(0.0f));
+
+            entity.AddComponent<RigidBody3DComponent>(body);
+        }
+        return entity;
+    }
+
+    Entity EntityFactory::AddTerrain(Scene* scene, const Vec3& pos, int gridSize, float scaleXZ, float heightScale)
+    {
+        auto entity = scene->GetEntityManager()->Create("Terrain");
+        entity.AddComponent<Maths::Transform>(Mat4::Translation(pos));
+
+        const int tileOriginX = (int)std::floor(pos.x / std::max(scaleXZ, 0.0001f));
+        const int tileOriginZ = (int)std::floor(pos.z / std::max(scaleXZ, 0.0001f));
+        SharedPtr<Lumos::Terrain> terrainMesh = CreateSharedPtr<Lumos::Terrain>(
+            gridSize, gridSize,
+            50, 10,
+            scaleXZ, heightScale, scaleXZ,
+            1.0f / 16.0f, 1.0f / 16.0f,
+            tileOriginX, tileOriginZ);
+
+        SharedPtr<Graphics::Model> model = CreateSharedPtr<Graphics::Model>(
+            SharedPtr<Graphics::Mesh>(terrainMesh), Graphics::PrimitiveType::Terrain);
+
+        auto& modelComp = entity.AddComponent<Graphics::ModelComponent>(model);
+
+        {
+            auto& tc = entity.AddComponent<TerrainComponent>();
+            tc.GridW       = gridSize;
+            tc.GridH       = gridSize;
+            tc.ScaleXZ     = scaleXZ;
+            tc.ScaleY      = heightScale;
+            tc.TileOriginX = tileOriginX;
+            tc.TileOriginZ = tileOriginZ;
+            const TDArray<float>& heights = terrainMesh->GetHeightData();
+            tc.Heights.Resize(heights.Size());
+            for(uint32_t i = 0; i < (uint32_t)heights.Size(); i++)
+                tc.Heights[i] = heights[i];
+            tc.InitSplatWeights();
+            tc.HasCustomEdits = false;
+        }
+
+        SharedPtr<Graphics::Material> matInstance = CreateSharedPtr<Graphics::Material>();
+        Graphics::MaterialProperties properties;
+        properties.albedoColour       = Vec4(0.35f, 0.55f, 0.25f, 1.0f);
+        properties.roughness          = 0.95f;
+        properties.metallic           = 0.0f;
+        properties.albedoMapFactor    = 0.0f;
+        properties.roughnessMapFactor = 0.0f;
+        properties.normalMapFactor    = 0.0f;
+        properties.metallicMapFactor  = 0.0f;
+        matInstance->SetMaterialProperites(properties);
+        modelComp.InstanceMaterials[0] = matInstance;
+
+        // Static rigid body with TerrainCollisionShape sharing the mesh's heightmap
+        RigidBody3D* body = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
+        body->SetPosition(pos);
+        body->SetIsStatic(true);
+        body->SetInverseMass(0.0f);
+        body->SetFriction(0.9f);
+
+        const TDArray<float>& heights = terrainMesh->GetHeightData();
+        SharedPtr<TerrainCollisionShape> shape = CreateSharedPtr<TerrainCollisionShape>(
+            (uint32_t)gridSize, (uint32_t)gridSize,
+            const_cast<float*>(heights.Data()),
+            scaleXZ, heightScale);
+
+        body->SetCollisionShape(shape);
+        body->SetInverseInertia(shape->BuildInverseInertia(0.0f));
+
+        entity.AddComponent<RigidBody3DComponent>(body);
+        return entity;
+    }
+
+    void EntityFactory::BuildTerrainOnEntity(Entity entity, int gridSize, float scaleXZ, float heightScale, const TerrainMaterial& mat)
+    {
+        if(!entity.Valid() || gridSize <= 1 || scaleXZ <= 0.0f)
+            return;
+
+        Vec3 pos(0.0f);
+        if(auto t = entity.TryGetComponent<Maths::Transform>())
+            pos = t->GetWorldPosition();
+        else
+            entity.AddComponent<Maths::Transform>(Mat4::Translation(pos));
+
+        const int tileOriginX = (int)std::floor(pos.x / std::max(scaleXZ, 0.0001f));
+        const int tileOriginZ = (int)std::floor(pos.z / std::max(scaleXZ, 0.0001f));
+        const float uvScale   = (1.0f / 16.0f) * std::max(mat.uvTile, 0.0001f);
+
+        SharedPtr<Lumos::Terrain> terrainMesh = CreateSharedPtr<Lumos::Terrain>(
+            gridSize, gridSize, 50, 10,
+            scaleXZ, heightScale, scaleXZ,
+            uvScale, uvScale,
+            tileOriginX, tileOriginZ);
+        SharedPtr<Graphics::Model> model = CreateSharedPtr<Graphics::Model>(
+            SharedPtr<Graphics::Mesh>(terrainMesh), Graphics::PrimitiveType::Terrain);
+
+        entity.TryRemoveComponent<Graphics::ModelComponent>();
+        auto& modelComp = entity.AddComponent<Graphics::ModelComponent>(model);
+
+        // Material.
+        SharedPtr<Graphics::Material> matInstance = CreateSharedPtr<Graphics::Material>();
+        Graphics::MaterialProperties properties;
+        properties.albedoColour       = mat.albedoColour;
+        properties.roughness          = mat.roughness;
+        properties.metallic           = mat.metallic;
+        properties.albedoMapFactor    = 0.0f;
+        properties.roughnessMapFactor = 0.0f;
+        properties.normalMapFactor    = 0.0f;
+        properties.metallicMapFactor  = 0.0f;
+        properties.emissiveMapFactor  = 0.0f;
+        properties.occlusionMapFactor = 0.0f;
+        matInstance->SetMaterialProperites(properties);
+        matInstance->UpdateMaterialPropertiesData();
+        modelComp.InstanceMaterials[0] = matInstance;
+
+        // TerrainComponent capturing the freshly generated heights.
+        entity.TryRemoveComponent<TerrainComponent>();
+        auto& tc = entity.AddComponent<TerrainComponent>();
+        tc.GridW       = gridSize;
+        tc.GridH       = gridSize;
+        tc.ScaleXZ     = scaleXZ;
+        tc.ScaleY      = heightScale;
+        tc.TileOriginX = tileOriginX;
+        tc.TileOriginZ = tileOriginZ;
+        const TDArray<float>& heights = terrainMesh->GetHeightData();
+        tc.Heights.Resize(heights.Size());
+        for(uint32_t i = 0; i < (uint32_t)heights.Size(); i++)
+            tc.Heights[i] = heights[i];
+        tc.InitSplatWeights();
+        tc.HasCustomEdits = false;
+
+        // Optional static collision body.
+        entity.TryRemoveComponent<RigidBody3DComponent>();
+        if(!mat.noCollider)
+        {
+            RigidBody3D* body = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
+            body->SetPosition(pos);
+            body->SetIsStatic(true);
+            body->SetInverseMass(0.0f);
+            body->SetFriction(0.9f);
+
+            SharedPtr<TerrainCollisionShape> shape = CreateSharedPtr<TerrainCollisionShape>(
+                (uint32_t)gridSize, (uint32_t)gridSize,
+                const_cast<float*>(tc.Heights.Data()),
+                scaleXZ, heightScale);
+            body->SetCollisionShape(shape);
+            body->SetInverseInertia(shape->BuildInverseInertia(0.0f));
+            entity.AddComponent<RigidBody3DComponent>(body);
+        }
+    }
+
+    Entity EntityFactory::AddArrow(Scene* scene, const Vec3& pos, const Vec3& velocity, float radius, float length, float mass)
+    {
+        auto entity = scene->GetEntityManager()->Create("Arrow");
+        // the capsule primitive is 3 units tall (2 of cylinder, a 0.5 cap each end): `length` is tip to tip
+        entity.AddComponent<Maths::Transform>(Mat4::Translation(pos) * Mat4::Scale(Vec3(radius * 2.0f, length / 3.0f, radius * 2.0f)));
+
+        auto& modelComp = entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Capsule);
+        SharedPtr<Graphics::Material> matInstance = CreateSharedPtr<Graphics::Material>();
+        Graphics::MaterialProperties properties;
+        properties.albedoColour       = Vec4(0.85f, 0.7f, 0.4f, 1.0f);
+        properties.roughness          = 0.5f;
+        properties.metallic           = 0.2f;
+        properties.albedoMapFactor    = 0.0f;
+        properties.roughnessMapFactor = 0.0f;
+        properties.normalMapFactor    = 0.0f;
+        properties.metallicMapFactor  = 0.0f;
+        matInstance->SetMaterialProperites(properties);
+        modelComp.InstanceMaterials[0] = matInstance;
+
+        float invMass = mass > 0.0f ? 1.0f / mass : 0.0f;
+        RigidBody3D* body = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
+        body->SetPosition(pos);
+        body->SetInverseMass(invMass);
+        body->SetCollisionShape(CreateSharedPtr<CapsuleCollisionShape>(radius, length));
+        body->SetInverseInertia(body->GetCollisionShape()->BuildInverseInertia(invMass));
+        body->SetLinearVelocity(velocity);
+        body->WakeUp();
+        entity.AddComponent<RigidBody3DComponent>(body);
+        return entity;
+    }
+
+    Entity EntityFactory::AddTarget(Scene* scene, const Vec3& pos, float radius, const Vec4& colour)
+    {
+        auto entity = scene->GetEntityManager()->Create("Target");
+        entity.AddComponent<Maths::Transform>(Mat4::Translation(pos) * Mat4::Scale(Vec3(radius * 2.0f)));
+
+        auto& modelComp = entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Sphere);
+        SharedPtr<Graphics::Material> matInstance = CreateSharedPtr<Graphics::Material>();
+        Graphics::MaterialProperties properties;
+        properties.albedoColour       = colour;
+        properties.roughness          = 0.35f;
+        properties.metallic           = 0.6f;
+        properties.emissiveColour     = Vec4(1.0f, 1.0f, 1.0f, 1.5f); // white glow, intensity 1.5
+        properties.albedoMapFactor    = 0.0f;
+        properties.roughnessMapFactor = 0.0f;
+        properties.normalMapFactor    = 0.0f;
+        properties.metallicMapFactor  = 0.0f;
+        properties.emissiveMapFactor  = 0.0f;
+        properties.occlusionMapFactor = 0.0f;
+        matInstance->SetMaterialProperites(properties);
+        modelComp.InstanceMaterials[0] = matInstance;
+
+        return entity;
+    }
+
     void EntityFactory::AddPlatform(Scene* scene, const Vec3& pos, const Vec3& scale)
     {
         auto platform = EntityFactory::BuildCuboidObject(
@@ -301,5 +607,130 @@ namespace Lumos
 
         platform.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetIsStatic(true);
         platform.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetFriction(0.8f);
+    }
+
+    // SetParent only reparents, it does not rebase the transform, so a node's LOCAL glTF transform
+    // is already the right value.
+    static Entity CreateEntityFromImportNode(Scene* scene, const Graphics::GLTFImportNode& node)
+    {
+        Entity entity = scene->GetEntityManager()->Create(node.name.empty() ? "Node" : node.name);
+
+        auto& transform = entity.GetOrAddComponent<Maths::Transform>();
+        if(node.hasMatrix)
+            transform.SetLocalTransform(node.matrix);
+        else
+        {
+            transform.SetLocalPosition(node.translation);
+            transform.SetLocalOrientation(node.rotation);
+            transform.SetLocalScale(node.scale);
+        }
+
+        if(node.model)
+            entity.AddComponent<Graphics::ModelComponent>(node.model);
+        if(node.hasLight)
+            entity.AddComponent<Graphics::Light>(node.light);
+        // aspect is the viewport's: the camera system fixes it on resize
+        if(node.hasCamera)
+            entity.AddComponent<Camera>(node.cameraFovDegrees, node.cameraNear, node.cameraFar, 1.0f);
+
+        for(size_t i = 0; i < node.children.Size(); i++)
+            CreateEntityFromImportNode(scene, node.children[i]).SetParent(entity);
+        return entity;
+    }
+
+    // tinygltf reads files off disk, so a glTF inside a pack is written out under the writable root first
+    static bool ExtractPackedFile(const std::string& vfsPath, const std::string& dstPath, std::string* outText)
+    {
+        const i64 size = FileSystem::Get().GetFileSizeVFS(Str8StdS(vfsPath));
+        if(size <= 0)
+            return false;
+        Arena* arena = ArenaAlloc((u64)size + Kilobytes(4));
+        u8* data     = FileSystem::Get().ReadFileVFS(arena, Str8StdS(vfsPath));
+        bool ok      = false;
+        if(data)
+        {
+            if(outText)
+                outText->assign((const char*)data, (size_t)size);
+            if(FILE* f = fopen(dstPath.c_str(), "wb"))
+            {
+                ok = fwrite(data, 1, (size_t)size, f) == (size_t)size;
+                fclose(f);
+            }
+        }
+        ArenaRelease(arena);
+        return ok;
+    }
+
+    static bool UnpackGLTF(const std::string& vfsPath, std::string& outPhysical)
+    {
+        const std::string root = Application::Get().WritableRoot() + "/GLTFCache";
+        const size_t slash     = vfsPath.find_last_of('/');
+        const std::string dir  = slash == std::string::npos ? "" : vfsPath.substr(0, slash + 1);
+        const std::string name = vfsPath.substr(slash + 1);
+        const std::string out  = root + "/" + std::to_string(MurmurHash64A(dir.c_str(), (int)dir.size(), 0));
+        std::error_code ec;
+        std::filesystem::create_directories(out, ec);
+
+        std::string text;
+        if(!ExtractPackedFile(vfsPath, out + "/" + name, &text))
+            return false;
+
+        // every file it points at (.bin, textures) goes alongside
+        for(size_t at = text.find("\"uri\""); at != std::string::npos; at = text.find("\"uri\"", at + 5))
+        {
+            const size_t q1 = text.find('"', text.find(':', at) + 1);
+            const size_t q2 = q1 == std::string::npos ? q1 : text.find('"', q1 + 1);
+            if(q2 == std::string::npos)
+                break;
+            const std::string uri = text.substr(q1 + 1, q2 - q1 - 1);
+            if(uri.rfind("data:", 0) == 0)
+                continue;
+            std::filesystem::create_directories(std::filesystem::path(out + "/" + uri).parent_path(), ec);
+            ExtractPackedFile(dir + uri, out + "/" + uri, nullptr);
+        }
+        outPhysical = out + "/" + name;
+        return true;
+    }
+
+    Entity EntityFactory::ImportGLTFScene(Scene* scene, const std::string& path)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        if(!scene)
+            return {};
+
+        // tinygltf reads straight off disk
+        std::string physical = path;
+        if(path.rfind("//", 0) == 0)
+        {
+            ArenaTemp scratch = ScratchBegin(nullptr, 0);
+            String8 physicalPath;
+            bool ok = FileSystem::Get().ResolvePhysicalPath(scratch.arena, Str8StdS(path), &physicalPath);
+            if(ok)
+                physical = ToStdString(physicalPath);
+            ScratchEnd(scratch);
+            if(!ok && UnpackGLTF(path, physical))
+                ok = true;
+            if(!ok)
+            {
+                LERROR("ImportGLTFScene: could not resolve %s", path.c_str());
+                return {};
+            }
+        }
+
+        Graphics::GLTFImportNode root;
+        if(!Graphics::LoadGLTFSceneTree(physical, root))
+        {
+            LERROR("ImportGLTFScene: failed to load %s", path.c_str());
+            return {};
+        }
+
+        // the loader's root holds the glTF scene's roots: one entity, so the import moves as a unit
+        Entity parent = scene->GetEntityManager()->Create(root.name.empty() ? "Import" : root.name);
+        parent.GetOrAddComponent<Maths::Transform>();
+        for(size_t i = 0; i < root.children.Size(); i++)
+            CreateEntityFromImportNode(scene, root.children[i]).SetParent(parent);
+
+        LINFO("Imported %s as %u root node(s)", path.c_str(), (u32)root.children.Size());
+        return parent;
     }
 }

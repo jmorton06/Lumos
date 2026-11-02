@@ -23,10 +23,14 @@ namespace Lumos
         void OnInit();
         void OnInit(Scene* scene);
         void OnUpdate(Scene* scene);
+        void OnBackgroundUpdate(Scene* scene, float dt);
 
         void CollectGarbage();
 
         void OnNewProject(const std::string& projectPath);
+
+        // Run a Lua file in the global state (project startup scripts, tools).
+        void RunScriptFile(const std::string& vfsPath);
 
         void BindECSLua(sol::state& state);
         void BindLogLua(sol::state& state);
@@ -34,6 +38,8 @@ namespace Lumos
         void BindSceneLua(sol::state& state);
         void BindAppLua(sol::state& state);
         void BindUILua(sol::state& lua);
+        void BindVoxelLua(sol::state& state);
+        void BindCSVLua(sol::state& state);
 
         static TDArray<std::string>& GetIdentifiers() { return s_Identifiers; }
 

@@ -9,9 +9,16 @@ layout (location = 0) in DATA
 {
 	vec3 position;
 	vec4 colour;
+	float edge;
 } fs_in;
 
 void main()
 {
-	colour = DeGamma(fs_in.colour);
+	vec4 c = DeGamma(fs_in.colour);
+
+	float aa  = fwidth(fs_in.edge);
+	float cov = 1.0 - smoothstep(1.0 - aa, 1.0, abs(fs_in.edge));
+	c.a *= cov;
+
+	colour = c;
 }

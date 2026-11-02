@@ -7,11 +7,62 @@ namespace Lumos::Debug
 {
 #if LUMOS_ENABLE_LOG
     static LoggerFunction s_LogFunction = 0;
+    static bool s_Quiet                 = false;
 #endif
 
     void Log::SetLoggerFunction(LoggerFunction func)
     {
         s_LogFunction = func;
+    }
+
+    void Log::SetQuiet(bool quiet) { s_Quiet = quiet; }
+
+#if LUMOS_ENABLE_LOG
+    // Fixed ring so logging never allocates. Lines longer than the slot are cut.
+    static constexpr u32 kLogRingSize = 256;
+    static constexpr u32 kLogLineSize = 220;
+    static char s_LogRing[kLogRingSize][kLogLineSize];
+    static LogLevel s_LogRingLevels[kLogRingSize];
+    static u64 s_LogRingWritten = 0;
+
+    static void PushLogRing(LogLevel level, const char* message)
+    {
+        u32 slot = (u32)(s_LogRingWritten % kLogRingSize);
+        strncpy(s_LogRing[slot], message, kLogLineSize - 1);
+        s_LogRing[slot][kLogLineSize - 1] = 0;
+        s_LogRingLevels[slot]             = level;
+        s_LogRingWritten++;
+    }
+#endif
+
+    u32 Log::RecentCount()
+    {
+#if LUMOS_ENABLE_LOG
+        return s_LogRingWritten < (u64)kLogRingSize ? (u32)s_LogRingWritten : kLogRingSize;
+#else
+        return 0;
+#endif
+    }
+
+    LogRecord Log::GetRecent(u32 i)
+    {
+#if LUMOS_ENABLE_LOG
+        u32 count = RecentCount();
+        if(i >= count)
+            return { LogLevel::Info, "", 0 };
+        u64 first = s_LogRingWritten - count;
+        u64 idx   = first + i;
+        return { s_LogRingLevels[idx % kLogRingSize], s_LogRing[idx % kLogRingSize], idx };
+#else
+        return { LogLevel::Info, "", 0 };
+#endif
+    }
+
+    void Log::ClearRecent()
+    {
+#if LUMOS_ENABLE_LOG
+        s_LogRingWritten = 0;
+#endif
     }
 
     void Log::LogOutput(LogLevel level, const char* file, int line, const char* message, ...)
@@ -30,7 +81,12 @@ namespace Lumos::Debug
         va_end(args);
 
         formattedMessage = PushStr8F(scratch.arena, " %s%s", levelStrs[(u8)level], formattedMessage.str);
-        OS::ConsoleWrite((const char*)formattedMessage.str, u8(level));
+        if(!s_Quiet || level >= LogLevel::Warning)
+            OS::ConsoleWrite((const char*)formattedMessage.str, u8(level));
+
+#if LUMOS_ENABLE_LOG
+        PushLogRing(level, (const char*)formattedMessage.str);
+#endif
 
         if(s_LogFunction)
         {

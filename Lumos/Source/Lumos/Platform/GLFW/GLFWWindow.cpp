@@ -4,11 +4,12 @@
 #define GLFW_EXPOSE_NATIVE_COCOA
 #endif
 
-#ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/OpenGL/GL.h"
+#if defined(LUMOS_PLATFORM_LINUX)
+#define GLFW_EXPOSE_NATIVE_X11
 #endif
 
 #include "GLFWWindow.h"
+#include "Graphics/UI.h"
 #include "Graphics/RHI/GraphicsContext.h"
 #include "Graphics/RHI/SwapChain.h"
 
@@ -19,6 +20,7 @@
 #include "Core/OS/OS.h"
 #include "Core/OS/Input.h"
 #include "Core/Application.h"
+#include "Core/OS/OpenFiles.h"
 
 #include "Events/ApplicationEvent.h"
 #include "Events/MouseEvent.h"
@@ -28,7 +30,34 @@
 #include <GLFW/glfw3native.h>
 #include <imgui/imgui.h>
 
+#ifdef LUMOS_PLATFORM_LINUX
+#include <X11/cursorfont.h>
+// Xlib defines a pile of single-word macros that collide with ordinary
+// identifiers. The types are already declared, so drop the worst offenders.
+#undef None
+#undef Always
+#undef Bool
+#undef True
+#undef False
+#undef Complex
+#undef CursorShape
+#undef KeyPress
+#undef KeyRelease
+#undef FocusIn
+#undef FocusOut
+#undef Expose
+#endif
+
 static GLFWcursor* g_MouseCursors[ImGuiMouseCursor_COUNT] = { 0 };
+
+#if defined(LUMOS_PLATFORM_LINUX) && !defined(GLFW_RESIZE_NWSE_CURSOR)
+// GLFW 3.3 has no diagonal-resize, move or not-allowed cursors, so the
+// borderless-window edge hit-test has nothing to show for corners. Fall back to
+// the X11 font cursors for the shapes GLFW is missing; anything left at 0 goes
+// through glfwSetCursor as usual.
+static ::Cursor g_X11Cursors[ImGuiMouseCursor_COUNT] = { 0 };
+#define LUMOS_X11_CURSOR_FALLBACK
+#endif
 #define LOG_CONTROLLER 0
 namespace Lumos
 {
@@ -37,6 +66,11 @@ namespace Lumos
 
     static void GLFWErrorCallback(int error, const char* description)
     {
+        if(error == 65545)
+        {
+            LINFO("GLFW: %s", description);
+            return;
+        }
         LERROR("GLFW Error - %i : %s", error, description);
     }
 
@@ -58,6 +92,18 @@ namespace Lumos
             g_MouseCursors[cursor_n] = NULL;
         }
 
+#ifdef LUMOS_X11_CURSOR_FALLBACK
+        if(Display* display = glfwGetX11Display())
+        {
+            for(ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
+            {
+                if(g_X11Cursors[cursor_n])
+                    XFreeCursor(display, g_X11Cursors[cursor_n]);
+                g_X11Cursors[cursor_n] = 0;
+            }
+        }
+#endif
+
         glfwDestroyWindow(m_Handle);
 
         s_NumGLFWWindows--;
@@ -68,6 +114,21 @@ namespace Lumos
             glfwTerminate();
         }
     }
+
+    // The desktop's own scaling factor, independent of the framebuffer/window
+    // ratio. On X11 that ratio is always 1 (window coordinates are pixels), so
+    // this is the only thing that says a 4K panel is running at 200%.
+    static float MonitorContentScale()
+    {
+        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+        if(!monitor)
+            return 1.0f;
+        float xscale = 1.0f, yscale = 1.0f;
+        glfwGetMonitorContentScale(monitor, &xscale, &yscale);
+        return xscale > 0.0f ? xscale : 1.0f;
+    }
+
+    static float LargerScale(float a, float b) { return a > b ? a : b; }
 
     bool GLFWWindow::Init(const WindowDesc& properties)
     {
@@ -83,9 +144,14 @@ namespace Lumos
 
         if(!s_GLFWInitialized)
         {
-            int success = glfwInit();
+            int success;
+            {
+                LUMOS_PROFILE_SCOPE("glfwInit");
+                success = glfwInit();
+            }
             ASSERT(success, "Could not initialize GLFW!");
             glfwSetErrorCallback(GLFWErrorCallback);
+            OpenFiles::Install();
 
             s_GLFWInitialized = true;
         }
@@ -94,7 +160,8 @@ namespace Lumos
 
         float xscale = GetMonitorXScale();
 
-        m_Data.DPIScale = xscale;
+        m_Data.DPIScale     = xscale;
+        m_Data.ContentScale = xscale;
 
 #ifdef LUMOS_PLATFORM_MACOS
         if(m_Data.DPIScale > 1.0f)
@@ -109,34 +176,42 @@ namespace Lumos
         }
 #endif
 
-#ifdef LUMOS_RENDER_API_OPENGL
-        if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
-        {
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef LUMOS_PLATFORM_MACOS
-            glfwWindowHint(GLFW_SAMPLES, 1);
-            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-            glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_FALSE);
-            glfwWindowHint(GLFW_COCOA_GRAPHICS_SWITCHING, GL_TRUE);
-            glfwWindowHint(GLFW_STENCIL_BITS, 8); // Fixes 16 bit stencil bits in macOS.
-            glfwWindowHint(GLFW_STEREO, GLFW_FALSE);
-            glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
-#endif
-        }
-#endif
         SetBorderlessWindow(properties.Borderless);
+
+        // Having no monitor at all is a real state, not an error: every display
+        // asleep, a headless machine, the panel switched to another input. GLFW
+        // asserts and takes the process down if any of the monitor queries below
+        // is handed a null one, so ask once and treat "no monitor" as "there is
+        // nothing to go fullscreen onto" rather than crashing on startup.
         GLFWmonitor* monitor    = glfwGetPrimaryMonitor();
-        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        const GLFWvidmode* mode = monitor ? glfwGetVideoMode(monitor) : nullptr;
+        if(!mode)
+            LWARN("No monitor available - opening windowed at the requested size");
 
         uint32_t ScreenWidth  = 0;
         uint32_t ScreenHeight = 0;
 
-        if(properties.Fullscreen)
+        if(properties.Fullscreen && mode) // mode implies monitor
         {
             ScreenWidth  = mode->width;
             ScreenHeight = mode->height;
+
+#ifdef LUMOS_PLATFORM_LINUX
+            // The editor draws its own title bar, so an exclusive-fullscreen
+            // window is wrong here: the WM refuses to maximise/restore/resize it
+            // and the custom window controls end up inert. Start maximised over
+            // the monitor work area instead.
+            int workX, workY, workW, workH;
+            glfwGetMonitorWorkarea(monitor, &workX, &workY, &workW, &workH);
+            if(workW > 0 && workH > 0)
+            {
+                // The size passed here becomes the restored geometry, so keep it
+                // below the work area or "restore" would be a no-op on screen.
+                ScreenWidth  = uint32_t(workW * 0.8f);
+                ScreenHeight = uint32_t(workH * 0.8f);
+            }
+            glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+#endif
         }
         else
         {
@@ -153,25 +228,36 @@ namespace Lumos
         if(m_Data.m_RenderAPI == Graphics::RenderAPI::VULKAN)
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 #endif
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
-        m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, (const char*)properties.Title.str, nullptr, nullptr);
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_LINUX)
+        GLFWmonitor* fullscreenMonitor = nullptr;
+#else
+        GLFWmonitor* fullscreenMonitor = properties.Fullscreen ? monitor : nullptr;
+#endif
+        {
+            LUMOS_PROFILE_SCOPE("glfwCreateWindow");
+            m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, (const char*)properties.Title.str, fullscreenMonitor, nullptr);
+        }
 
         int w, h;
         glfwGetFramebufferSize(m_Handle, &w, &h);
         m_Data.Width  = w;
         m_Data.Height = h;
 
-#ifdef LUMOS_RENDER_API_OPENGL
-        if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
-        {
-            glfwMakeContextCurrent(m_Handle);
+        int winW, winH;
+        glfwGetWindowSize(m_Handle, &winW, &winH);
+        if(winW > 0 && winH > 0)
+            m_Data.DPIScale = (float)w / (float)winW;
 
-            if(!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
-            {
-                LERROR("Failed to initialise OpenGL context");
-            }
-        }
-#endif
+        // Keep the monitor's scale rather than letting the framebuffer ratio
+        // overwrite it: on X11 that ratio is 1 even on a 200% 4K desktop, and
+        // laying the UI out at 1x there is what makes it physically tiny.
+        m_Data.ContentScale = LargerScale(m_Data.DPIScale, MonitorContentScale());
+
+        // Worth a line: when the UI comes out the wrong size these two numbers say
+        // immediately whether the window system reported the scaling at all.
+        LINFO("Window scale - framebuffer/window %.2f, desktop content %.2f", m_Data.DPIScale, m_Data.ContentScale);
 
         glfwSetWindowUserPointer(m_Handle, &m_Data);
 
@@ -179,7 +265,10 @@ namespace Lumos
             glfwSetInputMode(m_Handle, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
         // #ifndef LUMOS_PLATFORM_MACOS
-        SetIcon(properties);
+        {
+            LUMOS_PROFILE_SCOPE("SetIcon");
+            SetIcon(properties);
+        }
         // #endif
 
         // glfwSetWindowPos(m_Handle, mode->width / 2 - m_Data.Width / 2, mode->height / 2 - m_Data.Height / 2);
@@ -199,6 +288,7 @@ namespace Lumos
                                       glfwGetFramebufferSize(window, &w, &h);
 
                                       data.DPIScale = (float)w / (float)width;
+                                      data.ContentScale = LargerScale(data.DPIScale, MonitorContentScale());
 
                                       data.Width = uint32_t(width * data.DPIScale);
                                       data.Height = uint32_t(height * data.DPIScale);
@@ -314,18 +404,38 @@ namespace Lumos
                             {
                                 WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
+                                for(int i = 0; i < numDropped; i++)
+                                    data.DroppedFiles.PushBack(filenames[i]);
                                 std::string filePath = filenames[0];
                                 WindowFileEvent event(filePath);
                                 data.EventCallback(event); });
 
-        g_MouseCursors[ImGuiMouseCursor_Arrow]      = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        g_MouseCursors[ImGuiMouseCursor_TextInput]  = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_Arrow]     = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeNS]  = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeEW]  = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_Hand]      = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+
+#ifdef GLFW_RESIZE_NWSE_CURSOR
+        g_MouseCursors[ImGuiMouseCursor_ResizeAll]  = glfwCreateStandardCursor(GLFW_RESIZE_ALL_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_RESIZE_NESW_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_RESIZE_NWSE_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_NotAllowed] = glfwCreateStandardCursor(GLFW_NOT_ALLOWED_CURSOR);
+#else
         g_MouseCursors[ImGuiMouseCursor_ResizeAll]  = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        g_MouseCursors[ImGuiMouseCursor_ResizeNS]   = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
-        g_MouseCursors[ImGuiMouseCursor_ResizeEW]   = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        g_MouseCursors[ImGuiMouseCursor_Hand]       = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+#endif
+
+#ifdef LUMOS_X11_CURSOR_FALLBACK
+        if(Display* display = glfwGetX11Display())
+        {
+            g_X11Cursors[ImGuiMouseCursor_ResizeAll]  = XCreateFontCursor(display, XC_fleur);
+            g_X11Cursors[ImGuiMouseCursor_ResizeNESW] = XCreateFontCursor(display, XC_bottom_left_corner);
+            g_X11Cursors[ImGuiMouseCursor_ResizeNWSE] = XCreateFontCursor(display, XC_bottom_right_corner);
+            g_X11Cursors[ImGuiMouseCursor_NotAllowed] = XCreateFontCursor(display, XC_X_cursor);
+        }
+#endif
 
         // Setting fullscreen overrides width and heigh in Init
         auto propCopy   = properties;
@@ -385,15 +495,20 @@ namespace Lumos
                     {
                         LWARN("Failed to load app icon %s", path.str);
                     }
-
-                    image.height = height;
-                    image.width  = width;
-                    image.pixels = static_cast<unsigned char*>(pixels);
-                    images.PushBack(image);
+                    else
+                    {
+                        image.height = height;
+                        image.width  = width;
+                        image.pixels = static_cast<unsigned char*>(pixels);
+                        images.PushBack(image);
+                    }
                 }
             }
 
-            glfwSetWindowIcon(m_Handle, int(images.Size()), images.Data());
+            if(!images.Empty())
+            {
+                glfwSetWindowIcon(m_Handle, int(images.Size()), images.Data());
+            }
 
             for(int i = 0; i < (int)images.Size(); i++)
             {
@@ -405,7 +520,8 @@ namespace Lumos
     void GLFWWindow::SetWindowTitle(const std::string& title)
     {
         LUMOS_PROFILE_FUNCTION();
-        glfwSetWindowTitle(m_Handle, title.c_str());
+        if(!title.empty())
+            glfwSetWindowTitle(m_Handle, title.c_str());
     }
 
     void GLFWWindow::ToggleVSync()
@@ -428,8 +544,6 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
 
         m_VSync = set;
-        if(Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::OPENGL)
-            glfwSwapInterval(set ? 1 : 0);
 
         LINFO("VSync : %s", m_VSync ? "True" : "False");
     }
@@ -437,13 +551,83 @@ namespace Lumos
     void GLFWWindow::OnUpdate()
     {
         LUMOS_PROFILE_FUNCTION();
-#ifdef LUMOS_RENDER_API_OPENGL
-        if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
-        {
-            LUMOS_PROFILE_SCOPE("GLFW SwapBuffers");
-            glfwSwapBuffers(m_Handle);
-        }
+    }
+
+#ifdef LUMOS_PLATFORM_MACOS
+    void MacOSSetWindowShape(GLFWwindow* window, float cornerRadius, bool shadow);
+    void MacOSSetWindowTransparent(GLFWwindow* window, bool transparent);
 #endif
+
+    void GLFWWindow::SetWindowSize(uint32_t width, uint32_t height)
+    {
+        glfwSetWindowSize(m_Handle, (int)width, (int)height);
+    }
+
+    Vec2 GLFWWindow::GetWindowSize() const
+    {
+        int w = 0, h = 0;
+        glfwGetWindowSize(m_Handle, &w, &h);
+        return Vec2((float)w, (float)h);
+    }
+
+    void GLFWWindow::SetWindowPosition(int x, int y)
+    {
+        glfwSetWindowPos(m_Handle, x, y);
+    }
+
+    Vec2 GLFWWindow::GetWindowPosition() const
+    {
+        int x = 0, y = 0;
+        glfwGetWindowPos(m_Handle, &x, &y);
+        return Vec2((float)x, (float)y);
+    }
+
+    Vec2 GLFWWindow::GetCursorScreenPosition() const
+    {
+        double cx = 0.0, cy = 0.0;
+        glfwGetCursorPos(m_Handle, &cx, &cy);
+        return GetWindowPosition() + Vec2((float)cx, (float)cy);
+    }
+
+    void GLFWWindow::SetDecorated(bool decorated)
+    {
+        glfwSetWindowAttrib(m_Handle, GLFW_DECORATED, decorated ? GLFW_TRUE : GLFW_FALSE);
+    }
+
+    void GLFWWindow::SetFloating(bool floating)
+    {
+        glfwSetWindowAttrib(m_Handle, GLFW_FLOATING, floating ? GLFW_TRUE : GLFW_FALSE);
+    }
+
+    void GLFWWindow::SetWindowShape(float cornerRadius, bool shadow)
+    {
+#ifdef LUMOS_PLATFORM_MACOS
+        MacOSSetWindowShape(m_Handle, cornerRadius, shadow);
+#else
+        (void)cornerRadius;
+        (void)shadow;
+#endif
+    }
+
+    void GLFWWindow::SetTransparent(bool transparent)
+    {
+#ifdef LUMOS_PLATFORM_MACOS
+        MacOSSetWindowTransparent(m_Handle, transparent);
+#else
+        (void)transparent;
+#endif
+    }
+
+    void GLFWWindow::Minimise()
+    {
+        glfwIconifyWindow(m_Handle);
+    }
+
+    TDArray<std::string> GLFWWindow::PopDroppedFiles()
+    {
+        TDArray<std::string> files = m_Data.DroppedFiles;
+        m_Data.DroppedFiles.Clear();
+        return files;
     }
 
     void GLFWWindow::SetBorderlessWindow(bool borderless)
@@ -492,13 +676,15 @@ namespace Lumos
     void GLFWWindow::UpdateCursorImGui()
     {
         LUMOS_PROFILE_FUNCTION();
-        ImGuiIO& io                   = ImGui::GetIO();
-        ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
+        // the engine UI's request wins; ImGui's (when there is one) otherwise
+        const int requested           = UITakeCursor();
+        const bool imgui              = ImGui::GetCurrentContext() != nullptr;
+        ImGuiMouseCursor imgui_cursor = requested >= 0 ? (ImGuiMouseCursor)requested : (imgui ? ImGui::GetMouseCursor() : ImGuiMouseCursor_Arrow);
 
-        if((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) || glfwGetInputMode(m_Handle, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+        if((imgui && (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)) || glfwGetInputMode(m_Handle, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
             return;
 
-        if(imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
+        if(imgui_cursor == ImGuiMouseCursor_None || (imgui && ImGui::GetIO().MouseDrawCursor))
         {
             // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
 
@@ -508,6 +694,17 @@ namespace Lumos
         }
         else
         {
+#ifdef LUMOS_X11_CURSOR_FALLBACK
+            if(g_X11Cursors[imgui_cursor])
+            {
+                // Applied every frame, same as glfwSetCursor below, so GLFW
+                // re-applying its own cursor on enter events cannot win.
+                Display* display = glfwGetX11Display();
+                XDefineCursor(display, glfwGetX11Window(m_Handle), g_X11Cursors[imgui_cursor]);
+                XFlush(display);
+                return;
+            }
+#endif
             glfwSetCursor(m_Handle, g_MouseCursors[imgui_cursor] ? g_MouseCursors[imgui_cursor] : g_MouseCursors[ImGuiMouseCursor_Arrow]);
             // glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
@@ -528,6 +725,11 @@ namespace Lumos
         }
     }
 
+    void GLFWWindow::Show()
+    {
+        glfwShowWindow(m_Handle);
+    }
+
     void GLFWWindow::Maximise()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -542,24 +744,34 @@ namespace Lumos
     void GLFWWindow::UpdateControllers()
     {
         LUMOS_PROFILE_FUNCTION();
-#ifdef LUMOS_PLATFORM_LINUX
-        // Disable on linux for now. Keyboard is classed as a controller
-        return;
-#endif
         auto& controllers = Input::Get().m_Controllers;
         for(i32 id = 0; id < MAX_CONTROLLER_COUNT; id++)
         {
             if(glfwJoystickPresent(id) == GLFW_FALSE)
             {
-                controllers[id].Present = false;
+                controllers[id].Present   = false;
+                controllers[id].IsGamepad = false;
             }
         }
         // Update controllers
-        for(int id = GLFW_JOYSTICK_1; id < GLFW_JOYSTICK_LAST; id++)
+        for(int id = GLFW_JOYSTICK_1; id < GLFW_JOYSTICK_LAST && id < MAX_CONTROLLER_COUNT; id++)
         {
             if(glfwJoystickPresent(id) == GLFW_TRUE)
             {
                 Controller* controller = &controllers[id];
+                const bool isGamepad   = glfwJoystickIsGamepad(id) == GLFW_TRUE;
+#ifdef LUMOS_PLATFORM_LINUX
+                // Linux enumerates keyboards and other HID oddities as
+                // joysticks; a mapped gamepad is the only thing worth reading.
+                // (This used to early-out of the whole function, which is why
+                // controllers never worked on Linux/Steam Deck at all.)
+                if(!isGamepad)
+                {
+                    controller->Present   = false;
+                    controller->IsGamepad = false;
+                    continue;
+                }
+#endif
                 if(!controller->Present)
                 {
                     controller->ID      = id;
@@ -569,9 +781,71 @@ namespace Lumos
                     LINFO("Controller Connected : %s", controller->Name.c_str());
                 }
 
+                // Standardised gamepad state, if GLFW has a mapping for it.
+                if(isGamepad != controller->IsGamepad)
+                {
+                    controller->IsGamepad = isGamepad;
+                    if(isGamepad)
+                    {
+                        const char* gpName       = glfwGetGamepadName(id);
+                        controller->GamepadName  = gpName ? gpName : controller->Name;
+                        LINFO("Gamepad mapped : %s", controller->GamepadName.c_str());
+                    }
+                }
+                if(isGamepad)
+                {
+                    GLFWgamepadstate state;
+                    if(glfwGetGamepadState(id, &state) == GLFW_TRUE)
+                    {
+                        for(int i = 0; i < InputCode::GamepadButtonCount; i++)
+                        {
+                            const bool down = state.buttons[i] == GLFW_PRESS;
+                            if(down && !controller->GamepadDown[i])
+                                controller->GamepadStates[i].State = KeyState::Pressed;
+                            else if(!down && controller->GamepadDown[i])
+                                controller->GamepadStates[i].State = KeyState::Released;
+                            else
+                                controller->GamepadStates[i].State = down ? KeyState::Held : KeyState::None;
+                            controller->GamepadDown[i] = down;
+                        }
+
+                        const float dz = Input::Get().GetGamepadDeadZone();
+                        // Radial dead zone per stick: a per-axis one clips
+                        // diagonals into a cross and makes slow pans impossible.
+                        auto stick = [&](int ax, int ay)
+                        {
+                            float x = state.axes[ax], y = state.axes[ay];
+                            const float len = std::sqrt(x * x + y * y);
+                            if(len <= dz || len <= 0.0f)
+                            {
+                                x = 0.0f;
+                                y = 0.0f;
+                            }
+                            else
+                            {
+                                // Rescale so the live range starts at 0 past the
+                                // dead zone instead of jumping to dz.
+                                const float scaled = (len - dz) / (1.0f - dz) / len;
+                                x *= scaled;
+                                y *= scaled;
+                            }
+                            controller->GamepadAxes[ax] = x;
+                            controller->GamepadAxes[ay] = y;
+                        };
+                        stick(GLFW_GAMEPAD_AXIS_LEFT_X, GLFW_GAMEPAD_AXIS_LEFT_Y);
+                        stick(GLFW_GAMEPAD_AXIS_RIGHT_X, GLFW_GAMEPAD_AXIS_RIGHT_Y);
+                        // Triggers come in -1..1 with -1 = released. Normalise.
+                        controller->GamepadAxes[InputCode::GamepadAxisLeftTrigger]
+                            = (state.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER] + 1.0f) * 0.5f;
+                        controller->GamepadAxes[InputCode::GamepadAxisRightTrigger]
+                            = (state.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] + 1.0f) * 0.5f;
+                    }
+                }
+
                 int buttonCount;
                 const unsigned char* buttons = glfwGetJoystickButtons(id, &buttonCount);
 
+                if(buttonCount > 64) buttonCount = 64; // TArray bound
                 for(int i = 0; i < buttonCount; i++)
                 {
                     if(buttons[i] == GLFW_PRESS && !controller->ButtonDown[i])
@@ -585,6 +859,7 @@ namespace Lumos
                 int axisCount;
                 const float* axes = glfwGetJoystickAxes(id, &axisCount);
 
+                if(axisCount > 16) axisCount = 16; // TArray bound
                 for(int i = 0; i < axisCount; i++)
                 {
                     controller->AxisStates[i] = abs(axes[i]) > controller->DeadZones[i] ? axes[i] : 0.0f;
@@ -595,6 +870,7 @@ namespace Lumos
 
                 int hatCount;
                 const unsigned char* hats = glfwGetJoystickHats(id, &hatCount);
+                if(hatCount > 16) hatCount = 16; // TArray bound
                 for(int i = 0; i < hatCount; i++)
                     controller->HatStates[i] = hats[i];
             }
@@ -603,10 +879,26 @@ namespace Lumos
 
     float GLFWWindow::GetMonitorXScale()
     {
-        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-        float xscale, yscale;
-        glfwGetMonitorContentScale(monitor, &xscale, &yscale);
+        return MonitorContentScale();
+    }
 
-        return xscale;
+    void GLFWWindow::RefreshSize()
+    {
+        int winW, winH, fbW, fbH;
+        glfwGetWindowSize(m_Handle, &winW, &winH);
+        glfwGetFramebufferSize(m_Handle, &fbW, &fbH);
+        if(winW <= 0 || winH <= 0)
+            return;
+        float dpi          = (float)fbW / (float)winW;
+        uint32_t newWidth  = uint32_t(winW * dpi);
+        uint32_t newHeight = uint32_t(winH * dpi);
+        if(newWidth == m_Data.Width && newHeight == m_Data.Height)
+            return;
+        m_Data.DPIScale     = dpi;
+        m_Data.ContentScale = LargerScale(dpi, MonitorContentScale());
+        m_Data.Width        = newWidth;
+        m_Data.Height       = newHeight;
+        WindowResizeEvent event(m_Data.Width, m_Data.Height, m_Data.DPIScale);
+        m_Data.EventCallback(event);
     }
 }

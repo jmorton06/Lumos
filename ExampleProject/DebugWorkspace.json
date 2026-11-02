@@ -1,0 +1,121 @@
+{
+    "DockLayout": {
+        "Version": 1,
+        "Root": 3,
+        "Nodes": [
+            {
+                "Parent": 1,
+                "Child0": -1,
+                "Child1": -1,
+                "SideBySide": false,
+                "Central": true,
+                "Ratio": 0.5,
+                "ActiveTab": 0,
+                "Tabs": []
+            },
+            {
+                "Parent": 3,
+                "Child0": 2,
+                "Child1": 0,
+                "SideBySide": true,
+                "Central": false,
+                "Ratio": 0.18000000715255738,
+                "ActiveTab": 0,
+                "Tabs": []
+            },
+            {
+                "Parent": 1,
+                "Child0": -1,
+                "Child1": -1,
+                "SideBySide": false,
+                "Central": false,
+                "Ratio": 0.5,
+                "ActiveTab": 0,
+                "Tabs": [
+                    "Hierarchy"
+                ]
+            },
+            {
+                "Parent": -1,
+                "Child0": 1,
+                "Child1": 4,
+                "SideBySide": true,
+                "Central": false,
+                "Ratio": 0.7799999713897705,
+                "ActiveTab": 0,
+                "Tabs": []
+            },
+            {
+                "Parent": 3,
+                "Child0": -1,
+                "Child1": -1,
+                "SideBySide": false,
+                "Central": false,
+                "Ratio": 0.5,
+                "ActiveTab": 0,
+                "Tabs": [
+                    "Inspector"
+                ]
+            }
+        ],
+        "Panels": [
+            {
+                "Name": "Hierarchy",
+                "Open": true,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Inspector",
+                "Open": true,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Console",
+                "Open": true,
+                "Drawer": true,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Stats",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Assets",
+                "Open": true,
+                "Drawer": true,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Scene Settings",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Project Settings",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            },
+            {
+                "Name": "Theme",
+                "Open": false,
+                "Drawer": false,
+                "DrawerSize": 0.3799999952316284
+            }
+        ],
+        "Slots": [
+            0,
+            2,
+            -1,
+            4,
+            -1,
+            -1,
+            -1
+        ]
+    }
+}

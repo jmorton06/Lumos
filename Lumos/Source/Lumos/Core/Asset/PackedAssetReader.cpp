@@ -78,6 +78,9 @@ namespace Lumos
             entry.Path             = pathBuf;
 
             HashMapInsert(&m_Entries, tocEntry.PathHash, entry);
+
+            if(i < 8 || entry.Path.find("Scenes/") != std::string::npos || entry.Path.find("Scripts/") != std::string::npos)
+                LINFO("[Pack] entry[%u] '%s' size=%llu", i, entry.Path.c_str(), (unsigned long long)entry.DataSize);
         }
 
         fclose(file);
@@ -123,6 +126,12 @@ namespace Lumos
         fseek(file, (long)entry->DataOffset, SEEK_SET);
 
         u8* result = PushArray(arena, u8, entry->DataSize);
+        if(!result) // arena too small for this entry
+        {
+            fclose(file);
+            LERROR("PackedAssetReader: arena too small for %.*s (%llu bytes)", (int)vfsPath.size, vfsPath.str, (unsigned long long)entry->DataSize);
+            return nullptr;
+        }
         size_t bytesRead = fread(result, 1, entry->DataSize, file);
         fclose(file);
 

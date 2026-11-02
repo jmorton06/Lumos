@@ -208,7 +208,10 @@ namespace Lumos
             m_VKFormat    = VKUtilities::FormatToVK(parameters.format, parameters.srgb);
             m_Flags       = m_Parameters.flags;
             m_Samples     = parameters.samples;
+            // one non-blocking submit for transition + copy + mips instead of a wait per step
+            VKUtilities::BeginBatchCommands();
             Load();
+            VKUtilities::EndBatchCommands(false);
 
             if(!loadOptions.storePixelData && m_Data)
             {
@@ -543,7 +546,12 @@ namespace Lumos
 #endif
 
                 VKUtilities::TransitionImageLayout(m_TextureImage, m_VKFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_MipLevels);
-                VKUtilities::CopyBufferToImage(stagingBuffer.GetBuffer(), m_TextureImage, static_cast<uint32_t>(m_Width), static_cast<uint32_t>(m_Height));
+                
+                if(m_Width > 0 && m_Height > 0)
+                {
+                    VKUtilities::CopyBufferToImage(stagingBuffer.GetBuffer(), m_TextureImage, static_cast<uint32_t>(m_Width), static_cast<uint32_t>(m_Height));
+                }
+  
                 m_ImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
             }
 
@@ -552,10 +560,7 @@ namespace Lumos
                 GenerateMipmaps(nullptr, m_TextureImage, m_VKFormat, m_Width, m_Height, m_MipLevels);
                 m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             }
-            else
-            {
-                m_ImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            }
+            // else still TRANSFER_DST from the copy: a transition from UNDEFINED lets the driver drop the pixels
 
             m_UUID = {};
 
@@ -638,7 +643,10 @@ namespace Lumos
             m_VKFormat    = VKUtilities::FormatToVK(parameters.format, parameters.srgb);
             m_Flags       = m_Parameters.flags;
 
+            // transition + copy + mips + transition in one submit instead of a GPU round trip each
+            VKUtilities::BeginBatchCommands();
             Load();
+            VKUtilities::EndBatchCommands(false);
 
             if(!loadOptions.storePixelData && m_Data)
             {
@@ -658,7 +666,8 @@ namespace Lumos
 
         void VKTexture2D::SetData(const void* pixels)
         {
-            VkDeviceSize imageSize = VkDeviceSize(m_Width * m_Height * m_BitsPerChannel / 8 * m_ChannelCount);
+            // m_BitsPerChannel holds bits per *pixel* for textures made from source data - size from the format instead
+            VkDeviceSize imageSize = VkDeviceSize(m_Width * m_Height * (GetBitsFromFormat(m_Parameters.format) / 8));
 
             if(!pixels)
             {
@@ -1370,7 +1379,7 @@ namespace Lumos
 
             for(uint32_t i = 0; i < m_Count; i++)
             {
-                VkImageView imageView = CreateImageView(m_TextureImage, m_VKFormat, 1, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_DEPTH_BIT, 1, i, 0);
+                VkImageView imageView = CreateImageView(m_TextureImage, m_VKFormat, 1, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_ASPECT_DEPTH_BIT, 1, i, 0);
                 m_IndividualImageViews.PushBack(imageView);
             }
 
@@ -1453,6 +1462,7 @@ namespace Lumos
 
             m_TextureImage = VkImage();
 
+            m_IndividualImageViews.Clear(); // queued for deletion above; Init makes new ones
             Init();
         }
 
@@ -1468,7 +1478,14 @@ namespace Lumos
 
         Texture2D* VKTexture2D::CreateFromFileFuncVulkan(const std::string& name, const std::string& filename, TextureDesc parameters, TextureLoadOptions loadoptions)
         {
-            return new VKTexture2D(name, filename, parameters, loadoptions);
+            VKTexture2D* tex = new VKTexture2D(name, filename, parameters, loadoptions);
+            if(tex->GetImage() == VK_NULL_HANDLE)
+            {
+                LWARN("Texture failed to load, ignoring: %s", filename.c_str());
+                delete tex;
+                return nullptr;
+            }
+            return tex;
         }
 
         TextureCube* VKTextureCube::CreateFuncVulkan(uint32_t size, void* data, bool hdr)

@@ -765,6 +765,12 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
                      << ", duration: " << _animation->duration << "s)."
                      << std::endl;
 
+    // Lumos: a single-key clip is a pose (e.g. an aim offset) - give it one frame of length,
+    // which ozz needs, rather than dropping it.
+    if (_animation->duration <= 0.f) {
+      _animation->duration = 1.f / (_sampling_rate > 0.f ? _sampling_rate : 30.f);
+    }
+
     if (!_animation->Validate()) {
       ozz::log::Err() << "Animation '" << _animation->name
                       << "' failed validation." << std::endl;

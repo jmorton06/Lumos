@@ -32,6 +32,7 @@ namespace Lumos
         static void Create();
 
         virtual SafeAreaInsets GetSafeAreaInsets() const { return {}; }
+        virtual float GetSafeAreaScale() const { return 1.0f; }
 
         static std::string PowerStateToString(PowerState state);
 
@@ -39,14 +40,35 @@ namespace Lumos
         virtual std::string GetCurrentWorkingDirectory();
         virtual std::string GetAssetPath();
         virtual void Vibrate() const { };
+        // Short tap from the haptic engine: 0 = selection tick, 1 = light, 2 = medium, 3 = heavy
+        virtual void Haptic(int kind) const { };
         virtual void SetTitleBarColour(const Vec4& colour, bool dark = true) { };
+        virtual void SetWindowDecorations(bool decorated) { };
+        // System light/dark appearance (dark where the platform can't say)
+        virtual bool IsDarkMode() const { return true; }
+        // Begin* return true when the window manager took the interaction over.
+        // In that case the caller must stop tracking it and not call Update*.
+        virtual bool BeginWindowDrag() { return false; };
+        virtual void UpdateWindowDrag() { };
+        // Resize edge bitmask: Top=1 Bottom=2 Left=4 Right=8 (corners = OR of two).
+        virtual bool BeginWindowResize(int edgeMask) { return false; };
+        virtual void UpdateWindowResize() { };
+        virtual bool IsWindowMaximised() const { return false; }
+        virtual bool IsWindowFullscreen() const { return false; }
+        virtual void SetWindowFullscreen(bool fullscreen) { };
+        virtual bool DidEnterFullscreen() const { return false; }
+        // The app is the active one and its window has the keyboard (asks for that when it is not). A fullscreen
+        // request made before then is dropped or turned back by the OS.
+        virtual bool IsAppActive() { return true; }
+        virtual void RestoreWindow() { };
+        virtual void IconifyWindow() { };
 
         // Mobile only
         virtual void ShowKeyboard(bool bShow) { };
         virtual void HideKeyboard() { };
         virtual void Delay(uint32_t usec) { };
+        virtual void SetLowLatencyMode(bool enabled) { };
 
-        // Needed for MaxOS
         virtual void MaximiseWindow() { }
 
         virtual void OpenFileLocation(const std::string& path) { }

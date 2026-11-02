@@ -51,6 +51,8 @@ namespace Lumos
                     localStorage.InitialiseEmpty();
                     info.LocalStorage = localStorage;
                 }
+                if(descriptor.type == DescriptorType::IMAGE_SAMPLER)
+                    m_SamplerCount += descriptor.textureCount > 1 ? descriptor.textureCount : 1;
                 info.valid                           = true;
                 m_DescriptorData[descriptor.binding] = info;
             }
@@ -62,7 +64,7 @@ namespace Lumos
                 m_DescriptorSet[frame]     = nullptr;
                 g_DescriptorSetCount++;
                 auto layout = static_cast<Graphics::VKShader*>(descriptorDesc.shader)->GetDescriptorLayout(descriptorDesc.layoutIndex);
-                VKRenderer::GetRenderer()->AllocateDescriptorSet(&m_DescriptorSet[frame], m_DescriptorPoolCreatedFrom[frame], *layout, descriptorDesc.count);
+                VKRenderer::GetRenderer()->AllocateDescriptorSet(&m_DescriptorSet[frame], m_DescriptorPoolCreatedFrom[frame], *layout, descriptorDesc.count, m_SamplerCount);
             }
         }
 
@@ -76,10 +78,13 @@ namespace Lumos
                 auto descriptorSet = m_DescriptorSet[frame];
                 auto pool          = m_DescriptorPoolCreatedFrom[frame];
                 auto device        = VKDevice::GetHandle();
+                uint32_t samplers  = m_SamplerCount;
 
                 DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
-                deletionQueue.PushFunction([descriptorSet, pool, device]
-                                           { vkFreeDescriptorSets(device, pool, 1, &descriptorSet); });
+                deletionQueue.PushFunction([descriptorSet, pool, device, samplers]
+                                           {
+                                               vkFreeDescriptorSets(device, pool, 1, &descriptorSet);
+                                               VKRenderer::ReleaseDescriptorUse(pool, 1, samplers); });
             }
 
             for(auto& bufferData : m_DescriptorData)
@@ -108,7 +113,8 @@ namespace Lumos
             auto commandBuffer = cmdBuffer ? cmdBuffer : Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
             if(texture->GetType() == TextureType::COLOUR)
             {
-                if(((VKTexture2D*)texture)->GetImageLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+                VkImageLayout curLayout = ((VKTexture2D*)texture)->GetImageLayout();
+                if(curLayout != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && curLayout != VK_IMAGE_LAYOUT_GENERAL)
                 {
                     ((VKTexture2D*)texture)->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, (VKCommandBuffer*)commandBuffer);
                 }
@@ -261,7 +267,7 @@ namespace Lumos
                         VKStorageBuffer* vkStorageBuffer = static_cast<VKStorageBuffer*>(imageInfo.Desc.storageBuffer);
                         bufferInfos[index].buffer        = *(VkBuffer*)vkStorageBuffer->GetBuffer();
                         bufferInfos[index].offset        = imageInfo.Desc.offset;
-                        bufferInfos[index].range         = imageInfo.Desc.size > 0 ? imageInfo.Desc.size : vkStorageBuffer->GetSize();
+                        bufferInfos[index].range         = VK_WHOLE_SIZE;
 
                         VkWriteDescriptorSet writeDescriptorSet = {};
                         writeDescriptorSet.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

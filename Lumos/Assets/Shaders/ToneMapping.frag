@@ -13,13 +13,19 @@ layout(set = 0, binding = 0) uniform UniformBuffer
 	float Saturation;
 	float Contrast;
 	float Brightness;
-	float p0;
-	float p1;
-	float p2;
+	float TargetLuminance;    // middle-grey target (typically 0.18)
+	float UseAdaptive;        // 0 or 1; non-bool to keep std140 alignment
+	float KeepAlpha;          // 1 = transparent window, carry scene alpha through
 } ubo;
 
 layout(set = 0, binding = 1) uniform sampler2D u_Texture;
 layout(set = 0, binding = 2) uniform sampler2D u_BloomTexture;
+
+layout(std430, set = 0, binding = 3) readonly buffer AdaptiveLuminance
+{
+    float AverageLuminance;
+} adapt;
+
 layout(location = 0) out vec4 outFrag;
 
 vec3 ACESApprox(vec3 v)
@@ -164,14 +170,37 @@ vec3 reinhard_extended_luminance(vec3 v, float max_white_l)
     return change_luminance(v, l_new);
 }
 
+// Hash for per-pixel white noise. iq / Hugo Elias style.
+float hash12(vec2 p)
+{
+    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
+
+vec3 screenSpaceDither(vec2 fragCoord)
+{
+    float n0 = hash12(fragCoord);
+    float n1 = hash12(fragCoord + vec2(7.31, 13.17));
+    vec3 tri = vec3((n0 + n1) - 1.0);
+    return tri / 255.0;
+}
+
 void main()
 {
 	vec3 colour = texture(u_Texture, outTexCoord).rgb;
-	
+
 	vec3 bloom = texture(u_BloomTexture, outTexCoord).rgb * ubo.BloomIntensity;
-	
+
 	colour += bloom;
-	
+
+	if(ubo.UseAdaptive > 0.5)
+	{
+		float avgLum       = max(adapt.AverageLuminance, 1e-4);
+		float exposureScale = clamp(ubo.TargetLuminance / avgLum, 0.05, 32.0);
+		colour *= exposureScale;
+	}
+
 	int i = ubo.ToneMapIndex;
 	if (i == 1) colour = linearToneMapping(colour);
 	else if (i == 2) colour = reinhard_jodie(colour);
@@ -185,6 +214,17 @@ void main()
 	colour.rgb = (colour.rgb - 0.5f) * ubo.Contrast + 0.5f + ubo.Brightness;
 	float lum = dot(colour.rgb, vec3(0.3086, 0.6094, 0.0820));
 	colour.rgb = mix(vec3(lum), colour.rgb, ubo.Saturation);
+
+	if (ubo.KeepAlpha > 0.5)
+	{
+		// stay premultiplied so empty pixels don't glow over the desktop
+		float a = texture(u_Texture, outTexCoord).a;
+		colour.rgb = min(colour.rgb + screenSpaceDither(gl_FragCoord.xy) * a, vec3(a));
+		outFrag = vec4(colour, a);
+		return;
+	}
+
+	colour.rgb += screenSpaceDither(gl_FragCoord.xy);
 
 	outFrag = vec4(colour, 1.0);
 }

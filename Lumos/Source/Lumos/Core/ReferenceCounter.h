@@ -12,31 +12,40 @@ namespace Lumos
     public:
         inline bool SharedPtr()
         {
-            count++;
-            return count != 0;
+            return count.fetch_add(1, std::memory_order_relaxed) >= 0;
         }
 
         inline int RefValue()
         {
-            count++;
-            return count;
+            return count.fetch_add(1, std::memory_order_relaxed) + 1;
         }
 
         inline bool Unref()
         {
-            --count;
-            bool del = count == 0;
-            return del;
+            return count.fetch_sub(1, std::memory_order_acq_rel) == 1;
+        }
+
+        inline bool TryRef()
+        {
+            int curr = count.load(std::memory_order_relaxed);
+            while(curr > 0)
+            {
+                if(count.compare_exchange_weak(curr, curr + 1,
+                                               std::memory_order_acquire,
+                                               std::memory_order_relaxed))
+                    return true;
+            }
+            return false;
         }
 
         inline int Get() const
         {
-            return count;
+            return count.load(std::memory_order_relaxed);
         }
 
         inline void Init(int p_value = 1)
         {
-            count = p_value;
+            count.store(p_value, std::memory_order_relaxed);
         }
     };
 }

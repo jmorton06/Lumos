@@ -18,26 +18,17 @@ namespace Lumos
     {
         ArenaTemp scratch = ScratchBegin(&arena, 1);
 
-        // Read file
-        String8 physicalPath;
-        if(!FileSystem::Get().ResolvePhysicalPath(scratch.arena, path, &physicalPath))
-        {
-            LERROR("LMeshReader: Failed to resolve path %.*s", (int)path.size, path.str);
-            ScratchEnd(scratch);
-            return false;
-        }
-
-        int64_t fileSize = FileSystem::GetFileSize(physicalPath);
+        int64_t fileSize = FileSystem::Get().GetFileSizeVFS(path);
         if(fileSize < (int64_t)sizeof(LMeshHeader))
         {
-            LERROR("LMeshReader: File too small %.*s", (int)path.size, path.str);
+            LERROR("LMeshReader: File too small or missing %.*s", (int)path.size, path.str);
             ScratchEnd(scratch);
             return false;
         }
 
         // Allocate arena large enough for the file data
         Arena* fileArena = ArenaAlloc((u64)fileSize + Kilobytes(4));
-        u8* fileData = FileSystem::ReadFile(fileArena, physicalPath);
+        u8* fileData = FileSystem::Get().ReadFileVFS(fileArena, path);
         if(!fileData)
         {
             LERROR("LMeshReader: Failed to read %.*s", (int)path.size, path.str);
@@ -74,15 +65,39 @@ namespace Lumos
             return false;
         }
 
+        if(header->MeshCount == 0)
+        {
+            LERROR("LMeshReader: no meshes in %.*s", (int)path.size, path.str);
+            ArenaRelease(fileArena);
+            ScratchEnd(scratch);
+            return false;
+        }
+
         // Read descriptors
         const LMeshDescriptor* descriptors = (const LMeshDescriptor*)(fileData + sizeof(LMeshHeader));
+
+        // every mesh's data must lie in the file and match its vertex type (a layout change without a version bump)
+        for(u32 i = 0; i < header->MeshCount; i++)
+        {
+            const LMeshDescriptor& d = descriptors[i];
+            const u64 stride         = (d.Flags & LMeshVertexFlag_Animated) ? sizeof(Graphics::AnimVertex) : sizeof(Graphics::Vertex);
+            const bool bad           = (u64)d.VertexSize != (u64)d.VertexCount * stride
+                           || (u64)d.IndexSize != (u64)d.IndexCount * sizeof(u32)
+                           || (u64)d.VertexOffset + d.VertexSize > (u64)fileSize
+                           || (u64)d.IndexOffset + d.IndexSize > (u64)fileSize;
+            if(bad)
+            {
+                LERROR("LMeshReader: mesh %u data out of range or wrong vertex size in %.*s", i, (int)path.size, path.str);
+                ArenaRelease(fileArena);
+                ScratchEnd(scratch);
+                return false;
+            }
+        }
 
         // Read material data
         u8* matPtr = fileData + sizeof(LMeshHeader) + header->MeshCount * sizeof(LMeshDescriptor);
         u8* fileEnd = fileData + fileSize;
 
-        // Try to extract hash from lmesh filename for .lmat lookup
-        // Path pattern: //Assets/Imported/{hash}.lmesh
         std::string pathStr((const char*)path.str, path.size);
         std::string lmeshFilename = StringUtilities::GetFileName(pathStr);
         // Remove .lmesh extension
@@ -160,36 +175,29 @@ namespace Lumos
             }
 
             // Try loading from cached .lmat file first
-            char lmatBuf[512];
-            snprintf(lmatBuf, sizeof(lmatBuf), "//Assets/Imported/Materials/%s_%u.lmat", hashStr.c_str(), m);
-            String8 lmatPath = Str8StdS(std::string(lmatBuf));
+            std::string lmatPathStr = "//Assets/Imported/Materials/" + hashStr + "_" + std::to_string(m) + ".lmat";
+            String8 lmatPath = Str8StdS(lmatPathStr);
 
             SharedPtr<Graphics::Material> material = Application::Get().GetAssetManager()->LoadMaterialAsset(lmatPath);
+            const bool fromLmat                    = material != nullptr;
+
+            bool animated = false;
+            for(u32 mi = 0; mi < header->MeshCount; mi++)
+            {
+                if(descriptors[mi].MaterialIndex == m && (descriptors[mi].Flags & LMeshVertexFlag_Animated))
+                {
+                    animated = true;
+                    break;
+                }
+            }
 
             if(!material)
             {
                 // Fallback: create material inline from lmesh binary data
-                auto shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBR"));
-                material = CreateSharedPtr<Graphics::Material>();
-
-                bool animated = false;
-                for(u32 mi = 0; mi < header->MeshCount; mi++)
-                {
-                    if(descriptors[mi].MaterialIndex == m && (descriptors[mi].Flags & LMeshVertexFlag_Animated))
-                    {
-                        animated = true;
-                        break;
-                    }
-                }
-
-                if(animated)
-                    shader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBRAnim"));
-
-                if(shader)
-                {
-                    auto shaderPtr = shader.As<Graphics::Shader>();
-                    material = CreateSharedPtr<Graphics::Material>(shaderPtr, props);
-                }
+                auto shader = Application::Get().GetAssetManager()->GetAssetData(animated ? Str8Lit("ForwardPBRAnim") : Str8Lit("ForwardPBR"));
+                // no shader yet is fine: the descriptor set falls back to ForwardPBR when it is made
+                SharedPtr<Graphics::Shader> shaderPtr = shader ? shader.As<Graphics::Shader>() : SharedPtr<Graphics::Shader>();
+                material = CreateSharedPtr<Graphics::Material>(shaderPtr, props);
 
                 material->SetName(matName);
 
@@ -228,7 +236,7 @@ namespace Lumos
                     if(slot < LMESH_MAX_TEXTURE_SLOTS)
                     {
                         Graphics::TextureDesc texDesc;
-                        texDesc.wrap      = (Graphics::TextureWrap)wrap;
+                        texDesc.wrap      = wrap != 0 ? (Graphics::TextureWrap)wrap : Graphics::TextureWrap::REPEAT;
                         texDesc.minFilter = filter != 0 ? (Graphics::TextureFilter)filter : Graphics::TextureFilter::LINEAR;
                         texDesc.magFilter = texDesc.minFilter;
                         auto tex = Application::Get().GetAssetManager()->LoadTextureAsset(Str8StdS(texPath), false, texDesc);
@@ -248,14 +256,6 @@ namespace Lumos
                 }
 
                 material->SetTextures(textures);
-
-                // Restore render flags from lmesh
-                if(materialFlags & (u32)Graphics::Material::RenderFlags::TWOSIDED)
-                    material->SetFlag(Graphics::Material::RenderFlags::TWOSIDED);
-                if(materialFlags & (u32)Graphics::Material::RenderFlags::ALPHABLEND)
-                    material->SetFlag(Graphics::Material::RenderFlags::ALPHABLEND);
-                if(materialFlags & (u32)Graphics::Material::RenderFlags::NOSHADOW)
-                    material->SetFlag(Graphics::Material::RenderFlags::NOSHADOW);
             }
             else
             {
@@ -285,24 +285,44 @@ namespace Lumos
                     matPtr += pathLen + 1;
                 }
 
-                // Restore render flags from lmesh (lmat doesn't store these)
-                if(materialFlags & (u32)Graphics::Material::RenderFlags::TWOSIDED)
-                    material->SetFlag(Graphics::Material::RenderFlags::TWOSIDED);
-                if(materialFlags & (u32)Graphics::Material::RenderFlags::ALPHABLEND)
-                    material->SetFlag(Graphics::Material::RenderFlags::ALPHABLEND);
-                if(materialFlags & (u32)Graphics::Material::RenderFlags::NOSHADOW)
-                    material->SetFlag(Graphics::Material::RenderFlags::NOSHADOW);
+                // an older .lmat has no name and no shader
+                if(material->GetName().empty())
+                    material->SetName(matName);
+                if(animated)
+                {
+                    auto animShader = Application::Get().GetAssetManager()->GetAssetData(Str8Lit("ForwardPBRAnim"));
+                    if(animShader)
+                    {
+                        auto shaderPtr = animShader.As<Graphics::Shader>();
+                        if(material->GetShader() != shaderPtr)
+                            material->SetShader(shaderPtr);
+                    }
+                }
+            }
+
+            // an .lmat carries its own flags (and may have been edited); the lmesh copy is for when there is none
+            if(!fromLmat)
+            {
+                material->SetFlag(Graphics::Material::RenderFlags::TWOSIDED, (materialFlags & (u32)Graphics::Material::RenderFlags::TWOSIDED) != 0);
+                material->SetFlag(Graphics::Material::RenderFlags::ALPHABLEND, (materialFlags & (u32)Graphics::Material::RenderFlags::ALPHABLEND) != 0);
+                material->SetFlag(Graphics::Material::RenderFlags::NOSHADOW, (materialFlags & (u32)Graphics::Material::RenderFlags::NOSHADOW) != 0);
             }
 
             materials.PushBack(material);
         }
 
-        // Read bounding boxes offset
-        u32 boundsOffset = 0;
+        // mesh names follow the materials
+        TDArray<std::string> meshNames;
+        for(u32 i = 0; i < header->MeshCount; i++)
         {
-            // After all vertex/index data
-            const LMeshDescriptor& last = descriptors[header->MeshCount - 1];
-            boundsOffset = last.IndexOffset + last.IndexSize;
+            u32 nameLen = 0;
+            if(matPtr + 4 > fileEnd)
+                break;
+            memcpy(&nameLen, matPtr, 4);
+            if(nameLen > 4096 || matPtr + 4 + nameLen + 1 > fileEnd)
+                break;
+            meshNames.PushBack(std::string((const char*)matPtr + 4, nameLen));
+            matPtr += 4 + nameLen + 1;
         }
 
         // Create meshes
@@ -344,6 +364,8 @@ namespace Lumos
 
             if(desc.MaterialIndex < materials.Size())
                 mesh->SetMaterial(materials[desc.MaterialIndex]);
+            if(i < meshNames.Size())
+                mesh->SetName(meshNames[i]);
 
             outModel.AddMesh(mesh);
         }

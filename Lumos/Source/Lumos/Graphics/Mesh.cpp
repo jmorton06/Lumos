@@ -15,6 +15,78 @@ namespace Lumos
 {
     namespace Graphics
     {
+        static inline int16_t PackSnorm16(float v)
+        {
+            v = v < -1.0f ? -1.0f : (v > 1.0f ? 1.0f : v);
+            return (int16_t)lroundf(v * 32767.0f);
+        }
+
+        static inline uint8_t PackUnorm8(float v)
+        {
+            v = v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
+            return (uint8_t)lroundf(v * 255.0f);
+        }
+
+        void PackVertices(const Vertex* in, uint32_t count, PackedVertex* out)
+        {
+            for(uint32_t i = 0; i < count; i++)
+            {
+                const Vertex& v = in[i];
+                PackedVertex& o = out[i];
+                o.Position[0] = v.Position.x;
+                o.Position[1] = v.Position.y;
+                o.Position[2] = v.Position.z;
+
+                Vec3 n           = v.Normal;
+                const float nLen = Maths::Length(n);
+                n                = nLen > 1e-6f ? n / nLen : Vec3(0.0f, 1.0f, 0.0f);
+                Vec3 t           = v.Tangent - n * Maths::Dot(v.Tangent, n);
+                float tLen       = Maths::Length(t);
+                if(tLen < 1e-6f) // no tangent: any perpendicular keeps the shader's normalize finite
+                {
+                    t    = Maths::Cross(n, fabsf(n.y) < 0.99f ? Vec3(0.0f, 1.0f, 0.0f) : Vec3(1.0f, 0.0f, 0.0f));
+                    tLen = Maths::Length(t);
+                }
+                t                 = t / tLen;
+                const float sign  = Maths::Dot(Maths::Cross(n, t), v.Bitangent) < 0.0f ? -1.0f : 1.0f;
+
+                o.Normal[0]  = PackSnorm16(n.x);
+                o.Normal[1]  = PackSnorm16(n.y);
+                o.Normal[2]  = PackSnorm16(n.z);
+                o.Normal[3]  = 0;
+                o.Tangent[0] = PackSnorm16(t.x);
+                o.Tangent[1] = PackSnorm16(t.y);
+                o.Tangent[2] = PackSnorm16(t.z);
+                o.Tangent[3] = PackSnorm16(sign);
+                o.TexCoords[0] = v.TexCoords.x;
+                o.TexCoords[1] = v.TexCoords.y;
+                o.Colour[0]    = PackUnorm8(v.Colours.x);
+                o.Colour[1]    = PackUnorm8(v.Colours.y);
+                o.Colour[2]    = PackUnorm8(v.Colours.z);
+                o.Colour[3]    = PackUnorm8(v.Colours.w);
+            }
+        }
+
+        Vertex UnpackVertex(const PackedVertex& p)
+        {
+            Vertex v;
+            v.Position  = Vec3(p.Position[0], p.Position[1], p.Position[2]);
+            v.Normal    = Vec3(p.Normal[0], p.Normal[1], p.Normal[2]) / 32767.0f;
+            v.Tangent   = Vec3(p.Tangent[0], p.Tangent[1], p.Tangent[2]) / 32767.0f;
+            v.Bitangent = Maths::Cross(v.Normal, v.Tangent) * (p.Tangent[3] < 0 ? -1.0f : 1.0f);
+            v.TexCoords = Vec2(p.TexCoords[0], p.TexCoords[1]);
+            v.Colours   = Vec4(p.Colour[0], p.Colour[1], p.Colour[2], p.Colour[3]) / 255.0f;
+            return v;
+        }
+
+        VertexBuffer* CreatePackedVertexBuffer(const Vertex* vertices, uint32_t count)
+        {
+            TDArray<PackedVertex> packed;
+            packed.Resize(count);
+            PackVertices(vertices, count, packed.Data());
+            return VertexBuffer::Create((uint32_t)(sizeof(PackedVertex) * count), packed.Data(), BufferUsage::STATIC);
+        }
+
         Mesh::Mesh()
             : m_VertexBuffer(nullptr)
             , m_IndexBuffer(nullptr)
@@ -24,28 +96,40 @@ namespace Lumos
 
         Mesh::Mesh(const Mesh& mesh)
             : m_VertexBuffer(mesh.m_VertexBuffer)
+            , m_AnimVertexBuffer(mesh.m_AnimVertexBuffer)
             , m_IndexBuffer(mesh.m_IndexBuffer)
-            , m_BoundingBox(mesh.m_BoundingBox)
-            , m_Name(mesh.m_Name)
             , m_Material(mesh.m_Material)
+            , m_BoundingBox(mesh.m_BoundingBox)
+            , m_CPUPositions(mesh.m_CPUPositions)
+            , m_CPUIndices(mesh.m_CPUIndices)
+            , m_CPUVertices(mesh.m_CPUVertices)
+            , m_Name(mesh.m_Name)
         {
+#ifndef LUMOS_PRODUCTION
+            m_Stats = mesh.m_Stats;
+#endif
         }
 
         Mesh::Mesh(const TDArray<uint32_t>& indices, const TDArray<Vertex>& vertices)
         {
             m_BoundingBox = {};
 
+            m_CPUPositions.Reserve((uint32_t)vertices.Size());
             for(auto& vertex : vertices)
             {
                 m_BoundingBox.Merge(vertex.Position);
+                m_CPUPositions.PushBack(vertex.Position);
             }
+            m_CPUIndices = indices;
+            if(s_RetainCPUVertices)
+                m_CPUVertices = vertices;
 
             m_IndexBuffer  = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create((uint32_t*)indices.Data(), (uint32_t)indices.Size()));
-            m_VertexBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::Vertex) * vertices.Size()), vertices.Data(), BufferUsage::STATIC));
+            m_VertexBuffer = SharedPtr<VertexBuffer>(CreatePackedVertexBuffer(vertices.Data(), (uint32_t)vertices.Size()));
 
 #ifndef LUMOS_PRODUCTION
             m_Stats.VertexCount   = (uint32_t)vertices.Size();
-            m_Stats.TriangleCount = m_Stats.VertexCount / 3;
+            m_Stats.TriangleCount = (uint32_t)indices.Size() / 3;
             m_Stats.IndexCount    = (uint32_t)indices.Size();
 #endif
         }
@@ -64,7 +148,7 @@ namespace Lumos
 
 #ifndef LUMOS_PRODUCTION
             m_Stats.VertexCount   = (uint32_t)vertices.Size();
-            m_Stats.TriangleCount = m_Stats.VertexCount / 3;
+            m_Stats.TriangleCount = (uint32_t)indices.Size() / 3;
             m_Stats.IndexCount    = (uint32_t)indices.Size();
 #endif
         }
@@ -153,7 +237,7 @@ namespace Lumos
                 Vec2 deltaUV2 = uv2 - uv0;
 
                 float den = (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-                if(den < Maths::M_EPSILON)
+                if(Maths::Abs(den) < Maths::M_EPSILON)
                     den = 1.0f;
 
                 float f = 1.0f / den;
@@ -179,7 +263,7 @@ namespace Lumos
                 else
                     vertices[i].Tangent = Vec3(0.0f);
 
-                if(Maths::Length2(vertices[i].Tangent) > Maths::M_EPSILON)
+                if(Maths::Length2(vertices[i].Bitangent) > Maths::M_EPSILON)
                     vertices[i].Bitangent = vertices[i].Bitangent.Normalised();
                 else
                     vertices[i].Bitangent = Vec3(0.0f);

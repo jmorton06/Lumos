@@ -1,10 +1,6 @@
 #include "Precompiled.h"
 #include "GraphicsContext.h"
 
-#ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/OpenGL/GLContext.h"
-#include "Platform/OpenGL/GLFunctions.h"
-#endif
 #ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/Vulkan/VKContext.h"
 #include "Platform/Vulkan/VKFunctions.h"
@@ -41,12 +37,6 @@ namespace Lumos
 #ifdef LUMOS_RENDER_API_VULKAN
             case RenderAPI::VULKAN:
                 Graphics::Vulkan::MakeDefault();
-                break;
-#endif
-
-#ifdef LUMOS_RENDER_API_OPENGL
-            case RenderAPI::OPENGL:
-                Graphics::GL::MakeDefault();
                 break;
 #endif
 

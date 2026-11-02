@@ -7,6 +7,10 @@
 #include "Core/DataStructures/TDArray.h"
 
 #define MAX_SWAPCHAIN_BUFFERS 3
+// Frames the CPU may record ahead of the GPU. Independent of the swapchain image count:
+// per-frame data (command buffers, fences, upload buffers) is indexed by GetCurrentBufferIndex(),
+// per-image data (framebuffers, present semaphores) by GetCurrentImageIndex().
+#define MAX_FRAMES_IN_FLIGHT 2
 namespace Lumos
 {
     class Window;
@@ -51,8 +55,19 @@ namespace Lumos
             VkSurfaceKHR CreatePlatformSurface(VkInstance vkInstance, Window* window);
             CommandBuffer* GetCurrentCommandBuffer() override;
             void SetVSync(bool vsync) override { m_VSyncEnabled = vsync; }
+            void SetTransparent(bool transparent) override { m_Transparent = transparent; }
+            bool IsTransparent() const override { return m_Transparent; }
+
+            uint32_t GetWidth() const { return m_Width; }
+            uint32_t GetHeight() const { return m_Height; }
+            // Returns true (once) if the swapchain was silently recreated this frame (suboptimal path).
+            bool ConsumeWasRecreated() { bool r = m_WasRecreated; m_WasRecreated = false; return r; }
 
             FrameData& GetCurrentFrameData();
+            uint32_t GetFramesInFlight() const { return m_FramesInFlight; }
+            // signalled by the frame's submit and waited on by its present: one per image, since an
+            // image can be acquired again before the present that waited on a per-frame one is done
+            VkSemaphore GetRenderFinishedSemaphore();
             VkFormat GetScreenFormat() const { return m_ColourFormat; }
 
             static void MakeDefault();
@@ -63,6 +78,7 @@ namespace Lumos
         private:
             FrameData m_Frames[MAX_SWAPCHAIN_BUFFERS];
             Texture2D* m_SwapChainBuffers[MAX_SWAPCHAIN_BUFFERS];
+            SharedPtr<VKSemaphore> m_RenderFinished[MAX_SWAPCHAIN_BUFFERS];
 
             void FindImageFormatAndColourSpace();
 
@@ -72,8 +88,11 @@ namespace Lumos
             uint32_t m_Height;
             uint32_t m_QueueNodeIndex = UINT32_MAX;
             uint32_t m_SwapChainBufferCount;
-            bool m_VSyncEnabled = false;
-            bool m_NeedRecreate = false;
+            uint32_t m_FramesInFlight = MAX_FRAMES_IN_FLIGHT;
+            bool m_VSyncEnabled  = false;
+            bool m_Transparent   = false;
+            bool m_NeedRecreate  = false;
+            bool m_WasRecreated  = false;
 
             VkSwapchainKHR m_SwapChain;
             VkSwapchainKHR m_OldSwapChain;

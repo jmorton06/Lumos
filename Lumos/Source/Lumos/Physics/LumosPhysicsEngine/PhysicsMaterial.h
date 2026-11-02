@@ -14,8 +14,10 @@ namespace Lumos
     {
         float Friction              = 0.5f;
         float Restitution           = 0.5f;
-        PhysicsMaterialCombineMode FrictionCombine    = PhysicsMaterialCombineMode::Average;
-        PhysicsMaterialCombineMode RestitutionCombine = PhysicsMaterialCombineMode::Average;
+        float RollingFriction       = 0.0f;
+        PhysicsMaterialCombineMode FrictionCombine        = PhysicsMaterialCombineMode::Average;
+        PhysicsMaterialCombineMode RestitutionCombine     = PhysicsMaterialCombineMode::Average;
+        PhysicsMaterialCombineMode RollingFrictionCombine = PhysicsMaterialCombineMode::Average;
 
         static float CombineValues(float a, float b, PhysicsMaterialCombineMode mode)
         {

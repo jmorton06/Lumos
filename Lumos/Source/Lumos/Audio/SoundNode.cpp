@@ -1,5 +1,7 @@
 #include "Precompiled.h"
 #include "SoundNode.h"
+#include "AudioManager.h"
+#include "Core/Application.h"
 #include "Maths/MathsUtilities.h"
 
 #ifdef LUMOS_OPENAL
@@ -66,5 +68,13 @@ namespace Lumos
     void SoundNode::SetRadius(float value)
     {
         m_Radius = Maths::Max(0.0f, value);
+    }
+
+    float SoundNode::GetEffectiveVolume() const
+    {
+        float busVol = 1.0f;
+        if(auto* am = Application::Get().GetSystem<AudioManager>())
+            busVol = am->GetBusVolume(m_BusName);
+        return m_Volume * busVol;
     }
 }

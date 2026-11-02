@@ -1,4 +1,4 @@
-// g++ identify.cpp -lpthread ../public/common/tracy_lz4.cpp ../zstd/common/*.c ../zstd/decompress/*.c ../zstd/decompress/huf_decompress_amd64.S
+// g++ identify.cpp -lpthread ../public/common/tracy_lz4.cpp -lzstd
 
 #include <memory>
 #include <stdint.h>
@@ -8,7 +8,7 @@
 #include "../public/common/TracyVersion.hpp"
 
 static const uint8_t FileHeader[8] { 't', 'r', 'a', 'c', 'y', tracy::Version::Major, tracy::Version::Minor, tracy::Version::Patch };
-enum { FileHeaderMagic = 5 };
+constexpr size_t FileHeaderMagic = 5;
 
 int main( int argc, char** argv )
 {

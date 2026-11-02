@@ -10,6 +10,7 @@
 #include "Maths/MathsSerialisation.h"
 #include <cereal/archives/json.hpp>
 #include <cereal/cereal.hpp>
+#include <cereal/types/vector.hpp>
 #include <future>
 #include <inttypes.h>
 #include <sstream>
@@ -17,6 +18,7 @@
 namespace Lumos
 {
     static TDArray<std::future<void>> m_Futures;
+    static void LoadTexture2D(Graphics::Texture2D* tex, const String8& path, bool deferred, Graphics::TextureDesc desc);
 
     AssetManager::AssetManager()
     {
@@ -113,6 +115,51 @@ namespace Lumos
     void AssetManager::Update(float elapsedSeconds)
     {
         m_AssetRegistry->Update(elapsedSeconds);
+        if(m_HotReloadEnabled)
+            TickHotReload(elapsedSeconds);
+    }
+
+    void AssetManager::RegisterTextureWatch(const String8& physicalPath, const SharedPtr<Graphics::Texture2D>& texture, const Graphics::TextureDesc& desc)
+    {
+        if(physicalPath.size == 0 || !texture)
+            return;
+
+        TextureWatch w;
+        w.Path        = std::string((const char*)physicalPath.str, physicalPath.size);
+        w.Texture     = texture;
+        w.Desc        = desc;
+        w.LastModTime = FileSystem::GetFileModifiedTime(physicalPath);
+        m_TextureWatches.push_back(std::move(w));
+    }
+
+    void AssetManager::TickHotReload(float elapsedSeconds)
+    {
+        // Rate-limit: scan once per second.
+        m_HotReloadAccum += elapsedSeconds;
+        if(m_HotReloadAccum < 1.0f)
+            return;
+        m_HotReloadAccum = 0.0f;
+
+        for(auto it = m_TextureWatches.begin(); it != m_TextureWatches.end();)
+        {
+            SharedPtr<Graphics::Texture2D> tex = it->Texture.Lock();
+            if(!tex)
+            {
+                it = m_TextureWatches.erase(it);
+                continue;
+            }
+
+            String8 path { (u8*)it->Path.data(), (u64)it->Path.size() };
+            uint64_t mod = FileSystem::GetFileModifiedTime(path);
+            if(mod != 0 && mod > it->LastModTime)
+            {
+                it->LastModTime = mod;
+                LINFO("Hot-reloading texture: %s", it->Path.c_str());
+                // Reload via existing pipeline; uses SubmitToMainThread for GPU work.
+                LoadTexture2D(tex.get(), path, true, it->Desc);
+            }
+            ++it;
+        }
     }
 
     bool AssetManager::AssetExists(const String8& name)
@@ -148,8 +195,8 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         ImageLoadDesc imageLoadDesc = {};
         imageLoadDesc.filePath      = (const char*)path.str;
-        imageLoadDesc.maxHeight     = 2048;
-        imageLoadDesc.maxWidth      = 2048;
+        imageLoadDesc.maxHeight     = Application::Get().GetQualitySettings().MaxTextureSize;
+        imageLoadDesc.maxWidth      = imageLoadDesc.maxHeight;
         Lumos::LoadImageFromFile(imageLoadDesc);
 
         desc.format    = imageLoadDesc.outBits / 4 == 8 ? Graphics::RHIFormat::R8G8B8A8_Unorm : Graphics::RHIFormat::R32G32B32A32_Float;
@@ -176,24 +223,30 @@ namespace Lumos
     bool AssetManager::LoadTexture(const String8& filePath, SharedPtr<Graphics::Texture2D>& texture, bool thread)
     {
         texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create({}, 1, 1));
+        // keep where it came from: the importer copies textures by path
+        texture->SetFilepath(std::string((const char*)filePath.str, filePath.size));
         if(thread)
             m_Futures.PushBack(std::async(std::launch::async, LoadTexture2D, texture.get(), filePath, true, Graphics::TextureDesc{}));
         else
             LoadTexture2D(texture.get(), filePath, false);
 
         AddAsset(filePath, texture);
+        RegisterTextureWatch(filePath, texture, Graphics::TextureDesc{});
         return true;
     }
 
     bool AssetManager::LoadTexture(const String8& filePath, SharedPtr<Graphics::Texture2D>& texture, bool thread, const Graphics::TextureDesc& desc)
     {
         texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create({}, 1, 1));
+        // keep where it came from: the importer copies textures by path
+        texture->SetFilepath(std::string((const char*)filePath.str, filePath.size));
         if(thread)
             m_Futures.PushBack(std::async(std::launch::async, LoadTexture2D, texture.get(), filePath, true, desc));
         else
             LoadTexture2D(texture.get(), filePath, false, desc);
 
         AddAsset(filePath, texture);
+        RegisterTextureWatch(filePath, texture, desc);
         return true;
     }
 
@@ -225,6 +278,17 @@ namespace Lumos
         return texture;
     }
 
+    void AssetManager::EvictMaterialAssets(const std::string& prefix)
+    {
+        for(auto it = m_MaterialCache.begin(); it != m_MaterialCache.end();)
+        {
+            if(it->first.rfind(prefix, 0) == 0)
+                it = m_MaterialCache.erase(it);
+            else
+                ++it;
+        }
+    }
+
     SharedPtr<Graphics::Material> AssetManager::LoadMaterialAsset(const String8& lmatPath)
     {
         std::string key((const char*)lmatPath.str, lmatPath.size);
@@ -234,20 +298,13 @@ namespace Lumos
 
         ArenaTemp scratch = ScratchBegin(0, 0);
 
-        String8 physicalPath;
-        if(!FileSystem::Get().ResolvePhysicalPath(scratch.arena, lmatPath, &physicalPath))
+        // through the VFS: an exported game has its .lmat files in the pack
+        if(!FileSystem::Get().FileExistsVFS(lmatPath))
         {
             ScratchEnd(scratch);
             return nullptr;
         }
-
-        if(!FileSystem::FileExists(physicalPath))
-        {
-            ScratchEnd(scratch);
-            return nullptr;
-        }
-
-        int64_t fileSize = FileSystem::GetFileSize(physicalPath);
+        const int64_t fileSize = FileSystem::Get().GetFileSizeVFS(lmatPath);
         if(fileSize <= 0)
         {
             ScratchEnd(scratch);
@@ -255,7 +312,7 @@ namespace Lumos
         }
 
         Arena* fileArena = ArenaAlloc((u64)fileSize + Kilobytes(1));
-        String8 data = FileSystem::ReadTextFile(fileArena, physicalPath);
+        String8 data     = FileSystem::Get().ReadTextFileVFS(fileArena, lmatPath);
         if(data.size == 0)
         {
             ArenaRelease(fileArena);
@@ -269,8 +326,14 @@ namespace Lumos
         static const char* texNames[] = { "Albedo", "Normal", "Metallic", "Roughness", "Ao", "Emissive" };
 
         std::string texPaths[6];
+        Graphics::TextureFilter texFilters[6] = {};
+        Graphics::TextureWrap texWraps[6] = {};
+        bool hasTexParams = false;
         Graphics::MaterialProperties props;
         std::string shaderName;
+        std::string matName;
+        u32 matFlags  = 0;
+        bool hasFlags = false;
 
         try
         {
@@ -281,7 +344,7 @@ namespace Lumos
             ar(cereal::make_nvp("albedoColour", props.albedoColour),
                cereal::make_nvp("roughnessValue", props.roughness),
                cereal::make_nvp("metallicValue", props.metallic),
-               cereal::make_nvp("emissiveValue", props.emissive),
+               cereal::make_nvp("emissiveColour", props.emissiveColour),
                cereal::make_nvp("albedoMapFactor", props.albedoMapFactor),
                cereal::make_nvp("metallicMapFactor", props.metallicMapFactor),
                cereal::make_nvp("roughnessMapFactor", props.roughnessMapFactor),
@@ -293,6 +356,29 @@ namespace Lumos
                cereal::make_nvp("shader", shaderName));
 
             ar(cereal::make_nvp("Reflectance", props.reflectance));
+
+            // Read texture sampling parameters (optional, added in newer lmat format)
+            try
+            {
+                std::vector<int> filters, wraps;
+                ar(cereal::make_nvp("TextureFilters", filters));
+                ar(cereal::make_nvp("TextureWraps", wraps));
+                for(u32 s = 0; s < 6 && s < filters.size(); s++)
+                    texFilters[s] = (Graphics::TextureFilter)filters[s];
+                for(u32 s = 0; s < 6 && s < wraps.size(); s++)
+                    texWraps[s] = (Graphics::TextureWrap)wraps[s];
+                hasTexParams = true;
+            }
+            catch(...) {}
+
+            // name + render flags (newer .lmat)
+            try
+            {
+                ar(cereal::make_nvp("Name", matName));
+                ar(cereal::make_nvp("Flags", matFlags));
+                hasFlags = true;
+            }
+            catch(...) {}
         }
         catch(...)
         {
@@ -304,11 +390,20 @@ namespace Lumos
 
         ArenaRelease(fileArena);
 
-        auto shaderAsset = GetAssetData(Str8Lit("ForwardPBR"));
+        auto shaderAsset = shaderName.empty() ? SharedPtr<Asset>() : GetAssetData(Str8StdS(shaderName));
+        if(!shaderAsset)
+            shaderAsset = GetAssetData(Str8Lit("ForwardPBR"));
         if(shaderAsset)
         {
             auto shaderPtr = shaderAsset.As<Graphics::Shader>();
             auto material  = CreateSharedPtr<Graphics::Material>(shaderPtr, props);
+            material->SetName(matName);
+            if(hasFlags)
+            {
+                material->SetFlag(Graphics::Material::RenderFlags::TWOSIDED, (matFlags & (u32)Graphics::Material::RenderFlags::TWOSIDED) != 0);
+                material->SetFlag(Graphics::Material::RenderFlags::ALPHABLEND, (matFlags & (u32)Graphics::Material::RenderFlags::ALPHABLEND) != 0);
+                material->SetFlag(Graphics::Material::RenderFlags::NOSHADOW, (matFlags & (u32)Graphics::Material::RenderFlags::NOSHADOW) != 0);
+            }
 
             Graphics::PBRMataterialTextures textures;
             for(u32 s = 0; s < 6; s++)
@@ -316,7 +411,21 @@ namespace Lumos
                 if(texPaths[s].empty())
                     continue;
 
-                auto tex = LoadTextureAsset(Str8StdS(texPaths[s]), true);
+                Graphics::TextureDesc texDesc;
+                if(hasTexParams)
+                {
+                    texDesc.minFilter = texFilters[s] != Graphics::TextureFilter::NONE ? texFilters[s] : Graphics::TextureFilter::LINEAR;
+                    texDesc.magFilter = texDesc.minFilter;
+                    texDesc.wrap      = texWraps[s] != Graphics::TextureWrap::NONE ? texWraps[s] : Graphics::TextureWrap::REPEAT;
+                }
+                else
+                {
+                    texDesc.minFilter = Graphics::TextureFilter::LINEAR;
+                    texDesc.magFilter = Graphics::TextureFilter::LINEAR;
+                    texDesc.wrap      = Graphics::TextureWrap::REPEAT;
+                }
+
+                auto tex = LoadTextureAsset(Str8StdS(texPaths[s]), false, texDesc);
                 if(tex)
                 {
                     switch(s)

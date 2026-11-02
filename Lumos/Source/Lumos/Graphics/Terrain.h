@@ -7,7 +7,10 @@ namespace Lumos
     class LUMOS_EXPORT Terrain : public Graphics::Mesh
     {
     public:
-        Terrain(int width = 500, int height = 500, int lowside = 50, int lowscale = 10, float xRand = 1.0f, float yRand = 150.0f, float zRand = 1.0f, float texRandX = 1.0f / 16.0f, float texRandZ = 1.0f / 16.0f);
+        Terrain(int width = 500, int height = 500, int lowside = 50, int lowscale = 10,
+                float xRand = 1.0f, float yRand = 150.0f, float zRand = 1.0f,
+                float texRandX = 1.0f / 16.0f, float texRandZ = 1.0f / 16.0f,
+                int tileOriginX = 0, int tileOriginZ = 0);
 
         const TDArray<float>& GetHeightData() const { return m_HeightData; }
         int GetGridWidth() const { return m_GridWidth; }
@@ -15,13 +18,21 @@ namespace Lumos
         float GetXScale() const { return m_XScale; }
         float GetYScale() const { return m_YScale; }
         float GetZScale() const { return m_ZScale; }
+        int GetTileOriginX() const { return m_TileOriginX; }
+        int GetTileOriginZ() const { return m_TileOriginZ; }
+
+        void Rebuild(const float* heights = nullptr);
 
     private:
         TDArray<float> m_HeightData;
-        int m_GridWidth  = 0;
-        int m_GridHeight = 0;
-        float m_XScale   = 1.0f;
-        float m_YScale   = 1.0f;
-        float m_ZScale   = 1.0f;
+        int m_GridWidth   = 0;
+        int m_GridHeight  = 0;
+        float m_XScale    = 1.0f;
+        float m_YScale    = 1.0f;
+        float m_ZScale    = 1.0f;
+        float m_TexRandX  = 1.0f / 16.0f;
+        float m_TexRandZ  = 1.0f / 16.0f;
+        int m_TileOriginX = 0;
+        int m_TileOriginZ = 0;
     };
 }

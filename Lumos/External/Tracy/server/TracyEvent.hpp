@@ -85,6 +85,13 @@ public:
         return idx - 1;
     }
 
+    tracy_force_inline uint32_t Raw() const
+    {
+        uint32_t raw = 0;
+        memcpy( &raw, m_idx, 3 );
+        return raw;
+    }
+
     tracy_force_inline bool Active() const
     {
         uint32_t zero = 0;
@@ -179,7 +186,7 @@ private:
     uint8_t m_val[6];
 };
 
-struct Int48Sort { bool operator()( const Int48& lhs, const Int48& rhs ) { return lhs.Val() < rhs.Val(); }; };
+struct Int48Sort { bool operator()( const Int48& lhs, const Int48& rhs ) const { return lhs.Val() < rhs.Val(); }; };
 
 
 struct SourceLocationBase
@@ -195,8 +202,6 @@ struct SourceLocation : public SourceLocationBase
 {
     mutable uint32_t namehash;
 };
-
-enum { SourceLocationSize = sizeof( SourceLocation ) };
 
 
 struct ZoneEvent
@@ -222,7 +227,6 @@ struct ZoneEvent
     uint32_t extra;
 };
 
-enum { ZoneEventSize = sizeof( ZoneEvent ) };
 static_assert( std::is_standard_layout<ZoneEvent>::value, "ZoneEvent is not standard layout" );
 
 
@@ -233,8 +237,6 @@ struct ZoneExtra
     StringIdx name;
     Int24 color;
 };
-
-enum { ZoneExtraSize = sizeof( ZoneExtra ) };
 
 
 // This union exploits the fact that the current implementations of x64 and arm64 do not provide
@@ -251,8 +253,6 @@ union CallstackFrameId
     uint64_t data;
 };
 
-enum { CallstackFrameIdSize = sizeof( CallstackFrameId ) };
-
 static tracy_force_inline bool operator==( const CallstackFrameId& lhs, const CallstackFrameId& rhs ) { return lhs.data == rhs.data; }
 
 
@@ -262,9 +262,7 @@ struct SampleData
     Int24 callstack;
 };
 
-enum { SampleDataSize = sizeof( SampleData ) };
-
-struct SampleDataSort { bool operator()( const SampleData& lhs, const SampleData& rhs ) { return lhs.time.Val() < rhs.time.Val(); }; };
+struct SampleDataSort { bool operator()( const SampleData& lhs, const SampleData& rhs ) const { return lhs.time.Val() < rhs.time.Val(); }; };
 
 
 struct SampleDataRange
@@ -273,8 +271,6 @@ struct SampleDataRange
     uint16_t thread;
     CallstackFrameId ip;
 };
-
-enum { SampleDataRangeSize = sizeof( SampleDataRange ) };
 
 
 struct HwSampleData
@@ -307,8 +303,6 @@ struct HwSampleData
         if( !branchMiss.is_sorted() ) branchMiss.sort();
     }
 };
-
-enum { HwSampleDataSize = sizeof( HwSampleData ) };
 
 
 struct LockEvent
@@ -347,11 +341,7 @@ struct LockEventPtr
     uint64_t waitList;
 };
 
-enum { LockEventSize = sizeof( LockEvent ) };
-enum { LockEventSharedSize = sizeof( LockEventShared ) };
-enum { LockEventPtrSize = sizeof( LockEventPtr ) };
-
-enum { MaxLockThreads = sizeof( LockEventPtr::waitList ) * 8 };
+constexpr size_t MaxLockThreads = sizeof( LockEventPtr::waitList ) * 8;
 static_assert( std::numeric_limits<decltype(LockEventPtr::lockCount)>::max() >= MaxLockThreads, "Not enough space for lock count." );
 
 
@@ -412,9 +402,9 @@ struct GpuEvent
     uint64_t _gpuStart_child1;
     uint64_t _gpuEnd_child2;
     Int24 callstack;
+    uint16_t query_id;
 };
 
-enum { GpuEventSize = sizeof( GpuEvent ) };
 static_assert( std::is_standard_layout<GpuEvent>::value, "GpuEvent is not standard layout" );
 
 
@@ -445,7 +435,6 @@ struct MemEvent
     uint64_t _time_thread_free;
 };
 
-enum { MemEventSize = sizeof( MemEvent ) };
 static_assert( std::is_standard_layout<MemEvent>::value, "MemEvent is not standard layout" );
 
 
@@ -470,18 +459,12 @@ struct SymbolData : public CallstackFrameBasic
     Int24 size;
 };
 
-enum { CallstackFrameBasicSize = sizeof( CallstackFrameBasic ) };
-enum { CallstackFrameSize = sizeof( CallstackFrame ) };
-enum { SymbolDataSize = sizeof( SymbolData ) };
-
 
 struct SymbolLocation
 {
     uint64_t addr;
     uint32_t len;
 };
-
-enum { SymbolLocationSize = sizeof( SymbolLocation ) };
 
 
 struct CallstackFrameData
@@ -490,8 +473,6 @@ struct CallstackFrameData
     uint8_t size;
     StringIdx imageName;
 };
-
-enum { CallstackFrameDataSize = sizeof( CallstackFrameData ) };
 
 
 struct MemCallstackFrameTree
@@ -503,9 +484,8 @@ struct MemCallstackFrameTree
     uint32_t count;
     unordered_flat_map<uint64_t, MemCallstackFrameTree> children;
     unordered_flat_set<uint32_t> callstacks;
+    unordered_flat_set<uint64_t> group;
 };
-
-enum { MemCallstackFrameTreeSize = sizeof( MemCallstackFrameTree ) };
 
 
 struct CallstackFrameTree
@@ -515,9 +495,8 @@ struct CallstackFrameTree
     CallstackFrameId frame;
     uint32_t count;
     unordered_flat_map<uint64_t, CallstackFrameTree> children;
+    unordered_flat_set<uint64_t> group;
 };
-
-enum { CallstackFrameTreeSize = sizeof( CallstackFrameTree ) };
 
 
 struct CrashEvent
@@ -528,41 +507,96 @@ struct CrashEvent
     uint32_t callstack = 0;
 };
 
-enum { CrashEventSize = sizeof( CrashEvent ) };
 
-
+/**
+* Represents a context switch.
+* Start is the when the thread wakes up (if known).
+* End is when the context switch to another thread (or idle) happens.
+*/
 struct ContextSwitchData
 {
-    enum : int8_t { Fiber = 99 };
-    enum : int8_t { NoState = 100 };
-    enum : int8_t { Wakeup = -2 };
+    enum CSReason : int8_t {
+        Wakeup = -2,
+        Fiber = 99,
+        NoState = 100,
 
-    tracy_force_inline int64_t Start() const { return int64_t( _start_cpu ) >> 16; }
-    tracy_force_inline void SetStart( int64_t start ) { assert( start < (int64_t)( 1ull << 47 ) ); memcpy( ((char*)&_start_cpu)+2, &start, 4 ); memcpy( ((char*)&_start_cpu)+6, ((char*)&start)+4, 2 ); }
-    tracy_force_inline int64_t End() const { return int64_t( _end_reason_state ) >> 16; }
-    tracy_force_inline void SetEnd( int64_t end ) { assert( end < (int64_t)( 1ull << 47 ) ); memcpy( ((char*)&_end_reason_state)+2, &end, 4 ); memcpy( ((char*)&_end_reason_state)+6, ((char*)&end)+4, 2 ); }
-    tracy_force_inline bool IsEndValid() const { return ( _end_reason_state >> 63 ) == 0; }
-    tracy_force_inline uint8_t Cpu() const { return uint8_t( _start_cpu & 0xFF ); }
-    tracy_force_inline void SetCpu( uint8_t cpu ) { memcpy( &_start_cpu, &cpu, 1 ); }
-    tracy_force_inline int8_t Reason() const { return int8_t( (_end_reason_state >> 8) & 0xFF ); }
-    tracy_force_inline void SetReason( int8_t reason ) { memcpy( ((char*)&_end_reason_state)+1, &reason, 1 ); }
-    tracy_force_inline int8_t State() const { return int8_t( _end_reason_state & 0xFF ); }
-    tracy_force_inline void SetState( int8_t state ) { memcpy( &_end_reason_state, &state, 1 ); }
+        // See KWAIT_REASON in the WDK's wdm.h
+        Win32_Executive         = 0 ,
+        Win32_FreePage          = 1 ,
+        Win32_PageIn            = 2 ,
+        Win32_PoolAllocation    = 3 ,
+        Win32_DelayExecution    = 4 ,
+        Win32_Suspended         = 5 ,
+        Win32_UserRequest       = 6 ,
+        Win32_WrExecutive       = 7 ,
+        Win32_WrFreePage        = 8 ,
+        Win32_WrPageIn          = 9 ,
+        Win32_WrPoolAllocation  = 10,
+        Win32_WrDelayExecution  = 11,
+        Win32_WrSuspended       = 12,
+        Win32_WrUserRequest     = 13,
+        Win32_WrEventPair       = 14,
+        Win32_WrQueue           = 15,
+        Win32_WrLpcReceive      = 16,
+        Win32_WrLpcReply        = 17,
+        Win32_WrVirtualMemory   = 18,
+        Win32_WrPageOut         = 19,
+        Win32_WrRendezvous      = 20,
+        Win32_WrKeyedEvent      = 21,
+        Win32_WrTerminated      = 22,
+        Win32_WrProcessInSwap   = 23,
+        Win32_WrCpuRateControl  = 24,
+        Win32_WrCalloutStack    = 25,
+        Win32_WrKernel          = 26,
+        Win32_WrResource        = 27,
+        Win32_WrPushLock        = 28,
+        Win32_WrMutex           = 29,
+        Win32_WrQuantumEnd      = 30,
+        Win32_WrDispatchInt     = 31,
+        Win32_WrPreempted       = 32,
+        Win32_WrYieldExecution  = 33,
+        Win32_WrFastMutex       = 34,
+        Win32_WrGuardedMutex    = 35,
+        Win32_WrRundown         = 36,
+        Win32_WrAlertByThreadId = 37,
+        Win32_WrDeferredPreempt = 38,
+        Win32_WrPhysicalFault   = 39,
+        Win32_WrIoRing          = 40,
+        Win32_WrMdlCache        = 41,
+        Win32_WrRcu             = 42,
+        Win32_MaximumWaitReason,
+    };
+
+    tracy_force_inline int64_t Start() const { return _start.Val(); }
+    tracy_force_inline void SetStart( int64_t start ) { assert( start < (int64_t)( 1ull << 47 ) ); _start.SetVal(start); }
+    tracy_force_inline int64_t End() const { return _end.Val(); }
+    tracy_force_inline void SetEnd( int64_t end ) { assert( end < (int64_t)( 1ull << 47 ) ); _end = end; }
+    tracy_force_inline bool IsEndValid() const { return _end.IsNonNegative(); }
+    tracy_force_inline int64_t EndOrStart() const { return _end.IsNonNegative() ? _end.Val() : _start.Val(); }
+    tracy_force_inline uint8_t Cpu() const { return _cpu; }
+    tracy_force_inline void SetCpu( uint8_t cpu ) { _cpu = cpu; }
+    tracy_force_inline uint8_t WakeupCpu() const { return _wakeupcpu; }
+    tracy_force_inline void SetWakeupCpu( uint8_t wakeupcpu) { _wakeupcpu = wakeupcpu; }
+    tracy_force_inline CSReason Reason() const { return CSReason( _reason ); }
+    tracy_force_inline void SetReason( int8_t reason ) { _reason = reason; }
+    tracy_force_inline int8_t State() const { return _state; }
+    tracy_force_inline void SetState( int8_t state ) { _state = state; }
     tracy_force_inline int64_t WakeupVal() const { return _wakeup.Val(); }
     tracy_force_inline void SetWakeup( int64_t wakeup ) { assert( wakeup < (int64_t)( 1ull << 47 ) ); _wakeup.SetVal( wakeup ); }
     tracy_force_inline uint16_t Thread() const { return _thread; }
     tracy_force_inline void SetThread( uint16_t thread ) { _thread = thread; }
 
-    tracy_force_inline void SetStartCpu( int64_t start, uint8_t cpu ) { assert( start < (int64_t)( 1ull << 47 ) ); _start_cpu = ( uint64_t( start ) << 16 ) | cpu; }
-    tracy_force_inline void SetEndReasonState( int64_t end, int8_t reason, int8_t state ) { assert( end < (int64_t)( 1ull << 47 ) ); _end_reason_state = ( uint64_t( end ) << 16 ) | ( uint64_t( reason ) << 8 ) | uint8_t( state ); }
-
-    uint64_t _start_cpu;
-    uint64_t _end_reason_state;
+    Int48 _start;
+    uint8_t _cpu;
+    uint8_t _wakeupcpu;
+    
+    Int48 _end;
+    int8_t _reason;
+    int8_t _state;
+    
     Int48 _wakeup;
-    uint16_t _thread;
+    uint16_t _thread; // currently unused ? Could store next thread or prios here.
 };
-
-enum { ContextSwitchDataSize = sizeof( ContextSwitchData ) };
 
 
 struct ContextSwitchCpu
@@ -581,8 +615,6 @@ struct ContextSwitchCpu
     Int48 _end;
 };
 
-enum { ContextSwitchCpuSize = sizeof( ContextSwitchCpu ) };
-
 
 struct ContextSwitchUsage
 {
@@ -599,8 +631,6 @@ struct ContextSwitchUsage
     uint64_t _time_other_own;
 };
 
-enum { ContextSwitchUsageSize = sizeof( ContextSwitchUsage ) };
-
 
 struct MessageData
 {
@@ -609,9 +639,9 @@ struct MessageData
     uint16_t thread;
     uint32_t color;
     Int24 callstack;
+    MessageSourceType source;
+    MessageSeverity severity;
 };
-
-enum { MessageDataSize = sizeof( MessageData ) };
 
 
 struct PlotItem
@@ -620,8 +650,6 @@ struct PlotItem
     double val;
 };
 
-enum { PlotItemSize = sizeof( PlotItem ) };
-
 
 struct FrameEvent
 {
@@ -629,8 +657,6 @@ struct FrameEvent
     int64_t end;
     int32_t frameImage;
 };
-
-enum { FrameEventSize = sizeof( FrameEvent ) };
 
 
 struct FrameImage
@@ -642,8 +668,6 @@ struct FrameImage
     uint8_t flip;
 };
 
-enum { FrameImageSize = sizeof( FrameImage ) };
-
 
 struct GhostZone
 {
@@ -652,8 +676,6 @@ struct GhostZone
     int32_t child;
 };
 
-enum { GhostZoneSize = sizeof( GhostZone ) };
-
 
 struct ChildSample
 {
@@ -661,7 +683,12 @@ struct ChildSample
     uint64_t addr;
 };
 
-enum { ChildSampleSize = sizeof( ChildSample ) };
+
+struct SectionItem
+{
+    Int48 start, end;
+    StringIdx text;
+};
 
 #pragma pack( pop )
 
@@ -688,6 +715,7 @@ struct ThreadData
     uint8_t isFiber;
     ThreadData* fiber;
     uint8_t* stackCount;
+    int32_t groupHint;
 
     tracy_force_inline void IncStackCount( int16_t srcloc ) { stackCount[uint16_t(srcloc)]++; }
     tracy_force_inline bool DecStackCount( int16_t srcloc ) { return --stackCount[uint16_t(srcloc)] != 0; }
@@ -716,10 +744,10 @@ struct GpuCtxData
     uint32_t overflowMul;
     StringIdx name;
     unordered_flat_map<uint64_t, GpuCtxThreadData> threadData;
+    unordered_flat_map<int64_t, StringIdx> noteNames;
+    unordered_flat_map<uint16_t, unordered_flat_map<int64_t, double>> notes;
     short_ptr<GpuEvent> query[64*1024];
 };
-
-enum { GpuCtxDataSize = sizeof( GpuCtxData ) };
 
 
 enum class PlotType : uint8_t
@@ -741,7 +769,7 @@ enum class PlotValueFormatting : uint8_t
 
 struct PlotData
 {
-    struct PlotItemSort { bool operator()( const PlotItem& lhs, const PlotItem& rhs ) { return lhs.time.Val() < rhs.time.Val(); }; };
+    struct PlotItemSort { bool operator()( const PlotItem& lhs, const PlotItem& rhs ) const { return lhs.time.Val() < rhs.time.Val(); }; };
 
     uint64_t name;
     double min;
@@ -808,6 +836,10 @@ struct SourceLocationComparator
 struct ContextSwitch
 {
     Vector<ContextSwitchData> v;
+    struct {
+        int64_t time = 0;
+        uint8_t cpu = -1;
+    } pendingWakeUp;
     int64_t runningTime = 0;
 };
 
@@ -823,14 +855,19 @@ struct CpuThreadData
     uint32_t migrations = 0;
 };
 
-enum { CpuThreadDataSize = sizeof( CpuThreadData ) };
 
+enum class ParameterType
+{
+    Integer,
+    Boolean,
+    Trigger
+};
 
 struct Parameter
 {
     uint32_t idx;
     StringRef name;
-    bool isBool;
+    ParameterType type;
     int32_t val;
 };
 
@@ -842,7 +879,15 @@ struct SymbolStats
     unordered_flat_map<uint32_t, uint32_t> baseParents;
 };
 
-enum { SymbolStatsSize = sizeof( SymbolStats ) };
+
+struct FlameGraphItem
+{
+    int64_t srcloc;
+    int64_t time;
+    StringIdx name;
+    int64_t begin;
+    std::vector<FlameGraphItem> children;
+};
 
 }
 

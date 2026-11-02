@@ -1,5 +1,6 @@
 #pragma once
 #include "Broadphase.h"
+#include "Core/DataStructures/Set.h"
 
 #define MAX_OBJECTS_PER_NODE 1024
 #define MAX_PARTITION_DEPTH 16
@@ -35,6 +36,7 @@ namespace Lumos
             uint32_t ChildCount         = 0;
             uint32_t PhysicsObjectCount = 0;
             OctreeNode* Children;
+            OctreeNode* NextLeaf = nullptr;
             RigidBody3D** PhysicsObjects;
 
             Maths::BoundingBox boundingBox;
@@ -51,9 +53,12 @@ namespace Lumos
         u32 m_MinPartitionSize;
         u32 m_MaxLeafCount;
 
+        // leaves are chained through the nodes: no fixed limit to run past
         uint32_t m_LeafCount = 0;
         OctreeNode m_RootNode;
-        OctreeNode** m_Leaves;
+        OctreeNode* m_FirstLeaf = nullptr;
+        void AddLeaf(OctreeNode& node);
         Arena* m_Arena;
+        HashSet(uint64_t) m_PairSet = { 0 }; // reused every step, only grows
     };
 }

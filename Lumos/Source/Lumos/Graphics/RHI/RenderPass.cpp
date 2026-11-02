@@ -30,7 +30,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             uint64_t hash = 0;
-            HashCombine(hash, renderPassDesc.attachmentCount, renderPassDesc.clear, renderPassDesc.cubeMapIndex, renderPassDesc.mipIndex, renderPassDesc.samples);
+            HashCombine(hash, renderPassDesc.attachmentCount, renderPassDesc.clear, renderPassDesc.cubeMapIndex, renderPassDesc.mipIndex, renderPassDesc.samples, renderPassDesc.reverseDepth);
 
             for(uint32_t i = 0; i < renderPassDesc.attachmentCount; i++)
             {

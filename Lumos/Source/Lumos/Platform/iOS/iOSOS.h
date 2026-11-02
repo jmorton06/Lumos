@@ -27,6 +27,7 @@ namespace Lumos
         std::string GetAssetPath() override;
         std::string GetCurrentWorkingDirectory() override;
         void Vibrate() const override;
+        void Haptic(int kind) const override;
 
         CAMetalLayer* GetLayerPtr() const
         {
@@ -90,6 +91,10 @@ namespace Lumos
             m_SafeAreaInsets = { t, b, l, r };
         }
         SafeAreaInsets GetSafeAreaInsets() const override { return m_SafeAreaInsets; }
+        static bool IsQuitting();
+
+        void SetSafeAreaScale(float s) { m_ContentScale = s; }
+        float GetSafeAreaScale() const override { return m_ContentScale; }
 
         static iOSOS* Get();
         static CAMetalLayer* GetStaticLayer();
@@ -101,5 +106,6 @@ namespace Lumos
         CAMetalLayer* m_LayerPtr;
         float m_X, m_Y;
         SafeAreaInsets m_SafeAreaInsets;
+        float m_ContentScale = 1.0f;
     };
 }

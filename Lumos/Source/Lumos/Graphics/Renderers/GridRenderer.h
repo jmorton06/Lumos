@@ -17,6 +17,7 @@ namespace Lumos
             void Init() override;
             void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) override;
             void OnResize(uint32_t width, uint32_t height) override;
+            void SetViewScale(float scale) { m_ViewScale = scale; }
             void CreateGraphicsPipeline();
             void UpdateUniformBuffer();
 
@@ -45,6 +46,7 @@ namespace Lumos
             void OnImGui() override;
 
         private:
+            float m_ViewScale = 1.0f;
             uint32_t m_CurrentBufferID = 0;
             Mesh* m_Quad;
 

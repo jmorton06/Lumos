@@ -77,6 +77,8 @@ namespace Lumos
         float GetLifeSpread() const { return m_LifeSpread; }
         AlignedType GetAlignedType() const { return m_AlignedType; }
         bool GetDepthWrite() const { return m_DepthWrite; }
+        bool GetLocalSpace() const { return m_LocalSpace; }
+        const Vec3& GetSpawnOffset() const { return m_SpawnOffset; }
 
         // Setter methods
         void SetTexture(const SharedPtr<Graphics::Texture>& texture) { m_Texture = texture; }
@@ -100,6 +102,8 @@ namespace Lumos
         void SetLifeSpread(const float& spread) { m_LifeSpread = spread; }
         void SetAlignedType(const AlignedType& aligned) { m_AlignedType = aligned; }
         void SetDepthWrite(bool DepthWrite) { m_DepthWrite = DepthWrite; }
+        void SetLocalSpace(bool localSpace) { m_LocalSpace = localSpace; }
+        void SetSpawnOffset(const Vec3& offset) { m_SpawnOffset = offset; }
 
         static const std::array<Vec2, 4>& GetDefaultUVs();
         std::array<Vec2, 4> GetAnimatedUVs(float currentLife, int numRows);
@@ -131,6 +135,8 @@ namespace Lumos
         float m_LifeSpread             = 0.1f;
         bool m_SortParticles           = false;
         bool m_DepthWrite              = false;
+        bool m_LocalSpace              = false;
+        Vec3 m_SpawnOffset             = Vec3(0.0f);
         BlendType m_BlendType          = BlendType::Additive;
         AlignedType m_AlignedType      = AlignedType::Aligned3D;
 

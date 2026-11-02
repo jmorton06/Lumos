@@ -101,39 +101,81 @@ namespace Lumos
         return EntityView<Component...>::iterator(*this, Size());
     }
 
-    //    template <typename... Components>
-    //    class EntityGroup
-    //    {
-    //    public:
-    //        EntityGroup(Scene* scene)
-    //            : m_Scene(scene)
-    //        {
-    //            // Expand the component types into a tuple
-    //            std::tuple enttGroupTypes = std::make_tuple(entt::type_id<Components>()...);
-    //
-    //            // Create the entt::group using std::apply to expand the tuple
-    //            m_Group = scene->GetRegistry().group<Components...>(std::apply([](auto&&... args) { return entt::get<std::decay_t<decltype(args)>...>; }, enttGroupTypes));
-    //        }
-    //
-    //        Entity operator[](int i)
-    //        {
-    //            ASSERT(i < Size(), "Index out of range on Entity View");
-    //            return Entity(m_Group[i], m_Scene);
-    //        }
-    //
-    //        size_t Size() const
-    //        {
-    //            return m_Group.size();
-    //        }
-    //        Entity Front()
-    //        {
-    //            return Entity(m_Group[0], m_Scene);
-    //        }
-    //
-    //    private:
-    //        Scene* m_Scene;
-    //        entt::group<Components...>& m_Group;
-    //    };
+    template <typename... Component>
+    struct EntityGroup
+    {
+        class iterator;
+        using TGroup = decltype(std::declval<entt::registry&>().group<>(entt::get<Component...>));
+
+    public:
+        EntityGroup(Scene* scene);
+
+        Entity operator[](int i)
+        {
+            ASSERT(i >= 0 && (size_t)i < Size(), "Index out of range on Entity Group");
+            return Entity(m_Group[(size_t)i], m_Scene);
+        }
+
+        bool Empty() const { return m_Group.empty(); }
+        size_t Size() const { return m_Group.size(); }
+        Entity Front() { return (*this)[0]; }
+
+        // Component of an entity in the group, without going back through the registry.
+        template <typename T>
+        T& Get(Entity entity) { return m_Group.template get<T>(entity.GetHandle()); }
+
+        iterator begin() { return iterator(*this, 0); }
+        iterator end() { return iterator(*this, Size()); }
+
+        class iterator
+        {
+        public:
+            using iterator_category = std::input_iterator_tag;
+            using value_type        = Entity;
+            using difference_type   = std::ptrdiff_t;
+            using pointer           = Entity*;
+            using reference         = Entity;
+
+            explicit iterator(EntityGroup<Component...>& group, size_t index = 0)
+                : m_Owner(group)
+                , m_Index(index)
+            {
+            }
+
+            Entity operator*() const { return m_Owner[int(m_Index)]; }
+
+            iterator& operator++()
+            {
+                m_Index++;
+                return *this;
+            }
+
+            iterator operator++(int)
+            {
+                iterator temp = *this;
+                ++(*this);
+                return temp;
+            }
+
+            bool operator==(const iterator& rhs) const { return m_Index == rhs.m_Index; }
+            bool operator!=(const iterator& rhs) const { return m_Index != rhs.m_Index; }
+
+        private:
+            EntityGroup<Component...>& m_Owner;
+            size_t m_Index = 0;
+        };
+
+    private:
+        Scene* m_Scene;
+        TGroup m_Group;
+    };
+
+    template <typename... Component>
+    EntityGroup<Component...>::EntityGroup(Scene* scene)
+        : m_Scene(scene)
+        , m_Group(scene->GetRegistry().group<>(entt::get<Component...>))
+    {
+    }
 
     template <typename...>
     struct TypeList
@@ -152,10 +194,11 @@ namespace Lumos
         Entity Create();
         Entity Create(const std::string& name);
 
+        // All entities with every one of these components (see EntityGroup).
         template <typename... Components>
-        auto GetEntitiesWithTypes()
+        EntityGroup<Components...> GetEntitiesWithTypes()
         {
-            return m_Registry.group<Components...>();
+            return EntityGroup<Components...>(m_Scene);
         }
 
         template <typename... Component>

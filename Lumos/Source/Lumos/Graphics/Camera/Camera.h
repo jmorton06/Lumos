@@ -57,6 +57,9 @@ namespace Lumos
         };
 
         const Mat4& GetProjectionMatrix();
+        // What the GPU draws with: reversed-Z (near = 1, far = 0), built directly so far depths keep
+        // their precision. CPU work (frustum, screen rays, projecting to the screen) keeps GetProjectionMatrix.
+        Mat4 GetGPUProjectionMatrix();
 
         float GetFar() const
         {

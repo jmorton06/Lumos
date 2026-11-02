@@ -4,6 +4,9 @@
 #ifndef NOMINMAX
 #define NOMINMAX // For windows.h
 #endif
+#include <string.h>
+#define strcasecmp _stricmp
+#define strncasecmp _strnicmp
 #endif
 
 #ifndef LUMOS_PLATFORM_WINDOWS

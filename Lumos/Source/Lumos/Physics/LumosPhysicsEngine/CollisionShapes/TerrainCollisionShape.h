@@ -12,6 +12,8 @@ namespace Lumos
 
         void SetHeightData(uint32_t width, uint32_t height, float* heightData, float scaleXZ, float scaleY);
 
+        void UpdateHeights(const float* heightData);
+
         float GetHeightAt(float x, float z) const;
         Vec3 GetNormalAt(float x, float z) const;
 

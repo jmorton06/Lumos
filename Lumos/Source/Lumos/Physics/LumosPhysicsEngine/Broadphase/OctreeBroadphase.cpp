@@ -14,7 +14,6 @@ namespace Lumos
         : m_MaxObjectsPerPartition(maxObjectsPerPartition)
         , m_MaxPartitionDepth(maxPartitionDepth)
         , m_MaxLeafCount(maxLeafCount)
-        , m_Leaves()
     {
         m_Arena            = ArenaAlloc(Megabytes(8));
         m_MinPartitionSize = 2;
@@ -23,23 +22,29 @@ namespace Lumos
     OctreeBroadphase::~OctreeBroadphase()
     {
         ArenaRelease(m_Arena);
+        HashSetDeinit(&m_PairSet);
     }
 
     void OctreeBroadphase::FindPotentialCollisionPairs(RigidBody3D* rootObject,
                                                        TDArray<CollisionPair>& collisionPairs, uint32_t totalRigidBodyCount)
     {
         LUMOS_PROFILE_FUNCTION();
-        //ArenaClear(m_Arena);
-        ArenaRelease(m_Arena);
-        m_Arena = ArenaAlloc(Megabytes(8));
+        ArenaClear(m_Arena);
 
         m_LeafCount = 0;
+        m_FirstLeaf = nullptr;
 
         m_RootNode.ChildCount         = 0;
         m_RootNode.PhysicsObjectCount = 0;
         m_RootNode.boundingBox        = Maths::BoundingBox();
         m_RootNode.PhysicsObjects     = PushArrayNoZero(m_Arena, RigidBody3D*, totalRigidBodyCount);
-        m_Leaves = PushArrayNoZero(m_Arena, OctreeNode*, m_MaxLeafCount);
+        m_RootNode.NextLeaf           = nullptr;
+
+        if(totalRigidBodyCount > 0 && !m_RootNode.PhysicsObjects)
+        {
+            LWARN("Octree arena overflow on root allocation (%u bodies) — skipping broadphase", totalRigidBodyCount);
+            return;
+        }
 
         // Early exit if no objects
         if(totalRigidBodyCount == 0)
@@ -66,13 +71,13 @@ namespace Lumos
         // Recursively divide world
         Divide(m_RootNode, 0);
 
-        HashSet(uint64_t) collisionPairHashSet = { 0 };
-        //collisionPairHashSet.arena           = m_Arena;
+        if(m_PairSet.data)
+            HashSetClear(&m_PairSet);
 
         // Add collision pairs in leaf world divisions
-        for(uint32_t leafIndex = 0; leafIndex < m_LeafCount; leafIndex++)
+        for(OctreeNode* leaf = m_FirstLeaf; leaf; leaf = leaf->NextLeaf)
         {
-            auto& node           = *m_Leaves[leafIndex];
+            auto& node           = *leaf;
             uint32_t objectCount = node.PhysicsObjectCount;
             if(objectCount == 0)
                 continue;
@@ -122,9 +127,9 @@ namespace Lumos
 
                     uint64_t pairHash = 0;
                     HashCombine(pairHash, pair.pObjectA, pair.pObjectB);
-                    if(!HashSetContains(&collisionPairHashSet, pairHash))
+                    if(!HashSetContains(&m_PairSet, pairHash))
                     {
-                        HashSetAdd(&collisionPairHashSet, pairHash);
+                        HashSetAdd(&m_PairSet, pairHash);
                     }
                     else
                         continue;
@@ -148,12 +153,18 @@ namespace Lumos
             }
         }
         
-        HashSetDeinit(&collisionPairHashSet);
     }
 
     void OctreeBroadphase::DebugDraw()
     {
         DebugDrawOctreeNode(m_RootNode);
+    }
+
+    void OctreeBroadphase::AddLeaf(OctreeNode& node)
+    {
+        node.NextLeaf = m_FirstLeaf;
+        m_FirstLeaf   = &node;
+        m_LeafCount++;
     }
 
     void OctreeBroadphase::Divide(OctreeNode& division, const size_t iteration)
@@ -164,11 +175,8 @@ namespace Lumos
         constexpr size_t MAX_SAFE_DEPTH = 10;
         if(iteration > MAX_SAFE_DEPTH)
         {
-            if(division.PhysicsObjectCount > 1 && m_LeafCount < m_MaxLeafCount)
-            {
-                m_Leaves[m_LeafCount] = &division;
-                m_LeafCount++;
-            }
+            if(division.PhysicsObjectCount > 1)
+                AddLeaf(division);
             return;
         }
 
@@ -185,11 +193,8 @@ namespace Lumos
         {
             LUMOS_PROFILE_SCOPE_LOW("Add Leaf");
             // Ignore any subdivisions that contain no objects
-            if(division.PhysicsObjectCount > 1 && m_LeafCount < m_MaxLeafCount)
-            {
-                m_Leaves[m_LeafCount] = &division;
-                m_LeafCount++;
-            }
+            if(division.PhysicsObjectCount > 1)
+                AddLeaf(division);
 
             return;
         }
@@ -215,10 +220,7 @@ namespace Lumos
             // Arena full - treat this node as a leaf
             LWARN("Octree arena overflow at depth %zu, treating as leaf", iteration);
             if(division.PhysicsObjectCount > 1)
-            {
-                m_Leaves[m_LeafCount] = &division;
-                m_LeafCount++;
-            }
+                AddLeaf(division);
             return;
         }
         division.Children = children;
@@ -235,6 +237,7 @@ namespace Lumos
             childNode->ChildCount         = 0;
             childNode->PhysicsObjectCount = 0;
             childNode->Children           = nullptr;
+            childNode->NextLeaf           = nullptr;
             childNode->PhysicsObjects     = PushArrayNoZero(m_Arena, RigidBody3D*, parentPhysicsObjectCount);
 
             // Check for arena overflow on physics objects allocation

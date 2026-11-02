@@ -7,6 +7,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/AnimatedSprite.h"
+#include "Graphics/Light2D.h"
 #include "Utilities/TimeStep.h"
 #include "Audio/AudioManager.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
@@ -16,6 +17,7 @@
 #include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/TerrainCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/MeshCollisionShape.h"
 
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
@@ -29,6 +31,8 @@
 #include "Graphics/MeshFactory.h"
 #include "Graphics/Light.h"
 #include "Graphics/Model.h"
+#include "Graphics/Terrain.h"
+#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 #include "Graphics/ParticleManager.h"
 #include "Graphics/Environment.h"
 #include "Scene/EntityManager.h"
@@ -39,9 +43,12 @@
 
 #include "Scene/Component/SoundComponent.h"
 #include "Scene/Component/TextureMatrixComponent.h"
+#include "Scene/Component/DecalComponent.h"
 #include "Scene/Component/RigidBody2DComponent.h"
 #include "Scene/Component/RigidBody3DComponent.h"
 #include "Scene/Component/AIComponent.h"
+#include "Scene/Component/TerrainComponent.h"
+#include "Scene/Component/VoxelWorldComponent.h"
 
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/archives/binary.hpp>
@@ -58,6 +65,7 @@ CEREAL_REGISTER_TYPE(Lumos::PyramidCollisionShape);
 CEREAL_REGISTER_TYPE(Lumos::HullCollisionShape);
 CEREAL_REGISTER_TYPE(Lumos::CapsuleCollisionShape);
 CEREAL_REGISTER_TYPE(Lumos::TerrainCollisionShape);
+CEREAL_REGISTER_TYPE(Lumos::MeshCollisionShape);
 
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::SphereCollisionShape);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CuboidCollisionShape);
@@ -65,6 +73,7 @@ CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::PyramidCollis
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::HullCollisionShape);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CapsuleCollisionShape);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::TerrainCollisionShape);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::MeshCollisionShape);
 
 #define MIN_SCENE_VERSION 24
 
@@ -237,6 +246,7 @@ namespace Lumos
         m_EntityManager->AddDependency<Graphics::AnimatedSprite, Maths::Transform>();
         m_EntityManager->AddDependency<TextComponent, Maths::Transform>();
         m_EntityManager->AddDependency<ParticleEmitter, Maths::Transform>();
+        m_EntityManager->AddDependency<Graphics::Light2D, Maths::Transform>();
 
         m_SceneGraph = CreateUniquePtr<SceneGraph>();
         m_SceneGraph->Init(m_EntityManager->GetRegistry());
@@ -280,23 +290,24 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         const Vec2& mousePos = Input::Get().GetMousePosition();
 
-        auto defaultCameraControllerView = m_EntityManager->GetEntitiesWithType<DefaultCameraController>();
-        auto cameraView                  = m_EntityManager->GetEntitiesWithType<Camera>();
+        auto cameraControllers = m_EntityManager->GetEntitiesWithTypes<DefaultCameraController, Maths::Transform>();
+        auto cameraView        = m_EntityManager->GetEntitiesWithType<Camera>();
         Camera* camera                   = nullptr;
         if(!cameraView.Empty())
         {
             camera = &cameraView.Front().GetComponent<Camera>();
         }
 
-        if(!defaultCameraControllerView.Empty())
+        if(!cameraControllers.Empty())
         {
-            auto& cameraController = defaultCameraControllerView.Front().GetComponent<DefaultCameraController>();
-            auto trans             = defaultCameraControllerView.Front().TryGetComponent<Maths::Transform>();
-            if(Application::Get().GetSceneActive() && trans && cameraController.GetController())
+            Entity controllerEntity = cameraControllers.Front();
+            auto& cameraController  = cameraControllers.Get<DefaultCameraController>(controllerEntity);
+            auto& trans             = cameraControllers.Get<Maths::Transform>(controllerEntity);
+            if(Application::Get().GetSceneActive() && cameraController.GetController())
             {
                 cameraController.GetController()->SetCamera(camera);
-                cameraController.GetController()->HandleMouse(*trans, (float)timeStep.GetSeconds(), mousePos.x, mousePos.y);
-                cameraController.GetController()->HandleKeyboard(*trans, (float)timeStep.GetSeconds());
+                cameraController.GetController()->HandleMouse(trans, (float)timeStep.GetSeconds(), mousePos.x, mousePos.y);
+                cameraController.GetController()->HandleKeyboard(trans, (float)timeStep.GetSeconds());
             }
         }
 
@@ -321,8 +332,7 @@ namespace Lumos
             if(!model.ModelRef)
                 continue;
 
-            const auto& meshes = model.ModelRef->GetMeshes();
-            model.ModelRef->UpdateAnimation(Engine::GetTimeStep());
+            model.TickAnimation((float)Engine::GetTimeStep().GetSeconds());
         }
     }
 
@@ -371,10 +381,17 @@ namespace Lumos
 #define ALL_COMPONENTSV8 ALL_COMPONENTSV7, TextComponent
 
 #define ALL_COMPONENTSLISTV8 ALL_COMPONENTSV8
+// Everything a scene saves, for entities written on their own (undo, copy / paste)
+#define ALL_COMPONENTSLISTFULLV3 ALL_COMPONENTSV8, ParticleEmitter, SpringConstraintComponent, TerrainComponent, VoxelWorldComponent, Graphics::Light2D
+#define ALL_COMPONENTSLISTFULL ALL_COMPONENTSLISTFULLV3, DecalComponent
 #define ALL_COMPONENTSENTTV8(input) get<Maths::Transform>(input).get<NameComponent>(input).get<ActiveComponent>(input).get<Hierarchy>(input).get<Camera>(input).get<LuaScriptComponent>(input).get<Graphics::Model>(input).get<Graphics::Light>(input).get<RigidBody3DComponent>(input).get<Graphics::Environment>(input).get<Graphics::Sprite>(input).get<RigidBody2DComponent>(input).get<DefaultCameraController>(input).get<Graphics::AnimatedSprite>(input).get<SoundComponent>(input).get<Listener>(input).get<IDComponent>(input).get<Graphics::ModelComponent>(input).get<AxisConstraintComponent>(input).get<TextComponent>(input)
 
 #define ALL_COMPONENTSENTTV9(input) get<Maths::Transform>(input).get<NameComponent>(input).get<ActiveComponent>(input).get<Hierarchy>(input).get<Camera>(input).get<LuaScriptComponent>(input).get<Graphics::Model>(input).get<Graphics::Light>(input).get<RigidBody3DComponent>(input).get<Graphics::Environment>(input).get<Graphics::Sprite>(input).get<RigidBody2DComponent>(input).get<DefaultCameraController>(input).get<Graphics::AnimatedSprite>(input).get<SoundComponent>(input).get<Listener>(input).get<IDComponent>(input).get<Graphics::ModelComponent>(input).get<AxisConstraintComponent>(input).get<TextComponent>(input).get<ParticleEmitter>(input)
 #define ALL_COMPONENTSENTTV10(input) get<Maths::Transform>(input).get<NameComponent>(input).get<ActiveComponent>(input).get<Hierarchy>(input).get<Camera>(input).get<LuaScriptComponent>(input).get<Graphics::Model>(input).get<Graphics::Light>(input).get<RigidBody3DComponent>(input).get<Graphics::Environment>(input).get<Graphics::Sprite>(input).get<RigidBody2DComponent>(input).get<DefaultCameraController>(input).get<Graphics::AnimatedSprite>(input).get<SoundComponent>(input).get<Listener>(input).get<IDComponent>(input).get<Graphics::ModelComponent>(input).get<AxisConstraintComponent>(input).get<TextComponent>(input).get<ParticleEmitter>(input).get<SpringConstraintComponent>(input)
+#define ALL_COMPONENTSENTTV11(input) ALL_COMPONENTSENTTV10(input).get<TerrainComponent>(input)
+#define ALL_COMPONENTSENTTV12(input) ALL_COMPONENTSENTTV11(input).get<VoxelWorldComponent>(input)
+#define ALL_COMPONENTSENTTV13(input) ALL_COMPONENTSENTTV12(input).get<Graphics::Light2D>(input)
+#define ALL_COMPONENTSENTTV14(input) ALL_COMPONENTSENTTV13(input).get<DecalComponent>(input)
 
     void Scene::Serialise(const std::string& filePath, bool binary)
     {
@@ -393,7 +410,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::BinaryOutputArchive output { file };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV10(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV14(output);
             }
             file.close();
         }
@@ -405,7 +422,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::JSONOutputArchive output { storage };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV10(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV14(output);
             }
             FileSystem::WriteTextFile(path, Str8StdS(storage.str()));
         }
@@ -481,8 +498,16 @@ namespace Lumos
                 else if(m_SceneSerialisationVersion >= 22 && m_SceneSerialisationVersion < 25)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV9(input);
 #endif
-                else if(m_SceneSerialisationVersion >= 25)
+                else if(m_SceneSerialisationVersion >= 25 && m_SceneSerialisationVersion < 30)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV10(input);
+                else if(m_SceneSerialisationVersion >= 30 && m_SceneSerialisationVersion < 31)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV11(input);
+                else if(m_SceneSerialisationVersion >= 31 && m_SceneSerialisationVersion < 34)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV12(input);
+                else if(m_SceneSerialisationVersion >= 34 && m_SceneSerialisationVersion < 40)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV13(input);
+                else if(m_SceneSerialisationVersion >= 40)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV14(input);
 
 #if MIN_SCENE_VERSION <= 6
                 if(m_SceneSerialisationVersion < 6)
@@ -512,6 +537,10 @@ namespace Lumos
                 }
 #endif
             }
+            catch(const std::exception& e)
+            {
+                LERROR("Failed to load scene - %s - %s", (const char*)path.str, e.what());
+            }
             catch(...)
             {
                 LERROR("Failed to load scene - %s", (const char*)path.str);
@@ -519,7 +548,10 @@ namespace Lumos
         }
         else
         {
-            if(!FileSystem::FileExists(path))
+            bool inVFS  = FileSystem::Get().FileExistsVFS(path);
+            bool onDisk = FileSystem::FileExists(path);
+            LINFO("[Scene] Deserialise '%s' vfs=%d disk=%d", (const char*)path.str, inVFS ? 1 : 0, onDisk ? 1 : 0);
+            if(!inVFS && !onDisk)
             {
                 LERROR("No saved scene file found %s", (const char*)path.str);
                 ScratchEnd(scratch);
@@ -530,10 +562,13 @@ namespace Lumos
                 String8 data;
                 {
                     LUMOS_PROFILE_SCOPE("Scene::Deserialise::ReadFile");
-                    data = FileSystem::ReadTextFile(scratch.arena, path);
+                    data = FileSystem::Get().ReadTextFileVFS(scratch.arena, path);
+                    if(data.size == 0 || data.str == nullptr)
+                        data = FileSystem::ReadTextFile(scratch.arena, path);
                 }
+                LINFO("[Scene] read %llu bytes for %s", (unsigned long long)data.size, (const char*)path.str);
                 std::istringstream istr;
-                istr.str((const char*)data.str);
+                istr.str(std::string((const char*)data.str, data.size));
                 cereal::JSONInputArchive input(istr);
                 {
                     LUMOS_PROFILE_SCOPE("Scene::Deserialise::ParseSceneSettings");
@@ -586,8 +621,16 @@ namespace Lumos
                 else if(m_SceneSerialisationVersion >= 22 && m_SceneSerialisationVersion < 25)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV9(input);
 #endif
-                else if(m_SceneSerialisationVersion >= 25)
+                else if(m_SceneSerialisationVersion >= 25 && m_SceneSerialisationVersion < 30)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV10(input);
+                else if(m_SceneSerialisationVersion >= 30 && m_SceneSerialisationVersion < 31)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV11(input);
+                else if(m_SceneSerialisationVersion >= 31 && m_SceneSerialisationVersion < 34)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV12(input);
+                else if(m_SceneSerialisationVersion >= 34 && m_SceneSerialisationVersion < 40)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV13(input);
+                else if(m_SceneSerialisationVersion >= 40)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV14(input);
                 }
 #if MIN_SCENE_VERSION <= 6
                 if(m_SceneSerialisationVersion < 6)
@@ -616,9 +659,60 @@ namespace Lumos
                 }
 #endif
             }
-            catch(const cereal::Exception& e)
+            catch(const std::exception& e)
             {
                 LERROR("Failed to load scene - %s - %s", (const char*)path.str, e.what());
+            }
+        }
+
+        {
+            auto& reg = m_EntityManager->GetRegistry();
+            auto view = reg.view<TerrainComponent, Graphics::ModelComponent>();
+            for(auto e : view)
+            {
+                auto& tc = view.get<TerrainComponent>(e);
+                auto& mc = view.get<Graphics::ModelComponent>(e);
+                if(!mc.ModelRef || mc.ModelRef->GetPrimitiveType() != Graphics::PrimitiveType::Terrain)
+                    continue;
+                auto& meshes = mc.ModelRef->GetMeshes();
+                if(meshes.Size() == 0)
+                    continue;
+                Terrain* terrain = static_cast<Terrain*>(meshes.Front().get());
+                if(!terrain || terrain->GetGridWidth() <= 1)
+                    continue;
+
+                if(tc.HasCustomEdits && tc.Heights.Size() == (size_t)(tc.GridW * tc.GridH))
+                {
+                    // Replay saved sculpt edits.
+                    terrain->Rebuild(tc.Heights.Data());
+                }
+                else
+                {
+                    Terrain regen(tc.GridW, tc.GridH, 50, 10,
+                                  tc.ScaleXZ, tc.ScaleY, tc.ScaleXZ,
+                                  1.0f / 16.0f, 1.0f / 16.0f,
+                                  tc.TileOriginX, tc.TileOriginZ);
+                    terrain->Rebuild(regen.GetHeightData().Data());
+                    const TDArray<float>& h = regen.GetHeightData();
+                    tc.Heights.Resize(h.Size());
+                    for(uint32_t i = 0; i < (uint32_t)h.Size(); i++)
+                        tc.Heights[i] = h[i];
+                }
+
+                // Sync collision shape.
+                if(RigidBody3DComponent* rb = reg.try_get<RigidBody3DComponent>(e))
+                {
+                    if(RigidBody3D* body = rb->GetRigidBody())
+                    {
+                        if(auto shape = body->GetCollisionShape())
+                        {
+                            if(shape->GetType() == CollisionTerrain)
+                            {
+                                static_cast<TerrainCollisionShape*>(shape.get())->UpdateHeights(tc.Heights.Data());
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -761,6 +855,10 @@ namespace Lumos
         // Serialize the current entity
         if(version == 2)
             DeserialiseEntity<ALL_COMPONENTSLISTV8>(entity, archive);
+        else if(version == 3)
+            DeserialiseEntity<ALL_COMPONENTSLISTFULLV3>(entity, archive);
+        else if(version == 4)
+            DeserialiseEntity<ALL_COMPONENTSLISTFULL>(entity, archive);
         entity.ClearChildren();
 
         // Serialize the children recursively
@@ -830,10 +928,13 @@ namespace Lumos
         (SerialiseComponentIfExists<Component>(entity, archive), ...);
     }
 
-    void SerializeEntityHierarchy(Entity entity, cereal::JSONOutputArchive& archive)
+    void SerializeEntityHierarchy(Entity entity, cereal::JSONOutputArchive& archive, bool full = false)
     {
         // Serialize the current entity
-        SerialiseEntity<ALL_COMPONENTSLISTV8>(entity, archive);
+        if(full)
+            SerialiseEntity<ALL_COMPONENTSLISTFULL>(entity, archive);
+        else
+            SerialiseEntity<ALL_COMPONENTSLISTV8>(entity, archive);
 
         // Serialize the children recursively
         auto children  = entity.GetChildrenTemp();
@@ -842,8 +943,55 @@ namespace Lumos
 
         for(u32 i = 0; i < childCount; i++)
         {
-            SerializeEntityHierarchy(children[i], archive);
+            SerializeEntityHierarchy(children[i], archive, full);
         }
+    }
+
+    String8 Scene::SerialiseEntityToString(Arena* arena, Entity entity)
+    {
+        if(!entity.Valid())
+            return {};
+
+        std::stringstream storage;
+        {
+            cereal::JSONOutputArchive output { storage };
+            const int fullVersion = 4; // prefab layout with the whole component list (4: + decals)
+            output(cereal::make_nvp("Version", fullVersion));
+            output(cereal::make_nvp("Scene Version", SceneSerialisationVersion));
+            SerializeEntityHierarchy(entity, output, true);
+        }
+        return PushStr8Copy(arena, storage.str().c_str());
+    }
+
+    Entity Scene::DeserialiseEntityFromString(String8 data)
+    {
+        if(data.size == 0)
+            return Entity();
+
+        std::stringstream storage(std::string((const char*)data.str, (size_t)data.size));
+        cereal::JSONInputArchive input(storage);
+
+        int version;
+        int SceneVersion;
+        input(cereal::make_nvp("Version", version));
+        input(cereal::make_nvp("Scene Version", SceneVersion));
+
+        int cachedSceneVersion             = Serialisation::CurrentSceneVersion;
+        Serialisation::CurrentSceneVersion = SceneVersion;
+
+        Entity entity = m_EntityManager->Create();
+        DeserializeEntityHierarchy(entity, input, version);
+
+        // the saved links point at handles from before; the caller parents it again
+        if(Hierarchy* hierarchy = entity.TryGetComponent<Hierarchy>())
+        {
+            hierarchy->m_Parent = entt::null;
+            hierarchy->m_Next   = entt::null;
+            hierarchy->m_Prev   = entt::null;
+        }
+
+        Serialisation::CurrentSceneVersion = cachedSceneVersion;
+        return entity;
     }
 
     void Scene::SavePrefab(Entity entity, const std::string& path)

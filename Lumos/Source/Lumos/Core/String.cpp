@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "String.h"
+#include "LMLog.h"
 #include <cstdarg>
 #include <stb/stb_sprintf.h>
 
@@ -53,6 +54,13 @@ namespace Lumos
     }
 
     uint64_t CalculateCStringLength(char* cstr)
+    {
+        uint64_t length = 0;
+        for(; cstr[length]; length += 1);
+        return length;
+    }
+
+    uint64_t CalculateCStringLength(const char* cstr)
     {
         uint64_t length = 0;
         for(; cstr[length]; length += 1);
@@ -208,7 +216,26 @@ namespace Lumos
         result.str            = PushArrayNoZero(arena, uint8_t, needed_bytes);
         result.size           = needed_bytes - 1;
 
+        // A full arena hands back null, and formatting into it crashes rather
+        // than reporting the real problem. Hand back an empty string instead.
+        if(!result.str)
+        {
+            static uint8_t s_Empty[1] = { 0 };
+            static bool s_Reporting   = false;
+            result.str  = s_Empty;
+            result.size = 0;
+            if(!s_Reporting)
+            {
+                s_Reporting = true;
+                LERROR("Arena full: dropped a %llu byte string (\"%s\")", (unsigned long long)needed_bytes, fmt);
+                s_Reporting = false;
+            }
+            va_end(args2);
+            return result;
+        }
+
         stbsp_vsnprintf((char*)result.str, (int)needed_bytes, fmt, args2);
+        va_end(args2);
 
         return result;
     }
@@ -580,8 +607,9 @@ namespace Lumos
     String8 HexStringFromU64(Arena* arena, uint64_t x, bool caps)
     {
         char int_value_to_char[] = "0123456789abcdef";
-        uint8_t buffer[10];
-        uint8_t* opl = buffer + 10;
+        // uint64 max needs 16 hex digits plus "0x" prefix = 18 bytes.
+        uint8_t buffer[18];
+        uint8_t* opl = buffer + sizeof(buffer);
         uint8_t* ptr = opl;
         if(x == 0)
         {
@@ -613,9 +641,9 @@ namespace Lumos
         *ptr = '0';
 
         String8 result = { 0 };
-        result.size    = (uint64_t)(ptr - buffer);
+        result.size    = (uint64_t)(opl - ptr);
         result.str     = PushArrayNoZero(arena, uint8_t, result.size);
-        MemoryCopy(result.str, buffer, result.size);
+        MemoryCopy(result.str, ptr, result.size);
 
         return result;
     }

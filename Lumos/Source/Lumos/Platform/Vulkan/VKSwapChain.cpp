@@ -32,7 +32,7 @@ namespace Lumos
         {
             vkDeviceWaitIdle(VKDevice::Get().GetDevice());
 
-            for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
+            for(uint32_t i = 0; i < MAX_SWAPCHAIN_BUFFERS; i++)
             {
                 if(m_Frames[i].MainCommandBuffer)
                     m_Frames[i].MainCommandBuffer->Flush();
@@ -40,9 +40,10 @@ namespace Lumos
                 m_Frames[i].MainCommandBuffer     = nullptr;
                 m_Frames[i].CommandPool           = nullptr;
                 m_Frames[i].ImageAcquireSemaphore = nullptr;
-
-                delete m_SwapChainBuffers[i];
+                m_RenderFinished[i]               = nullptr;
             }
+            for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
+                delete m_SwapChainBuffers[i];
             vkDestroySwapchainKHR(VKDevice::Get().GetDevice(), m_SwapChain, VK_NULL_HANDLE);
 
             if(m_Surface != VK_NULL_HANDLE)
@@ -100,6 +101,30 @@ namespace Lumos
             swapChainExtent.width  = static_cast<uint32_t>(m_Width);
             swapChainExtent.height = static_cast<uint32_t>(m_Height);
 
+            // The size we were told to resize to lags the surface: on X11 the window
+            // manager drives interactive resizes and the configure event that got us
+            // here can already be a step behind. Where the surface has a fixed extent
+            // it is the only legal one - creating the swapchain at any other size is
+            // invalid, and drivers either fail the create outright or present a
+            // stretched image with stale pixels down the edges that grew.
+            if(surfaceCapabilities.currentExtent.width != 0xFFFFFFFF
+               && surfaceCapabilities.currentExtent.height != 0xFFFFFFFF
+               && surfaceCapabilities.currentExtent.width != 0
+               && surfaceCapabilities.currentExtent.height != 0)
+            {
+                swapChainExtent = surfaceCapabilities.currentExtent;
+            }
+            else
+            {
+                swapChainExtent.width  = Maths::Max(surfaceCapabilities.minImageExtent.width, Maths::Min(surfaceCapabilities.maxImageExtent.width, swapChainExtent.width));
+                swapChainExtent.height = Maths::Max(surfaceCapabilities.minImageExtent.height, Maths::Min(surfaceCapabilities.maxImageExtent.height, swapChainExtent.height));
+            }
+
+            // Everything downstream (framebuffers, viewport, scissor) sizes itself off
+            // these, so they have to describe the images that actually got created.
+            m_Width  = swapChainExtent.width;
+            m_Height = swapChainExtent.height;
+
             VkPresentModeKHR swapChainPresentMode = VKUtilities::ChoosePresentMode(pPresentModes, vsync);
 
             // Use triple-buffering
@@ -125,6 +150,10 @@ namespace Lumos
                 VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR,
                 VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR,
             };
+            // any non-opaque mode will do (MoltenVK has no PRE_MULTIPLIED; CoreAnimation treats it as premultiplied anyway)
+            if(m_Transparent)
+                compositeAlphaFlags = { VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR, VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR,
+                                        VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR, VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR };
             for(auto& compositeAlphaFlag : compositeAlphaFlags)
             {
                 if(surfaceCapabilities.supportedCompositeAlpha & compositeAlphaFlag)
@@ -167,16 +196,16 @@ namespace Lumos
 
             if(m_OldSwapChain != VK_NULL_HANDLE)
             {
-                for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
+                for(uint32_t i = 0; i < m_FramesInFlight; i++)
                 {
-                    if(m_Frames[i].MainCommandBuffer->GetState() == CommandBufferState::Submitted)
+                    if(m_Frames[i].MainCommandBuffer && m_Frames[i].MainCommandBuffer->GetState() == CommandBufferState::Submitted)
                         m_Frames[i].MainCommandBuffer->Wait();
-
-                    m_Frames[i].MainCommandBuffer->Reset();
-
-                    delete m_SwapChainBuffers[i];
+                    if(m_Frames[i].MainCommandBuffer)
+                        m_Frames[i].MainCommandBuffer->Reset();
                     m_Frames[i].ImageAcquireSemaphore = VK_NULL_HANDLE;
                 }
+                for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
+                    delete m_SwapChainBuffers[i];
 
                 MemorySet(m_SwapChainBuffers, 0, sizeof(Texture*) * MAX_SWAPCHAIN_BUFFERS);
 
@@ -229,13 +258,23 @@ namespace Lumos
 
         FrameData& VKSwapChain::GetCurrentFrameData()
         {
-            ASSERT(m_CurrentBuffer < m_SwapChainBufferCount, "Incorrect swapchain buffer index");
+            ASSERT(m_CurrentBuffer < m_FramesInFlight, "Incorrect frame index");
             return m_Frames[m_CurrentBuffer];
+        }
+
+        VkSemaphore VKSwapChain::GetRenderFinishedSemaphore()
+        {
+            return m_RenderFinished[m_AcquireImageIndex]->GetHandle();
         }
 
         void VKSwapChain::CreateFrameData()
         {
+            // never more frames in flight than images to put them in
+            m_FramesInFlight = m_SwapChainBufferCount < MAX_FRAMES_IN_FLIGHT ? m_SwapChainBufferCount : MAX_FRAMES_IN_FLIGHT;
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
+                m_RenderFinished[i] = CreateSharedPtr<VKSemaphore>(false);
+
+            for(uint32_t i = 0; i < m_FramesInFlight; i++)
             {
                 m_Frames[i].ImageAcquireSemaphore = CreateSharedPtr<VKSemaphore>(false);
                 if(!m_Frames[i].MainCommandBuffer)
@@ -281,19 +320,8 @@ namespace Lumos
                 {
                     LINFO("Acquire Image result : %s", result == VK_ERROR_OUT_OF_DATE_KHR ? "Out of Date" : "SubOptimal");
 
-                    if(result == VK_ERROR_OUT_OF_DATE_KHR)
-                    {
-                        OnResize(m_Width, m_Height, true);
-#ifdef LUMOS_PLATFORM_LINUX
-                        return false;
-#endif
-                    }
-                    else
-                    {
-                        m_NeedRecreate = true;
-                    }
-
-                    return true;
+                    OnResize(m_Width, m_Height, true);
+                    return false;
                 }
 
                 if(result == VK_NOT_READY)
@@ -340,7 +368,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             auto& frameData = GetCurrentFrameData();
-            frameData.MainCommandBuffer->Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, frameData.ImageAcquireSemaphore->GetHandle(), true);
+            frameData.MainCommandBuffer->Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, frameData.ImageAcquireSemaphore->GetHandle(), true, GetRenderFinishedSemaphore());
         }
 
         CommandBuffer* VKSwapChain::GetCurrentCommandBuffer()
@@ -351,7 +379,7 @@ namespace Lumos
         bool VKSwapChain::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_CurrentBuffer = (m_CurrentBuffer + 1) % m_SwapChainBufferCount;
+            m_CurrentBuffer = (m_CurrentBuffer + 1) % m_FramesInFlight;
 
             auto commandBuffer = GetCurrentFrameData().MainCommandBuffer;
             if(commandBuffer->GetState() == CommandBufferState::Submitted)
@@ -365,7 +393,6 @@ namespace Lumos
             }
 
             commandBuffer->Reset();
-            VKRenderer::GetDeletionQueue(m_CurrentBuffer).Flush();
 
             if(!AcquireNextImage())
             {
@@ -400,13 +427,18 @@ namespace Lumos
 
             auto error = vkQueuePresentKHR(VKDevice::Get().GetPresentQueue(), &present);
 
+            // Rebuild here rather than leaving it to the next acquire to fail: this
+            // is after the queue has taken the frame, so the recreate happens with
+            // the device idle instead of half way through setting up the next one.
             if(error == VK_ERROR_OUT_OF_DATE_KHR)
             {
                 LWARN("[Vulkan] SwapChain out of date");
+                m_NeedRecreate = true;
             }
             else if(error == VK_SUBOPTIMAL_KHR)
             {
                 LWARN("[Vulkan] SwapChain suboptimal");
+                m_NeedRecreate = true;
             }
             else
             {
@@ -417,7 +449,8 @@ namespace Lumos
             {
                 vkDeviceWaitIdle(VKDevice::Get().GetDevice());
                 OnResize(m_Width, m_Height, true);
-                m_NeedRecreate = false;
+                m_NeedRecreate  = false;
+                m_WasRecreated  = true;
             }
         }
 
@@ -454,23 +487,34 @@ namespace Lumos
         }
         else
         {
-            // iterate over the list of available surface format and
-            // check for the presence of VK_FORMAT_B8G8R8A8_UNORM
-            bool found_B8G8R8A8_UNORM = false;
+            bool found = false;
             for(auto&& surfaceFormat : surfaceFormats)
             {
-                if(surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM)
+                if(surfaceFormat.format == VK_FORMAT_R8G8B8A8_UNORM)
                 {
-                    m_ColourFormat       = surfaceFormat.format;
-                    m_ColourSpace        = surfaceFormat.colorSpace;
-                    found_B8G8R8A8_UNORM = true;
+                    m_ColourFormat = surfaceFormat.format;
+                    m_ColourSpace  = surfaceFormat.colorSpace;
+                    found          = true;
                     break;
                 }
             }
 
-            // in case VK_FORMAT_B8G8R8A8_UNORM is not available
-            // select the first available colour format
-            if(!found_B8G8R8A8_UNORM)
+            if(!found)
+            {
+                for(auto&& surfaceFormat : surfaceFormats)
+                {
+                    if(surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM)
+                    {
+                        m_ColourFormat = surfaceFormat.format;
+                        m_ColourSpace  = surfaceFormat.colorSpace;
+                        found          = true;
+                        break;
+                    }
+                }
+            }
+
+            // in case neither is available select the first colour format
+            if(!found)
             {
                 m_ColourFormat = surfaceFormats[0].format;
                 m_ColourSpace  = surfaceFormats[0].colorSpace;

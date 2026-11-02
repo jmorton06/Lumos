@@ -136,6 +136,23 @@ namespace Lumos
             float OptimiseThreshold;
         };
 
+        // What the GPU gets for a static Vertex: 40 bytes instead of 96 (vertex fetch was the
+        // cost on integrated GPUs). Shaders read it with name-suffixed inputs, see VKShader.
+        struct PackedVertex
+        {
+            float Position[3];
+            int16_t Normal[4];  // snorm, w unused
+            int16_t Tangent[4]; // snorm, w = bitangent sign
+            float TexCoords[2];
+            uint8_t Colour[4];  // unorm
+        };
+        static_assert(sizeof(PackedVertex) == 40, "PackedVertex layout is fixed by the shaders");
+
+        LUMOS_EXPORT void PackVertices(const Vertex* in, uint32_t count, PackedVertex* out);
+        LUMOS_EXPORT Vertex UnpackVertex(const PackedVertex& v);
+        // a static vertex buffer holding count vertices, packed
+        LUMOS_EXPORT VertexBuffer* CreatePackedVertexBuffer(const Vertex* vertices, uint32_t count);
+
         class LUMOS_EXPORT Mesh
         {
         public:
@@ -150,6 +167,16 @@ namespace Lumos
             const SharedPtr<IndexBuffer>& GetIndexBuffer() const { return m_IndexBuffer; }
             const SharedPtr<Material>& GetMaterial() const { return m_Material; }
             const Maths::BoundingBox& GetBoundingBox() const { return m_BoundingBox; }
+
+            const TDArray<Vec3>& GetCPUPositions() const { return m_CPUPositions; }
+            const TDArray<uint32_t>& GetCPUIndices() const { return m_CPUIndices; }
+
+            // Full vertex copy, only kept while RetainCPUVertices is on (mesh tools, simplification).
+            const TDArray<Vertex>& GetCPUVertices() const { return m_CPUVertices; }
+            bool HasCPUVertices() const { return !m_CPUVertices.Empty(); }
+            void DropCPUVertices() { m_CPUVertices = TDArray<Vertex>(); }
+            static void SetRetainCPUVertices(bool retain) { s_RetainCPUVertices = retain; }
+            static bool GetRetainCPUVertices() { return s_RetainCPUVertices; }
 
             void SetMaterial(const SharedPtr<Material>& material);
             void SetAndLoadMaterial(const std::string& filePath);
@@ -183,6 +210,11 @@ namespace Lumos
             SharedPtr<IndexBuffer> m_IndexBuffer;
             SharedPtr<Material> m_Material;
             Maths::BoundingBox m_BoundingBox;
+
+            TDArray<Vec3> m_CPUPositions;
+            TDArray<uint32_t> m_CPUIndices;
+            TDArray<Vertex> m_CPUVertices;
+            static inline bool s_RetainCPUVertices = false;
 
             std::string m_Name;
 

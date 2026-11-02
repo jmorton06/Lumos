@@ -81,6 +81,12 @@ namespace Lumos
             if(CheckExtension(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME))
                 extensions.PushBack(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
+            // Carries the MoltenVK settings applied in CreateInstance
+            if(CheckExtension(VK_EXT_LAYER_SETTINGS_EXTENSION_NAME))
+                extensions.PushBack(VK_EXT_LAYER_SETTINGS_EXTENSION_NAME);
+#endif
+
 #if 0
 #if defined(TRACY_ENABLE) && defined(LUMOS_PLATFORM_WINDOWS)
             if (CheckExtension("VK_EXT_calibrated_timestamps"))
@@ -327,6 +333,28 @@ namespace Lumos
             createInfo.ppEnabledLayerNames     = m_InstanceLayerNames.Data();
             createInfo.flags                   = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
+            // MoltenVK config. vkSetMoltenVKConfigurationMVK() is a no-op on MoltenVK 1.3+,
+            // so these have to ride in on the instance via VK_EXT_layer_settings instead.
+            static const VkBool32 kTrue  = VK_TRUE;
+            static const VkBool32 kFalse = VK_FALSE;
+
+            const VkLayerSettingEXT mvkSettings[] = {
+                // Async submits were measured ~3ms/frame slower than blocking in
+                // vkQueueSubmit, so pin the blocking behaviour rather than inherit a default.
+                { "MoltenVK", "MVK_CONFIG_SYNCHRONOUS_QUEUE_SUBMITS", VK_LAYER_SETTING_TYPE_BOOL32_EXT, 1, &kTrue },
+                { "MoltenVK", "MVK_CONFIG_PRESENT_WITH_COMMAND_BUFFER", VK_LAYER_SETTING_TYPE_BOOL32_EXT, 1, &kTrue },
+                { "MoltenVK", "MVK_CONFIG_RESUME_LOST_DEVICE", VK_LAYER_SETTING_TYPE_BOOL32_EXT, 1, &kTrue },
+                { "MoltenVK", "MVK_CONFIG_PERFORMANCE_TRACKING", VK_LAYER_SETTING_TYPE_BOOL32_EXT, 1, &kFalse },
+            };
+
+            VkLayerSettingsCreateInfoEXT layerSettingsInfo = {};
+            layerSettingsInfo.sType                        = VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT;
+            layerSettingsInfo.settingCount                 = (uint32_t)(sizeof(mvkSettings) / sizeof(mvkSettings[0]));
+            layerSettingsInfo.pSettings                    = mvkSettings;
+            createInfo.pNext                               = &layerSettingsInfo;
+#endif
+
             const bool enableFeatureValidation = false;
 
             if(enableFeatureValidation)
@@ -340,6 +368,7 @@ namespace Lumos
                 validation_features.sType                         = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
                 validation_features.enabledValidationFeatureCount = static_cast<uint32_t>(validation_extensions.Size());
                 validation_features.pEnabledValidationFeatures    = validation_extensions.Data();
+                validation_features.pNext                         = createInfo.pNext;
                 createInfo.pNext                                  = &validation_features;
             }
 

@@ -94,6 +94,24 @@ namespace Lumos
         return m_ProjMatrix;
     }
 
+    Mat4 Camera::GetGPUProjectionMatrix()
+    {
+        Mat4 m = GetProjectionMatrix();
+        if(m_Orthographic)
+        {
+            // depth' = 1 - depth: no precision is lost for an orthographic projection
+            m.values[10] = -m.values[10];
+            m.values[14] = 1.0f - m.values[14];
+        }
+        else
+        {
+            const float range = (m_Far - m_Near) > 1e-6f ? (m_Far - m_Near) : 1e-6f;
+            m.values[10]      = m_Near / range;
+            m.values[14]      = m_Far * m_Near / range;
+        }
+        return m;
+    }
+
     Maths::Ray Camera::GetScreenRay(float x, float y, const Mat4& viewMatrix, bool flipY) const
     {
         Maths::Ray ret;

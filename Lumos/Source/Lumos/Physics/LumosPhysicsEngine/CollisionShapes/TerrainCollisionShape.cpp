@@ -42,6 +42,22 @@ namespace Lumos
         }
     }
 
+    void TerrainCollisionShape::UpdateHeights(const float* heightData)
+    {
+        if(!heightData || m_HeightData.Empty())
+            return;
+
+        uint32_t dataSize = m_Width * m_Height;
+        m_MinHeight = heightData[0];
+        m_MaxHeight = heightData[0];
+        for(uint32_t i = 0; i < dataSize; i++)
+        {
+            m_HeightData[i] = heightData[i];
+            m_MinHeight = Maths::Min(m_MinHeight, heightData[i]);
+            m_MaxHeight = Maths::Max(m_MaxHeight, heightData[i]);
+        }
+    }
+
     float TerrainCollisionShape::GetHeightAt(float x, float z) const
     {
         if(m_HeightData.Empty() || m_Width < 2 || m_Height < 2)
@@ -139,8 +155,9 @@ namespace Lumos
                 float h2      = m_HeightData[(x + step) * m_Width + z] * m_ScaleY + pos.y;
                 float h3      = m_HeightData[x * m_Width + (z + step)] * m_ScaleY + pos.y;
 
-                DebugRenderer::DrawThickLine(Vec3(worldX, h, worldZ), Vec3(worldX2, h2, worldZ), 0.01f, false, Vec4(0.5f, 0.8f, 0.5f, 1.0f));
-                DebugRenderer::DrawThickLine(Vec3(worldX, h, worldZ), Vec3(worldX, h3, worldZ2), 0.01f, false, Vec4(0.5f, 0.8f, 0.5f, 1.0f));
+                // Terrain grid is dense — keep it lighter than the standard width.
+                DebugRenderer::DrawThickLine(Vec3(worldX, h, worldZ), Vec3(worldX2, h2, worldZ), DEBUG_LINE_WIDTH * 0.5f, false, Vec4(0.5f, 0.8f, 0.5f, 1.0f));
+                DebugRenderer::DrawThickLine(Vec3(worldX, h, worldZ), Vec3(worldX, h3, worldZ2), DEBUG_LINE_WIDTH * 0.5f, false, Vec4(0.5f, 0.8f, 0.5f, 1.0f));
             }
         }
     }
@@ -196,16 +213,12 @@ namespace Lumos
 
     void TerrainCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject, const Vec3& axis, ReferencePolygon& refPolygon) const
     {
-        // Return a single contact point — the terrain surface point under the collision
-        // This feeds into BuildCollisionManifold's FaceCount == 1 path
         refPolygon.FaceCount = 1;
         refPolygon.Normal    = Vec3(0.0f, 1.0f, 0.0f);
 
         // Use axis to find a representative point: project axis onto XZ to locate the contact
         Vec3 pos = currentObject ? currentObject->GetPosition() : Vec3(0.0f);
 
-        // The axis points toward the collision — sample terrain at the XZ implied by axis
-        // For terrain, we use the midpoint of the terrain as fallback
         float sampleX = m_Width * m_ScaleXZ * 0.5f;
         float sampleZ = m_Height * m_ScaleXZ * 0.5f;
 

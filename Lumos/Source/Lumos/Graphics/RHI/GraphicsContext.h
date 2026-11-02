@@ -8,7 +8,7 @@ namespace Lumos
 
         enum class RenderAPI : uint32_t
         {
-            OPENGL = 0,
+            OPENGL = 0, // removed; kept so saved values keep their meaning
             VULKAN,
             DIRECT3D, // Unsupported
             METAL,    // Unsupported

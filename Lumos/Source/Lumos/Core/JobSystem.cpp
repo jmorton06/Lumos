@@ -77,39 +77,18 @@ namespace Lumos
                 uint32_t sharedmemory_size;
             };
 
-            struct JobQueue
+            struct alignas(64) JobQueue
             {
                 TSQueue<Job> queue;
-                Mutex* locker;
-
-                JobQueue()
-                {
-                    locker = new Mutex();
-                    MutexInit(locker);
-                }
-
-                ~JobQueue()
-                {
-                    MutexDestroy(locker);
-                    delete locker;
-                }
 
                 inline void push_back(const Job& item)
                 {
-                    ScopedMutex lock(locker);
                     queue.PushBack(item);
                 }
 
                 inline bool pop_front(Job& item)
                 {
-                    ScopedMutex lock(locker);
-                    if(queue.Empty())
-                    {
-                        return false;
-                    }
-                    item = Move(queue.Front());
-                    queue.PopFront();
-                    return true;
+                    return queue.PopFront(item);
                 }
             };
 
@@ -124,12 +103,14 @@ namespace Lumos
                 ConditionVar* wakeCondition;
                 Mutex* wakeMutex;
                 std::atomic<uint32_t> nextQueue { 0 };
+                std::atomic<uint32_t> pendingJobs { 0 };
                 TDArray<std::thread> threads;
 
                 InternalState()
                 {
                     wakeMutex = new Mutex();
                     MutexInit(wakeMutex);
+                    MutexSetName(wakeMutex, "JobSystem Wake");
 
                     wakeCondition = new ConditionVar();
                     ConditionInit(wakeCondition);
@@ -139,24 +120,17 @@ namespace Lumos
                 {
                     LUMOS_PROFILE_FUNCTION_LOW();
 
-                    alive.store(false); // indicate that new jobs cannot be started from this point
-                    bool bWakeLoop = true;
-
-                    std::thread waker([&]
-                                      {
-                        while (bWakeLoop)
-                        {
-                            ConditionNotifyAll(wakeCondition);
-                        } });
+                    {
+                        ScopedMutex lock(wakeMutex);
+                        alive.store(false);
+                    }
+                    ConditionNotifyAll(wakeCondition);
 
                     for(auto& thread : threads)
                     {
                         if(thread.joinable())
                             thread.join();
                     }
-                    bWakeLoop = false;
-                    if(waker.joinable())
-                        waker.join();
 
                     delete[] jobQueuePerThread;
                     ConditionDestroy(wakeCondition);
@@ -179,6 +153,7 @@ namespace Lumos
                     JobQueue& job_queue = internal_state->jobQueuePerThread[startingQueue % internal_state->numThreads];
                     while(job_queue.pop_front(job))
                     {
+                        internal_state->pendingJobs.fetch_sub(1, std::memory_order_relaxed);
                         JobDispatchArgs args;
                         args.groupID = job.groupID;
                         if(job.sharedmemory_size > 0)
@@ -241,9 +216,12 @@ namespace Lumos
                                 {
                                     work(threadID);
 
-                                    // finished with jobs, put to sleep
                                     MutexLock(internal_state->wakeMutex);
-                                    ConditionWait(internal_state->wakeCondition, internal_state->wakeMutex);
+                                    while(internal_state->alive.load() &&
+                                          internal_state->pendingJobs.load(std::memory_order_acquire) == 0)
+                                    {
+                                        ConditionWait(internal_state->wakeCondition, internal_state->wakeMutex);
+                                    }
                                     MutexUnlock(internal_state->wakeMutex);
                                 } });
 
@@ -251,10 +229,12 @@ namespace Lumos
                     // Do Windows-specific thread setup:
                     HANDLE handle = (HANDLE)worker.native_handle();
 
-                    // Put each thread on to dedicated core
-                    DWORD_PTR affinityMask    = 1ull << threadID;
-                    DWORD_PTR affinity_result = SetThreadAffinityMask(handle, affinityMask);
-                    ASSERT(affinity_result > 0);
+                    if(threadID < 64)
+                    {
+                        DWORD_PTR affinityMask    = 1ull << threadID;
+                        DWORD_PTR affinity_result = SetThreadAffinityMask(handle, affinityMask);
+                        ASSERT(affinity_result > 0);
+                    }
 
                     // Increase thread priority:
                     // BOOL priority_result = SetThreadPriority(handle, THREAD_PRIORITY_HIGHEST);
@@ -329,6 +309,11 @@ namespace Lumos
                 job.sharedmemory_size = 0;
 
                 internal_state->jobQueuePerThread[internal_state->nextQueue.fetch_add(1) % internal_state->numThreads].push_back(job);
+
+                {
+                    ScopedMutex lock(internal_state->wakeMutex);
+                    internal_state->pendingJobs.fetch_add(1, std::memory_order_release);
+                }
                 ConditionNotifyOne(internal_state->wakeCondition);
             }
 
@@ -360,7 +345,14 @@ namespace Lumos
                     internal_state->jobQueuePerThread[internal_state->nextQueue.fetch_add(1) % internal_state->numThreads].push_back(job);
                 }
 
-                ConditionNotifyOne(internal_state->wakeCondition);
+                {
+                    ScopedMutex lock(internal_state->wakeMutex);
+                    internal_state->pendingJobs.fetch_add(groupCount, std::memory_order_release);
+                }
+                if(groupCount > 1)
+                    ConditionNotifyAll(internal_state->wakeCondition);
+                else
+                    ConditionNotifyOne(internal_state->wakeCondition);
             }
 
             uint32_t DispatchGroupCount(uint32_t jobCount, uint32_t groupSize)

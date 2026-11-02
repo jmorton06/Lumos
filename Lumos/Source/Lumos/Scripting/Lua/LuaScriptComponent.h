@@ -27,6 +27,7 @@ namespace Lumos
         void Init();
         void OnInit();
         void OnUpdate(float dt);
+        void OnBackgroundUpdate(float dt);
         void Reload();
         void Load(const std::string& fileName);
         Entity GetCurrentEntity();

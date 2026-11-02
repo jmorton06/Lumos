@@ -12,10 +12,6 @@
 #include "Platform/Vulkan/VKTexture.h"
 #endif
 
-#ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/OpenGL/GLSwapChain.h"
-#endif
-
 namespace Lumos
 {
     namespace Graphics
@@ -41,7 +37,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             uint64_t hash = 0;
-            HashCombine(hash, pipelineDesc.shader.get(), pipelineDesc.cullMode, pipelineDesc.depthBiasEnabled, (uint32_t)pipelineDesc.drawType, (uint32_t)pipelineDesc.polygonMode, pipelineDesc.transparencyEnabled, pipelineDesc.DepthTest, pipelineDesc.DepthWrite, pipelineDesc.mipIndex);
+            HashCombine(hash, pipelineDesc.shader.get(), pipelineDesc.cullMode, pipelineDesc.depthBiasEnabled, (uint32_t)pipelineDesc.drawType, (uint32_t)pipelineDesc.polygonMode, pipelineDesc.transparencyEnabled, pipelineDesc.DepthTest, pipelineDesc.DepthWrite, pipelineDesc.mipIndex, pipelineDesc.ReverseDepth);
 
             for(auto texture : pipelineDesc.colourTargets)
             {
@@ -67,6 +63,7 @@ namespace Lumos
             }
 
             HashCombine(hash, pipelineDesc.clearTargets);
+            HashCombine(hash, (uint32_t)pipelineDesc.blendMode);
             HashCombine(hash, pipelineDesc.swapchainTarget);
             HashCombine(hash, pipelineDesc.lineWidth);
             if(pipelineDesc.depthBiasEnabled)
@@ -83,6 +80,7 @@ namespace Lumos
 
             HashCombine(hash, pipelineDesc.mipIndex);
             HashCombine(hash, pipelineDesc.samples);
+            HashCombine(hash, pipelineDesc.viewMask);
 
             if(pipelineDesc.swapchainTarget)
             {
@@ -95,6 +93,19 @@ namespace Lumos
             }
 
             auto found = m_PipelineCache.find(hash);
+            // the key is only a hash: a hit must really be the same pipeline
+            while(found != m_PipelineCache.end() && found->second.pipeline)
+            {
+                const PipelineDesc& have = found->second.pipeline->GetDescription();
+                if(have.shader == pipelineDesc.shader && have.blendMode == pipelineDesc.blendMode
+                   && have.transparencyEnabled == pipelineDesc.transparencyEnabled
+                   && have.colourTargets[0] == pipelineDesc.colourTargets[0])
+                    break;
+                LWARN("Pipeline cache collision: '%s' hit '%s'", pipelineDesc.DebugName ? pipelineDesc.DebugName : "?",
+                      have.DebugName ? have.DebugName : "?");
+                hash++;
+                found = m_PipelineCache.find(hash);
+            }
             if(found != m_PipelineCache.end() && found->second.pipeline)
             {
                 found->second.timeSinceLastAccessed = (float)Engine::GetTimeStep().GetElapsedSeconds();
@@ -141,10 +152,6 @@ namespace Lumos
         {
             if(m_Description.swapchainTarget)
             {
-#ifdef LUMOS_RENDER_API_OPENGL
-                if(GraphicsContext::GetRenderAPI() == RenderAPI::OPENGL)
-                    return ((GLSwapChain*)Renderer::GetMainSwapChain())->GetWidth();
-#endif
                 return Renderer::GetMainSwapChain()->GetCurrentImage()->GetWidth();
             }
 
@@ -173,10 +180,6 @@ namespace Lumos
         {
             if(m_Description.swapchainTarget)
             {
-#ifdef LUMOS_RENDER_API_OPENGL
-                if(GraphicsContext::GetRenderAPI() == RenderAPI::OPENGL)
-                    return ((GLSwapChain*)Renderer::GetMainSwapChain())->GetHeight();
-#endif
                 return Renderer::GetMainSwapChain()->GetCurrentImage()->GetHeight();
             }
 

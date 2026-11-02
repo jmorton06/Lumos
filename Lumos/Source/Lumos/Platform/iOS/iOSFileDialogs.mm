@@ -10,7 +10,12 @@
 // Forward declaration
 @interface LumosDocPickerDelegate : NSObject <UIDocumentPickerDelegate>
 @property (nonatomic, copy) void (^completionBlock)(NSString*);
+@property (nonatomic, assign) BOOL keepAccess; // folders: the app reads them after the picker closes
 - (instancetype)initWithCompletion:(void (^)(NSString*))completion;
+@end
+
+@interface LumosImportPickerDelegate : NSObject <UIDocumentPickerDelegate>
+@property (nonatomic, copy) void (^completionBlock)(NSArray<NSURL*>*);
 @end
 
 namespace Lumos
@@ -116,14 +121,107 @@ namespace Lumos
         return "";
     }
 
+    // A folder from the Files app (iCloud Drive, On My iPhone, a USB drive...). Access stays open for
+    // the run; keep a Bookmarks::Create of the path to get it back next launch.
     std::string FileDialogs::PickFolder(const std::string& defaultPath)
     {
-        // Return app Documents directory
-        NSArray* paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-        NSString* documentsDir = [paths firstObject];
-        return std::string([documentsDir UTF8String]);
+        __block std::string result = "";
+        __block bool done = false;
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            UIViewController* vc = GetRootViewController();
+            if(!vc)
+            {
+                done = true;
+                return;
+            }
+            UIDocumentPickerViewController* picker = [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:@[ UTTypeFolder ]];
+            picker.allowsMultipleSelection = NO;
+            LumosDocPickerDelegate* delegate = [[LumosDocPickerDelegate alloc] initWithCompletion:^(NSString* path) {
+                if(path)
+                    result = std::string([path UTF8String]);
+                done = true;
+            }];
+            delegate.keepAccess = YES;
+            objc_setAssociatedObject(picker, "delegate", delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            picker.delegate = delegate;
+            [vc presentViewController:picker animated:YES completion:nil];
+        });
+
+        NSDate* timeout = [NSDate dateWithTimeIntervalSinceNow:300.0];
+        while(!done && [[NSDate date] compare:timeout] == NSOrderedAscending)
+            [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+        return result;
+    }
+
+    TDArray<std::string> FileDialogs::ImportFiles(const std::string& filter, const std::string& destDir)
+    {
+        __block TDArray<std::string> result;
+        __block bool done = false;
+        NSString* dest = [NSString stringWithUTF8String:destDir.c_str()];
+        NSString* filterStr = [[[NSString stringWithUTF8String:filter.c_str()] lowercaseString] stringByReplacingOccurrencesOfString:@" " withString:@""];
+        NSArray<NSString*>* exts = [filterStr componentsSeparatedByString:@","];
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            UIViewController* vc = GetRootViewController();
+            if(!vc)
+            {
+                done = true;
+                return;
+            }
+            NSMutableArray<UTType*>* types = [ParseFilterToUTTypes(filter) mutableCopy];
+            [types addObject:UTTypeAudio];
+            // asCopy: iOS hands over copies in our tmp inbox, no security-scoped access to keep
+            UIDocumentPickerViewController* picker = [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:types asCopy:YES];
+            picker.allowsMultipleSelection = YES;
+            LumosImportPickerDelegate* delegate = [[LumosImportPickerDelegate alloc] init];
+            delegate.completionBlock = ^(NSArray<NSURL*>* urls) {
+                NSFileManager* fm = [NSFileManager defaultManager];
+                [fm createDirectoryAtPath:dest withIntermediateDirectories:YES attributes:nil error:nil];
+                for(NSURL* url in urls)
+                {
+                    NSString* name = url.lastPathComponent;
+                    // the picker can tack a type extension on ("book.m4b" -> "book.m4b.mp4"): keep the original one
+                    NSString* inner = name.stringByDeletingPathExtension;
+                    if(inner.pathExtension.length > 0 && [exts containsObject:inner.pathExtension.lowercaseString])
+                        name = inner;
+                    NSString* target = [dest stringByAppendingPathComponent:name];
+                    for(int n = 2; [fm fileExistsAtPath:target]; n++)
+                        target = [dest stringByAppendingPathComponent:[NSString stringWithFormat:@"%@ %d.%@", name.stringByDeletingPathExtension, n, name.pathExtension]];
+                    NSError* err = nil;
+                    if([fm moveItemAtURL:url toURL:[NSURL fileURLWithPath:target] error:&err] ||
+                       [fm copyItemAtURL:url toURL:[NSURL fileURLWithPath:target] error:&err])
+                        result.PushBack(std::string(target.UTF8String));
+                    else
+                        NSLog(@"Import failed for %@: %@", name, err);
+                }
+                done = true;
+            };
+            objc_setAssociatedObject(picker, "delegate", delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            picker.delegate = delegate;
+            [vc presentViewController:picker animated:YES completion:nil];
+        });
+
+        NSDate* timeout = [NSDate dateWithTimeIntervalSinceNow:600.0];
+        while(!done && [[NSDate date] compare:timeout] == NSOrderedAscending)
+            [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+        return result;
     }
 }
+
+@implementation LumosImportPickerDelegate
+- (void)documentPicker:(UIDocumentPickerViewController*)controller didPickDocumentsAtURLs:(NSArray<NSURL*>*)urls
+{
+    if(self.completionBlock)
+        self.completionBlock(urls);
+}
+
+- (void)documentPickerWasCancelled:(UIDocumentPickerViewController*)controller
+{
+    if(self.completionBlock)
+        self.completionBlock(@[]);
+}
+@end
 
 @implementation LumosDocPickerDelegate
 - (instancetype)initWithCompletion:(void (^)(NSString*))completion
@@ -143,7 +241,7 @@ namespace Lumos
     if(self.completionBlock)
         self.completionBlock(url ? [url path] : nil);
 
-    if(url)
+    if(url && !self.keepAccess)
         [url stopAccessingSecurityScopedResource];
 }
 

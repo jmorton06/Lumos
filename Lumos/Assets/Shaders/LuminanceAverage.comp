@@ -1,0 +1,77 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
+
+
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(std430, set = 0, binding = 0) buffer HistogramBuffer
+{
+    uint Histogram[256];
+} u_Hist;
+
+layout(std430, set = 0, binding = 1) buffer AverageBuffer
+{
+    float AverageLuminance;
+} u_Avg;
+
+layout(push_constant) uniform Uniforms
+{
+    float MinLogLum;
+    float LogLumRange;        // MaxLogLum - MinLogLum
+    float DeltaTime;          // seconds since last frame, clamped
+    float SpeedUp;             // adapt rate when scene gets brighter
+    float SpeedDown;           // adapt rate when scene gets darker
+    uint  NumPixels;          // total pixels in the source texture
+} u_Params;
+
+// mean over the middle of the histogram: the darkest and brightest shares (sky, sun glints,
+// black corners) do not drag the exposure around
+const float LowPercentile  = 0.10;
+const float HighPercentile = 0.95;
+
+shared uint s_Bins[256];
+
+void main()
+{
+    uint binIndex = gl_LocalInvocationIndex;
+    s_Bins[binIndex] = u_Hist.Histogram[binIndex];
+    // reset for next frame now that it is copied
+    u_Hist.Histogram[binIndex] = 0;
+    barrier();
+
+    if(binIndex != 0)
+        return;
+
+    // bin 0 = black, left out; counts are centre-weighted, so the total comes from the bins
+    float total = 0.0;
+    for(uint b = 1; b < 256; b++)
+        total += float(s_Bins[b]);
+    if(total < 1.0)
+        return;
+
+    float lo     = total * LowPercentile;
+    float hi     = total * HighPercentile;
+    float seen   = 0.0;
+    float sum    = 0.0;
+    float weight = 0.0;
+    for(uint b = 1; b < 256; b++)
+    {
+        float c    = float(s_Bins[b]);
+        float take = clamp(min(seen + c, hi) - max(seen, lo), 0.0, c);
+        sum += take * (float(b) - 0.5);
+        weight += take;
+        seen += c;
+    }
+    if(weight <= 0.0)
+        return;
+
+    // bin b holds log luminance in [(b - 1) / 254, b / 254] of the range
+    float logAvg         = (sum / weight) / 254.0;
+    float weightedAvgLum = exp2(logAvg * u_Params.LogLumRange + u_Params.MinLogLum);
+
+    float prev     = u_Avg.AverageLuminance;
+    float rate     = (weightedAvgLum < prev) ? u_Params.SpeedUp : u_Params.SpeedDown;
+    float t        = 1.0 - exp(-u_Params.DeltaTime * rate);
+    u_Avg.AverageLuminance = prev + (weightedAvgLum - prev) * t;
+}

@@ -21,7 +21,7 @@ namespace Lumos
 
     void ALSoundNode::OnUpdate(float msec)
     {
-        alSourcef(m_Source, AL_GAIN, m_Volume);
+        alSourcef(m_Source, AL_GAIN, GetEffectiveVolume());
         alSourcef(m_Source, AL_PITCH, m_Pitch);
         alSourcef(m_Source, AL_MAX_DISTANCE, m_Radius);
         alSourcef(m_Source, AL_REFERENCE_DISTANCE, m_ReferenceDistance);
@@ -73,13 +73,18 @@ namespace Lumos
         m_Sound = s;
         if(m_Sound)
         {
+            ALint state = 0;
+            alGetSourcei(m_Source, AL_SOURCE_STATE, &state);
+            if(state == AL_PLAYING || state == AL_PAUSED)
+                alSourceStop(m_Source);
+
             m_TimeLeft = m_Sound->GetLength();
             alSourcei(m_Source, AL_BUFFER, m_Sound.As<ALSound>()->GetBuffer());
             alSourcef(m_Source, AL_MAX_DISTANCE, m_Radius);
             alSourcef(m_Source, AL_ROLLOFF_FACTOR, m_RollOffFactor);
             alSourcef(m_Source, AL_REFERENCE_DISTANCE, m_ReferenceDistance);
             alSourcei(m_Source, AL_LOOPING, m_IsLooping ? 1 : 0);
-            alSourcef(m_Source, AL_GAIN, m_Volume);
+            alSourcef(m_Source, AL_GAIN, GetEffectiveVolume());
             alSourcef(m_Source, AL_PITCH, m_Pitch);
             // alSourcePlay(m_Source);
         }

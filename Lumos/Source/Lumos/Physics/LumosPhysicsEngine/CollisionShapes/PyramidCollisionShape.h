@@ -101,6 +101,8 @@ namespace Lumos
             }
         }
 
+        Hull* GetHull() const override { return m_PyramidHull.get(); }
+
     protected:
         // Constructs the static cube hull
         static void ConstructPyramidHull();

@@ -320,12 +320,15 @@ namespace Lumos
                 unsigned char* pixels;
                 int width, height;
                 io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+                LINFO("ImGui font atlas %ix%i", width, height);
 
                 auto desc  = TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT);
                 desc.flags = TextureFlags::Texture_Sampled;
 
                 m_FontTexture   = new VKTexture2D(width, height, pixels, desc);
                 io.Fonts->TexID = (ImTextureID)AddTexture(m_FontTexture, TextureType::COLOUR, 0, 0);
+                // the GPU has it now; ImGui rebuilds the pixels from the fonts if it ever needs them again
+                io.Fonts->ClearTexData();
                 m_CurrentFrameTextures.PushBack(m_FontTexture);
             }
         }

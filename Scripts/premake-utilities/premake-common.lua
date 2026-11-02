@@ -86,11 +86,16 @@ function SetRecommendedXcodeSettings()
 			['ENABLE_TESTABILITY'] = 'YES',
 			--['ONLY_ACTIVE_ARCH'] = 'YES'
 		}
+	-- the engine has Swift (StoreKit bridge): apps linking it need the Swift runtime libs
+	filter {"system:macosx or ios"}
+		linkoptions { "-L$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)", "-L/usr/lib/swift", "-Wl,-rpath,/usr/lib/swift" }
+
 	filter{"system:macosx", "configurations:Debug"}
 		xcodebuildsettings
 		{
 			["MACOSX_DEPLOYMENT_TARGET"] = "10.15",
 			['ONLY_ACTIVE_ARCH'] = 'YES',
+			['SWIFT_VERSION'] = '5.0',
 		}
 
 	filter{"system:macosx", "configurations:Release or Production"}
@@ -98,6 +103,7 @@ function SetRecommendedXcodeSettings()
 		{
 			["MACOSX_DEPLOYMENT_TARGET"] = "10.15",
 			['ONLY_ACTIVE_ARCH'] = 'NO',
+			['SWIFT_VERSION'] = '5.0',
 		}
 
 	filter {"system:ios"}
@@ -107,7 +113,8 @@ function SetRecommendedXcodeSettings()
 			['SDKROOT'] = 'iphoneos',
 			['TARGETED_DEVICE_FAMILY'] = '1,2',
 			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',
-			['IPHONEOS_DEPLOYMENT_TARGET'] = '18.0'
+			['IPHONEOS_DEPLOYMENT_TARGET'] = '18.0',
+			['SWIFT_VERSION'] = '5.0',
 		}
 end
 

@@ -28,9 +28,9 @@ namespace Lumos
     class AssetImporter
     {
     public:
-        // Import a source model file (.glb/.gltf/.obj/.fbx) → .lmesh
-        // Returns the VFS path to the imported .lmesh, or empty string on failure
         static std::string Import(const std::string& sourcePath, const ImportSettings& settings);
+        // with the settings in the source's .meta (defaults when there is none)
+        static std::string Import(const std::string& sourcePath);
 
         // Check if imported .lmesh is missing or has outdated format version
         static bool NeedsImport(const std::string& sourcePath);
@@ -44,8 +44,6 @@ namespace Lumos
         // Get the imported .lmesh path for a source file (may not exist)
         static std::string GetImportedPath(const std::string& sourcePath);
 
-        // Normalize a path for consistent hashing across platforms
-        // Lowercases, normalizes slashes, resolves ../ segments, strips trailing slashes
         static std::string NormalizeAssetPath(const std::string& path);
 
         // Scan Imported/ directory and delete orphaned files that don't match any known source

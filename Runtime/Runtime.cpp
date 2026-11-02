@@ -1,4 +1,5 @@
 #include <string>
+#include <filesystem>
 #include <Lumos/Core/Application.h>
 #ifdef LUMOS_PLATFORM_IOS
 #include <Lumos/Platform/iOS/iOSOS.h>
@@ -35,24 +36,60 @@ using namespace Lumos;
 // Find .lmproj in a directory
 static std::string FindLmproj(const std::string& dir)
 {
-    // TODO: proper directory scan. For now, try common patterns.
-    // The project name usually matches the folder name.
-    std::string folder = dir;
-    if(!folder.empty() && (folder.back() == '/' || folder.back() == '\\'))
-        folder.pop_back();
-
-    // Extract folder name
-    size_t sep = folder.find_last_of("/\\");
-    std::string name = (sep != std::string::npos) ? folder.substr(sep + 1) : folder;
-
     std::string path = dir;
-    if(path.back() != '/' && path.back() != '\\')
+    if(!path.empty() && path.back() != '/' && path.back() != '\\')
         path += "/";
 
-    std::string candidate = path + name + ".lmproj";
-    if(FileSystem::FileExists(Str8StdS(candidate)))
-        return candidate;
+    // Prefer <folderName>.lmproj if present
+    std::string folder = path;
+    folder.pop_back();
+    size_t sep = folder.find_last_of("/\\");
+    std::string name = (sep != std::string::npos) ? folder.substr(sep + 1) : folder;
+    std::string preferred = path + name + ".lmproj";
+    if(FileSystem::FileExists(Str8StdS(preferred)))
+        return preferred;
 
+    // Scan dir for any *.lmproj
+    std::error_code ec;
+    std::filesystem::path dirPath(path);
+    if(std::filesystem::is_directory(dirPath, ec))
+    {
+        for(auto& entry : std::filesystem::directory_iterator(dirPath, ec))
+        {
+            if(ec) break;
+            if(entry.is_regular_file(ec) && entry.path().extension() == ".lmproj")
+                return entry.path().string();
+        }
+    }
+    return "";
+}
+
+// Exported apps carry their project next to the binary: macOS Contents/Resources, iOS bundle root,
+// Windows / Linux <exe dir>/data. Returns the project root (with trailing slash) or "".
+static std::string FindPackagedProject()
+{
+    TDArray<std::string> candidates;
+#if defined(LUMOS_PLATFORM_IOS)
+    std::string assetPath = OS::Get().GetAssetPath();
+    if(!assetPath.empty() && assetPath.back() != '/')
+        assetPath += "/";
+    candidates.PushBack(assetPath);
+    candidates.PushBack(assetPath + "Game/"); // exporter's Xcode project ships the project as a folder
+#else
+    std::string exeDir = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath());
+    if(!exeDir.empty() && exeDir.back() != '/' && exeDir.back() != '\\')
+        exeDir += "/";
+#if defined(LUMOS_PLATFORM_MACOS)
+    candidates.PushBack(exeDir + "../Resources/");
+    candidates.PushBack(exeDir + "../Resources/Game/"); // Mac App Store build (exporter's Xcode project)
+#endif
+    candidates.PushBack(exeDir + "data/");
+#endif
+    for(auto& dir : candidates)
+    {
+        if(!FindLmproj(dir).empty())
+            return dir;
+    }
     return "";
 }
 
@@ -128,6 +165,17 @@ public:
                 LERROR("No .lmproj found in project dir: %s", std::string((const char*)projectOpt.str, projectOpt.size).c_str());
             }
         }
+        else if(std::string packaged = FindPackagedProject(); !packaged.empty())
+        {
+            // exported app: one generic Runtime, the project travels beside it
+            m_ProjectSettings.m_ProjectRoot = packaged;
+            m_ProjectSettings.Packaged      = true;
+            std::string projFile = FindLmproj(packaged);
+            std::string filename = projFile.substr(projFile.find_last_of("/\\") + 1);
+            size_t dot           = filename.find_last_of('.');
+            m_ProjectSettings.m_ProjectName = (dot != std::string::npos) ? filename.substr(0, dot) : filename;
+            LINFO("Packaged project: %s at %s", m_ProjectSettings.m_ProjectName.c_str(), packaged.c_str());
+        }
 #ifdef LUMOS_BUNDLED_PROJECT_NAME
         else
         {
@@ -135,11 +183,24 @@ public:
             const char* bundledName = LUMOS_BUNDLED_PROJECT_NAME;
 
             #ifdef LUMOS_PLATFORM_IOS
-            m_ProjectSettings.m_ProjectRoot = OS::Get().GetAssetPath() + "/" + bundledName + "/";
+            {
+                std::string assetPath = OS::Get().GetAssetPath();
+                if(!assetPath.empty() && assetPath.back() != '/')
+                    assetPath += "/";
+                // Try <bundle>/<name>/ first (folder reference), fall back to bundle root (flat resources)
+                std::string subfolder = assetPath + bundledName + "/";
+                if(FileSystem::FolderExists(Str8StdS(subfolder)) && !FindLmproj(subfolder).empty())
+                    m_ProjectSettings.m_ProjectRoot = subfolder;
+                else
+                    m_ProjectSettings.m_ProjectRoot = assetPath;
+            }
             #else
             std::string exeDir = StringUtilities::GetFileLocation(OS::Get().GetExecutablePath());
             m_ProjectSettings.m_ProjectRoot = exeDir + "../Resources/" + bundledName + "/";
-            if(!FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)))
+            // packaged builds put the .lmproj + Assets.lpak straight in Resources
+            if(!FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)) && !FindLmproj(exeDir + "../Resources/").empty())
+                m_ProjectSettings.m_ProjectRoot = exeDir + "../Resources/";
+            else if(!FileSystem::FolderExists(Str8StdS(m_ProjectSettings.m_ProjectRoot)))
                 m_ProjectSettings.m_ProjectRoot = exeDir + bundledName + "/";
             #endif
 
@@ -163,7 +224,6 @@ public:
             // Default: find ExampleProject
             TDArray<std::string> projectLocations = {
                 OS::Get().GetExecutablePath() + "../../../../../ExampleProject/",
-                "/Users/jmorton/Dev/Lumos/ExampleProject/Example.lmproj",
                 "ExampleProject/Example.lmproj",
                 "../ExampleProject/Example.lmproj",
                 OS::Get().GetExecutablePath() + "/ExampleProject/Example.lmproj",
@@ -224,7 +284,6 @@ public:
                 std::string outputPath((const char*)packAssetsOpt.str, packAssetsOpt.size);
                 PackSettings settings;
                 settings.ExcludePaths.PushBack(Str8Lit("Cache/"));
-                settings.ExcludePaths.PushBack(Str8Lit("Imported/"));
                 bool ok = AssetPacker::Pack(Str8StdS(outputPath), Str8StdS(assetsDir), settings);
                 LINFO("Pack %s: %s", ok ? "succeeded" : "failed", outputPath.c_str());
                 exit(ok ? 0 : 1);

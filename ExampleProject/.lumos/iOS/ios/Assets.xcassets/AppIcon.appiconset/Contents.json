@@ -1,0 +1,4 @@
+{
+  "images" : [ { "filename" : "AppIcon-1024.png", "idiom" : "universal", "platform" : "ios", "size" : "1024x1024" } ],
+  "info" : { "author" : "lumos", "version" : 1 }
+}

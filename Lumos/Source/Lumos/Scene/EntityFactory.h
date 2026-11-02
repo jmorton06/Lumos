@@ -50,5 +50,31 @@ namespace Lumos
         void AddSphere(Scene* scene, const Vec3& pos, const Vec3& dir);
         void AddPyramid(Scene* scene, const Vec3& pos, const Vec3& dir);
         void AddPlatform(Scene* scene, const Vec3& pos, const Vec3& scale);
+
+        Entity AddTerrain(Scene* scene, const Vec3& pos, int gridSize = 256, float scaleXZ = 1.0f, float heightScale = 60.0f);
+
+        // A glTF as entities: one per node, parented like the file, with its models, lights and cameras,
+        // under one entity named after the file. Null entity if it will not load.
+        Entity ImportGLTFScene(Scene* scene, const std::string& path);
+
+        struct TerrainMaterial
+        {
+            Vec4 albedoColour = Vec4(0.35f, 0.55f, 0.25f, 1.0f);
+            float roughness   = 0.95f;
+            float metallic    = 0.0f;
+            float uvTile      = 1.0f;
+            std::string albedoPath;
+            std::string normalPath;
+            std::string roughnessPath;
+            bool noCollider   = false;
+        };
+
+        Entity AddTerrainEx(Scene* scene, const Vec3& pos, int gridSize, float scaleXZ, float heightScale, const TerrainMaterial& mat);
+
+        void BuildTerrainOnEntity(Entity entity, int gridSize, float scaleXZ, float heightScale, const TerrainMaterial& mat = {});
+
+        Entity AddArrow(Scene* scene, const Vec3& pos, const Vec3& velocity, float radius = 0.08f, float length = 0.9f, float mass = 0.2f);
+
+        Entity AddTarget(Scene* scene, const Vec3& pos, float radius = 4.0f, const Vec4& colour = Vec4(1.0f, 0.85f, 0.15f, 1.0f));
     };
 }

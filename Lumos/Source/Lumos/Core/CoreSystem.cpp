@@ -54,7 +54,9 @@ namespace Lumos
                     "  --disable-test-ui            Hide test UI on startup\n"
                     "  --headless                   Run without rendering (no window)\n"
                     "  --scene=<name>               Load specific scene on startup\n"
-                    "  --benchmark=<frames>         Run for N frames, log performance, then exit\n");
+                    "  --benchmark=<frames>         Run for N frames, log performance, then exit\n"
+                    "  --no-app-nap                 Stop the OS throttling this process (macOS App Nap).\n"
+                    "                               Implied by --benchmark, --screenshot and --test\n");
             }
 
             // Init Jobsystem. Reserve 2 threads for main and render threads

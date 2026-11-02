@@ -18,6 +18,8 @@ namespace Lumos
             return *m_pInstance;
         }
 
+        static bool HasInstance() { return m_pInstance != nullptr; }
+
         static void SetInstance(T* instance)
         {
             Release();

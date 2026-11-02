@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "WavLoader.h"
-#include <fstream>
+#include "Core/OS/FileSystem.h"
 
 namespace Lumos
 {
@@ -8,69 +8,49 @@ namespace Lumos
     {
         AudioData data = AudioData();
 
-        std::ifstream file(fileName.c_str(), std::ios::in | std::ios::binary);
+        String8 fileStr = Str8StdS(fileName);
+        i64 fileSize    = FileSystem::Get().GetFileSizeVFS(fileStr);
+        Arena* scratch  = ArenaAlloc(fileSize + Megabytes(1));
+        u8* file        = fileSize > 0 ? FileSystem::Get().ReadFileVFS(scratch, fileStr) : nullptr;
 
-        if(!file)
+        if(!file || fileSize < 12 || MemoryCompare(file, "RIFF", 4) != 0 || MemoryCompare(file + 8, "WAVE", 4) != 0)
         {
-            LFATAL("Failed to load WAV file '{0}'!", fileName.c_str());
+            LFATAL("Failed to load WAV file '%.*s'!", (int)fileStr.size, fileStr.str);
+            ArenaRelease(scratch);
             return data;
         }
 
-        std::string chunkName;
-        uint32_t chunkSize = 0;
+        auto read16 = [](const u8* p) { return (u32)p[0] | ((u32)p[1] << 8); };
+        auto read32 = [](const u8* p) { return (u32)p[0] | ((u32)p[1] << 8) | ((u32)p[2] << 16) | ((u32)p[3] << 24); };
 
-        while(!file.eof())
+        i64 at = 12;
+        while(at + 8 <= fileSize)
         {
-            LoadWAVChunkInfo(file, chunkName, chunkSize);
+            const u8* chunk = file + at;
+            const u32 size  = read32(chunk + 4);
+            const u8* body  = chunk + 8;
 
-            if(chunkName == "RIFF")
+            if(MemoryCompare(chunk, "fmt ", 4) == 0 && at + 8 + 16 <= fileSize)
             {
-                file.seekg(4, std::ios_base::cur);
+                data.Channels = read16(body + 2);
+                data.FreqRate = (float)read32(body + 4);
+                data.BitRate  = read16(body + 14);
             }
-            else if(chunkName == "fmt ")
+            else if(MemoryCompare(chunk, "data", 4) == 0)
             {
-                FMTCHUNK fmt {};
-
-                file.read(reinterpret_cast<char*>(&fmt), sizeof(FMTCHUNK));
-
-                data.BitRate  = static_cast<uint32_t>(fmt.samp);
-                data.FreqRate = static_cast<float>(fmt.srate);
-                data.Channels = static_cast<uint32_t>(fmt.channels);
-            }
-            else if(chunkName == "data")
-            {
-                data.Size = chunkSize;
+                data.Size = (i64)size < fileSize - at - 8 ? size : (u32)(fileSize - at - 8);
                 data.Data.Resize(data.Size);
-                file.read(reinterpret_cast<char*>(data.Data.Data()), chunkSize);
+                MemoryCopy(data.Data.Data(), body, data.Size);
                 break;
-                /*
-                                In release mode, ifstream and / or something else were combining
-                                to make this function see another 'data' chunk, filled with
-                                nonsense data, breaking WAV loading. Easiest way to get around it
-                                was to simply break after loading the data chunk. This *should*
-                                be fine for any WAV file you find / use. Not fun to debug.
-                                */
             }
-            else
-            {
-                file.seekg(chunkSize, std::ios_base::cur);
-            }
+            at += 8 + (i64)size + (size & 1); // chunks are word aligned
         }
 
         // Milliseconds
-        data.Length = static_cast<float>(data.Size) / (data.Channels * data.FreqRate * (data.BitRate / 8.0f)) * 1000.0f;
+        if(data.Channels > 0 && data.BitRate > 0 && data.FreqRate > 0.0f)
+            data.Length = (float)data.Size / (data.Channels * data.FreqRate * (data.BitRate / 8.0f)) * 1000.0f;
 
-        file.close();
-
+        ArenaRelease(scratch);
         return data;
-    }
-
-    void LoadWAVChunkInfo(std::ifstream& file, std::string& name, unsigned int& size)
-    {
-        char chunk[4];
-        file.read(reinterpret_cast<char*>(&chunk), 4);
-        file.read(reinterpret_cast<char*>(&size), 4);
-
-        name = std::string(chunk, 4);
     }
 }

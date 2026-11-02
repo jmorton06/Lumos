@@ -10,7 +10,7 @@ namespace Lumos
         {
         public:
             virtual ~StorageBuffer() = default;
-            static StorageBuffer* Create(uint32_t size, const void* data = nullptr);
+            static StorageBuffer* Create(uint32_t size, const void* data = nullptr, bool readback = false);
 
             virtual void SetData(uint32_t size, const void* data)        = 0;
             virtual void Resize(uint32_t size, const void* data)         = 0;
@@ -27,7 +27,7 @@ namespace Lumos
         protected:
             virtual void* GetPointerInternal() = 0;
 
-            static StorageBuffer* (*CreateFunc)(uint32_t, const void*);
+            static StorageBuffer* (*CreateFunc)(uint32_t, const void*, bool);
         };
     }
 }

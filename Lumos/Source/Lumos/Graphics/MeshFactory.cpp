@@ -390,31 +390,45 @@ namespace Lumos
             return new Mesh(indices, data);
         }
 
-        Mesh* CreatePlane(float width, float height, const Vec3& normal)
+        // A flat grid, not one quad: a floor scaled to hundreds of metres as two triangles loses
+        // depth / position precision across them (screen-space effects then see a step on the diagonal)
+        Mesh* CreatePlane(float width, float height, const Vec3& normal, u32 segments)
         {
             LUMOS_PROFILE_FUNCTION();
-            Vec3 vec      = normal * 90.0f;
-            Quat rotation = Quat::Rotation(vec.z, Vec3(1.0f, 0.0f, 0.0f)) * Quat::Rotation(vec.y, Vec3(0.0f, 1.0f, 0.0f)) * Quat::Rotation(vec.x, Vec3(0.0f, 0.0f, 1.0f));
+            segments = Maths::Max(segments, 1u);
+            // the grid's x / z axes laid across the normal (for +Y: x stays x, z stays z)
+            Vec3 n        = Maths::Length(normal) > 1e-6f ? normal.Normalised() : Vec3(0.0f, 1.0f, 0.0f);
+            Vec3 tangent  = fabsf(n.x) < 0.99f ? Maths::Cross(n, Vec3(0.0f, 0.0f, 1.0f)).Normalised() : Vec3(0.0f, 0.0f, 1.0f);
+            Vec3 binormal = Maths::Cross(tangent, n);
 
-            TDArray<Vertex> data(4);
+            const u32 row = segments + 1;
+            TDArray<Vertex> data(row * row);
+            for(u32 z = 0; z < row; z++)
+                for(u32 x = 0; x < row; x++)
+                {
+                    const float u = (float)x / (float)segments;
+                    const float v = (float)z / (float)segments;
+                    Vertex& vert  = data[z * row + x];
+                    vert.Position  = tangent * ((u - 0.5f) * width) + binormal * ((v - 0.5f) * height);
+                    vert.Normal    = normal;
+                    vert.TexCoords = Vec2(u, v);
+                }
 
-            data[0].Position  = rotation * Vec3(-width * 0.5f, -1.0f, -height * 0.5f);
-            data[0].Normal    = normal;
-            data[0].TexCoords = Vec2(0.0f, 0.0f);
-
-            data[1].Position  = rotation * Vec3(-width * 0.5f, -1.0f, height * 0.5f);
-            data[1].Normal    = normal;
-            data[1].TexCoords = Vec2(0.0f, 1.0f);
-
-            data[2].Position  = rotation * Vec3(width * 0.5f, 1.0f, height * 0.5f);
-            data[2].Normal    = normal;
-            data[2].TexCoords = Vec2(1.0f, 1.0f);
-
-            data[3].Position  = rotation * Vec3(width * 0.5f, 1.0f, -height * 0.5f);
-            data[3].Normal    = normal;
-            data[3].TexCoords = Vec2(1.0f, 0.0f);
-
-            TDArray<uint32_t> indices = { 0, 1, 2, 2, 3, 0 };
+            TDArray<uint32_t> indices;
+            indices.Reserve(segments * segments * 6);
+            for(u32 z = 0; z < segments; z++)
+                for(u32 x = 0; x < segments; x++)
+                {
+                    const u32 i0 = z * row + x;
+                    const u32 i1 = i0 + row;
+                    // same winding as the old quad (0, 1, 2, 2, 3, 0)
+                    indices.PushBack(i0);
+                    indices.PushBack(i1);
+                    indices.PushBack(i1 + 1);
+                    indices.PushBack(i1 + 1);
+                    indices.PushBack(i0 + 1);
+                    indices.PushBack(i0);
+                }
             return new Mesh(indices, data);
         }
 

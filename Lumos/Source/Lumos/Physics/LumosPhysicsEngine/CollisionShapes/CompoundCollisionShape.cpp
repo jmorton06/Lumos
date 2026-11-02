@@ -44,8 +44,6 @@ namespace Lumos
         if(m_Children.Empty())
             return Mat3(1.0f);
 
-        // Simple approximation: use the largest child's inertia
-        // (proper compound inertia requires parallel axis theorem)
         float maxSize     = 0.0f;
         int largestChild  = 0;
 

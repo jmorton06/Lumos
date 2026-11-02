@@ -173,6 +173,7 @@ namespace Lumos
         void SetPosition(const Vec3& v)
         {
             m_Position               = v;
+            m_PrevPosition           = v;   // treat external writes as teleports — render must not interpolate through old pos
             m_WSTransformInvalidated = true;
             m_WSAabbInvalidated      = true;
         }
@@ -183,7 +184,16 @@ namespace Lumos
         void SetOrientation(const Quat& v)
         {
             m_Orientation            = v;
+            m_PrevOrientation        = v;
             m_WSTransformInvalidated = true;
+        }
+
+        const Vec3& GetPrevPosition() const { return m_PrevPosition; }
+        const Quat& GetPrevOrientation() const { return m_PrevOrientation; }
+        void SnapshotPrev()
+        {
+            m_PrevPosition    = m_Position;
+            m_PrevOrientation = m_Orientation;
         }
 
         void SetAngularVelocity(const Vec3& v);
@@ -195,6 +205,17 @@ namespace Lumos
             m_AtRest = false;
         }
         void SetInverseInertia(const Mat3& v) { m_InvInertia = v; }
+
+        Mat3 GetWorldInverseInertia() const;
+
+        // Velocity of a world-space point on the body (accounts for spin).
+        Vec3 GetPointVelocity(const Vec3& worldPoint) const;
+
+        // Centre-of-mass impulse (matches the Lua ApplyImpulse helper).
+        void ApplyImpulse(const Vec3& impulse);
+
+        void ApplyImpulseAtPoint(const Vec3& impulse, const Vec3& worldPoint);
+        void ApplyForceAtPoint(const Vec3& force, const Vec3& worldPoint);
 
         //<---------- CALLBACKS ------------>
         void SetOnCollisionCallback(PhysicsCollisionCallback& callback) { m_OnCollisionCallback = callback; }
@@ -301,6 +322,7 @@ namespace Lumos
         UUID m_UUID;
 
         Vec3 m_Position;
+        Vec3 m_PrevPosition;       // render-interp endpoint (see SnapshotPrev)
         Vec3 m_LinearVelocity;
         Vec3 m_Force;
         float m_InvMass;
@@ -310,6 +332,7 @@ namespace Lumos
         bool m_IsValid       = true;
 
         Quat m_Orientation;
+        Quat m_PrevOrientation;    // render-interp endpoint (see SnapshotPrev)
         Vec3 m_AngularVelocity;
         Vec3 m_Torque;
         Mat3 m_InvInertia;

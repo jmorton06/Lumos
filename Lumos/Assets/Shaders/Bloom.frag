@@ -142,7 +142,7 @@ vec4 QuadraticThreshold(vec4 color, float threshold, vec3 curve)
 
 vec4 Prefilter(vec4 color, vec2 uv)
 {
-    float clampValue = 20.0f;
+    float clampValue = 8.0f;
     color = min(vec4(clampValue), color);
     color = QuadraticThreshold(color, u_Uniforms.Params.x, u_Uniforms.Params.yzw);
     return color;

@@ -57,6 +57,11 @@ namespace Lumos
         return die;
     }
 
+    bool RefCount::tryReference()
+    {
+        return m_Refcount.TryRef();
+    }
+
     bool RefCount::weakReference()
     {
         bool success = m_WeakRefcount.SharedPtr();

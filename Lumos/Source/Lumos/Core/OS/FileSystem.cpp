@@ -65,12 +65,16 @@ namespace Lumos
             return folder ? FileSystem::FolderExists(*outPhysicalPath) : FileSystem::FileExists(*outPhysicalPath);
         }
 
+        // results go in the frame arena (callers keep them for the frame); a worker thread must not push
+        // into that, so it gets the arena it passed
+        Arena* out = (arena && !IsMainThread()) ? arena : Application::Get().GetFrameArena();
+
 #ifndef LUMOS_PRODUCTION
         String8 assetsStr = Str8Lit("Assets");
         String8 pathSub2  = Substr8(path, { 2, Maths::Min(path.size, 8) });
         if(!Str8Match(pathSub2, assetsStr))
         {
-            *outPhysicalPath = PushStr8F(Application::Get().GetFrameArena(), "%s%s",
+            *outPhysicalPath = PushStr8F(out, "%s%s",
                                          (char*)m_AssetsPath.str,
                                          ToCChar(Substr8(path, { 1, path.size })));
             NullTerminate((*outPhysicalPath));
@@ -79,7 +83,7 @@ namespace Lumos
         else
 #endif
         {
-            *outPhysicalPath = PushStr8F(Application::Get().GetFrameArena(), "%s%s",
+            *outPhysicalPath = PushStr8F(out, "%s%s",
                                          (char*)m_AssetsPath.str,
                                          ToCChar(Substr8(path, { 8, path.size })));
             NullTerminate((*outPhysicalPath));
@@ -102,19 +106,30 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
+        String8 physicalPath;
+        if(ResolvePhysicalPath(arena, path, &physicalPath) && FileSystem::FileExists(physicalPath))
+            return FileSystem::ReadFile(arena, physicalPath);
+
         if(m_PackReader && m_PackReader->Contains(path))
         {
             u64 size = 0;
             return m_PackReader->ReadAsset(arena, path, &size);
         }
 
-        String8 physicalPath;
-        return ResolvePhysicalPath(arena, path, &physicalPath) ? FileSystem::ReadFile(arena, physicalPath) : nullptr;
+        return nullptr;
     }
 
     String8 FileSystem::ReadTextFileVFS(Arena* arena, const String8& path)
     {
         LUMOS_PROFILE_FUNCTION();
+
+        // Loose-first, pack fallback — keeps dev edits live without re-packing.
+        String8 physicalPath;
+        if(ResolvePhysicalPath(arena, path, &physicalPath) && FileSystem::FileExists(physicalPath))
+        {
+            String8 text = FileSystem::ReadTextFile(arena, physicalPath);
+            return text;
+        }
 
         if(m_PackReader && m_PackReader->Contains(path))
         {
@@ -130,13 +145,30 @@ namespace Lumos
             return Str8Lit("");
         }
 
-        String8 physicalPath;
-        if(ResolvePhysicalPath(arena, path, &physicalPath))
-        {
-            String8 text = FileSystem::ReadTextFile(arena, physicalPath);
-            return text;
-        }
         return Str8Lit("");
+    }
+
+    std::string FileSystem::UserDataPath(const std::string& appName)
+    {
+        std::string base;
+#if defined(LUMOS_PLATFORM_WINDOWS)
+        if(const char* appData = std::getenv("APPDATA"))
+            base = appData;
+#elif defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
+        if(const char* home = std::getenv("HOME"))
+            base = std::string(home) + "/Library/Application Support";
+#else
+        if(const char* xdg = std::getenv("XDG_DATA_HOME"))
+            base = xdg;
+        else if(const char* home = std::getenv("HOME"))
+            base = std::string(home) + "/.local/share";
+#endif
+        if(base.empty())
+            base = ".";
+        std::filesystem::path p = std::filesystem::path(base) / appName;
+        std::error_code ec;
+        std::filesystem::create_directories(p, ec);
+        return p.string();
     }
 
     bool FileSystem::WriteFileVFS(const String8& path, uint8_t* buffer, uint32_t size)
@@ -144,7 +176,9 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         String8 physicalPath;
         ArenaTemp temp = ScratchBegin(nullptr, 0);
-        bool success   = Get().ResolvePhysicalPath(temp.arena, path, &physicalPath) ? FileSystem::WriteFile(physicalPath, buffer, size) : false;
+        // the bool is "exists": a new file still resolves to where it should go
+        Get().ResolvePhysicalPath(temp.arena, path, &physicalPath);
+        bool success = physicalPath.size > 0 && FileSystem::WriteFile(physicalPath, buffer, size);
         ScratchEnd(temp);
 
         return success;
@@ -156,7 +190,9 @@ namespace Lumos
         String8 physicalPath;
         ArenaTemp temp = ScratchBegin(nullptr, 0);
 
-        bool success = Get().ResolvePhysicalPath(temp.arena, path, &physicalPath) ? FileSystem::WriteTextFile(physicalPath, text) : false;
+        // the bool is "exists": a new file still resolves to where it should go
+        Get().ResolvePhysicalPath(temp.arena, path, &physicalPath);
+        bool success = physicalPath.size > 0 && FileSystem::WriteTextFile(physicalPath, text);
         ScratchEnd(temp);
 
         return success;
@@ -164,14 +200,14 @@ namespace Lumos
 
     bool FileSystem::FileExistsVFS(const String8& path)
     {
-        if(m_PackReader && m_PackReader->Contains(path))
-            return true;
-
         ArenaTemp temp = ScratchBegin(nullptr, 0);
         String8 physicalPath;
         bool exists = ResolvePhysicalPath(temp.arena, path, &physicalPath) && FileSystem::FileExists(physicalPath);
         ScratchEnd(temp);
-        return exists;
+        if(exists)
+            return true;
+
+        return m_PackReader && m_PackReader->Contains(path);
     }
 
     bool FileSystem::FolderExistsVFS(const String8& path)
@@ -185,13 +221,15 @@ namespace Lumos
 
     int64_t FileSystem::GetFileSizeVFS(const String8& path)
     {
-        if(m_PackReader && m_PackReader->Contains(path))
-            return m_PackReader->GetAssetSize(path);
-
         ArenaTemp temp = ScratchBegin(nullptr, 0);
         String8 physicalPath;
-        int64_t size = ResolvePhysicalPath(temp.arena, path, &physicalPath) ? FileSystem::GetFileSize(physicalPath) : -1;
+        int64_t size = -1;
+        if(ResolvePhysicalPath(temp.arena, path, &physicalPath) && FileSystem::FileExists(physicalPath))
+            size = FileSystem::GetFileSize(physicalPath);
         ScratchEnd(temp);
+
+        if(size < 0 && m_PackReader && m_PackReader->Contains(path))
+            return m_PackReader->GetAssetSize(path);
         return size;
     }
 
@@ -250,11 +288,18 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_IOS
             const char* home = std::getenv("HOME");
             if(!home)
-                throw std::runtime_error("Can't obtain HOME");
+                return;
 
-            auto fullPath = std::filesystem::path(home) / "Documents/Lumos" / ToStdString(path);
-            std::filesystem::create_directory(fullPath);
-            LINFO("Creating folder %s", ToCChar(path));
+            // Strip leading separator so the bundle path becomes relative under Documents/Lumos
+            std::string rel = ToStdString(path);
+            while(!rel.empty() && (rel.front() == '/' || rel.front() == '\\'))
+                rel.erase(rel.begin());
+
+            std::error_code ec;
+            auto fullPath = std::filesystem::path(home) / "Documents/Lumos" / rel;
+            std::filesystem::create_directories(fullPath, ec);
+            if(!ec)
+                LINFO("Creating folder %s", fullPath.c_str());
 #else
             std::error_code ec;
             std::filesystem::create_directory(ToStdString(path), ec);

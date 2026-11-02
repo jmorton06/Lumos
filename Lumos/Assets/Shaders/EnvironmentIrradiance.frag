@@ -58,7 +58,9 @@ void main()
 	ComputeBasisVectors(N, S, T);
 
     uint samples = min(64 * ubo.Samples, 512u);
-    
+
+	float blurMip = max(float(textureQueryLevels(u_Texture)) - 4.0, 0.0);
+
 	// Monte Carlo integration of hemispherical irradiance.
 	// As a small optimization this also includes Lambertian BRDF assuming perfectly white surface (albedo of 1.0)
 	// so we don't need to normalize in PBR fragment shader (so technically it encodes exitant radiance rather than irradiance).
@@ -70,7 +72,7 @@ void main()
 		float cosTheta = max(0.0, dot(Li, N));
 
 		// PIs here cancel out because of division by pdf.
-		irradiance += 2.0 * textureLod(u_Texture, Li, 0).rgb * cosTheta;
+		irradiance += 2.0 * textureLod(u_Texture, Li, blurMip).rgb * cosTheta;
 	}
 	irradiance /= vec3(samples);
 

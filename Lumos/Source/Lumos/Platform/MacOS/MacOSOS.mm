@@ -43,6 +43,22 @@ namespace Lumos
         auto& app = Lumos::Application::Get();
 
         app.Init();
+
+        // AppKit keeps Ctrl+Tab for its own focus loop: the window never sees the key go down. Hand it over.
+        [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown
+                                              handler:^NSEvent*(NSEvent* event) {
+                                                  if([event keyCode] == 48 && ([event modifierFlags] & NSEventModifierFlagControl))
+                                                  {
+                                                      NSWindow* window = [NSApp keyWindow];
+                                                      if(window && [window contentView])
+                                                      {
+                                                          [[window contentView] keyDown:event];
+                                                          return nil;
+                                                      }
+                                                  }
+                                                  return event;
+                                              }];
+
         app.Run();
         app.Release();
     }
@@ -50,6 +66,28 @@ namespace Lumos
     void MacOSOS::Init()
     {
         GLFWWindow::MakeDefault();
+    }
+
+    static id s_NoNapActivity = nil;
+
+    void MacOSOS::SetLowLatencyMode(bool enabled)
+    {
+        if(enabled)
+        {
+            if(s_NoNapActivity)
+                return;
+            NSActivityOptions opts = NSActivityUserInitiated | NSActivityLatencyCritical;
+            s_NoNapActivity = [[NSProcessInfo processInfo] beginActivityWithOptions:opts
+                                                                             reason:@"Lumos benchmark / capture"];
+            [s_NoNapActivity retain];
+            LINFO("macOS: App Nap and timer coalescing disabled for this process");
+        }
+        else if(s_NoNapActivity)
+        {
+            [[NSProcessInfo processInfo] endActivity:s_NoNapActivity];
+            [s_NoNapActivity release];
+            s_NoNapActivity = nil;
+        }
     }
 
     void MacOSOS::SetTitleBarColour(const Vec4& colour, bool dark)
@@ -66,6 +104,70 @@ namespace Lumos
             window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameVibrantDark];
         else
             window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameVibrantLight];
+    }
+
+    bool MacOSOS::IsDarkMode() const
+    {
+        if(@available(macOS 10.14, *))
+        {
+            NSAppearanceName name = [NSApp.effectiveAppearance bestMatchFromAppearancesWithNames:@[ NSAppearanceNameAqua, NSAppearanceNameDarkAqua ]];
+            return [name isEqualToString:NSAppearanceNameDarkAqua];
+        }
+        return false;
+    }
+
+    void MacOSOS::OpenFileLocation(const std::string& path)
+    {
+        NSURL* url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:path.c_str()]];
+        [[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:@[ url ]];
+    }
+
+    void MacOSOS::OpenFileExternal(const std::string& path)
+    {
+        [[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:[NSString stringWithUTF8String:path.c_str()]]];
+    }
+
+    void MacOSOS::OpenURL(const std::string& url)
+    {
+        NSURL* u = [NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]];
+        if(u)
+            [[NSWorkspace sharedWorkspace] openURL:u];
+    }
+
+    void MacOSOS::SetWindowDecorations(bool decorated)
+    {
+        auto& app = Lumos::Application::Get();
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+
+        if(!decorated)
+        {
+            window.styleMask |= NSWindowStyleMaskFullSizeContentView;
+            window.titlebarAppearsTransparent = YES;
+            window.titleVisibility = NSWindowTitleHidden;
+
+            SEL sel = NSSelectorFromString(@"_setTitlebarHeight:");
+            if([window respondsToSelector:sel])
+            {
+                NSMethodSignature* sig = [NSWindow instanceMethodSignatureForSelector:sel];
+                if(sig)
+                {
+                    NSInvocation* inv = [NSInvocation invocationWithMethodSignature:sig];
+                    [inv setTarget:window];
+                    [inv setSelector:sel];
+                    CGFloat barH = 42.0;
+                    [inv setArgument:&barH atIndex:2];
+                    [inv invoke];
+                }
+            }
+        }
+        else
+        {
+            window.styleMask &= ~NSWindowStyleMaskFullSizeContentView;
+            window.titlebarAppearsTransparent = NO;
+            window.titleVisibility = NSWindowTitleVisible;
+        }
+
+        app.GetWindow()->RefreshSize();
     }
 
     std::string MacOSOS::GetExecutablePath()
@@ -102,6 +204,102 @@ namespace Lumos
         auto window = Application::Get().GetWindow();
         NSWindow* nativeWindow = glfwGetCocoaWindow((GLFWwindow*)window->GetHandle());
 
-        [nativeWindow toggleFullScreen:nil];
+        [nativeWindow zoom:nil];
+    }
+
+    // Latched drag state — captured at BeginWindowDrag.
+    static NSPoint s_DragStartMouseScreen = { 0, 0 };
+    static NSPoint s_DragStartWindowOrigin = { 0, 0 };
+
+    bool MacOSOS::BeginWindowDrag()
+    {
+        auto& app = Lumos::Application::Get();
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+        s_DragStartMouseScreen   = [NSEvent mouseLocation];
+        s_DragStartWindowOrigin  = window.frame.origin;
+        return false;
+    }
+
+    void MacOSOS::UpdateWindowDrag()
+    {
+        auto& app = Lumos::Application::Get();
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+        NSPoint nowScreen = [NSEvent mouseLocation];
+        NSPoint target;
+        target.x = s_DragStartWindowOrigin.x + (nowScreen.x - s_DragStartMouseScreen.x);
+        target.y = s_DragStartWindowOrigin.y + (nowScreen.y - s_DragStartMouseScreen.y);
+        [window setFrameOrigin:target];
+    }
+
+    bool MacOSOS::IsWindowMaximised() const
+    {
+        auto& app = Lumos::Application::Get();
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+        return [window isZoomed];
+    }
+
+    bool MacOSOS::IsWindowFullscreen() const
+    {
+        auto& app = Lumos::Application::Get();
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+        return ([window styleMask] & NSWindowStyleMaskFullScreen) != 0;
+    }
+
+    static bool s_DidEnterFullscreen = false;
+
+    void MacOSOS::SetWindowFullscreen(bool fullscreen)
+    {
+        auto& app = Lumos::Application::Get();
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+
+        window.collectionBehavior |= NSWindowCollectionBehaviorFullScreenPrimary;
+        window.styleMask |= NSWindowStyleMaskResizable;
+
+        static bool observerRegistered = false;
+        if(!observerRegistered)
+        {
+            observerRegistered = true;
+            [[NSNotificationCenter defaultCenter] addObserverForName:NSWindowDidEnterFullScreenNotification
+                                                              object:nil
+                                                               queue:[NSOperationQueue mainQueue]
+                                                          usingBlock:^(NSNotification*) { s_DidEnterFullscreen = true; }];
+        }
+
+        bool isFullscreen = ([window styleMask] & NSWindowStyleMaskFullScreen) != 0;
+        if(isFullscreen != fullscreen)
+        {
+            if(fullscreen)
+            {
+                [NSApp activateIgnoringOtherApps:YES];
+                [window makeKeyAndOrderFront:nil];
+            }
+            [window toggleFullScreen:nil];
+        }
+    }
+
+    bool MacOSOS::IsAppActive()
+    {
+        auto& app = Lumos::Application::Get();
+        if(!app.GetWindow())
+            return true;
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+        if([NSApp isActive] && [window isKeyWindow])
+            return true;
+        [NSApp activateIgnoringOtherApps:YES];
+        [window makeKeyAndOrderFront:nil];
+        return false;
+    }
+
+    bool MacOSOS::DidEnterFullscreen() const
+    {
+        return s_DidEnterFullscreen;
+    }
+
+    void MacOSOS::RestoreWindow()
+    {
+        auto& app = Lumos::Application::Get();
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+        if([window isZoomed])
+            [window zoom:nil];
     }
 }
